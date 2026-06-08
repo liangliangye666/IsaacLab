@@ -2,6 +2,9 @@
 
 ---
 
+Base: IsaacLab v2.3.2
+Base commit: 37ddf626871758333d6ed89cf64ad702aef127d0
+
 # Isaac Lab
 
 [![IsaacSim](https://img.shields.io/badge/IsaacSim-5.1.0-silver.svg)](https://docs.isaacsim.omniverse.nvidia.com/latest/index.html)
