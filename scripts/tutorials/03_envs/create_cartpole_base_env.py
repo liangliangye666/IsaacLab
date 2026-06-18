@@ -70,8 +70,8 @@ class ObservationsCfg:
         joint_vel_rel = ObsTerm(func=mdp.joint_vel_rel)
 
         def __post_init__(self) -> None:
-            self.enable_corruption = False
-            self.concatenate_terms = True
+            self.enable_corruption = False  # 表示不启用观测扰动 / 噪声污染
+            self.concatenate_terms = True   # 表示把这个观测组里的所有观测项拼接成一个大张量
 
     # observation groups
     policy: PolicyCfg = PolicyCfg()
@@ -81,15 +81,25 @@ class ObservationsCfg:
 class EventCfg:
     """Configuration for events."""
 
+    '''
+    每个 EventTerm 一般包含三部分：
+        EventTerm(
+            func=某个函数,
+            mode=什么时候执行,
+            params=函数需要的参数,
+        )
+    也就是说：
+        EventTerm = 在某个时机，调用某个函数，并传入某些参数
+    '''
     # on startup
     add_pole_mass = EventTerm(
         func=mdp.randomize_rigid_body_mass,
         mode="startup",
         params={
-            "asset_cfg": SceneEntityCfg("robot", body_names=["pole"]),
+            "asset_cfg": SceneEntityCfg("robot", body_names=["pole"]),  # 我要操作哪个资产的哪个刚体？
             "mass_distribution_params": (0.1, 0.5),
             "operation": "add",
-        },
+        },# 随机采样一个 0.1 到 0.5 之间的值，然后加到 pole 原始质量上
     )
 
     # on reset
@@ -128,9 +138,9 @@ class CartpoleEnvCfg(ManagerBasedEnvCfg):
     def __post_init__(self):
         """Post initialization."""
         # viewer settings
-        self.viewer.eye = [4.5, 0.0, 6.0]
-        self.viewer.lookat = [0.0, 0.0, 2.0]
-        # step settings
+        self.viewer.eye = [4.5, 0.0, 6.0]       # 相机的位置
+        self.viewer.lookat = [0.0, 0.0, 2.0]    # 相机看向哪里
+        # step settings     一个环境 step 里面包含多少个物理仿真 step
         self.decimation = 4  # env step every 4 sim steps: 200Hz / 4 = 50Hz
         # simulation settings
         self.sim.dt = 0.005  # sim step every 5ms: 200Hz

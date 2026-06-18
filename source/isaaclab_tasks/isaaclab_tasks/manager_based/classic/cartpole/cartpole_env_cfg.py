@@ -112,23 +112,36 @@ class EventCfg:
 class RewardsCfg:
     """Reward terms for the MDP."""
 
-    # (1) Constant running reward
+    '''
+    RewTerm 就是一个奖励项配置。
+        它一般包含三个核心部分：
+            RewTerm(
+                func=奖励函数,
+                weight=奖励权重,
+                params=额外参数,
+            )
+        也就是：
+            用 func 算出原始奖励
+            再乘以 weight
+            params 是传给 func 的参数
+    '''
+    # (1) Constant running reward   存活奖励: 鼓励智能体尽可能长时间保持存活状态
     alive = RewTerm(func=mdp.is_alive, weight=1.0)
-    # (2) Failure penalty
+    # (2) Failure penalty   终止奖励: 同样惩罚智能体的终止
     terminating = RewTerm(func=mdp.is_terminated, weight=-2.0)
-    # (3) Primary task: keep pole upright
+    # (3) Primary task: keep pole upright   杆角度奖励: 鼓励智能体保持杆在期望的直立位置
     pole_pos = RewTerm(
         func=mdp.joint_pos_target_l2,
         weight=-1.0,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["cart_to_pole"]), "target": 0.0},
     )
-    # (4) Shaping tasks: lower cart velocity
+    # (4) Shaping tasks: lower cart velocity    小车速度奖励: 鼓励智能体尽可能保持小车速度较小
     cart_vel = RewTerm(
         func=mdp.joint_vel_l1,
         weight=-0.01,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["slider_to_cart"])},
     )
-    # (5) Shaping tasks: lower pole angular velocity
+    # (5) Shaping tasks: lower pole angular velocity    杆速度奖励: 鼓励智能体尽可能保持杆速度较小
     pole_vel = RewTerm(
         func=mdp.joint_vel_l1,
         weight=-0.005,
@@ -140,9 +153,16 @@ class RewardsCfg:
 class TerminationsCfg:
     """Termination terms for the MDP."""
 
-    # (1) Time out
+    '''
+    DoneTerm(
+        func=某个终止判断函数,
+        params=函数参数,
+        time_out=是否属于时间截断,
+    )
+    '''
+    # (1) Time out  回合长度: 回合长度大于定义的最大回合长度
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
-    # (2) Cart out of bounds
+    # (2) Cart out of bounds    小车越界: 小车走出边界 [-3, 3]
     cart_out_of_bounds = DoneTerm(
         func=mdp.joint_pos_out_of_manual_limit,
         params={"asset_cfg": SceneEntityCfg("robot", joint_names=["slider_to_cart"]), "bounds": (-3.0, 3.0)},
@@ -158,13 +178,13 @@ class TerminationsCfg:
 class CartpoleEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the cartpole environment."""
 
-    # Scene settings
+    # Scene settings    clone_in_fabric=True:用更高效的方式复制多个环境，提高大规模并行环境的性能。
     scene: CartpoleSceneCfg = CartpoleSceneCfg(num_envs=4096, env_spacing=4.0, clone_in_fabric=True)
-    # Basic settings
+    # Basic settings    基础设置
     observations: ObservationsCfg = ObservationsCfg()
     actions: ActionsCfg = ActionsCfg()
     events: EventCfg = EventCfg()
-    # MDP settings
+    # MDP settings  强化学习设置
     rewards: RewardsCfg = RewardsCfg()
     terminations: TerminationsCfg = TerminationsCfg()
 
@@ -178,4 +198,4 @@ class CartpoleEnvCfg(ManagerBasedRLEnvCfg):
         self.viewer.eye = (8.0, 0.0, 5.0)
         # simulation settings
         self.sim.dt = 1 / 120
-        self.sim.render_interval = self.decimation
+        self.sim.render_interval = self.decimation  # 每个环境步渲染一次画面。

@@ -53,8 +53,14 @@ def design_scene():
     # Create separate groups called "Origin1", "Origin2", "Origin3"
     # Each group will have a robot in it
     origins = [[0.25, 0.25, 0.0], [-0.25, 0.25, 0.0], [0.25, -0.25, 0.0], [-0.25, -0.25, 0.0]]
-    for i, origin in enumerate(origins):
+    for i, origin in enumerate(origins):    # i：索引编号，origin：当前元素
         sim_utils.create_prim(f"/World/Origin{i}", "Xform", translation=origin)
+        '''
+        /World/Origin0
+        /World/Origin1
+        /World/Origin2
+        /World/Origin3
+        '''
 
     # Rigid Object
     cone_cfg = RigidObjectCfg(
@@ -69,10 +75,10 @@ def design_scene():
         ),
         init_state=RigidObjectCfg.InitialStateCfg(),
     )
-    cone_object = RigidObject(cfg=cone_cfg)
+    cone_object = RigidObject(cfg=cone_cfg) # 创建 Isaac Lab 的刚体对象管理器
 
     # return the scene information
-    scene_entities = {"cone": cone_object}
+    scene_entities = {"cone": cone_object}  # 创建了一个字典，后续使用 scene_entities["cone"] 就可以拿到刚才创建的刚体圆锥对象
     return scene_entities, origins
 
 
@@ -97,9 +103,9 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, RigidObj
             root_state = cone_object.data.default_root_state.clone()
             # sample a random position on a cylinder around the origins
             root_state[:, :3] += origins
-            root_state[:, :3] += math_utils.sample_cylinder(
+            root_state[:, :3] += math_utils.sample_cylinder(    # 给每个圆锥的位置再加一个随机偏移：在一个圆柱区域内随机采样点。
                 radius=0.1, h_range=(0.25, 0.5), size=cone_object.num_instances, device=cone_object.device
-            )
+            )   # size表示采样多少个随机点
             # write root state to simulation
             cone_object.write_root_pose_to_sim(root_state[:, :7])
             cone_object.write_root_velocity_to_sim(root_state[:, 7:])
@@ -107,7 +113,13 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, RigidObj
             cone_object.reset()
             print("----------------------------------------")
             print("[INFO]: Resetting object state...")
-        # apply sim data
+        # apply sim data    把 RigidObject 当前缓存里需要写入仿真的数据提交给仿真器
+        '''
+        write_joint_state_to_sim：
+            直接写关节状态，常用于 reset。
+        write_data_to_sim：
+            把 action / target / force 等写入仿真器，常用于每个 step。
+        '''
         cone_object.write_data_to_sim()
         # perform step
         sim.step()

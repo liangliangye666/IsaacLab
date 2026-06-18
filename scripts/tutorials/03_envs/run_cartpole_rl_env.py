@@ -62,6 +62,10 @@ def main():
             # sample random actions
             joint_efforts = torch.randn_like(env.action_manager.action)
             # step the environment
+            '''
+            terminated  表示真正任务终止
+            truncated   表示时间截断
+            '''
             obs, rew, terminated, truncated, info = env.step(joint_efforts)
             # print current orientation of pole
             print("[Env 0]: Pole joint: ", obs["policy"][0][1].item())

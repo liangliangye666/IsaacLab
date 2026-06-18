@@ -54,10 +54,10 @@ from isaaclab_tasks.manager_based.locomotion.velocity.config.h1.rough_env_cfg im
 def main():
     """Main function."""
     # load the trained jit policy
-    policy_path = os.path.abspath(args_cli.checkpoint)
-    file_content = omni.client.read_file(policy_path)[2]
-    file = io.BytesIO(memoryview(file_content).tobytes())
-    policy = torch.jit.load(file, map_location=args_cli.device)
+    policy_path = os.path.abspath(args_cli.checkpoint)  # 相对路径转成绝对路径
+    file_content = omni.client.read_file(policy_path)[2]    # 读取文件，返回一个结果对象/元组
+    file = io.BytesIO(memoryview(file_content).tobytes())   # 把读取到的二进制内容转换成一个“内存文件”
+    policy = torch.jit.load(file, map_location=args_cli.device) # 加载 TorchScript 策略模型
 
     # setup environment
     env_cfg = H1RoughEnvCfg_PLAY()
