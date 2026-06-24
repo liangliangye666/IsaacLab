@@ -4,5 +4,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Pre-defined terrain configurations for the terrain generator."""
+"""为地形发电机预定义地形配置。"""
 
 from .rough import *  # noqa: F401

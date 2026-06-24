@@ -5,6 +5,7 @@
 
 
 """This sub-module contains the functions that are specific to the Spot locomotion task."""
+"""该子模块包含特定于点移动任务的函数。"""
 
 from .events import *  # noqa: F401, F403
 from .rewards import *  # noqa: F401, F403

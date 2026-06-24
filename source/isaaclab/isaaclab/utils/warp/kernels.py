@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Custom kernels for warp."""
+"""为了变形。"""
 
 from typing import Any
 
@@ -55,6 +56,44 @@ def raycast_mesh_kernel(
         return_distance: Whether to return the ray hit distances. Defaults to False.
         return_normal: Whether to return the ray hit normals. Defaults to False`.
         return_face_id: Whether to return the ray hit face ids. Defaults to False.
+    """
+    """射线射线射线射线。
+
+    该函数使用所提供的射线起始位置和方向对给定的网格进行射线casting。
+    结果射线撞击位置存储在:obj:`ray_hits`阵列中。
+
+    注意`ray_starts`，`ray_directions`和`ray_hits`阵列应具有兼容的形状和数据类型，以确保适当的执行。
+    另外，它们都必须处于一个框架内。
+
+    该函数使用`wp`模块的`mesh_query_ray`方法来执行实际射射操作。
+    射线最大距离设置为`1e6`单位。
+
+    参数：
+        mesh: 输入网。
+              在`mesh`的`device`属性所指定的装置上，对该网进行射线。
+        ray_starts: 输入射线开始位置。
+                    形状是 (N， 3)。
+        ray_directions: 输入射线方向。
+                        形状是 (N， 3)。
+        ray_hits: 输出射线撞到位置。
+                  形状是 (N， 3)。
+        ray_distance: 输出射线达到距离。
+                      形状是 (N，)，如果`return_distance`是True。
+                      否则，该阵列不会被使用。
+        ray_normal: 输出射线达到正常水平。
+                    形状是 (N， 3)，如果`return_normal`是True。
+                    否则，该阵列不会被使用。
+        ray_face_id: 输出射线击中了面部身份证。
+                     形状是 (N，)，如果`return_face_id`是True。
+                     否则，该阵列不会被使用。
+        max_dist: 射线最大距离。
+                  在1e6上默认设置。
+        return_distance: 是否返回射线撞击距离。
+                         默认为 False。
+        return_normal: 是否返回射线正常。
+                       默认的False`。
+        return_face_id: 是否返回射线撞击面部身份证。
+                        默认为 False。
     """
     # get the thread id
     tid = wp.tid()
@@ -128,6 +167,51 @@ def raycast_static_meshes_kernel(
         return_normal: Whether to return the ray hit normals. Defaults to False`.
         return_face_id: Whether to return the ray hit face ids. Defaults to False.
         return_mesh_id: Whether to return the mesh id. Defaults to False.
+    """
+    """执行反射射对多个静态网格。
+
+    这种函数使用所提供的射线开始位置和方向对给定的网格进行射线casting。
+    结果射线撞击位置存储在:obj:`ray_hits`阵列中。
+
+    该函数使用``wp``模块的``mesh_query_ray``方法来执行实际射射操作。
+    射线最大距离设置为``1e6``单位。
+
+    .. 说明::
+        为了确保正确执行，``ray_starts``，``ray_directions``和``ray_hits``阵列应具有兼容的形状和数据类型。
+        另外，它们都必须处于一个框架内。
+
+        这种核与:meth:`raycast_dynamic_meshes_kernel`不同，因为它不考虑网格的位置和旋转。
+        这种芯片是用于向不预期移动的静态网格射射。
+
+    参数：
+        mesh: 输入网。
+              在`mesh`的`device`属性所指定的装置上，对该网进行射线。
+        ray_starts: 输入射线开始位置。
+                    形状是 (B，N，3)
+        ray_directions: 输入射线方向。
+                        形状是 (B，N，3)
+        ray_hits: 输出射线撞到位置。
+                  形状是 (B，N，3)
+        ray_distance: 输出射线达到距离。
+                      形状是 (B，N，)，如果``return_distance``是True。
+                      否则，该阵列不会被使用。
+        ray_normal: 输出射线达到正常水平。
+                    形状是 (B，N，3) ，如果``return_normal``是True。
+                    否则，该阵列不会被使用。
+        ray_face_id: 输出射线击中了面部身份证。
+                     形状是 (B，N，)，如果``return_face_id``是True。
+                     否则，该阵列不会被使用。
+        ray_mesh_id: 输出射线击中了网格标识。
+                     形状是 (B，N，)，如果``return_mesh_id``是True。
+                     否则，该阵列不会被使用。
+        max_dist: 射线最大距离。
+                  在1e6上默认设置。
+        return_normal: 是否返回射线正常。
+                       默认的False`。
+        return_face_id: 是否返回射线撞击面部身份证。
+                        默认为 False。
+        return_mesh_id: 是否返回网格身份。
+                        默认为 False。
     """
     # get the thread id
     tid_mesh_id, tid_env, tid_ray = wp.tid()
@@ -212,6 +296,56 @@ def raycast_dynamic_meshes_kernel(
         return_face_id: Whether to return the ray hit face ids. Defaults to False.
         return_mesh_id: Whether to return the mesh id. Defaults to False.
     """
+    """能对多个网格进行射线casting。
+
+    这种函数使用所提供的射线开始位置和方向对给定的网格进行射线casting。
+    结果射线撞击位置存储在:obj:`ray_hits`阵列中。
+
+    该函数使用``wp``模块的``mesh_query_ray``方法来执行实际射射操作。
+    射线最大距离设置为``1e6``单位。
+
+
+    说明：
+        为了确保正确执行，``ray_starts``，``ray_directions``和``ray_hits``阵列应具有兼容的形状和数据类型。
+        另外，它们都必须处于一个框架内。
+
+        预计所有参数都将分批，第一个维度 (B，批量) 是envs的数量，第二个维度 (N，num_rays) 是射线数量。
+        对于网格，W是网格的数量。
+
+    参数：
+        mesh: 输入网。
+              在`mesh`的`device`属性所指定的装置上，对该网进行射线。
+        ray_starts: 输入射线开始位置。
+                    形状是 (B，N，3)
+        ray_directions: 输入射线方向。
+                        形状是 (B，N，3)
+        ray_hits: 输出射线撞到位置。
+                  形状是 (B，N，3)
+        ray_distance: 输出射线达到距离。
+                      形状是 (B，N，)，如果``return_distance``是True。
+                      否则，该阵列不会被使用。
+        ray_normal: 输出射线达到正常水平。
+                    形状是 (B，N，3) ，如果``return_normal``是True。
+                    否则，该阵列不会被使用。
+        ray_face_id: 输出射线击中了面部身份证。
+                     形状是 (B，N，)，如果``return_face_id``是True。
+                     否则，该阵列不会被使用。
+        ray_mesh_id: 输出射线击中了网格标识。
+                     形状是 (B，N，)，如果``return_mesh_id``是True。
+                     否则，该阵列不会被使用。
+        mesh_positions: 在世界框架中输入网格位置。
+                        形状是 (W， 3)。
+        mesh_rotations: 在世界框架中的输入网格旋转。
+                        形状是 (W， 4)。
+        max_dist: 射线最大距离。
+                  在1e6上默认设置。
+        return_normal: 是否返回射线正常。
+                       默认的False`。
+        return_face_id: 是否返回射线撞击面部身份证。
+                        默认为 False。
+        return_mesh_id: 是否返回网格身份。
+                        默认为 False。
+    """
     # get the thread id
     tid_mesh_id, tid_env, tid_ray = wp.tid()
 
@@ -267,6 +401,22 @@ def reshape_tiled_image(
         num_channels: The number of channels in the image.
         num_tiles_x: The number of tiles in x-direction.
     """
+    """转换一张图像成一批图像。
+
+    这种函数将输入图像缓冲器重塑成一批图像。
+    输入图像缓冲器被假设是以x和y方向。
+    输出图像是指定高度，宽度和频道数量的图像批量。
+
+    参数：
+        tiled_image_buffer: 输入图像缓冲器。
+                            形状是 (高度*宽*num_channels*num_cameras，)。
+        batched_image: 输出图像。
+                       形状是 (num_cameras，高度，宽度，num_channels)。
+        image_width: 图像的宽度。
+        image_height: 图像的高度。
+        num_channels: 图像中的频道数量。
+        num_tiles_x: 在x方向的子数。
+    """
     # get the thread id
     camera_id, height_id, width_id = wp.tid()
 
@@ -318,6 +468,16 @@ def cast_to_link_frame(position: wp.vec3f, link_position: wp.vec3f, is_global: b
     Returns:
         The position in the link frame of the body.
     """
+    """给身体的环节。
+
+    参数：
+        position: 选的位置。
+        link_position: 链接框架位置。
+        is_global: 在全球范围内，
+
+    返回：
+        身体的链接框架中的位置。
+    """
     if is_global:
         return position - link_position
     else:
@@ -334,6 +494,15 @@ def cast_force_to_link_frame(force: wp.vec3f, link_quat: wp.quatf, is_global: bo
         is_global: Whether the force is applied in the global frame.
     Returns:
         The force in the link frame of the body.
+    """
+    """给身体的链接框架带来了力量。
+
+    参数：
+        force: 射的力量。
+        link_quat: 连接框架四元数。
+        is_global: 在全球框架中是否应用力量。
+    返回：
+        在身体的环节框架中的力量。
     """
     if is_global:
         return wp.quat_rotate_inv(link_quat, force)
@@ -352,6 +521,16 @@ def cast_torque_to_link_frame(torque: wp.vec3f, link_quat: wp.quatf, is_global: 
 
     Returns:
         The torque in the link frame of the body.
+    """
+    """给身体的接子带来扭矩。
+
+    参数：
+        torque: 扭矩要射。
+        link_quat: 连接框架四元数。
+        is_global: 如果扭矩在全球框架中应用。
+
+    返回：
+        身体的环节框架中的扭矩。
     """
     if is_global:
         return wp.quat_rotate_inv(link_quat, torque)
@@ -388,6 +567,22 @@ def add_forces_and_torques_at_position(
         composed_forces_b: The composed forces.
         composed_torques_b: The composed torques.
         is_global: Whether the forces and torques are applied in the global frame.
+    """
+    """在用户所提供的位置上，将力和扭矩增加到组合力和扭矩。
+    当is_global是False时，用户提供的位置对车身的链接框架相比抵消了施加的力量。
+    当is_global是True时，用户提供的位置是力应用的全球位置。
+
+    参数：
+        env_ids: 环境 ID。
+        body_ids: 尸体的身份证。
+        forces: 部队。
+        torques: 扭矩。
+        positions: 位置。
+        link_positions: 链接框架的位置。
+        link_quaternions: 连接框架四元数。
+        composed_forces_b: 组成部队。
+        composed_torques_b: 复合的扭矩。
+        is_global: 在全球框架中是否应用力量和扭矩。
     """
     # get the thread id
     tid_env, tid_body = wp.tid()
@@ -442,6 +637,22 @@ def set_forces_and_torques_at_position(
         composed_forces_b: The composed forces.
         composed_torques_b: The composed torques.
         is_global: Whether the forces and torques are applied in the global frame.
+    """
+    """设定使用者所提供的位置的强力和扭矩到组合力和扭矩。
+    当is_global是False时，用户提供的位置对车身的链接框架相比抵消了施加的力量。
+    当is_global是True时，用户提供的位置是力应用的全球位置。
+
+    参数：
+        env_ids: 环境 ID。
+        body_ids: 尸体的身份证。
+        forces: 部队。
+        torques: 扭矩。
+        positions: 位置。
+        link_positions: 链接框架的位置。
+        link_quaternions: 连接框架四元数。
+        composed_forces_b: 组成部队。
+        composed_torques_b: 复合的扭矩。
+        is_global: 在全球框架中是否应用力量和扭矩。
     """
     # get the thread id
     tid_env, tid_body = wp.tid()

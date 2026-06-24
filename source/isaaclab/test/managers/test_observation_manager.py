@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -14,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 from collections import namedtuple
 from typing import TYPE_CHECKING
@@ -122,14 +124,17 @@ def setup_env():
 def test_str(setup_env):
     env = setup_env
     """Test the string representation of the observation manager."""
+    """测试观测管理器的字符串表示。"""
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class SampleGroupCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(func=grilled_chicken, scale=10)
             term_2 = ObservationTermCfg(func=grilled_chicken, scale=2)
@@ -160,16 +165,19 @@ def test_str(setup_env):
 def test_str_with_history(setup_env):
     env = setup_env
     """Test the string representation of the observation manager with history terms."""
+    """测试观测管理器的字符串表示，使用历史项。"""
 
     TERM_1_HISTORY = 5
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class SampleGroupCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(func=grilled_chicken, scale=10, history_length=TERM_1_HISTORY)
             term_2 = ObservationTermCfg(func=grilled_chicken, scale=2)
@@ -200,15 +208,18 @@ def test_str_with_history(setup_env):
 def test_config_equivalence(setup_env):
     env = setup_env
     """Test the equivalence of observation manager created from different config types."""
+    """从不同配置类型创建的观测管理器的等效性测试。"""
 
     # create from config class
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class SampleGroupCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             your_term = ObservationTermCfg(func=grilled_chicken, scale=10)
             his_term = ObservationTermCfg(func=grilled_chicken, scale=2)
@@ -227,10 +238,12 @@ def test_config_equivalence(setup_env):
     @configclass
     class MyObservationManagerAnnotatedCfg:
         """Test config class for observation manager with annotations on terms."""
+        """对观测管理器的测试配置类，有项的注释。"""
 
         @configclass
         class SampleGroupCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             your_term: ObservationTermCfg = ObservationTermCfg(func=grilled_chicken, scale=10)
             his_term: ObservationTermCfg = ObservationTermCfg(func=grilled_chicken, scale=2)
@@ -260,14 +273,17 @@ def test_config_equivalence(setup_env):
 def test_config_terms(setup_env):
     env = setup_env
     """Test the number of terms in the observation manager."""
+    """在观测管理器中测试项数量。"""
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class SampleGroupCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(func=grilled_chicken, scale=10)
             term_2 = ObservationTermCfg(func=grilled_chicken_with_curry, scale=0.0, params={"hot": False})
@@ -275,6 +291,7 @@ def test_config_terms(setup_env):
         @configclass
         class SampleMixedGroupCfg(ObservationGroupCfg):
             """Test config class for policy observation group with a mix of vector and matrix terms."""
+            """对策略观测组的测试配置类，具有矢量和矩阵项的混合。"""
 
             concatenate_terms = False
             term_1 = ObservationTermCfg(func=grilled_chicken, scale=2.0)
@@ -310,16 +327,19 @@ def test_config_terms(setup_env):
 def test_compute(setup_env):
     env = setup_env
     """Test the observation computation."""
+    """测试观测计算。"""
 
     pos_scale_tuple = (2.0, 3.0, 1.0)
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(func=grilled_chicken, scale=10)
             term_2 = ObservationTermCfg(func=grilled_chicken_with_curry, scale=0.0, params={"hot": False})
@@ -372,15 +392,18 @@ def test_compute(setup_env):
 def test_compute_with_history(setup_env):
     env = setup_env
     """Test the observation computation with history buffers."""
+    """通过历史缓冲来测试观测计算。"""
     HISTORY_LENGTH = 5
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(func=grilled_chicken, history_length=HISTORY_LENGTH)
             # total observation size: term_dim (4) * history_len (5) = 20
@@ -424,15 +447,18 @@ def test_compute_with_history(setup_env):
 def test_compute_with_2d_history(setup_env):
     env = setup_env
     """Test the observation computation with history buffers for 2D observations."""
+    """用历史缓冲器测试观测计算，用于2D观测。"""
     HISTORY_LENGTH = 5
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class FlattenedPolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(
                 func=grilled_chicken_image, params={"bland": 1.0, "channel": 1}, history_length=HISTORY_LENGTH
@@ -442,6 +468,7 @@ def test_compute_with_2d_history(setup_env):
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(
                 func=grilled_chicken_image,
@@ -470,16 +497,19 @@ def test_compute_with_2d_history(setup_env):
 def test_compute_with_group_history(setup_env):
     env = setup_env
     """Test the observation computation with group level history buffer configuration."""
+    """通过组级历史缓冲配置测试观测计算。"""
     TERM_HISTORY_LENGTH = 5
     GROUP_HISTORY_LENGTH = 10
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             history_length = GROUP_HISTORY_LENGTH
             # group level history length will override all terms
@@ -528,14 +558,17 @@ def test_compute_with_group_history(setup_env):
 def test_invalid_observation_config(setup_env):
     env = setup_env
     """Test the invalid observation config."""
+    """测试无效的观测配置。"""
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(func=grilled_chicken_with_bbq, scale=0.1, params={"hot": False})
             term_2 = ObservationTermCfg(func=grilled_chicken_with_yoghurt, scale=2.0, params={"hot": False})
@@ -552,14 +585,17 @@ def test_invalid_observation_config(setup_env):
 def test_callable_class_term(setup_env):
     env = setup_env
     """Test the observation computation with callable class term."""
+    """通过可调用类项测试观测计算。"""
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(func=grilled_chicken, scale=10)
             term_2 = ObservationTermCfg(func=complex_function_class, scale=0.2, params={"interval": 0.5})
@@ -591,14 +627,17 @@ def test_callable_class_term(setup_env):
 def test_non_callable_class_term(setup_env):
     env = setup_env
     """Test the observation computation with non-callable class term."""
+    """用非可调用类项测试观测计算。"""
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             term_1 = ObservationTermCfg(func=grilled_chicken, scale=10)
             term_2 = ObservationTermCfg(func=non_callable_complex_function_class, scale=0.2)
@@ -615,6 +654,7 @@ def test_non_callable_class_term(setup_env):
 def test_modifier_compute(setup_env):
     env = setup_env
     """Test the observation computation with modifiers."""
+    """用修改器测试观测计算。"""
 
     modifier_1 = modifiers.ModifierCfg(func=modifiers.bias, params={"value": 1.0})
     modifier_2 = modifiers.ModifierCfg(func=modifiers.scale, params={"multiplier": 2.0})
@@ -624,10 +664,12 @@ def test_modifier_compute(setup_env):
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             concatenate_terms = False
             term_1 = ObservationTermCfg(func=pos_w_data, modifiers=[])
@@ -637,6 +679,7 @@ def test_modifier_compute(setup_env):
         @configclass
         class CriticCfg(ObservationGroupCfg):
             """Test config class for critic observation group"""
+            """对于批评观测组的测试配置类"""
 
             concatenate_terms = False
             term_1 = ObservationTermCfg(func=pos_w_data, modifiers=[])
@@ -667,6 +710,7 @@ def test_modifier_compute(setup_env):
 
 def test_serialize(setup_env):
     """Test serialize call for ManagerTermBase terms."""
+    """测试序列化要求ManagerTermBase项。"""
     env = setup_env
 
     serialize_data = {"test": 0}
@@ -684,10 +728,12 @@ def test_serialize(setup_env):
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             concatenate_terms = False
             term_1 = ObservationTermCfg(func=test_serialize_term)
@@ -705,16 +751,19 @@ def test_serialize(setup_env):
 def test_modifier_invalid_config(setup_env):
     env = setup_env
     """Test modifier initialization with invalid config."""
+    """测试修改器启动无效配置。"""
 
     modifier = modifiers.ModifierCfg(func=modifiers.clip, params={"min": -0.5, "max": 0.5})
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             concatenate_terms = False
             term_1 = ObservationTermCfg(func=pos_w_data, modifiers=[modifier])
@@ -730,15 +779,18 @@ def test_modifier_invalid_config(setup_env):
 
 def test_concatenate_dim(setup_env):
     """Test concatenation of observations along different dimensions."""
+    """测试在不同维度的观测连接。"""
     env = setup_env
 
     @configclass
     class MyObservationManagerCfg:
         """Test config class for observation manager."""
+        """观测管理器的测试配置类。"""
 
         @configclass
         class PolicyCfg(ObservationGroupCfg):
             """Test config class for policy observation group."""
+            """对策略观测组的测试配置类。"""
 
             concatenate_terms = True
             concatenate_dim = 1  # Concatenate along dimension 1
@@ -748,6 +800,7 @@ def test_concatenate_dim(setup_env):
         @configclass
         class CriticCfg(ObservationGroupCfg):
             """Test config class for critic observation group."""
+            """对批评观测组的测试配置类。"""
 
             concatenate_terms = True
             concatenate_dim = 2  # Concatenate along dimension 2
@@ -757,6 +810,7 @@ def test_concatenate_dim(setup_env):
         @configclass
         class CriticCfg_neg_dim(ObservationGroupCfg):
             """Test config class for critic observation group."""
+            """对批评观测组的测试配置类。"""
 
             concatenate_terms = True
             concatenate_dim = -1  # Concatenate along last dimension

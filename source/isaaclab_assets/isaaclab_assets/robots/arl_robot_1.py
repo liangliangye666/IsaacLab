@@ -9,6 +9,12 @@ The following configuration parameters are available:
 
 * :obj:`ARL_ROBOT_1_CFG`: The ARL_Robot_1 with (TODO add motor propeller combination)
 """
+"""对于ARL机器人的配置。
+
+下列配置参数可用:
+
+* :obj:`ARL_ROBOT_1_CFG`: ARL_Robot_1 与 (TODO添加发动机螺旋组合)
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR

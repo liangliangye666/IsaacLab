@@ -19,6 +19,11 @@ class ManagerBasedRLEnvWindow(BaseEnvWindow):
     On top of the basic environment window, this class adds controls for the RL environment.
     This includes visualization of the command manager.
     """
+    """为RL环境的窗口管理器。
+
+    在基础环境窗口之上，这个类增加了RL环境的控制。
+    这包括命令管理器的可视化。
+    """
 
     def __init__(self, env: ManagerBasedRLEnv, window_name: str = "IsaacLab"):
         """Initialize the window.
@@ -26,6 +31,13 @@ class ManagerBasedRLEnvWindow(BaseEnvWindow):
         Args:
             env: The environment object.
             window_name: The name of the window. Defaults to "IsaacLab".
+        """
+        """启动窗口。
+
+        参数：
+            env: 环境对象。
+            window_name: 窗户的名字。
+                         在"IsaacLab"上默认。
         """
         # initialize base window
         super().__init__(env, window_name)

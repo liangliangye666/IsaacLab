@@ -15,6 +15,7 @@ from . import recorders
 @configclass
 class InitialStateRecorderCfg(RecorderTermCfg):
     """Configuration for the initial state recorder term."""
+    """首个状态记录器的配置。"""
 
     class_type: type[RecorderTerm] = recorders.InitialStateRecorder
 
@@ -22,6 +23,7 @@ class InitialStateRecorderCfg(RecorderTermCfg):
 @configclass
 class PostStepStatesRecorderCfg(RecorderTermCfg):
     """Configuration for the step state recorder term."""
+    """步骤状态记录器项的配置"""
 
     class_type: type[RecorderTerm] = recorders.PostStepStatesRecorder
 
@@ -29,6 +31,7 @@ class PostStepStatesRecorderCfg(RecorderTermCfg):
 @configclass
 class PreStepActionsRecorderCfg(RecorderTermCfg):
     """Configuration for the step action recorder term."""
+    """步骤动作记录器项的配置"""
 
     class_type: type[RecorderTerm] = recorders.PreStepActionsRecorder
 
@@ -36,6 +39,7 @@ class PreStepActionsRecorderCfg(RecorderTermCfg):
 @configclass
 class PreStepFlatPolicyObservationsRecorderCfg(RecorderTermCfg):
     """Configuration for the step policy observation recorder term."""
+    """步骤策略观测记录器的配置"""
 
     class_type: type[RecorderTerm] = recorders.PreStepFlatPolicyObservationsRecorder
 
@@ -43,6 +47,7 @@ class PreStepFlatPolicyObservationsRecorderCfg(RecorderTermCfg):
 @configclass
 class PostStepProcessedActionsRecorderCfg(RecorderTermCfg):
     """Configuration for the post step processed actions recorder term."""
+    """后步处理动作记录器项的配置"""
 
     class_type: type[RecorderTerm] = recorders.PostStepProcessedActionsRecorder
 
@@ -55,6 +60,7 @@ class PostStepProcessedActionsRecorderCfg(RecorderTermCfg):
 @configclass
 class ActionStateRecorderManagerCfg(RecorderManagerBaseCfg):
     """Recorder configurations for recording actions and states."""
+    """记录操作和状态的记录配置。"""
 
     record_initial_state = InitialStateRecorderCfg()
     record_post_step_states = PostStepStatesRecorderCfg()

@@ -24,15 +24,29 @@ class Thruster:
     Integration scheme is Euler or RK4. All internal buffers are shaped (num_envs, num_motors).
     Units: thrust [N], rates [N/s], time [s].
     """
+    """低级发动机/推进器动力，有单独的上/下时间常量。
+
+    集成方案是尤勒或RK4。
+    所有内部缓冲器均有形状 (num_envs，num_motors)。
+    Units: 推力 [N]，速率 [N/s]，时间 [s]。
+    """
 
     computed_thrust: torch.Tensor
     """The computed thrust for the actuator group. Shape is (num_envs, num_thrusters)."""
+    """执行器组的计算推力。
+    形状是 (num_envs，num_thrusters)。
+    """
 
     applied_thrust: torch.Tensor
     """The applied thrust for the actuator group. Shape is (num_envs, num_thrusters).
 
     This is the thrust obtained after clipping the :attr:`computed_thrust` based on the
     actuator characteristics.
+    """
+    """执行器组的应用于推力。
+    形状是 (num_envs，num_thrusters)。
+
+    根据动机特性，在裁剪:attr:`computed_thrust`后获得的推力。
     """
 
     cfg: ThrusterCfg
@@ -56,6 +70,16 @@ class Thruster:
             device: PyTorch device string or device identifier.
             init_thruster_rps: Initial per-thruster rotations-per-second tensor used when
                 the configuration uses RPM-based thrust modelling.
+        """
+        """构建缓冲器和每发动机参数的样本。
+
+        参数：
+            cfg: 推进器配置。
+            thruster_names: 属于该组的推进器名称列表。
+            thruster_ids: 在关节推进器阵列中切片或索引子。
+            num_envs: 平行/向量化环境数量
+            device: PyTorch设备字符串或设备标识符。
+            init_thruster_rps: 当配置采用RPM基于的推力建模时，使用的每推力初始旋转-每秒紧张器。
         """
         self.cfg = cfg
         self._num_envs = num_envs
@@ -102,11 +126,13 @@ class Thruster:
     @property
     def num_thrusters(self) -> int:
         """Number of actuators in the group."""
+        """集团中的执行器数量"""
         return len(self._thruster_names)
 
     @property
     def thruster_names(self) -> list[str]:
         """Articulation's thruster names that are part of the group."""
+        """关节的推进器名称是集团的一部分。"""
         return self._thruster_names
 
     @property
@@ -116,6 +142,12 @@ class Thruster:
         Note:
             If :obj:`slice(None)` is returned, then the group contains all the thrusters in the articulation.
             We do this to avoid unnecessary indexing of the thrusters for performance reasons.
+        """
+        """关节的推进索引是集团的一部分。
+
+        说明：
+            If :转换到obj:`slice(None)`，然后集团包含了关节中的所有推进器。
+            我们这样做是为了避免由于性能原因，
         """
         return self._thruster_indices
 
@@ -131,6 +163,16 @@ class Thruster:
         Returns:
             (num_envs, num_thrusters) updated thrust state [N].
 
+        """
+        """一步推进推进器状态。
+
+        应用和 tau，选择每个发动机的 tau/tau，计算混合因素，并与所选的内核集成。
+
+        参数：
+            control_action: (num_envs，num_thrusters) 命令每驱动器推力 [N]。
+
+        返回：
+            (num_envs，num_thrusters) 更新的推力状态 [N]。
         """
         des_thrust = control_action.thrusts
         des_thrust = torch.clamp(des_thrust, *self.thrust_r)
@@ -153,6 +195,12 @@ class Thruster:
 
         Args:
             env_ids: Env indices to reset. If ``None``, resets all envs.
+        """
+        """再样本参数并重新启动状态。
+
+        参数：
+            env_ids: 设置重置的Env索引。
+                     如果 ``None``，将所有 envs重置。
         """
         if env_ids is None:
             env_ids = slice(None)
@@ -181,6 +229,7 @@ class Thruster:
 
     def reset(self, env_ids: Sequence[int]) -> None:
         """Reset all envs."""
+        """设置所有envs。"""
         self.reset_idx(env_ids)
 
     def motor_model_rate(self, error: torch.Tensor, mixing_factor: torch.Tensor):

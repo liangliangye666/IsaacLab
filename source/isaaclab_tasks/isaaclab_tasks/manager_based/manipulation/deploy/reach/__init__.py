@@ -4,3 +4,4 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """end-effector pose tracking tasks that have been deployed on a real robot."""
+"""末端执行器将在真正的机器人上部署的跟踪任务。"""

@@ -20,6 +20,8 @@ class RmpFlowAgibotPlaceToy2BoxMimicEnvCfg(RmpFlowAgibotPlaceToy2BoxEnvCfg, Mimi
     """
     Isaac Lab Mimic environment config class for Agibot Place Toy2Box env.
     """
+    """对于Agibot Place Toy2Box env的艾萨克实验室仿真环境配置类。
+    """
 
     def __post_init__(self):
         # post init of parents

@@ -37,6 +37,7 @@ from isaaclab_assets.robots.fourier import GR1T2_CFG  # isort: skip
 @configclass
 class ObjectTableSceneCfg(InteractiveSceneCfg):
     """Configuration for the GR1T2 Exhaust Pipe Base Scene."""
+    """对于GR1T2排气管基场的配置。"""
 
     # Table
     table = AssetBaseCfg(
@@ -167,6 +168,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     gr1_action: ActionTermCfg = MISSING
 
@@ -174,10 +176,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group with state values."""
+        """对国家价值观的策略组的观测。"""
 
         actions = ObsTerm(func=mdp.last_action)
         robot_joint_pos = ObsTerm(
@@ -212,6 +216,7 @@ class ObservationsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -226,6 +231,7 @@ class TerminationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_all = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
 
@@ -246,6 +252,7 @@ class EventCfg:
 @configclass
 class ExhaustPipeGR1T2BaseEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the GR1T2 environment."""
+    """对GR1T2环境的配置。"""
 
     # Scene settings
     scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=1, env_spacing=2.5, replicate_physics=True)
@@ -321,6 +328,7 @@ class ExhaustPipeGR1T2BaseEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 5
         self.episode_length_s = 20.0

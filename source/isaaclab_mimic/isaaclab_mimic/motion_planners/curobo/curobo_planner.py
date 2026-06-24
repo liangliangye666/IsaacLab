@@ -41,6 +41,11 @@ class PlannerLogger:
     levels and formats messages consistently for debugging motion planning operations,
     collision checking, and object manipulation.
     """
+    """记录器类用于调试和监测运动规划器。
+
+    该类提供标准记录功能，同时保持与主应用程序的记录配置的隔离。
+    记录器支持可配置的语音级别和格式信息，一致调试运动规划操作，碰撞检查和对象操纵。
+    """
 
     def __init__(self, name: str, level: int = logging.INFO):
         """Initialize the logger with specified name and level.
@@ -48,6 +53,12 @@ class PlannerLogger:
         Args:
             name: Logger name for identification in log messages
             level: Logging level (DEBUG, INFO, WARNING, ERROR)
+        """
+        """启动记录器使用指定名称和水平。
+
+        参数：
+            name: 在日志信息中识别登记器名称
+            level: 记录水平 (DEBUG， INFO， WARNING， ERROR)
         """
         self._name = name
         self._level = level
@@ -59,6 +70,11 @@ class PlannerLogger:
 
         Returns:
             Configured Python logger instance with stream handler and formatter
+        """
+        """如果需要，就先启动。
+
+        返回：
+            配置的Python登录器实例与流处理器和格式化器
         """
         if self._logger is None:
             self._logger = logging.getLogger(self._name)
@@ -78,6 +94,13 @@ class PlannerLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments passed to underlying logger
         """
+        """记录错误级别消息，以提供详细的内部状态信息。
+
+        参数：
+            msg: 消息字符串或格式字符串
+            *args: 信息格式化的位置参数
+            **kwargs: 关键词参数传输到底层记录器
+        """
         self.logger.debug(msg, *args, **kwargs)
 
     def info(self, msg, *args, **kwargs):
@@ -87,6 +110,13 @@ class PlannerLogger:
             msg: Message string or format string
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments passed to underlying logger
+        """
+        """记录重要操作事件的信息级别信息。
+
+        参数：
+            msg: 消息字符串或格式字符串
+            *args: 信息格式化的位置参数
+            **kwargs: 关键词参数传输到底层记录器
         """
         self.logger.info(msg, *args, **kwargs)
 
@@ -98,6 +128,13 @@ class PlannerLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments passed to underlying logger
         """
+        """记录可能存在问题的警告级别信息。
+
+        参数：
+            msg: 消息字符串或格式字符串
+            *args: 信息格式化的位置参数
+            **kwargs: 关键词参数传输到底层记录器
+        """
         self.logger.warning(msg, *args, **kwargs)
 
     def error(self, msg, *args, **kwargs):
@@ -108,6 +145,13 @@ class PlannerLogger:
             *args: Positional arguments for message formatting
             **kwargs: Keyword arguments passed to underlying logger
         """
+        """记录严重问题和故障的错误级别消息。
+
+        参数：
+            msg: 消息字符串或格式字符串
+            *args: 信息格式化的位置参数
+            **kwargs: 关键词参数传输到底层记录器
+        """
         self.logger.error(msg, *args, **kwargs)
 
 
@@ -117,6 +161,10 @@ class Attachment:
 
     This dataclass tracks the relative pose between an attached object and its parent link,
     enabling the robot to maintain consistent object positioning during motion planning.
+    """
+    """存储对象附件信息用于机器人操纵。
+
+    这个数据类跟踪连接对象和其母链之间的相对姿势，使机器人在运动规划期间保持一致的对象定位。
     """
 
     pose: Pose  # Relative pose from parent link to object
@@ -136,6 +184,18 @@ class CuroboPlanner(MotionPlannerBase):
 
     The planner uses cuRobo for fast motion generation and supports
     multi-phase planning for contact scenarios like grasping and placing objects.
+    """
+    """机器人使用cuRobo操纵的运动规划器。
+
+    这种规划器为机器人操纵任务提供了对碰撞意识的运动规划能力。
+    它与艾萨克实验室环境集成，
+
+    - 从目前的阶段状态更新碰撞世界
+    - 计划无碰撞的路径到目标姿势
+    - 在操纵过程中处理物体的连接和脱离
+    - 执行计划的运动，并进行适当的碰撞检查
+
+    规划器使用cuRobo用于快速移动生成，并支持多阶段的规划，例如抓住和放置物体。
     """
 
     def __init__(
@@ -169,6 +229,25 @@ class CuroboPlanner(MotionPlannerBase):
 
         Raises:
             ValueError: If ``robot_config_file`` is not provided
+        """
+        """启动一个特定环境的运动规划器。
+
+        设置 cuRobo 运动发电机与碰撞检查，配置机器人模型，并在启用时准备可视化组件。
+        计划器与CUDA设备隔离，不管艾萨克实验室的设备配置如何。
+
+        参数：
+            env: 包含机器人和场景的艾萨克实验室环境实例
+            robot: 机器人关节来规划运动
+            config: 包含规划器参数和设置的配置对象
+            task_name: 自动配置任务名称
+            env_id: 多环境设置环境ID (0至num_envs-1)
+            collision_checker: 碰撞检测仪的类型
+            num_trajopt_seeds: 轨道优化种子数量
+            num_graph_seeds: 图表搜索的种子数量
+            interpolation_dt: 交互路线的时间步骤
+
+        异常：
+            ValueError: 如果没有提供``robot_config_file``
         """
         # Initialize base class
         super().__init__(env=env, robot=robot, env_id=env_id, debug=config.debug_planner)
@@ -318,6 +397,18 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             Tensor converted to cuRobo's CUDA device with appropriate dtype
         """
+        """转换子为cuRobo设备，用于隔离设备管理。
+
+        确保cuRobo使用的所有子都在CUDA设备上，提供设备隔离
+        from Isaac Lab's potentially different device configuration. This prevents device
+        优化cuRobo性能。
+
+        参数：
+            tensor: 输入子 (可在任何设备上使用)
+
+        返回：
+            电压转换为cuRobo的CUDA设备，具有适当的d类型
+        """
         return tensor.to(device=self.tensor_args.device, dtype=self.tensor_args.dtype)
 
     def _to_env_device(self, tensor: torch.Tensor) -> torch.Tensor:
@@ -332,6 +423,17 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             Tensor converted to environment's device while preserving dtype
         """
+        """转换电压器回到环境设备，以实现Isaac Lab兼容性。
+
+        转换cuRobo电压器回到环境设备，以确保兼容性
+        with Isaac Lab operations that expect tensors on the environment's configured device.
+
+        参数：
+            tensor: 从cuRobo操作中输入子 (通常在CUDA上)
+
+        返回：
+            保持dtype的同时转换为环境装置的电压
+        """
         return tensor.to(device=self.env.device, dtype=tensor.dtype)
 
     # =====================================================================================
@@ -345,6 +447,12 @@ class CuroboPlanner(MotionPlannerBase):
         the base collision world. This includes walls, tables, bins, and other fixed obstacles
         that don't change during the simulation. Dynamic objects are synchronized separately
         in update_world() to maintain performance.
+        """
+        """从USD阶段开始静态世界几何。
+
+        在规划器初始化过程中一次阅读静态环境几何，以建立基层碰撞世界。
+        这包括在仿真过程中不变的墙壁，桌子，垃圾桶和其他固定障碍。
+        动态对象在update_world () 中分别同步以保持性能。
         """
         env_prim_path = f"/World/envs/env_{self.env_id}"
         robot_prim_path = self.config.robot_prim_path or f"{env_prim_path}/Robot"
@@ -373,16 +481,19 @@ class CuroboPlanner(MotionPlannerBase):
     @property
     def attached_link(self) -> str:
         """Default link name for object attachment operations."""
+        """对象连接操作的默认链接名称。"""
         return self.config.attached_object_link_name
 
     @property
     def attachment_links(self) -> set[str]:
         """Set of parent link names that currently have attached objects."""
+        """目前附属对象的母链名称集合。"""
         return {attachment.parent for attachment in self.attached_objects.values()}
 
     @property
     def current_plan(self) -> JointState | None:
         """Current plan from cuRobo motion generator."""
+        """现在的计划来自cuRobo运动发电机。"""
         return self._current_plan
 
     # =====================================================================================
@@ -401,6 +512,18 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             Object pose in cuRobo coordinate frame, or None if object not found
+        """
+        """从cuRobo的碰撞世界模型中恢复对象姿势。
+
+        搜索所指定对象的碰撞世界模型，并返回其当前姿势。
+        这对于连接计算和调试碰撞世界状态是有用的。
+        该方法自动处理网格和立方体物体类型。
+
+        参数：
+            object_name: 在Isaac Lab场景中使用的短名物体 (e.g.，"cube_1")
+
+        返回：
+            在cuRobo坐标框架中设置物体，或者在物体未找到时 None
         """
         # Get cached object mappings
         object_mappings = self._get_object_mappings()
@@ -443,6 +566,21 @@ class CuroboPlanner(MotionPlannerBase):
 
         Raises:
             KeyError: If link_name is not found in the computed link poses
+        """
+        """使用前进动力学计算指定链接的姿势。
+
+        计算任何机器人链接在给定的联合配置的世界姿势。
+        这对于连接计算是必不可少的，我们需要知道母链的确切姿势，
+
+        参数：
+            link_name: 机器人链接的名称
+            joint_state: 使用计算的联合配置，使用当前状态，如果None
+
+        返回：
+            在cuRobo坐标框架中指定链接的世界姿势
+
+        异常：
+            KeyError: 如果 link_name 在计算链接中不存在
         """
         if joint_state is None:
             joint_state = self._get_current_joint_state_for_curobo()
@@ -492,6 +630,20 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             Attachment object containing relative pose and parent link information
         """
+        """建立对象和机器人链接之间的连接关系。
+
+        计算对象和机器人链接之间的相对姿势，使机器人在运动规划期间能够持续地携带对象。
+        附件存储转换
+        from the parent link frame to the object frame, which remains constant while grasped.
+
+        参数：
+            object_name: 附件对象名称
+            link_name: 如果 None，则使用默认attached_object_link
+            joint_state: 机器人配置用于计算，使用当前状态如果None
+
+        返回：
+            附带物体含有相对姿势和母链信息
+        """
         if link_name is None:
             link_name = self.attached_link
         if joint_state is None:
@@ -525,6 +677,17 @@ class CuroboPlanner(MotionPlannerBase):
 
         Raises:
             RuntimeError: If the set of objects has changed at runtime
+        """
+        """同步碰撞世界与目前的艾萨克实验室场景状态。
+
+        更新 cuRobo 的碰撞世界中的所有动态物体，
+        这可确保对象在仿真步骤，重置或手动对象移动后，使用对象的准确位置进行碰撞检查。
+        在初始化过程中，静态世界几何是一次加载的，而不是更新的。
+
+        该方法验证了对象的集合在运行时没有改变，因为cuRobo需要在对象被添加或删除时重新启动世界模型。
+
+        异常：
+            RuntimeError: 如果在运行时对象集合发生了变化
         """
 
         # Establish validation baseline on first call, validate on subsequent calls
@@ -569,6 +732,14 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             List of all object names currently in the collision world model
         """
+        """提取所有物体名称从cuRobo的碰撞世界模型。
+
+        在碰撞世界中，它通过所有支持的原始类型 (网格，立方体，球体等) 进行反复，并收集它们的名字。
+        这用于世界验证，以检测在运行时添加或删除物体时。
+
+        返回：
+            目前碰撞世界模型中的所有物体名称列表
+        """
         try:
             world_model = self.motion_gen.world_coll_checker.world_model
 
@@ -604,6 +775,15 @@ class CuroboPlanner(MotionPlannerBase):
 
         The method updates both the world model and the collision checker to ensure
         consistency across all cuRobo components.
+        """
+        """同步cuRobo碰撞世界与艾萨克实验室对象位置。
+
+        更新 cuRobo 的世界模型中的所有动态对象，
+        这确保在仿真步骤或手动对象移动后，准确的碰撞检查。
+        跳过静态物体 (，表，墙)
+        for performance as they shouldn't move during simulation.
+
+        该方法更新了世界模型和碰撞检查器，以确保所有cuRobo组件的一致性。
         """
         # Get cached object mappings and world model
         object_mappings = self._get_object_mappings()
@@ -688,6 +868,14 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             Dictionary mapping Isaac Lab object names to their corresponding USD paths
         """
+        """获取对象映射与缓存，以优化性能。
+
+        如果可用，返回缓存地图，否则计算并缓存它们。
+        当对象设置发生变化时，缓存被无效。
+
+        返回：
+            字典映射艾萨克实验室对象名称到它们相应的USD路径
+        """
         if self._cached_object_mappings is None:
             world_model = self.motion_gen.world_coll_checker.world_model
             rigid_objects = self.env.scene.rigid_objects
@@ -710,6 +898,19 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             Dictionary mapping Isaac Lab object names to their corresponding USD paths
+        """
+        """建立伊萨克实验室对象名称和cuRobo世界路径之间的地图。
+
+        在cuRobo的世界模型中，自动发现艾萨克实验室的硬体名称和它们的全USD路径之间的匹配。
+        这种映射对于姿势同步和连接操作至关重要，因为cuRobo使用完整的USD路径
+        while Isaac Lab uses short object names.
+
+        参数：
+            world_model: 包含原始物体的cuRobo的碰撞世界模型
+            rigid_objects: 艾萨克实验室的硬物字典
+
+        返回：
+            字典映射艾萨克实验室对象名称到它们相应的USD路径
         """
         mappings = {}
         env_prefix = f"/World/envs/env_{self.env_id}/"
@@ -753,6 +954,20 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             True if object was found and successfully updated, False otherwise
         """
+        """在cuRobo的碰撞世界模型中更新单个对象的姿势。
+
+        在世界模型中搜索所有原始类型，找到指定对象，并更新其姿势。
+        使用灵活匹配来处理Isaac Lab和cuRobo表示之间的路径命名变化。
+
+        参数：
+            world_model: 罗波的碰撞世界模型
+            object_name: 来自艾萨克实验室 (e.g.，"cube_1") 的简短物体名称
+            object_path: 在cuRobo世界中对象的全USD路径
+            pose_list: 作为 [x， y， z， w， x， y， z] 列表的新姿势在cuRobo格式
+
+        返回：
+            如果发现和成功更新的对象，True，否则False
+        """
         # Handle case where world_model might be a list
         if isinstance(world_model, list):
             if len(world_model) > self.env_id:
@@ -790,6 +1005,20 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             True if attachment succeeded, False if attachment failed
+        """
+        """在机器人上将一个物体连接，用于操纵计划。
+
+        建立指定对象和机器人的末端执行器或配置的附件链接之间的连接。
+        这使得机器人能够在运动规划期间携带物体，同时保持适当的碰撞检查。
+        在世界模型中，对象的碰撞几何学已被禁用，
+
+        参数：
+            object_name: 附件对象的短名 (e.g.， "cube_2")
+            object_path: 在cuRobo世界模型中对象的全USD路径
+            env_id: 环境 ID多环境支持
+
+        返回：
+            如果连接成功 True，如果连接失败 False
         """
         current_joint_state = self._get_current_joint_state_for_curobo()
 
@@ -845,6 +1074,19 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             True if detachment operations completed successfully, False otherwise
         """
+        """拆除机器人对象，恢复碰撞检查。
+
+        从指定链接中删除对象附件，并重新启用碰撞检查
+        for both the objects and the parent links. This is necessary when placing objects
+        或是改变自己的句柄。
+        如果没有提供特定的链接，所有附加物体都会脱离。
+
+        参数：
+            link_names: 分离对象的母链名称集合，如果 None
+
+        返回：
+            如果解散动作成功完成，则True，否则False
+        """
         if link_names is None:
             link_names = self.attachment_links
 
@@ -897,6 +1139,14 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             List of attached object names (e.g., ["cube_1", "cube_2"])"""
+        """获取目前附加的对象名称列表。
+
+        返回目前与机器人连接的所有物体的简称。
+        这些名称与艾萨克实验室场景物体名称相符，而不是完整的USD路径。
+
+        返回：
+            附件对象名称列表 (e.g.， ["cube_1"， "cube_2"])
+        """
         return list(self.attached_objects.keys())
 
     def has_attached_objects(self) -> bool:
@@ -907,6 +1157,13 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             True if one or more objects are attached, False if no attachments exist
+        """
+        """检查目前是否有任何物体连接到机器人。
+
+        在规划运动之前，可用于确定抓住器状态和碰撞检查配置。
+
+        返回：
+            True如果连接一个或多个物体，False如果没有附件
         """
         return len(self.attached_objects) != 0
 
@@ -927,6 +1184,14 @@ class CuroboPlanner(MotionPlannerBase):
             JointState on the cuRobo device, ordered according to
             `self.motion_gen.kinematics.joint_names`, with position from the robot
             and zero velocity/acceleration.
+        """
+        """构建 cuRobo 的当前联合状态，以零速度和加速。
+
+        这位助手从艾萨克实验室读取机器人的关节位置，
+        所有电压器都被移动到cuRobo设备上，并重新排序，以匹配cuRobo运动发电机使用的动态链。
+
+        返回：
+            在cuRobo设备上JointState，按`self.motion_gen.kinematics.joint_names`排序，与机器人位置和零速度/加速。
         """
         # Fetch joint position (shape: [1, num_joints])
         joint_pos_raw: torch.Tensor = self.robot.data.joint_pos[self.env_id, :].unsqueeze(0)
@@ -959,6 +1224,17 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             End-effector pose in world coordinates
+        """
+        """从联合配置计算末端执行器姿势。
+
+        使用cuRobo的前进动力学来计算在指定联合配置的末端执行器姿势。
+        处理设备转换以确保与cuRobo的CUDA计算兼容性。
+
+        参数：
+            joint_state: 机器人关节配置计算从
+
+        返回：
+            在世界坐标中，最终效应器姿势
         """
         # Ensure joint state is on CUDA device for cuRobo
         if isinstance(joint_state.position, torch.Tensor):
@@ -1012,6 +1288,21 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             Pose: A cuRobo Pose on the configured cuRobo device and dtype.
         """
+        """创建一个 cuRobo Pose 具有合理的默认设置和设备/d类型的配对。
+
+        自动填充具有身份值的缺失字段，并确保 cuRobo 设备上有正确的dtype的子。
+
+        参数：
+            position: 选项位置为 Tensor/ndarray/list。
+                      在 [0， 0， 0] 之前的默认设置。
+            quaternion: 选择性四元数作为//列表 (w， x， y， z)。
+                        在 [1， 0， 0， 0] 之前的默认值。
+            name: 这个姿势所代表的链接的可选名称。
+            normalize_rotation: 如何正常化Pose内部的四元数?
+
+        返回：
+            Pose: 在配置的cuRobo设备和dtype上。
+        """
         # Defaults
         if position is None:
             position = torch.tensor([0.0, 0.0, 0.0], dtype=self.tensor_args.dtype, device=self.tensor_args.device)
@@ -1045,6 +1336,16 @@ class CuroboPlanner(MotionPlannerBase):
             links: List of link names to enable or disable collision checking for
             active: True to enable collision checking, False to disable
         """
+        """设置对特定机器人链接的碰撞检查。
+
+        启用或禁用对指定链接进行碰撞球检查。
+        这对于某些链接 (如手指或连接点) 需要禁用碰撞检查以允许接触的情况下至关重要。
+        with objects being grasped.
+
+        参数：
+            links: 启用或禁用碰撞检查的链接名称列表
+            active: True可启用碰撞检查，False可禁用
+        """
         for link in links:
             if active:
                 self.motion_gen.kinematics.kinematics_config.enable_link_spheres(link)
@@ -1070,6 +1371,20 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             True if planning succeeded and a valid trajectory was found, False otherwise
+        """
+        """计划无碰撞运动，以定位目标。
+
+        从当前机器人配置到指定目标姿势的轨迹规划。
+        该方法假设已经处理了世界更新和锁定的联合配置。
+        支持可选的线性复制执行速度。
+
+        参数：
+            target_pose: 目标终端效应符作为4x4转换矩阵
+            step_size: 为线性回调的步骤大小，如果提供，可回调
+            enable_retiming: 如果 None 是否能够从 step_size 中自动检测到线性复制
+
+        返回：
+            True如果计划成功，并且发现了有效的轨迹，False否则
         """
         if enable_retiming is None:
             enable_retiming = step_size is not None
@@ -1198,6 +1513,21 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             True if planning succeeded, False if no valid trajectory found
         """
+        """规划运动，设置可检查接触情况的碰撞情况。
+
+        计划轨迹，同时可选择禁用对手链和附着物体的碰撞检查。
+        这对于抓住和放置接触预期的操作至关重要，
+
+        参数：
+            start_state: 开始规划的联合配置
+            goal_pose: 在cuRobo坐标框架中达到目标姿势
+            contact: True 禁用手/附着物体碰撞，用于接触规划
+            retime_plan: 如何将线性复制运行到结果轨迹
+            step_size: 如果retime_plan是True，重拍的步骤大小
+
+        返回：
+            True如果计划成功，False如果没有找到有效的轨迹
+        """
         # Use configured hand link names instead of hardcoded ones
         disable_link_names: list[str] = self.config.hand_link_names.copy()
         link_spheres: dict[str, torch.Tensor] = {}
@@ -1293,6 +1623,23 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             True if all planning phases succeeded, False if any phase failed
         """
+        """执行多阶段的接触规划，包括接近和撤退阶段。
+
+        执行需要处理接触方法和接触方法的操纵任务的规划策略。
+        计划多个轨道段，具有不同的碰撞检查配置。
+
+        参数：
+            start_state: 起步计划联合国家
+            goal_pose: 达到目标姿势
+            retreat_distance: 在过渡到接触之前退缩的距离
+            approach_distance: 在最后姿势之前的距离
+            contact: 是否启用联系规划模式
+            retime_plan: 是否重新调整结果计划
+            step_size: 步骤尺寸 (只用于retime_plan是True)
+
+        返回：
+            True如果所有规划阶段都成功，False如果任何阶段都失败
+        """
         self.logger.debug(f"Multi-phase planning: retreat={retreat_distance}, approach={approach_distance}")
 
         target_poses: list[Pose] = []
@@ -1383,6 +1730,17 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             Retimed trajectory with uniform waypoint spacing, or None if plan is invalid
         """
+        """运行轨道以实现一致的执行速度。
+
+        在执行过程中，以确保一致的移动速度确保路线点之间均的距离。
+
+        参数：
+            step_size: 关联空间中的路点间所需的距离
+            plan: 如果 None，使用当前的计划
+
+        返回：
+            如果计划是无效的，则以均的路线点间隔为止的轨迹或None
+        """
         if plan is None:
             plan = self._current_plan
 
@@ -1462,6 +1820,11 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             True if there are unprocessed waypoints, False if trajectory is complete or empty
         """
+        """检查目前轨道是否有更多的路线点。
+
+        返回：
+            True如果没有处理的路线点，False如果轨迹是完整的或是空的
+        """
         return self._current_plan is not None and self._plan_index < len(self._current_plan.position)
 
     def get_next_waypoint_ee_pose(self) -> Pose:
@@ -1476,6 +1839,17 @@ class CuroboPlanner(MotionPlannerBase):
         Raises:
             IndexError: If no more waypoints remain in the trajectory
         """
+        """在轨道上下一个路线点上，
+
+        推进轨迹执行索引并计算末端执行器位姿
+        for the next waypoint using forward kinematics.
+
+        返回：
+            在世界坐标下面的路线点的终端效应符姿势
+
+        异常：
+            IndexError: 如果轨道上没有更多的路线点
+        """
         if not self.has_next_waypoint():
             raise IndexError("No more waypoints in the plan.")
         next_joint_state: JointState = self._current_plan[self._plan_index]
@@ -1488,6 +1862,11 @@ class CuroboPlanner(MotionPlannerBase):
 
         Clears the current trajectory and resets the execution index to zero.
         This prepares the planner for a new planning operation.
+        """
+        """恢复轨迹执行状态。
+
+        清除当前轨迹并将执行索引重置为零。
+        这为规划人员做好了新的规划动作的准备。
         """
         self._plan_index = 0
         self._current_plan = None
@@ -1504,6 +1883,15 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             List of end-effector poses as 4x4 transformation matrices, with optional repetition
+        """
+        """从目前轨道中提取所有末端执行器位姿。
+
+        计算机对所有当前轨迹的路线点设置终端效应符，而不会影响执行状态。
+        选择重复最后姿势多次
+        if configured for stable goal reaching.
+
+        返回：
+            最终效果符的列表作为4x4转换矩阵，可选重复
         """
         if self._current_plan is None:
             return []
@@ -1556,6 +1944,11 @@ class CuroboPlanner(MotionPlannerBase):
         Args:
             joint_positions: Joint configuration to visualize collision spheres at
         """
+        """在特定的关节位置上更新机器人的球体可视化。
+
+        参数：
+            joint_positions: 联合配置可可视化碰撞球在
+        """
         if not self.visualize_spheres:
             return
 
@@ -1584,6 +1977,14 @@ class CuroboPlanner(MotionPlannerBase):
 
         Args:
             force_update: True to recreate all spheres, False to update existing positions only
+        """
+        """在USD阶段更新机器人碰撞球的视觉表示。
+
+        在USD阶段创建或更新球原始物，以显示机器人的碰撞模型。
+        机器人链接 (绿色) 和附带物体 (色) 使用不同的颜色，以帮助区分碰撞界限。
+
+        参数：
+            force_update: True重建所有球体，False仅更新现有位置
         """
         # Get current sphere data
         cu_js = self._get_current_joint_state_for_curobo()
@@ -1631,6 +2032,14 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             Total number of active collision spheres for robot links only
         """
+        """计算机器人链接的碰撞球体总数，不包括附着物体。
+
+        通过所有机器人碰撞链接 (不包括附加的对象链接) 进行反转，并为每个链接计算活跃的碰撞球。
+        这项计数用于确定可视化中的哪些球体代表机器人链接与附件对象。
+
+        返回：
+            只有机器人链接的活跃碰撞球的总数
+        """
         sphere_config = self.motion_gen.kinematics.kinematics_config
         robot_links = [
             link
@@ -1648,6 +2057,11 @@ class CuroboPlanner(MotionPlannerBase):
         USD primitives from the stage. This is used during force updates or when
         recreating the sphere visualization from scratch.
         """
+        """从USD阶段删除所有现有的球体可视化原始。
+
+        通过所有存储的球体引用进行反复，并从舞台中移除它们相应的USD原始。
+        这是在力量更新或从零开始重建球体可视化时使用的。
+        """
         stage = self.usd_helper.stage
         for prim_path, _ in self.spheres:
             if stage.GetPrimAtPath(prim_path).IsValid():
@@ -1664,6 +2078,17 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             True if sphere has valid position and positive radius, False otherwise
+        """
+        """为可视化渲染验证球体数据。
+
+        检查一个球是否具有有效的位置坐标 (没有NaN值) 和正射线。
+        在可视化过程中跳过无效的球体，以防止呈现错误。
+
+        参数：
+            sphere: 包含位置和半径数据的球体
+
+        返回：
+            如果球具有有效位置和正射线，则True，否则False
         """
         pos_tensor = torch.tensor(sphere.position, dtype=torch.float32)
         return not torch.isnan(pos_tensor).any() and sphere.radius > 0
@@ -1683,6 +2108,19 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             Dictionary containing 'position' (world coordinates) and 'cfg' (MeshSphereCfg)
+        """
+        """为USD渲染创建位置和视觉属性的球形配置。
+
+        确定球体类型 (机器人链接与附件对象)，计算世界位置，并创建适当的视觉配置，包括颜色和材料。
+        机器人链接球是绿色的，不透明度较低，而连接的物体球则是色的，不透明度更高，以便更好地区分。
+
+        参数：
+            sphere_idx: 范围列表中的领域索引
+            sphere: 包含位置和半径数据的球体
+            robot_link_count: 机器人链球总数 (用于确定类型)
+
+        返回：
+            含有"位置" (世界坐标) 和"cfg" (MeshSphereCfg) 的字典
         """
 
         is_attached = sphere_idx >= robot_link_count
@@ -1712,6 +2150,15 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             True if sphere belongs to an attached object, False if it's a robot link sphere
+        """
+        """检查一个球是否属于attached_object链接。
+
+        参数：
+            sphere_index: 要检查的球体索引
+            sphere_config: 球形配置对象
+
+        返回：
+            True如果球属于附着物体，False如果是机器人链接球
         """
         # Get total number of robot link spheres (excluding attached_object)
         robot_links = [
@@ -1766,6 +2213,20 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             True if complete planning pipeline succeeded, False if any step failed
+        """
+        """完整的规划管道与世界更新和对象附件处理。
+
+        提供高层次的界面，处理整个规划工作流:世界同步，对象连接/分离，抓紧器配置和运动规划。
+
+        参数：
+            target_pose: 目标终端效应符作为4x4转换矩阵
+            expected_attached_object: 应附加的物体名称，没有附加的None
+            env_id: 多环境设置的环境ID
+            step_size: 如果已启用，则线性重写的步骤大小
+            enable_retiming: 是否允许线性轨迹重拍
+
+        返回：
+            True如果完整的规划管道成功，False如果任何步骤失败
         """
         # Always reset the plan before starting a new one to ensure a clean state
         self.reset_plan()
@@ -1863,6 +2324,17 @@ class CuroboPlanner(MotionPlannerBase):
         Returns:
             True if object is detected as grasped
         """
+        """检查机器人是否抓住特定物体。
+
+        使用抓住器的位置来确定是否抓住物体。
+
+        参数：
+            gripper_pos: 抓住器位置紧张器
+            object_name: 检查对象名称 (e.g.， "cube_1")
+
+        返回：
+            True 如果发现物体被抓住
+        """
         gripper_open_val = self.config.grasp_gripper_open_val
         object_grasped = gripper_pos[0].item() < gripper_open_val
 
@@ -1884,6 +2356,15 @@ class CuroboPlanner(MotionPlannerBase):
         Args:
             has_attached_objects: True if robot currently has attached objects requiring closed gripper
         """
+        """根据对象的附着状态配置抓住器关节位置。
+
+        设置抓住器在固定物件时关闭位置，在没有固定物件时打开位置。
+        这确保了适当的碰撞检查和规划
+        with the correct gripper configuration.
+
+        参数：
+            has_attached_objects: True 如果机器人目前安装需要闭式抓住器的物体
+        """
         if has_attached_objects:
             # Closed gripper for grasping
             locked_joints = self.config.gripper_closed_positions
@@ -1902,6 +2383,15 @@ class CuroboPlanner(MotionPlannerBase):
 
         Returns:
             Dictionary containing sphere counts by category (total, robot_links, attached_objects)
+        """
+        """按类别计算活跃碰撞球，以便调试。
+
+        分析当前碰撞球体配置，以提供有关机器人链接与附件对象球体的详细统计数据。
+        这很有帮助。
+        for debugging collision checking issues and attachment problems.
+
+        返回：
+            包含按类别计算球体的字典 (总数，robot_links，attached_objects)
         """
         cu_js = self._get_current_joint_state_for_curobo()
 

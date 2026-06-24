@@ -27,12 +27,27 @@ class G1TriHandUpperBodyMotionControllerGripperRetargeter(RetargeterBase):
     - Retargets absolute pose from controller to robot frame.
     - Applies a fixed offset rotation for comfort/alignment.
     """
+    """基于控制器触发输入的布尔状态的G1抓住器重定向，与重定向手腕姿势相连。
+
+    Gripper:
+    - 在触发器接近门时使用歇斯底里来防止闪。
+    - 开放时是0.0，关闭时是1.0。
+
+    Wrist:
+    - 从控制器到机器人框架。
+    - 适用于舒适性/调整性固定偏移旋转。
+    """
 
     def __init__(self, cfg: G1TriHandUpperBodyMotionControllerGripperRetargeterCfg):
         """Initialize the retargeter.
 
         Args:
             cfg: Configuration for the retargeter.
+        """
+        """启动重定位器。
+
+        参数：
+            cfg: 预定重定目标。
         """
         super().__init__(cfg)
         self._cfg = cfg
@@ -50,6 +65,15 @@ class G1TriHandUpperBodyMotionControllerGripperRetargeter(RetargeterBase):
         Returns:
             Tensor: [left_gripper_state(1), right_gripper_state(1), left_wrist(7), right_wrist(7)]
             Wrist format: [x, y, z, qw, qx, qy, qz]
+        """
+        """转向控制器输入到抓住器的布尔状态和手腕姿势。
+
+        参数：
+            data: 字典MotionControllerTrackingTarget.LEFT/RIGHT每个值都是2D数组: [pose(7)，输入(7)]
+
+        返回：
+            Tensor: [left_gripper_state(1)，right_gripper_state(1)，left_wrist(7)，right_wrist(7)]
+            手腕格式: [x， y， z， qw， qx， qy， qz]
         """
         # Get controller data
         left_controller_data = data.get(DeviceBase.TrackingTarget.CONTROLLER_LEFT, np.array([]))
@@ -92,6 +116,15 @@ class G1TriHandUpperBodyMotionControllerGripperRetargeter(RetargeterBase):
         Returns:
             Hand state as float (0.0 for open, 1.0 for close)
         """
+        """通过歇斯底里取出控制器数据的手动状态。
+
+        参数：
+            controller_data: 2D阵列 [pose(7)，输入(7)]
+            prev_state: 前手状态 (0.0或1.0)
+
+        返回：
+            作为浮动的手状态 (0.0为开放，1.0为关闭)
+        """
         if len(controller_data) <= DeviceBase.MotionControllerDataRowIndex.INPUTS.value:
             return 0.0
 
@@ -119,12 +152,22 @@ class G1TriHandUpperBodyMotionControllerGripperRetargeter(RetargeterBase):
         Returns:
             Wrist pose array [x, y, z, w, x, y, z]
         """
+        """从控制器数据中提取手腕姿势。
+
+        参数：
+            controller_data: 2D阵列 [pose(7)，输入(7)]
+            default_pose: 如果没有数据，则使用默认状态
+
+        返回：
+            手腕姿势阵列 [x， y， z， w， x， y， z]
+        """
         if len(controller_data) > DeviceBase.MotionControllerDataRowIndex.POSE.value:
             return controller_data[DeviceBase.MotionControllerDataRowIndex.POSE.value]
         return default_pose
 
     def _retarget_abs(self, wrist: np.ndarray) -> np.ndarray:
         """Handle absolute pose retargeting for controller wrists."""
+        """控制器手腕的绝对姿势重定向。"""
         wrist_pos = torch.tensor(wrist[:3], dtype=torch.float32)
         wrist_quat = torch.tensor(wrist[3:], dtype=torch.float32)
 
@@ -148,6 +191,7 @@ class G1TriHandUpperBodyMotionControllerGripperRetargeter(RetargeterBase):
 @dataclass
 class G1TriHandUpperBodyMotionControllerGripperRetargeterCfg(RetargeterCfg):
     """Configuration for the G1 boolean gripper and wrist retargeter."""
+    """为G1布尔式抓住器和手腕回器的配置。"""
 
     threshold_high: float = 0.6  # Threshold to close hand
     threshold_low: float = 0.4  # Threshold to open hand

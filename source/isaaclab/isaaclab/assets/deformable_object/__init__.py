@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module for deformable object assets."""
+"""变形物体资产子模块"""
 
 from .deformable_object import DeformableObject
 from .deformable_object_cfg import DeformableObjectCfg

@@ -36,6 +36,7 @@ from isaaclab_assets import ANYMAL_D_CFG, CARTPOLE_CFG
 )
 def test_robot_load_performance(test_config, device):
     """Test robot load time."""
+    """测试机器人加载时间。"""
     with build_simulation_context(device=device) as sim:
         sim._app_control_on_stop_handle = None
         cloner = GridCloner(spacing=2)

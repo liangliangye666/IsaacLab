@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Test texture randomization in the cartpole scene using pytest."""
+"""通过Pytest测试在车杆场景中的纹理随机化。"""
 
 from isaaclab.app import AppLauncher
 
@@ -67,6 +68,7 @@ class CurriculumsCfg:
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_curriculum_modify_env_param(device):
     """Ensure curriculum terms apply correctly after the fallback and replacement."""
+    """确保课程项在倒退和更换后正确应用。"""
     # new USD stage
     omni.usd.get_context().new_stage()
 

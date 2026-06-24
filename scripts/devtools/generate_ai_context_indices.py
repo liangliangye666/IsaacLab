@@ -7,6 +7,11 @@ run without launching Isaac Sim.
 """
 
 from __future__ import annotations
+"""为IsaacLab存储库生成AI可读的索引文件。
+
+脚本只会阅读存储文件，并在doc/ai_context下写生成的文物。
+它故意避免进口IsaacLab模块，
+"""
 
 import ast
 import re

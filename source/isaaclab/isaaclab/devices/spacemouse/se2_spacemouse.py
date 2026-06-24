@@ -6,6 +6,7 @@
 """Spacemouse controller for SE(2) control."""
 
 from __future__ import annotations
+"""为SE ((2) 控制的空间鼠标控制器。"""
 
 import threading
 import time
@@ -40,12 +41,33 @@ class Se2SpaceMouse(DeviceBase):
     .. _HID-API: https://github.com/libusb/hidapi
 
     """
+    """一个空间鼠标控制器用于发送SE(2) 命令作为三角形姿势。
+
+    这个类实现了一个空间鼠标控制器，以提供命令给移动基座。
+    它使用`HID-API`_，它与USD和蓝牙HID类设备接口在多个平台上。
+
+    命令包括基线和角速度:`(v_x， v_y， \omega_z)`。
+
+    说明：
+        接口找到和使用与计算机连接的第一个支持设备。
+
+    目前用于以下设备进行测试:
+
+    - SpaceMouse 紧: https://3dconnexion.com/de/product/spacemouse-compact/
+
+    .. _HID-API: https://github.com/libusb/hidapi
+    """
 
     def __init__(self, cfg: Se2SpaceMouseCfg):
         """Initialize the spacemouse layer.
 
         Args:
             cfg: Configuration for the spacemouse device.
+        """
+        """启动空间鼠标层。
+
+        参数：
+            cfg: 空间鼠标设备的配置。
         """
         # store inputs
         self.v_x_sensitivity = cfg.v_x_sensitivity
@@ -66,10 +88,12 @@ class Se2SpaceMouse(DeviceBase):
 
     def __del__(self):
         """Destructor for the class."""
+        """对于这个班级来说，它是降采样性的。"""
         self._thread.join()
 
     def __str__(self) -> str:
         """Returns: A string containing the information of joystick."""
+        """Returns: 包含玩具信息的字符串。"""
         msg = f"Spacemouse Controller for SE(2): {self.__class__.__name__}\n"
         msg += f"\tManufacturer: {self._device.get_manufacturer_string()}\n"
         msg += f"\tProduct: {self._device.get_product_string()}\n"
@@ -81,6 +105,8 @@ class Se2SpaceMouse(DeviceBase):
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self):
@@ -95,6 +121,13 @@ class Se2SpaceMouse(DeviceBase):
             func: The function to call when key is pressed. The callback function should not
                 take any arguments.
         """
+        """增加额外的功能来绑定空间鼠标。
+
+        参数：
+            key: 键盘检查。
+            func: 在键时调用的函数。
+                  召回函数不应进行任何争论。
+        """
         self._additional_callbacks[key] = func
 
     def advance(self) -> torch.Tensor:
@@ -103,14 +136,22 @@ class Se2SpaceMouse(DeviceBase):
         Returns:
             A 3D tensor containing the linear (x,y) and angular velocity (z).
         """
+        """提供空间鼠事件状态的结果。
+
+        返回：
+            包含线性 (x，y) 和角速度 (z) 的3D子。
+        """
         return convert_to_torch(self._base_command, device=self._sim_device)
 
     """
     Internal helpers.
     """
+    """内部助理。
+    """
 
     def _find_device(self):
         """Find the device connected to computer."""
+        """找到连接到电脑的设备。"""
         found = False
         # implement a timeout for device search
         for _ in range(5):
@@ -133,6 +174,7 @@ class Se2SpaceMouse(DeviceBase):
 
     def _run_device(self):
         """Listener thread that keeps pulling new messages."""
+        """听者线索，不断吸引新的信息。"""
         # keep running
         while True:
             # read the device data
@@ -166,6 +208,7 @@ class Se2SpaceMouse(DeviceBase):
 @dataclass
 class Se2SpaceMouseCfg(DeviceCfg):
     """Configuration for SE2 space mouse devices."""
+    """设置SE2空间鼠标设备。"""
 
     v_x_sensitivity: float = 0.8
     v_y_sensitivity: float = 0.4

@@ -15,9 +15,11 @@ import torch
 
 class EpisodeData:
     """Class to store episode data."""
+    """类存储事件数据。"""
 
     def __init__(self) -> None:
         """Initializes episode data class."""
+        """启动回合数据类。"""
         self._data = dict()
         self._next_action_index = 0
         self._next_state_index = 0
@@ -29,65 +31,78 @@ class EpisodeData:
     @property
     def data(self):
         """Returns the episode data."""
+        """返回事件数据。"""
         return self._data
 
     @data.setter
     def data(self, data: dict):
         """Set the episode data."""
+        """设置事件数据。"""
         self._data = data
 
     @property
     def seed(self):
         """Returns the random number generator seed."""
+        """返回随机数生成器的种子。"""
         return self._seed
 
     @seed.setter
     def seed(self, seed: int):
         """Set the random number generator seed."""
+        """设置随机数生成器种子。"""
         self._seed = seed
 
     @property
     def env_id(self):
         """Returns the environment ID."""
+        """返回环境的ID。"""
         return self._env_id
 
     @env_id.setter
     def env_id(self, env_id: int):
         """Set the environment ID."""
+        """设置环境ID。"""
         self._env_id = env_id
 
     @property
     def next_action_index(self):
         """Returns the next action index."""
+        """返回下一个动作索引。"""
         return self._next_action_index
 
     @next_action_index.setter
     def next_action_index(self, index: int):
         """Set the next action index."""
+        """设置下一个动作索引。"""
         self._next_action_index = index
 
     @property
     def next_state_index(self):
         """Returns the next state index."""
+        """返回下一个状态索引。"""
         return self._next_state_index
 
     @next_state_index.setter
     def next_state_index(self, index: int):
         """Set the next state index."""
+        """设置下一个状态索引。"""
         self._next_state_index = index
 
     @property
     def success(self):
         """Returns the success value."""
+        """返回成功值。"""
         return self._success
 
     @success.setter
     def success(self, success: bool):
         """Set the success value."""
+        """设定成功值。"""
         self._success = success
 
     def is_empty(self):
         """Check if the episode data is empty."""
+        """检查事件数据是否空。"""
         return not bool(self._data)
 
     def add(self, key: str, value: torch.Tensor | dict):
@@ -99,6 +114,15 @@ class EpisodeData:
         Args:
             key: The key name.
             value: The corresponding value of tensor type or of dict type.
+        """
+        """在数据集中添加一个关键值对。
+
+        通过使用"/"字符来嵌入键。
+        例如:"obs/joint_pos"。
+
+        参数：
+            key: 关键名。
+            value: 应对的子类型或指标类型的值。
         """
         # check datatype
         if isinstance(value, dict):
@@ -124,12 +148,14 @@ class EpisodeData:
 
     def get_initial_state(self) -> torch.Tensor | None:
         """Get the initial state from the dataset."""
+        """从数据集中获取初始状态。"""
         if "initial_state" not in self._data:
             return None
         return self._data["initial_state"]
 
     def get_action(self, action_index) -> torch.Tensor | None:
         """Get the action of the specified index from the dataset."""
+        """从数据集中获取指定索引的操作。"""
         if "actions" not in self._data:
             return None
         if action_index >= len(self._data["actions"]):
@@ -138,6 +164,7 @@ class EpisodeData:
 
     def get_next_action(self) -> torch.Tensor | None:
         """Get the next action from the dataset."""
+        """从数据集中获取下一步动作。"""
         action = self.get_action(self._next_action_index)
         if action is not None:
             self._next_action_index += 1
@@ -145,6 +172,7 @@ class EpisodeData:
 
     def get_state(self, state_index) -> dict | None:
         """Get the state of the specified index from the dataset."""
+        """从数据集中获取指定索引的状态。"""
         if "states" not in self._data:
             return None
 
@@ -170,6 +198,7 @@ class EpisodeData:
 
     def get_next_state(self) -> dict | None:
         """Get the next state from the dataset."""
+        """从数据集中获取下一个状态。"""
         state = self.get_state(self._next_state_index)
         if state is not None:
             self._next_state_index += 1
@@ -177,6 +206,7 @@ class EpisodeData:
 
     def get_joint_target(self, joint_target_index) -> dict | torch.Tensor | None:
         """Get the joint target of the specified index from the dataset."""
+        """从数据集中获取指定索引的联合目标。"""
         if "joint_targets" not in self._data:
             return None
 
@@ -202,6 +232,7 @@ class EpisodeData:
 
     def get_next_joint_target(self) -> dict | torch.Tensor | None:
         """Get the next joint target from the dataset."""
+        """从数据集中找到下一个共同目标。"""
         joint_target = self.get_joint_target(self._next_joint_target_index)
         if joint_target is not None:
             self._next_joint_target_index += 1
@@ -209,6 +240,7 @@ class EpisodeData:
 
     def pre_export(self):
         """Prepare data for export by converting lists to tensors."""
+        """通过将列表转换为子来准备出口数据。"""
 
         def pre_export_helper(data):
             for key, value in data.items():

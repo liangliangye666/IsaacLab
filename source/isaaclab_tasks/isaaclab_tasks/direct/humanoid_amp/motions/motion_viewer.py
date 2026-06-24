@@ -22,6 +22,8 @@ class MotionViewer:
     """
     Helper class to visualize motion data from NumPy-file format.
     """
+    """从NumPy文件格式可视化运动数据的辅助类。
+    """
 
     def __init__(self, motion_file: str, device: torch.device | str = "cpu", render_scene: bool = False) -> None:
         """Load a motion file and initialize the internal variables.
@@ -34,6 +36,16 @@ class MotionViewer:
 
         Raises:
             AssertionError: If the specified motion file doesn't exist.
+        """
+        """运载一个动作文件，并初始化内部变量。
+
+        参数：
+            motion_file: 移动文件路径进行加载。
+            device: 输入数据的设备。
+            render_scene: 是否将场景 (骨在运动中占据的空间) 呈现，而不是减少骨的视图。
+
+        异常：
+            AssertionError: 如果指定的运动文件不存在。
         """
         self._figure = None
         self._figure_axes = None
@@ -54,6 +66,7 @@ class MotionViewer:
 
     def _drawing_callback(self, frame: int) -> None:
         """Drawing callback called each frame"""
+        """调回每一个框架"""
         # get current motion frame
         # get data
         vertices = self._body_positions[self._current_frame]
@@ -95,6 +108,7 @@ class MotionViewer:
 
     def show(self) -> None:
         """Show motion"""
+        """展示运动"""
         # create a 3D figure
         self._figure = plt.figure()
         self._figure_axes = self._figure.add_subplot(projection="3d")

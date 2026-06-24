@@ -68,17 +68,61 @@ class ThrustAction(ActionTerm):
                     )
 
     """
+    """推动动作项，将处理的动作作为推动命令。
+
+    这种动作项专门用于通过将动作输入映射到推进器命令来控制多轮动力车辆。
+    它通过:
+
+    - **扩展**:乘以规模因子来调整命令大小
+    - **偏移**:在基线周围的中心动作中添加偏移 (e.g.，悬浮推力)
+    - **裁剪**:限制操作到有效范围以防止不安全的命令
+
+    动作项与艾萨克实验室的:class:`~isaaclab.managers.ActionManager`框架相结合，并专门为:class:`~isaaclab_contrib.assets.Mult
+    irotor`资产设计。
+
+    主要特征:
+        - 支持每驱动器或均的扩展和抵消
+        - 基于浮动推力的可选自动抵消计算
+        - 减少安全和强制执行的动作
+        - 灵活控制方案的基于Regex的推进器选择
+
+    示例：
+        .. code-block:: python
+
+            from isaaclab.envs import ManagerBasedRLEnvCfg
+            from isaaclab_contrib.mdp.actions import ThrustActionCfg
+
+
+            @configclass
+            class MyEnvCfg(ManagerBasedRLEnvCfg):
+                # ... other configuration ...
+
+                @configclass
+                class ActionsCfg:
+                    # Direct thrust control (normalized actions)
+                    thrust = ThrustActionCfg(
+                        asset_name="robot",
+                        scale=5.0,  # Convert [-1, 1] to [-5, 5] N
+                        use_default_offset=True,  # Add hover thrust as offset
+                        clip={".*": (-2.0, 8.0)},  # Clip to safe thrust range
+                    )
+    """
 
     cfg: thrust_actions_cfg.ThrustActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
     _asset: Multirotor
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
     _scale: torch.Tensor | float
     """The scaling factor applied to the input action."""
+    """对输入操作所应用的扩展因素。"""
     _offset: torch.Tensor | float
     """The offset applied to the input action."""
+    """对输入操作所应用的抵消。"""
     _clip: torch.Tensor
     """The clip applied to the input action."""
+    """在输入操作中应用的裁剪。"""
 
     def __init__(self, cfg: thrust_actions_cfg.ThrustActionCfg, env: ManagerBasedEnv) -> None:
         # initialize the action term
@@ -150,6 +194,8 @@ class ThrustAction(ActionTerm):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def action_dim(self) -> int:
@@ -166,6 +212,7 @@ class ThrustAction(ActionTerm):
     @property
     def IO_descriptor(self) -> GenericActionIODescriptor:
         """The IO descriptor of the action term."""
+        """动作项的IO描述符。"""
         super().IO_descriptor
         self._IO_descriptor.shape = (self.action_dim,)
         self._IO_descriptor.dtype = str(self.raw_actions.dtype)
@@ -188,6 +235,8 @@ class ThrustAction(ActionTerm):
     """
     Methods
     """
+    """方法
+    """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> None:
         """Reset the action term.
@@ -197,6 +246,15 @@ class ThrustAction(ActionTerm):
 
         Args:
             env_ids: Environment indices to reset. Defaults to None (all environments).
+        """
+        """重置动作项。
+
+        这种方法将原始动作重置为指定环境的零。
+        在下一次:meth:`process_actions`电话中将重新计算处理的操作。
+
+        参数：
+            env_ids: 环境索引要重置。
+                     在 None (所有环境) 中默认设置。
         """
         self._raw_actions[env_ids] = 0.0
 
@@ -222,6 +280,27 @@ class ThrustAction(ActionTerm):
             The processed actions are stored internally and applied during the next
             :meth:`apply_actions` call.
         """
+        """通过应用扩展，偏移和裁剪来处理操作。
+
+        这种方法将原始的策略动作转化为推力命令，
+        转变是:
+
+        .. math::
+            \text{processed} = \text{raw} \times \text{scale} + \text{offset}
+
+        如果设置裁剪，则将处理的操作紧缩:
+
+        .. math::
+            \text{processed} = \text{clamp}(\text{processed}, \text{min}, \text{max})
+
+        参数：
+            actions: 策略的原始动作张量。
+                     形状是``(num_envs， action_dim)``。
+                     通常在正常化策略的范围 [-1， 1]。
+
+        说明：
+            处理的操作将内部存储并在下一次:meth:`apply_actions`调用中应用。
+        """
         # store the raw actions
         self._raw_actions[:] = actions
         # apply the affine transformations
@@ -241,6 +320,13 @@ class ThrustAction(ActionTerm):
 
         The method calls :meth:`~isaaclab_contrib.assets.Multirotor.set_thrust_target`
         on the multirotor asset with the appropriate thruster IDs.
+        """
+        """执行处理的操作作为推命令。
+
+        这种方法将处理的动作设定为对多机动资产的推进目标。
+        然后推进动力模型使用推进目标来计算在仿真阶段的实际推进力。
+
+        该方法在适当的推进器 IDs 上调用 multirotor 资产 :meth:`~isaaclab_contrib.assets.Multirotor.set_thrust_target`。
         """
         # Set thrust targets using thruster IDs
         self._asset.set_thrust_target(self.processed_actions, thruster_ids=self._thruster_ids)

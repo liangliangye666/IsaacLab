@@ -12,8 +12,16 @@ This script demonstrates the FrameTransformer sensor by visualizing the frames t
     ./isaaclab.sh -p scripts/tutorials/04_sensors/run_frame_transformer.py
 
 """
+"""通过可视化它所创建的框架来展示FrameTransformer传感器。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/04_sensors/run_frame_transformer.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -31,6 +39,7 @@ app_launcher = AppLauncher(headless=args_cli.headless)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 
@@ -54,6 +63,7 @@ from isaaclab_assets.robots.anymal import ANYMAL_C_CFG  # isort:skip
 
 def define_sensor() -> FrameTransformer:
     """Defines the FrameTransformer sensor to add to the scene."""
+    """定义了FrameTransformer传感器。"""
     # define offset
     rot_offset = math_utils.quat_from_euler_xyz(torch.zeros(1), torch.zeros(1), torch.tensor(-math.pi / 2))
     pos_offset = math_utils.quat_apply(rot_offset, torch.tensor([0.08795, 0.01305, -0.33797]))
@@ -78,6 +88,7 @@ def define_sensor() -> FrameTransformer:
 
 def design_scene() -> dict:
     """Design the scene."""
+    """设计场景。"""
     # Populate scene
     # -- Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
@@ -97,6 +108,7 @@ def design_scene() -> dict:
 
 def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
     """Run the simulator."""
+    """运行仿真器。"""
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()
     sim_time = 0.0
@@ -164,6 +176,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(dt=0.005, device=args_cli.device)
     sim = SimulationContext(sim_cfg)

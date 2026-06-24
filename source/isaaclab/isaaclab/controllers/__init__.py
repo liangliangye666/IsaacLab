@@ -10,6 +10,12 @@ controller can be a simple PID controller or a more complex controller such as i
 or inverse kinematics control. The controller is responsible for generating the desired joint-level
 commands to be sent to the robot.
 """
+"""对于不同控制器和运动生成器的子包装。
+
+控制器或运动生成器负责对给定的命令进行闭环跟踪。
+控制器可以是简单的PID控制器或更复杂的控制器，如阻力控制或逆动力控制。
+控制器负责生成想要的联合级命令，将发送给机器人。
+"""
 
 from .differential_ik import DifferentialIKController
 from .differential_ik_cfg import DifferentialIKControllerCfg

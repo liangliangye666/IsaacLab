@@ -34,6 +34,7 @@ FRANKA_RMPFLOW_CFG = RmpFlowControllerCfg(
     evaluations_per_frame=5,
 )
 """Configuration of RMPFlow for Franka arm (default from `isaacsim.robot_motion.motion_generation`)."""
+"""弗兰卡手臂的RMPFlow配置 (从`isaacsim.robot_motion.motion_generation`之前默认)。"""
 
 
 UR10_RMPFLOW_CFG = RmpFlowControllerCfg(
@@ -44,6 +45,7 @@ UR10_RMPFLOW_CFG = RmpFlowControllerCfg(
     evaluations_per_frame=5,
 )
 """Configuration of RMPFlow for UR10 arm (default from `isaacsim.robot_motion.motion_generation`)."""
+"""对于UR10臂的RMPFlow配置 (自`isaacsim.robot_motion.motion_generation`起默认)。"""
 
 GALBOT_LEFT_ARM_RMPFLOW_CFG = RmpFlowControllerCfg(
     config_file=os.path.join(
@@ -78,6 +80,7 @@ GALBOT_RIGHT_ARM_RMPFLOW_CFG = RmpFlowControllerCfg(
 )
 
 """Configuration of RMPFlow for Galbot humanoid."""
+"""为Galbot的人类型的RMPFlow配置。"""
 
 AGIBOT_LEFT_ARM_RMPFLOW_CFG = RmpFlowControllerCfg(
     config_file=os.path.join(ISAACLAB_NUCLEUS_RMPFLOW_DIR, "agibot", "rmpflow", "agibot_left_arm_rmpflow_config.yaml"),
@@ -98,3 +101,4 @@ AGIBOT_RIGHT_ARM_RMPFLOW_CFG = RmpFlowControllerCfg(
 )
 
 """Configuration of RMPFlow for Agibot humanoid."""
+"""对于Agibot的人类型的RMPFlow配置。"""

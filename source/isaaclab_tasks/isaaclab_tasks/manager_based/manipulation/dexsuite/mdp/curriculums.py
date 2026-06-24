@@ -25,6 +25,9 @@ def initial_final_interpolate_fn(env: ManagerBasedRLEnv, env_id, data, initial_v
     nested structure of lists/tuples in 'data'. Scalars (int/float) are handled
     at the leaves.
     """
+    """在"数据"中任意嵌入列表/tuples的结构中，对初始值 iv 和最终值 fv 进行间歇。
+    在叶子上使用杆 (/漂浮)。
+    """
     # get the fraction scalar on the device
     difficulty_term: DifficultyScheduler = getattr(env.curriculum_manager.cfg, difficulty_term_str).func
     frac = difficulty_term.difficulty_frac
@@ -65,6 +68,16 @@ class DifficultyScheduler(ManagerTermBase):
         cfg: Configuration object specifying scheduler parameters.
         env: The manager-based RL environment.
 
+    """
+    """适应性难度规划器课程学习。
+
+    追踪每个环境的难度水平，并根据任务的执行调整它们。
+    当位置/定向错误低于给定的容忍度时，难度会增加，否则会减少 (除非设置`promotion_only`)。
+    环境中正常化的平均难度被以`difficulty_frac`为例，用于课程插图。
+
+    参数：
+        cfg: 配置对象指定调度器参数。
+        env: 基于管理器的RL环境。
     """
 
     def __init__(self, cfg, env):

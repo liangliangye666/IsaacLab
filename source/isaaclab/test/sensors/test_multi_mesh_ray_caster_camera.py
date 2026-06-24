@@ -7,6 +7,7 @@
 # pyright: reportPrivateUsage=none
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -14,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import copy
 import os
@@ -44,6 +46,7 @@ QUAT_WORLD = [-0.3647052, -0.27984815, -0.1159169, 0.88047623]
 @pytest.fixture(scope="function")
 def setup_simulation():
     """Fixture to set up and tear down the simulation environment."""
+    """设置和拆除仿真环境的固定装置。"""
     # Create a new stage
     sim_utils.create_new_stage()
     # Simulation time-step
@@ -99,6 +102,7 @@ def setup_simulation():
 @pytest.mark.isaacsim_ci
 def test_camera_init_offset(setup_simulation, convention, quat):
     """Test camera initialization with offset using different conventions."""
+    """测试摄像头初始化，使用不同的规范。"""
     sim, dt, camera_cfg = setup_simulation
 
     # Create camera config with specific convention
@@ -128,6 +132,7 @@ def test_camera_init_offset(setup_simulation, convention, quat):
 @pytest.mark.isaacsim_ci
 def test_camera_init(setup_simulation):
     """Test camera initialization."""
+    """测试摄像头启动。"""
     sim, dt, camera_cfg = setup_simulation
 
     # Create camera
@@ -165,6 +170,7 @@ def test_camera_init(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_camera_resolution(setup_simulation):
     """Test camera resolution is correctly set."""
+    """测试摄像头的分辨率正确设置。"""
     sim, dt, camera_cfg = setup_simulation
 
     # Create camera
@@ -187,6 +193,7 @@ def test_camera_resolution(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_camera_init_intrinsic_matrix(setup_simulation):
     """Test camera initialization from intrinsic matrix."""
+    """从内在矩阵开始测试摄像头。"""
     sim, dt, camera_cfg = setup_simulation
 
     # get the first camera
@@ -237,6 +244,7 @@ def test_camera_init_intrinsic_matrix(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_multi_camera_init(setup_simulation):
     """Test multi-camera initialization."""
+    """测试多摄像头启动。"""
     sim, dt, camera_cfg = setup_simulation
 
     # -- camera 1
@@ -279,6 +287,7 @@ def test_multi_camera_init(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_camera_set_world_poses(setup_simulation):
     """Test camera function to set specific world pose."""
+    """测试摄像头功能，设置特定的世界姿势。"""
     sim, dt, camera_cfg = setup_simulation
 
     camera = MultiMeshRayCasterCamera(camera_cfg)
@@ -301,6 +310,7 @@ def test_camera_set_world_poses(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_camera_set_world_poses_from_view(setup_simulation):
     """Test camera function to set specific world pose from view."""
+    """测试摄像头功能，以设置特定的世界姿势。"""
     sim, dt, camera_cfg = setup_simulation
 
     camera = MultiMeshRayCasterCamera(camera_cfg)
@@ -325,6 +335,7 @@ def test_camera_set_world_poses_from_view(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_intrinsic_matrix(setup_simulation, height, width):
     """Checks that the camera's set and retrieve methods work for intrinsic matrix."""
+    """检查相机的设置和检索方法是否适用于内在矩阵。"""
     sim, dt, camera_cfg = setup_simulation
 
     camera_cfg_copy = copy.deepcopy(camera_cfg)
@@ -358,6 +369,7 @@ def test_intrinsic_matrix(setup_simulation, height, width):
 @pytest.mark.isaacsim_ci
 def test_throughput(setup_simulation):
     """Test camera throughput for different image sizes."""
+    """测试摄像头的吞吐量为不同图像尺寸。"""
     sim, dt, camera_cfg = setup_simulation
 
     # Create directory temp dir to dump the results
@@ -424,6 +436,7 @@ def test_throughput(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_output_equal_to_usdcamera(setup_simulation, data_types):
     """Test that ray caster camera output equals USD camera output."""
+    """测试射线射线摄像头输出等于USD摄像头输出。"""
     sim, dt, camera_cfg = setup_simulation
 
     camera_pattern_cfg = patterns.PinholeCameraPatternCfg(
@@ -519,6 +532,7 @@ def test_output_equal_to_usdcamera(setup_simulation, data_types):
 @pytest.mark.isaacsim_ci
 def test_output_equal_to_usdcamera_offset(setup_simulation):
     """Test that ray caster camera output equals USD camera output with offset."""
+    """测试射线投影机输出等于USD摄像机输出。"""
     sim, dt, camera_cfg = setup_simulation
     offset_rot = (-0.1251, 0.3617, 0.8731, -0.3020)
 
@@ -596,6 +610,8 @@ def test_output_equal_to_usdcamera_offset(setup_simulation):
 def test_output_equal_to_usdcamera_prim_offset(setup_simulation):
     """Test that the output of the ray caster camera is equal to the output of the usd camera when both are placed
     under an XForm prim that is translated and rotated from the world origin."""
+    """测试射线投影机的输出与USD摄像机的输出等于，当两者都放在XForm prim下，从世界起源中翻译和旋转时。
+    """
     sim, dt, camera_cfg = setup_simulation
 
     offset_rot = [-0.1251, 0.3617, 0.8731, -0.3020]
@@ -693,6 +709,8 @@ def test_output_equal_to_usdcamera_prim_offset(setup_simulation):
 def test_output_equal_to_usd_camera_intrinsics(setup_simulation, height, width):
     """Test that the output of the ray caster camera and usd camera are the same when both are
     initialized with the same intrinsic matrix."""
+    """测试射线投影机和USD摄像机的输出是相同的，当两者都使用相同的内在矩阵初始化时。
+    """
     sim, dt, camera_cfg = setup_simulation
 
     # create cameras
@@ -787,6 +805,8 @@ def test_output_equal_to_usd_camera_intrinsics(setup_simulation, height, width):
 def test_output_equal_to_usd_camera_when_intrinsics_set(setup_simulation):
     """Test that the output of the ray caster camera is equal to the output of the usd camera when both are placed
     under an XForm prim and an intrinsic matrix is set."""
+    """测试射线投影相机的输出与USD相机的输出等于，当两者都放在XForm prim下，并设置内在矩阵时。
+    """
     sim, dt, camera_cfg = setup_simulation
 
     camera_pattern_cfg = patterns.PinholeCameraPatternCfg(

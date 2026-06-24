@@ -21,10 +21,18 @@ class CameraJobCfg(tuner.JobCfg):
     CNN structure, and MLP structure. Broad possible ranges are set, the specific values
     that work can be found via tuning. Tuning results can inform better ranges for a second tuning run.
     These ranges were selected for demonstration purposes. Best ranges are run/task specific."""
+    """为了兼容:meth:invoke_tuning_run和:class:IsaacLabTuneTrainable，配置应以类似于该类的格式进行。
+    这个类可以变化env计数/视界长，CNN结构和MLP结构。
+    可以设置广泛的范围，通过调整可以找到工作的特定值。
+    调整结果可以为第二次调整运行提供更好的范围。
+    这些范围是为了示范而选择的。
+    最好的范围是运行/任务特定的。
+    """
 
     @staticmethod
     def _get_batch_size_divisors(batch_size: int, min_size: int = 128) -> list[int]:
         """Get valid batch divisors to combine with num_envs and horizon length"""
+        """获取有效的批量分数，并结合num_envs和视界长"""
         divisors = [i for i in range(min_size, batch_size + 1) if batch_size % i == 0]
         return divisors if divisors else [min_size]
 
@@ -127,6 +135,7 @@ class CameraJobCfg(tuner.JobCfg):
 
 class ResNetCameraJob(CameraJobCfg):
     """Try different ResNet sizes."""
+    """尝试不同的ResNet尺寸。"""
 
     def __init__(self, cfg: dict = {}):
         cfg = util.populate_isaac_ray_cfg_args(cfg)
@@ -138,6 +147,7 @@ class ResNetCameraJob(CameraJobCfg):
 
 class TheiaCameraJob(CameraJobCfg):
     """Try different Theia sizes."""
+    """尝试不同的Theia尺寸。"""
 
     def __init__(self, cfg: dict = {}):
         cfg = util.populate_isaac_ray_cfg_args(cfg)

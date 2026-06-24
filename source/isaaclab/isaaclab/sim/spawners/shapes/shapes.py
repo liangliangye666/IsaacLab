@@ -49,6 +49,33 @@ def spawn_sphere(
     Raises:
         ValueError: If a prim already exists at the given path.
     """
+    """创建一个基于USDGeom的 prim球体。
+
+    查看更多信息`USDGeomSphere <https://openusd.org/dev/api/class_usd_geom_sphere.html>`_。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
+    """
     # obtain stage handle
     stage = get_current_stage()
     # spawn sphere if it doesn't exist.
@@ -95,6 +122,36 @@ def spawn_cuboid(
     Raises:
         If a prim already exists at the given path.
     """
+    """创建一个基于USDGeom的立方体prim，
+
+    查看更多信息`USDGeomCube <https://openusd.org/dev/api/class_usd_geom_cube.html>`_。
+
+    说明：
+        由于USD只支持立方体，所以我们将立方体的尺寸设置为所给定的最小尺寸，
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        如果已在给定的路径上存在prim。
+    """
     # obtain stage handle
     stage = get_current_stage()
     # resolve the scale
@@ -140,6 +197,33 @@ def spawn_cylinder(
     Raises:
         ValueError: If a prim already exists at the given path.
     """
+    """创建一个基于USDGeom的 prim，
+
+    查看更多信息`USDGeomCylinder <https://openusd.org/dev/api/class_usd_geom_cylinder.html>`_。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
+    """
     # obtain stage handle
     stage = get_current_stage()
     # spawn cylinder if it doesn't exist.
@@ -181,6 +265,33 @@ def spawn_capsule(
 
     Raises:
         ValueError: If a prim already exists at the given path.
+    """
+    """创建一个基于USDGeom的prim囊，
+
+    查看更多信息`USDGeomCapsule <https://openusd.org/dev/api/class_usd_geom_capsule.html>`_。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
     """
     # obtain stage handle
     stage = get_current_stage()
@@ -224,6 +335,33 @@ def spawn_cone(
     Raises:
         ValueError: If a prim already exists at the given path.
     """
+    """创建一个基于USDGeom的角形prim，
+
+    查看更多信息`USDGeomCone <https://openusd.org/dev/api/class_usd_geom_cone.html>`_。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
+    """
     # obtain stage handle
     stage = get_current_stage()
     # spawn cone if it doesn't exist.
@@ -235,6 +373,8 @@ def spawn_cone(
 
 """
 Helper functions.
+"""
+"""辅助函数。
 """
 
 
@@ -276,6 +416,38 @@ def _spawn_geom_from_prim_type(
 
     Raises:
         ValueError: If a prim already exists at the given path.
+    """
+    """创建一个基于USDGeom的prim，
+
+    为了使资产可以实例化，我们必须遵循一个特定的结构， 根据USD场景图实例化和物理的运行。
+    每个实例必须添加硬体组件，而不是引用的资产 (i.e.原型prim本身)。
+    这就是因为硬体组件定义为每个实例的特征，不能在引用资产下共享。
+    更多信息请查看`documentation <https://docs.isaacsim.omniverse.nvidia.com/latest/physics/simulation_fundamen
+    tals.html#rigid-body>`_。
+
+    由于上述情况，我们遵循以下结构:
+
+    * ``{prim_path}`` - 根 prim 是一个X形式，如果配置，则具有硬体和质量 APIs。
+    * ``{prim_path}/geometry`` - 包含网格和选项材料的prim，如果配置.如果启用实例化，这个prim将是原型prim的实例化参考。
+
+    参数：
+        prim_path: 在prim的路径中产生资产。
+        cfg: 包含适用属性的配置。
+        prim_type: 创建的prim类型。
+        attributes: 适用于prim的属性。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        scale: 适用于prim的尺度。
+               默认设置为None，在这种情况下，设置为身份。
+        stage: 在这个阶段，我们可以产生资产。
+               在 None 上默认设置，此时使用当前阶段。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
     """
     # obtain stage handle
     stage = stage if stage is not None else get_current_stage()

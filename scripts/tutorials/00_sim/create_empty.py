@@ -11,8 +11,16 @@
     ./isaaclab.sh -p scripts/tutorials/00_sim/create_empty.py
 
 """
+"""这部剧本展示了如何在Isaac Sim中创建一个简单的舞台。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/00_sim/create_empty.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 '''
 在 Isaac Lab / Isaac Sim 里，必须先启动仿真应用，再导入很多和仿真相关的模块。
 '''
@@ -43,6 +51,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app   # app_launcher.app 就是真正启动好的 Isaac Sim / Omniverse 应用对象
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 from isaaclab.sim import SimulationCfg, SimulationContext
 '''
@@ -70,6 +79,7 @@ from isaaclab.sim import SimulationCfg, SimulationContext
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # Initialize the simulation context
     sim_cfg = SimulationCfg(dt=0.01)    # 创建仿真配置对象 sim_cfg，dt是物理仿真时间步长

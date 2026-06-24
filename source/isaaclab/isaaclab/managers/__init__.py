@@ -9,6 +9,12 @@ The managers are used to handle various aspects of the environment such as rando
 and observations. Each manager implements a specific functionality for the environment. The managers are
 designed to be modular and can be easily extended to support new functionality.
 """
+"""环境管理器的子模块
+
+管理器用于处理环境的各种方面，如随机化事件，课程和观测。
+每个管理器都为环境实施了特定的功能。
+管理器设计为模块化，可以轻松扩展以支持新的功能。
+"""
 
 from .action_manager import ActionManager, ActionTerm
 from .command_manager import CommandManager, CommandTerm

@@ -6,6 +6,7 @@
 """Class-based reward terms for the gear assembly manipulation environment."""
 
 from __future__ import annotations
+"""适用于设备组装操纵环境的类型奖励条件。"""
 
 from typing import TYPE_CHECKING
 
@@ -26,6 +27,10 @@ class keypoint_command_error(ManagerTermBase):
 
     This class-based term uses _compute_keypoint_distance internally.
     """
+    """从命令中计算当前和所需姿势之间的关键点距离。
+
+    这个基于类的项使用 _compute_keypoint_distance内部。
+    """
 
     def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
         """Initialize the keypoint command error term.
@@ -33,6 +38,12 @@ class keypoint_command_error(ManagerTermBase):
         Args:
             cfg: Reward term configuration
             env: Environment instance
+        """
+        """启动键点命令错误项。
+
+        参数：
+            cfg: 奖励项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -62,6 +73,18 @@ class keypoint_command_error(ManagerTermBase):
 
         Returns:
             Mean keypoint distance tensor of shape (num_envs,)
+        """
+        """计算键点距离错误。
+
+        参数：
+            env: 环境实例
+            command_name: 包含所需姿势的命令名称
+            asset_cfg: 追踪资产的配置
+            keypoint_scale: 关键点偏移的规模因素
+            add_cube_center_kp: 是否包括中键点
+
+        返回：
+            平均键点距离形状张量 (num_envs，)
         """
         # Extract frame transformer sensor
         asset: FrameTransformer = env.scene[asset_cfg.name]
@@ -93,6 +116,10 @@ class keypoint_command_error_exp(ManagerTermBase):
     This class-based term uses _compute_keypoint_distance internally and applies
     exponential reward transformation.
     """
+    """从命令中计算当前和所需姿势之间的指数级键点奖励。
+
+    这种基于类的项内部使用 _compute_keypoint_distance，并应用指数式奖励转换。
+    """
 
     def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
         """Initialize the keypoint command error exponential term.
@@ -100,6 +127,12 @@ class keypoint_command_error_exp(ManagerTermBase):
         Args:
             cfg: Reward term configuration
             env: Environment instance
+        """
+        """启动键点命令错误指数项。
+
+        参数：
+            cfg: 奖励项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -133,6 +166,20 @@ class keypoint_command_error_exp(ManagerTermBase):
 
         Returns:
             Exponential keypoint reward tensor of shape (num_envs,)
+        """
+        """计算指数式关键点奖励。
+
+        参数：
+            env: 环境实例
+            command_name: 包含所需姿势的命令名称
+            asset_cfg: 追踪资产的配置
+            kp_exp_coeffs: 指数奖励 (a，b) 系数对的列表
+            kp_use_sum_of_exps: 使用指数数的总数
+            keypoint_scale: 关键点偏移的规模因素
+            add_cube_center_kp: 是否包括中键点
+
+        返回：
+            函数式键点奖励形状张量 (num_envs，)
         """
         # Extract frame transformer sensor
         asset: FrameTransformer = env.scene[asset_cfg.name]
@@ -178,6 +225,10 @@ class keypoint_entity_error(ManagerTermBase):
 
     This class-based term pre-caches gear type mapping and asset references.
     """
+    """计算RigidObject和动态选择的变速器之间的关键点距离。
+
+    这种基于类的项预先缓存设备类型映射和资产引用。
+    """
 
     def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
         """Initialize the keypoint entity error term.
@@ -185,6 +236,12 @@ class keypoint_entity_error(ManagerTermBase):
         Args:
             cfg: Reward term configuration
             env: Environment instance
+        """
+        """启动键点实体错误项。
+
+        参数：
+            cfg: 奖励项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -224,6 +281,17 @@ class keypoint_entity_error(ManagerTermBase):
 
         Returns:
             Mean keypoint distance tensor of shape (num_envs,)
+        """
+        """计算键点距离错误。
+
+        参数：
+            env: 环境实例
+            asset_cfg_1: 第一个资产的配置 (RigidObject)
+            keypoint_scale: 关键点偏移的规模因素
+            add_cube_center_kp: 是否包括中键点
+
+        返回：
+            平均键点距离形状张量 (num_envs，)
         """
         # Get current pose of asset_1 (RigidObject)
         curr_pos_1 = self.asset_1.data.body_pos_w[:, 0]
@@ -280,6 +348,10 @@ class keypoint_entity_error_exp(ManagerTermBase):
 
     This class-based term pre-caches gear type mapping and asset references.
     """
+    """计算RigidObject和动态选择的轮之间的指数级键点奖励。
+
+    这种基于类的项预先缓存设备类型映射和资产引用。
+    """
 
     def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
         """Initialize the keypoint entity error exponential term.
@@ -287,6 +359,12 @@ class keypoint_entity_error_exp(ManagerTermBase):
         Args:
             cfg: Reward term configuration
             env: Environment instance
+        """
+        """启动键点实体错误指数项。
+
+        参数：
+            cfg: 奖励项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -330,6 +408,19 @@ class keypoint_entity_error_exp(ManagerTermBase):
 
         Returns:
             Exponential keypoint reward tensor of shape (num_envs,)
+        """
+        """计算指数式关键点奖励。
+
+        参数：
+            env: 环境实例
+            asset_cfg_1: 第一个资产的配置 (RigidObject)
+            kp_exp_coeffs: 指数奖励 (a，b) 系数对的列表
+            kp_use_sum_of_exps: 使用指数数的总数
+            keypoint_scale: 关键点偏移的规模因素
+            add_cube_center_kp: 是否包括中键点
+
+        返回：
+            函数式键点奖励形状张量 (num_envs，)
         """
         # Get current pose of asset_1 (RigidObject)
         curr_pos_1 = self.asset_1.data.body_pos_w[:, 0]
@@ -411,6 +502,16 @@ def _get_keypoint_offsets_full_6d(add_cube_center_kp: bool = False, device: torc
     Returns:
         Keypoint offsets tensor of shape (num_keypoints, 3)
     """
+    """拿出相对姿势的关键点。
+    如果所有轴线均为对齐，
+
+    参数：
+        add_cube_center_kp: 是否包括中心键点 (0， 0， 0)
+        device: 创建 on光器的设备
+
+    返回：
+        关键点抵消形状张量 (num_keypoints， 3)
+    """
     if add_cube_center_kp:
         keypoint_corners = [[0, 0, 0], [1, 0, 0], [0, 1, 0], [0, 0, 1]]
     else:
@@ -428,6 +529,10 @@ class _compute_keypoint_distance:
     This helper class pre-caches keypoint offsets and identity quaternions
     to avoid repeated allocations during reward computation.
     """
+    """计算电流和目标姿势之间的关键点距离。
+
+    这类助手预先缓存键点偏移和身份四分之一，以避免在奖励计算期间重复分配。
+    """
 
     def __init__(self, cfg: RewardTermCfg, env: ManagerBasedRLEnv):
         """Initialize the compute keypoint distance helper.
@@ -435,6 +540,12 @@ class _compute_keypoint_distance:
         Args:
             cfg: Reward term configuration
             env: Environment instance
+        """
+        """启动计算键点距离辅助器。
+
+        参数：
+            cfg: 奖励项配置
+            env: 环境实例
         """
         # Get keypoint configuration
         add_cube_center_kp = cfg.params.get("add_cube_center_kp", True)
@@ -476,6 +587,18 @@ class _compute_keypoint_distance:
 
         Returns:
             Keypoint distance tensor of shape (num_envs, num_keypoints)
+        """
+        """计算电流和目标姿势之间的关键点距离。
+
+        参数：
+            current_pos: 形状的当前位置紧器 (num_envs， 3)
+            current_quat: 现在的四元数形状张量 (num_envs， 4)
+            target_pos: 目标位置形状紧张器 (num_envs， 3)
+            target_quat: 目标四元数形状张量 (num_envs， 4)
+            keypoint_scale: 关键点偏移的规模因素
+
+        返回：
+            键点距离形状张量 (num_envs，num_keypoints)
         """
         num_envs = current_pos.shape[0]
 

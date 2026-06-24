@@ -82,6 +82,38 @@ class SimulationContext(_SimulationContext):
     with ``_async``. The ``_async`` functions are used in the Omniverse extension mode and
     the non-``_async`` functions are used in the standalone python script mode.
     """
+    """一个控制仿真相关事件的类，如物理步骤和渲染。
+
+    仿真环境有助于控制各种仿真方面。
+    这包括:
+
+    * 配置仿真器的设置不同，如物理时间步骤，物理子步骤数量和物理解析器参数 (详见:class:`isaaclab.sim.SimulationCfg`)
+    * 玩，暂停，踩下和停止仿真
+    * 添加和删除不同仿真事件的回调，如物理步骤，渲染等。
+
+    该类继承了:class:`isaacsim.core.api.simulation_context.SimulationContext`类，并添加了额外的功能，如设置仿真文本与配置对象，暴露其他常用的
+    仿真器相关函数，并执行Isaac Sim的版本检查以确保版本之间的兼容性。
+
+    仿真环境是一个单体对象。
+    这意味着在任何一个时间里，只能有一个仿真环境。
+    这是由父母的课程执行的。
+    因此，无法创建仿真环境的多个实例。
+    相反，可以使用``instance()``方法访问仿真环境。
+
+    .. 注意::
+        我们只支持`PyTorch <https://pytorch.org/>`仿真的背景设置以使用``torch``默认的后端。
+        这意味着在仿真中使用的所有数据结构都是``torch.Tensor``对象。
+
+    仿真环境可用于两个不同的操作模式:
+
+    1. **Standalone python脚本**:在这种模式下，用户可以完全控制仿真，并可以同步触发步骤事件
+       (i.e.作为阻拦呼叫).在这种情况下，用户必须手动调用:meth:`step`步骤，物理仿真和:meth:`render`来呈场景景。
+    2. **环球扩展**:在这种模式下，用户对仿真步骤的控制有限，所有仿真事件都会异步触发 (i.e.作为非阻拦呼叫).在这种情况下，用户只能触发仿真来启动，暂停和停止.仿真处理物理仿真步骤和渲染场景。
+
+    根据上述，对于这个类中的大多数函数，有一个相当的函数是后尾
+    with ``_async``. The ``_async`` functions are used in the Omniverse extension mode and
+    不是``_async``函数在独立的python脚本模式中使用。
+    """
 
     class RenderMode(enum.IntEnum):
         """Different rendering modes for the simulation.
@@ -108,15 +140,41 @@ class SimulationContext(_SimulationContext):
 
         .. _Viewports: https://docs.omniverse.nvidia.com/extensions/latest/ext_viewport.html
         """
+        """仿真的不同的渲染模式。
+
+        呈现模式与视窗和其他UI元素 (如键盘或鼠标事件听器) 的更新方式相符。
+        在仿真时可更新的三个主要组件:
+
+        1. **UI元素和其他扩展**:这些是UI元素 (如按，滑鼠等) 和在背景中运行的其他扩展，需要在仿真运行时更新。
+        2. **相机**:这些相机通常基于Hydra纹理，用于从不同的视角呈场景景。
+        3. 这些窗口可以看到渲染的场景。
+
+        更新上述各个组件的总费是不同的。
+        例如，更新视频端子与更新UI元素相比，计算成本很高。
+        因此，在仿真时可以控制更新内容。
+        这就是渲染模式的出现。
+        有四种不同的渲染模式:
+
+        * :attr:`NO_GUI_OR_RENDERING`:仿真在没有GUI的情况下运行，屏幕外渲染标志被禁用，因此上述任何都没有更新。
+        * :attr:`NO_RENDERING`:没有渲染，只有1个更新以较低的速度。
+        * :attr:`PARTIAL_RENDERING`:部分渲染，只有1和2更新。
+        * :attr:`FULL_RENDERING`:完整的呈现，其中一切 (1， 2， 3) 是更新的。
+
+        .. _Viewports: https://docs.omniverse.nvidia.com/extensions/latest/ext_viewport.html
+        """
 
         NO_GUI_OR_RENDERING = -1
         """The simulation is running without a GUI and off-screen rendering is disabled."""
+        """仿真是没有GUI的运行，"""
         NO_RENDERING = 0
         """No rendering, where only other UI elements are updated at a lower rate."""
+        """没有渲染，只有其他UI元素以较低的速度更新。"""
         PARTIAL_RENDERING = 1
         """Partial rendering, where the simulation cameras and UI elements are updated."""
+        """部分渲染，其中可更新仿真摄像头和UI元素。"""
         FULL_RENDERING = 2
         """Full rendering, where all the simulation viewports, cameras and UI elements are updated."""
+        """完整的渲染，更新了所有仿真视角，摄像头和UI元素。"""
 
     def __init__(self, cfg: SimulationCfg | None = None):
         """Creates a simulation context to control the simulator.
@@ -124,6 +182,12 @@ class SimulationContext(_SimulationContext):
         Args:
             cfg: The configuration of the simulation. Defaults to None,
                 in which case the default configuration is used.
+        """
+        """创建一个仿真环境来控制仿真器。
+
+        参数：
+            cfg: 仿真的配置。
+                 默认为 None，在这种情况下使用默认的配置。
         """
         # store input
         if cfg is None:
@@ -311,6 +375,8 @@ class SimulationContext(_SimulationContext):
     """
     Properties - Override.
     """
+    """产品 - 覆盖
+    """
 
     @property
     def device(self) -> str:
@@ -320,16 +386,28 @@ class SimulationContext(_SimulationContext):
             In Omniverse, it is possible to configure multiple GPUs for rendering, while physics engine
             operates on a single GPU. This function returns the device that is used for physics simulation.
         """
+        """在仿真中使用的设备。
+
+        说明：
+            在Omniverse中，可以配置多个GPUs用于渲染，而物理引擎则运行在单个GPU上。
+            这项函数返回用于物理仿真的设备。
+        """
         return self._physics_device
 
     """
     Operations - New.
+    """
+    """运营 - 新
     """
 
     def has_gui(self) -> bool:
         """Returns whether the simulation has a GUI enabled.
 
         True if the simulation has a GUI enabled either locally or live-streamed.
+        """
+        """返回仿真是否启用GUI。
+
+        True如果仿真具有GUI在本地或直播中。
         """
         return self._has_gui
 
@@ -346,6 +424,17 @@ class SimulationContext(_SimulationContext):
 
         .. _NVIDIA RTX documentation: https://developer.nvidia.com/rendering-technologies
         """
+        """返回仿真是否有任何RTX呈现相关传感器。
+
+        这个函数返回仿真参数``"/isaaclab/render/rtx_sensors"``的值。
+        在使用Isaac Lab的传感器类型创建 RTX相关传感器 (摄像头或LiDARs) 的时，参数设置为True。
+
+        True如果仿真有RTX传感器 (如USD摄像机或LiDARs)。
+
+        更多信息请查看`NVIDIA RTX documentation`_。
+
+        .. _NVIDIA RTX documentation: https://developer.nvidia.com/rendering-technologies
+        """
         return self._settings.get_as_bool("/isaaclab/render/rtx_sensors")
 
     def is_fabric_enabled(self) -> bool:
@@ -356,6 +445,16 @@ class SimulationContext(_SimulationContext):
         that occurs during USD read/write operations.
 
         For more information, please check `Fabric documentation`_.
+
+        .. _Fabric documentation: https://docs.omniverse.nvidia.com/kit/docs/usdrt/latest/docs/usd_fabric_usdrt.html
+        """
+        """返回是否启用了布料接口。
+
+        当布料接口启用时，将USD读写操作禁用。
+        而所有应用程序直接从布料接口读取和写入仿真状态。
+        这减少了USD阅读/写作操作期间发生的大量上海费用。
+
+        更多信息请查看`Fabric documentation`_。
 
         .. _Fabric documentation: https://docs.omniverse.nvidia.com/kit/docs/usdrt/latest/docs/usd_fabric_usdrt.html
         """
@@ -383,10 +482,32 @@ class SimulationContext(_SimulationContext):
             >>> sim.get_version()
             (2022, 1, 0)
         """
+        """返回仿真器的版本。
+
+        返回的元组包含以下信息:
+
+        * 主要版本:这是发布年 (e.g。 2022)。
+        * 小版本:这是释放的半年 (e.g。 1 或 2)。
+        * 补丁版本:这是发布的补丁号码 (e.g。 0)。
+
+        .. 注意::
+            这项功能已过时，将来将被取消。
+            我们建议使用:func:`isaaclab.utils.version.get_isaac_sim_version`代替这个函数。
+
+        返回：
+            包含主要，小和补丁版本的元组。
+
+        示例：
+            >>> sim = SimulationContext()
+            >>> sim.get_version()
+            (2022, 1, 0)
+        """
         return get_isaac_sim_version().major, get_isaac_sim_version().minor, get_isaac_sim_version().micro
 
     """
     Operations - New utilities.
+    """
+    """运营 - 新的公用事业
     """
 
     def set_camera_view(
@@ -406,6 +527,18 @@ class SimulationContext(_SimulationContext):
             target: The location of the camera target.
             camera_prim_path: The path to the camera primitive in the stage. Defaults to
                 "/OmniverseKit_Persp".
+        """
+        """在舞台上设置视角相机的位置和目标。
+
+        说明：
+            这是一个围绕数学:`isaacsim.core.utils.viewports.set_camera_view`函数的包装。
+            这里提供了方便减少所需的进口量。
+
+        参数：
+            eye: 摄像头眼睛的位置。
+            target: 摄像机目标的位置。
+            camera_prim_path: 在舞台上进入摄像头的路径。
+                              "/OmniverseKit_Persp"的默认版本
         """
         # safe call only if we have a GUI or viewport rendering enabled
         if self._has_gui or self._offscreen_render or self._render_viewport:
@@ -427,6 +560,22 @@ class SimulationContext(_SimulationContext):
 
         Raises:
             ValueError: If the input mode is not supported.
+        """
+        """改变仿真的当前渲染模式。
+
+        请查看:class:`RenderMode`，了解有关不同渲染模式的更多信息。
+
+        .. 说明::
+            当没有GUI (本地或直播) 时，我们不需要选择视频端是否需要渲染 (因为没有GUI)。
+            因此，在这种情况下，调用函数不会改变渲染模式。
+
+        参数：
+            mode (RenderMode): 渲染模式。
+                               如果不同于SimulationContext的渲染模式，
+            SimulationContext的模式被更改为新模式。
+
+        异常：
+            ValueError: 如果输入模式不支持。
         """
         # check if mode change is possible -- not possible when no GUI is available
         if not self._has_gui:
@@ -472,6 +621,20 @@ class SimulationContext(_SimulationContext):
             name: The name of the setting.
             value: The value of the setting.
         """
+        """使用碳化SDK设置仿真设置。
+
+        .. 说明::
+            如果输入设置名称不存在，则将创建。
+            如果它确实存在，
+            请确保使用正确的设置名称。
+
+            为了了解设置界面，请参阅`Carbonite SDK
+            <https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/settings.html>`文件
+
+        参数：
+            name: 设置的名称。
+            value: 设置的价值。
+        """
         # Route through typed setters for correctness and consistency for common scalar types.
         if isinstance(value, bool):
             self.carb_settings.set_bool(name, value)
@@ -495,6 +658,14 @@ class SimulationContext(_SimulationContext):
         Returns:
             The value of the setting.
         """
+        """使用碳化SDK阅读仿真设置。
+
+        参数：
+            name: 设置的名称。
+
+        返回：
+            设置的价值。
+        """
         return self.carb_settings.get(name)
 
     def get_initial_stage(self) -> Usd.Stage:
@@ -503,10 +674,17 @@ class SimulationContext(_SimulationContext):
         Returns:
             The stage used during scene creation.
         """
+        """返回场景创建过程中使用的舞台句柄。
+
+        返回：
+            在场景创作中使用的舞台。
+        """
         return self._initial_stage
 
     """
     Operations - Override (standalone)
+    """
+    """运营 - 过渡 (独立)
     """
 
     def reset(self, soft: bool = False):
@@ -532,6 +710,7 @@ class SimulationContext(_SimulationContext):
 
     def forward(self) -> None:
         """Updates articulation kinematics and fabric for rendering."""
+        """更新关节动态和织物用于渲染。"""
         if self._fabric_iface is not None:
             if self.physics_sim_view is not None and self.is_playing():
                 # Update the articulations' link's poses before rendering
@@ -547,6 +726,16 @@ class SimulationContext(_SimulationContext):
         Args:
             render: Whether to render the scene after stepping the physics simulation.
                     If set to False, the scene is not rendered and only the physics simulation is stepped.
+        """
+        """在仿真过程中。
+
+        .. 说明::
+            如果时间线暂停，这个函数会被阻止。
+            只有时间线在播放时才会返回。
+
+        参数：
+            render: 在物理仿真后是否要呈场景景。
+                    如果设置为False，场景不会被渲染，只有物理仿真。
         """
         # check if we need to raise an exception that was raised in a callback
         if builtins.ISAACLAB_CALLBACK_EXCEPTION is not None:
@@ -594,6 +783,18 @@ class SimulationContext(_SimulationContext):
         Args:
             mode: The rendering mode. Defaults to None, in which case the current rendering mode is used.
         """
+        """根据渲染模式更新渲染组件，包括UI元素和视图端口。
+
+        这种功能用于刷新仿真的渲染组件。
+        这包括在背景中运行的视频端口，UI元素和其他扩展 (除了物理仿真) 的更新。
+        根据渲染模式，渲染组件进行更新。
+
+        请查看:class:`RenderMode`，了解有关不同渲染模式的更多信息。
+
+        参数：
+            mode: 渲染模式。
+                  在 None 中，默认情况下使用当前渲染模式。
+        """
         # check if we need to raise an exception that was raised in a callback
         if builtins.ISAACLAB_CALLBACK_EXCEPTION is not None:
             exception_to_raise = builtins.ISAACLAB_CALLBACK_EXCEPTION
@@ -633,6 +834,8 @@ class SimulationContext(_SimulationContext):
     """
     Operations - Override (extension)
     """
+    """运营 - 过渡 (延长)
+    """
 
     async def reset_async(self, soft: bool = False):
         # need to load all "physics" information from the USD file
@@ -643,6 +846,8 @@ class SimulationContext(_SimulationContext):
 
     """
     Initialization/Destruction - Override.
+    """
+    """启动/破坏 - 过失。
     """
 
     def _init_stage(self, *args, **kwargs) -> Usd.Stage:
@@ -682,9 +887,12 @@ class SimulationContext(_SimulationContext):
     """
     Helper Functions
     """
+    """助手职能
+    """
 
     def _apply_physics_settings(self):
         """Sets various carb physics settings."""
+        """设置各种碳水化合物物理设置。"""
         # enable hydra scene-graph instancing
         # note: this allows rendering of instanceable assets on the GUI
         self.carb_settings.set_bool("/persistent/omnihydra/useSceneGraphInstancing", True)
@@ -716,6 +924,7 @@ class SimulationContext(_SimulationContext):
 
     def _apply_render_settings_from_cfg(self):  # noqa: C901
         """Sets rtx settings specified in the RenderCfg."""
+        """在 RenderCfg 中指定的 rtx 设置。"""
 
         # define mapping of user-friendly RenderCfg names to native carb names
         rendering_setting_name_mapping = {
@@ -810,6 +1019,7 @@ class SimulationContext(_SimulationContext):
 
     def _set_additional_physx_params(self):
         """Sets additional PhysX parameters that are not directly supported by the parent class."""
+        """设置额外的PhysX参数，这些参数不是直接支持的母类。"""
         # obtain the physics scene api
         physics_scene: UsdPhysics.Scene = self._physics_context._physics_scene
         physx_scene_api: PhysxSchema.PhysxSceneAPI = self._physics_context._physx_scene_api
@@ -875,6 +1085,7 @@ class SimulationContext(_SimulationContext):
 
     def _load_fabric_interface(self):
         """Loads the fabric interface if enabled."""
+        """如果已启用，将布料接口加载。"""
         if self.cfg.use_fabric:
             from omni.physxfabric import get_physx_fabric_interface
 
@@ -892,6 +1103,7 @@ class SimulationContext(_SimulationContext):
 
     def _update_anim_recording(self):
         """Tracks anim recording timestamps and triggers finish animation recording if the total time has elapsed."""
+        """如果总时间已经过去了，则跟踪动画录音时间标签和触发器完成动画录音。"""
         if self._anim_recording_started_timestamp is None:
             self._anim_recording_started_timestamp = time.time()
 
@@ -904,6 +1116,7 @@ class SimulationContext(_SimulationContext):
 
     def _setup_anim_recording(self):
         """Sets up anim recording settings and initializes the recording."""
+        """设置动画录音设置并初始化录音。"""
 
         self._anim_recording_enabled = bool(self.carb_settings.get("/isaaclab/anim_recording/enabled"))
         if not self._anim_recording_enabled:
@@ -938,6 +1151,7 @@ class SimulationContext(_SimulationContext):
 
     def _update_usda_start_time(self, file_path, start_time):
         """Updates the start time of the USDA baked anim recordingfile."""
+        """更新USDA烤动画录音文件的开始时间。"""
 
         # Read the USDA file
         with open(file_path) as file:
@@ -961,6 +1175,7 @@ class SimulationContext(_SimulationContext):
 
     def _finish_anim_recording(self):
         """Finishes the animation recording and outputs the baked animation recording."""
+        """完成了动画录音，然后输出了烤动画录音。"""
 
         logger.warning(
             "[INFO][SimulationContext]: Finishing animation recording. Stage must be saved. Might take a few minutes."
@@ -1006,6 +1221,8 @@ class SimulationContext(_SimulationContext):
     """
     Callbacks.
     """
+    """电话回来。
+    """
 
     def _app_control_on_stop_handle_fn(self, event: carb.events.IEvent):
         """Callback to deal with the app when the simulation is stopped.
@@ -1023,6 +1240,19 @@ class SimulationContext(_SimulationContext):
         Note:
             This callback is used only when running the simulation in a standalone python script. In an extension,
             it is expected that the user handles the extension shutdown.
+        """
+        """在仿真停止时，请回来处理应用程序。
+
+        一旦仿真停止，物理句柄就无效了。
+        之后，无法从最后一个状态恢复仿真。
+        这使得应用程序处于不一致状态，
+
+        1. **保持应用程序渲染**:在这种情况下，仿真将继续运行，应用程序不会关闭.然而，物理不会更新，脚本不能从最后状态恢复.用户必须手动关闭应用程序来停止仿真。
+        2. **关闭应用程序**:这是默认行为。 在这种情况下，应用程序关闭，并停止仿真。
+
+        说明：
+            这种回调只用于在独立的python脚本中运行仿真时。
+            在扩展中，预计用户将处理扩展关闭。
         """
         if not self._disable_app_control_on_stop_handle:
             while not omni.timeline.get_timeline_interface().is_playing():
@@ -1076,6 +1306,46 @@ def build_simulation_context(
     Yields:
         The simulation context to use for the simulation.
 
+    """
+    """语境管理器以提供设置构建仿真语境。
+
+    这种功能促进了仿真环境的创建，并为配置仿真的各种方面提供了灵活性，例如时间步骤，重力，设备和场景元素，如地面平面和照明。
+
+    If :attr:`sim_cfg`是None，然后创建一个:class:`SimulationCfg`的实例，
+    with parameters overwritten based on arguments to the function.
+
+    文本管理器函数的一个例子:
+
+    ..
+    代码区块:: python
+
+        with build_simulation_context() as sim:
+            # 设计场景
+
+            # 玩仿真sim.reset
+            while sim.is_playing():
+                sim.step()
+
+    参数：
+        create_new_stage: 是否创建一个新的舞台。
+                          默认为 True。
+        gravity_enabled: 在仿真中是否可以实现重力。
+                         默认为 True。
+        device: 运行仿真的设备。
+                在"cuda:0"上默认设置。
+        dt: 仿真的时间步骤:默认到0.01。
+        sim_cfg: :class:`isaaclab.sim.SimulationCfg`用于仿真。
+                 默认为 None。
+        add_ground_plane: 增加地面飞机是否在仿真中。
+                          默认为 False。
+        add_lighting: 在仿真中是否要添加一个圆顶光。
+                      默认为 False。
+        auto_add_lighting: 如果仿真有GUI，是否自动添加圆顶灯到仿真中。
+                           默认为 False。
+                           这对于GUI中的调试测试有用。
+
+    生成：
+        用于仿真的仿真环境。
     """
     try:
         if create_new_stage:

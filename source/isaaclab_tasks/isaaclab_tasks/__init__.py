@@ -12,6 +12,14 @@ The package is structured as follows:
 - ``utils``: These include utility functions for the tasks.
 
 """
+"""包含各种机器人环境的任务实现的包。
+
+包装结构如下:
+
+- ``direct``:其中包括单文件执行任务。
+- ``manager_based``:包括使用基于管理器的API的任务实现。
+- ``utils``:包括任务的实用功能。
+"""
 
 import os
 import toml
@@ -19,9 +27,11 @@ import toml
 # Conveniences to other module directories via relative paths
 ISAACLAB_TASKS_EXT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "../"))
 """Path to the extension source directory."""
+"""扩展源目录的路径。"""
 
 ISAACLAB_TASKS_METADATA = toml.load(os.path.join(ISAACLAB_TASKS_EXT_DIR, "config", "extension.toml"))
 """Extension metadata dictionary parsed from the extension.toml file."""
+"""从extension.toml文件中解析扩展元数据字典。"""
 
 # Configure the module-level variables
 __version__ = ISAACLAB_TASKS_METADATA["package"]["version"]

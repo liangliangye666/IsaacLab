@@ -5,6 +5,7 @@
 
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +14,7 @@ simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 
@@ -31,6 +33,7 @@ from isaaclab.utils.version import get_isaac_sim_version
 @pytest.mark.isaacsim_ci
 def test_render_cfg():
     """Test that the simulation context is created with the correct render cfg."""
+    """测试仿真文本是通过正确的cfg渲染创建的。"""
     enable_translucency = True
     enable_reflections = True
     enable_global_illumination = True
@@ -96,6 +99,7 @@ def test_render_cfg():
 @pytest.mark.isaacsim_ci
 def test_render_cfg_presets():
     """Test that the simulation context is created with the correct render cfg preset with overrides."""
+    """测试仿真文本是否创建了正确的cfg预设置，并设置过关。"""
 
     # carb setting dictionary overrides
     carb_settings = {"/rtx/raytracing/subpixel/mode": 3, "/rtx/pathtracing/maxSamplesPerLaunch": 999999}
@@ -150,6 +154,7 @@ def test_render_cfg_presets():
 @pytest.mark.isaacsim_ci
 def test_render_cfg_defaults():
     """Test that the simulation context is created with the correct render cfg."""
+    """测试仿真文本是通过正确的cfg渲染创建的。"""
     enable_translucency = False
     enable_reflections = False
     enable_global_illumination = False

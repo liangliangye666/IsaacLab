@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module containing utilities for transforming strings and regular expressions."""
+"""包含用于转换字符串和常态表达式的工具的子模块。"""
 
 import ast
 import importlib
@@ -14,6 +15,8 @@ from typing import Any
 
 """
 String formatting.
+"""
+"""字符串格式化。
 """
 
 
@@ -29,6 +32,19 @@ def to_camel_case(snake_str: str, to: str = "cC") -> str:
 
     Returns:
         A string in camel-case format.
+    """
+    """转换一个字符串从蛇案子到驼案子。
+
+    参数：
+        snake_str: 蛇箱中的字符串 (i.e.含'_')
+        to: 转换字符串为"公约"。
+            在"cC"上默认。
+
+    异常：
+        ValueError: 无效输入参数 `to`， i.e。 不是"cC"或"CC"。
+
+    返回：
+        一个 cam驼形状的字符串。
     """
     # check input is correct
     if to not in ["cC", "CC"]:
@@ -54,6 +70,14 @@ def to_snake_case(camel_str: str) -> str:
     Returns:
         A string in snake case (i.e. with '_')
     """
+    """从驼子转换为蛇子。
+
+    参数：
+        camel_str: 一个 string驼子中的绳子。
+
+    返回：
+        蛇箱中的字符串 (i.e.含'_')
+    """
     camel_str = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", camel_str)
     return re.sub("([a-z0-9])([A-Z])", r"\1_\2", camel_str).lower()
 
@@ -66,6 +90,14 @@ def string_to_slice(s: str):
 
     Returns:
         The slice object.
+    """
+    """转换一个切片的字符串成切片对象。
+
+    参数：
+        s: 切片的字符串表示。
+
+    返回：
+        切片物体。
     """
     # extract the content inside the slice()
     match = re.match(r"slice\((.*),(.*),(.*)\)", s)
@@ -87,6 +119,8 @@ def string_to_slice(s: str):
 """
 String <-> Callable operations.
 """
+"""字符串 <-> 可调用操作。
+"""
 
 
 def is_lambda_expression(name: str) -> bool:
@@ -97,6 +131,14 @@ def is_lambda_expression(name: str) -> bool:
 
     Returns:
         Whether the input string is a lambda expression.
+    """
+    """检查输入字符串是否是 lambda 表达式。
+
+    参数：
+        name: 输入链。
+
+    返回：
+        输入字符串是否是 lambda 表达式。
     """
     try:
         ast.parse(name)
@@ -116,6 +158,17 @@ def callable_to_string(value: Callable) -> str:
 
     Returns:
         A string representation of the callable object.
+    """
+    """将可调用的对象转换为字符串。
+
+    参数：
+        value: 一个可调用的物体。
+
+    异常：
+        ValueError: 当输入参数不是可调用的对象时。
+
+    返回：
+        一个可调用对象的字符串表示。
     """
     # check if callable
     if not callable(value):
@@ -149,6 +202,19 @@ def string_to_callable(name: str) -> Callable:
     Returns:
         Callable: The function loaded from the module.
     """
+    """解决模块和函数名称以返回函数。
+
+    参数：
+        name: 函数名称。
+              格式应是"模块:attribute_name"或格式的lambda表达式:"lambda x:x"。
+
+    异常：
+        ValueError: 当解决属性不是函数时。
+        ValueError: 当模块无法找到时。
+
+    返回：
+        Callable: 从模块上载的函数。
+    """
     try:
         if is_lambda_expression(name):
             callable_object = eval(name)
@@ -172,6 +238,8 @@ def string_to_callable(name: str) -> Callable:
 
 """
 Regex operations.
+"""
+"""雷杰克斯动作。
 """
 
 
@@ -209,6 +277,37 @@ def resolve_matching_names(
     Raises:
         ValueError: When multiple matches are found for a string in the list.
         ValueError: When not all regular expressions are matched.
+    """
+    """匹配查询常态表达式列表与字符串列表，然后返回匹配的索引和名称。
+
+    当提供查询正则表达式列表时，该函数将每个目标字符串与每个查询正则表达式进行检查，并返回匹配字符串和匹配字符串的索引。
+
+    如果:attr:`preserve_order`是True，则匹配的索引和名称的顺序与提供列表的顺序相同。
+    这意味着排序是由目标字符串的顺序决定的，而不是查询的顺序。
+
+    如果:attr:`preserve_order`是False，则匹配的索引和名称的顺序与提供的查询正则表达式列表的顺序相同。
+
+    例如，考虑字符串列表是 ['a'， 'b'， 'c'， 'd'， 'e'] 和正则表达式是 ['a拼c'， 'b'。
+    If :attr:`preserve_order`是False，然后函数将返回匹配的字符串的索引，
+    字符串如:[0， 1， 2]， ['a'， 'b'， 'c'])。
+    当:attr:`preserve_order`是True时，它将返回它们为: ([0， 2， 1]， ['a'， 'c'， 'b'])。
+
+    说明：
+        这项函数不会分类索引。
+        它以找到的顺序返回索引。
+
+    参数：
+        keys: 一个正则表达式或一个正则表达式列表，以匹配列表中的字符串。
+        list_of_strings: 一个配合的字符串列表。
+        preserve_order: 在返回值中是否保留查询键的顺序。
+                        默认为 False。
+
+    返回：
+        包含相匹配的索引和名称的列表。
+
+    异常：
+        ValueError: 在列表中找到多个符串匹配时。
+        ValueError: 当所有正则表达式都不匹配时。
     """
     # resolve name keys
     if isinstance(keys, str):
@@ -307,6 +406,34 @@ def resolve_matching_names_values(
         ValueError: When multiple matches are found for a string in the dictionary.
         ValueError: When not all regular expressions in the data keys are matched (if strict is True).
     """
+    """按字典中的常用表达式和字符串列表进行匹配，并返回匹配的指标，名称和值。
+
+    如果:attr:`preserve_order`是True，则匹配的索引和名称的顺序与提供列表的顺序相同。
+    这意味着排序是由目标字符串的顺序决定的，而不是查询的顺序。
+
+    如果:attr:`preserve_order`是False，则匹配的索引和名称的顺序与提供的查询正则表达式列表的顺序相同。
+
+    例如，考虑字典是{"a|d|e": 1， "b|c": 2}，字符串列表是 ['a'， 'b'， 'c'， 'd'， 'e'。
+    If :attr:`preserve_order`是False，然后函数将返回匹配的字符串的索引，
+    匹配的字符串，并以 ([0， 1， 2， 3， 4]， ['a'， 'b'， 'c'， 'd'， 'e']， [1， 2， 2， 1， 1]为等值。
+    当:attr:`preserve_order`是True时，它将返回它们为:[0， 3， 4， 1， 2]， ['a'， 'd'， 'e'， 'b'， 'c']， [1， 1， 2， 2])。
+
+    参数：
+        data: 一个正则表达式和值字典，以匹配列表中的字符串。
+        list_of_strings: 一个配合的字符串列表。
+        preserve_order: 在返回值中是否保留查询键的顺序。
+                        默认为 False。
+        strict: 要求字典中的所有键都匹配。
+                默认为 True。
+
+    返回：
+        一组包含相匹配的索引，名称和值的列表。
+
+    异常：
+        TypeError: 当输入参数:attr:`data`不是字典时。
+        ValueError: 在字典中找到一个字符串的多个匹配时。
+        ValueError: 如果数据键中的所有正则表达式都不匹配 (如果严格是True)。
+    """
     # check valid input
     if not isinstance(data, dict):
         raise TypeError(f"Input argument `data` should be a dictionary. Received: {data}")
@@ -383,6 +510,14 @@ def find_unique_string_name(initial_name: str, is_unique_fn: Callable[[str], boo
     Returns:
         str: A unique string based on input function.
     """
+    """根据所提供的预示函数找到一个独特的字符串名称。
+    字符串附加"_N"，其中N是自然数，直到结果字符串是唯一的。
+    参数：
+        initial_name (str): 字符串的名称。
+        is_unique_fn (Callable[[str], bool]): 根据该函数进行验证。
+    返回：
+        str: 基于输入函数的独特字符串。
+    """
     if is_unique_fn(initial_name):
         return initial_name
     iterator = 1
@@ -400,6 +535,13 @@ def find_root_prim_path_from_regex(prim_path_regex: str) -> tuple[str, int]:
     Returns:
         Tuple[str, int]: First position is the prim path to the parent of the regex prim.
                     Second position represents the level of the regex prim in the USD stage tree representation.
+    """
+    """找出第一 prim 在regex模式 prim及其位置上。
+    参数：
+        prim_path_regex (str): 包含regex模式 prim的全prim路径。
+    返回：
+        Tuple[str， int]:第一个位置是prim路径到regex prim的父母。
+        第二个位置代表USD阶段树表现中的regex prim水平。
     """
     prim_paths_list = str(prim_path_regex).split("/")
     root_idx = None

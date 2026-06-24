@@ -8,6 +8,11 @@
 This module provides tools to visualize motion plans, robot poses, and collision spheres
 using Rerun's visualization capabilities. It helps in debugging and validating collision-free paths.
 """
+"""使用Rerun来可视化运动计划的实用性。
+
+该模块提供了可视化运动计划，机器人姿势和碰撞球的工具，使用Rerun的可视化能力。
+它有助于调试和验证无碰撞路径。
+"""
 
 import atexit
 import os
@@ -50,6 +55,7 @@ _GLOBAL_PLAN_VISUALIZERS: list["PlanVisualizer"] = []
 
 def _cleanup_all_plan_visualizers():
     """Enhanced global cleanup function with better process killing."""
+    """通过更好的过程杀戮，提高了全球清洁功能。"""
     global _GLOBAL_PLAN_VISUALIZERS
 
     if PSUTIL_AVAILABLE:
@@ -89,6 +95,14 @@ class PlanVisualizer:
     3. Robot collision spheres
     4. Target poses and waypoints
     """
+    """使用Rerun可视化运动计划。
+
+    这类提供了可视化方法:
+    1. 机器人沿着计划的轨道姿势
+    2. 附着物体及其碰撞球
+    3. 机器人碰撞球
+    4. 目标姿势和路线点
+    """
 
     def __init__(
         self,
@@ -106,6 +120,15 @@ class PlanVisualizer:
             debug: Whether to print debug information
             save_path: Optional path to save the recording
             base_translation: Optional base translation to apply to all visualized entities
+        """
+        """启动计划可视化器。
+
+        参数：
+            robot_name: 视觉化机器人的名称
+            recording_id: 可选ID用于Rerun录音
+            debug: 要否打印调试信息
+            save_path: 可选的路径保存记录
+            base_translation: 适用于所有可视化实体的可选基础翻译
         """
         self.robot_name = robot_name
         self.debug = debug
@@ -190,6 +213,7 @@ class PlanVisualizer:
 
     def _start_parent_process_monitoring(self) -> None:
         """Start monitoring the parent process and cleanup when it dies."""
+        """开始监测父母的过程，"""
         if not PSUTIL_AVAILABLE:
             if self.debug:
                 print("psutil not available, skipping parent process monitoring")
@@ -199,6 +223,7 @@ class PlanVisualizer:
 
         def monitor_parent_process() -> None:
             """Monitor thread function that watches the parent process."""
+            """监控主进程的线程功能。"""
             if self.debug:
                 print(f"Starting parent process monitor for PID {self._parent_pid}")
 
@@ -233,6 +258,7 @@ class PlanVisualizer:
 
     def _kill_rerun_processes(self) -> None:
         """Enhanced method to kill Rerun viewer processes using psutil."""
+        """通过psutil来杀死Rerun观看程序的增强方法。"""
         try:
             if PSUTIL_AVAILABLE:
                 killed_count = 0
@@ -281,6 +307,10 @@ class PlanVisualizer:
 
         This is called by weakref.finalize when the object is garbage collected.
         """
+        """清理的静态方法没有引用实例。
+
+        当物体被垃圾收集时，这被称为weakref.finalize。
+        """
         if debug:
             print(f"Cleaning up Rerun visualization for {recording_id}")
 
@@ -313,6 +343,7 @@ class PlanVisualizer:
 
     def _cleanup_on_exit(self) -> None:
         """Manual cleanup method for signal handlers."""
+        """信号处理器的手动清洁方法。"""
         if not self._closed:
             # Stop monitoring thread
             self._monitor_active = False
@@ -322,6 +353,7 @@ class PlanVisualizer:
 
     def close(self) -> None:
         """Close the Rerun visualization with enhanced cleanup."""
+        """通过增强的清洁，关闭Rerun视觉化。"""
         if self._closed:
             return
 
@@ -384,6 +416,16 @@ class PlanVisualizer:
             ee_positions: Optional end-effector positions
             world_scene: Optional world scene to visualize
         """
+        """设想一个完整的运动计划，
+
+        参数：
+            plan: 视觉化共同状态轨迹
+            target_pose: 目标末端执行器姿势
+            robot_spheres: 机器人碰撞球的可选列表
+            attached_spheres: 附带物体球的可选列表
+            ee_positions: 选择性终端效应的位置
+            world_scene: 选择可视化世界场景
+        """
         if self.debug:
             robot_count = len(robot_spheres) if robot_spheres else 0
             attached_count = len(attached_spheres) if attached_spheres else 0
@@ -423,6 +465,7 @@ class PlanVisualizer:
 
     def _clear_visualization(self) -> None:
         """Clear all visualization entities."""
+        """清除所有可视化实体。"""
         # Clear dynamic trajectory, target, and finger logs to avoid artifacts between visualizations
         dynamic_paths = [
             "trajectory",
@@ -441,6 +484,7 @@ class PlanVisualizer:
 
     def clear_visualization(self) -> None:
         """Public method to clear the visualization."""
+        """公共方法清除可视化。"""
         self._clear_visualization()
 
     def _visualize_target_pose(self, target_pose: torch.Tensor) -> None:
@@ -448,6 +492,11 @@ class PlanVisualizer:
 
         Args:
             target_pose: Target pose as 4x4 transformation matrix
+        """
+        """设想目标末端执行器姿势。
+
+        参数：
+            target_pose: 目标姿势为4x4转换矩阵
         """
         pos, rot = PoseUtils.unmake_pose(target_pose)
 
@@ -492,6 +541,12 @@ class PlanVisualizer:
             plan: Joint state trajectory
             ee_positions: Optional end-effector positions
         """
+        """设想机器人的轨迹。
+
+        参数：
+            plan: 联合国家轨迹
+            ee_positions: 选择性终端效应的位置
+        """
         if ee_positions is None:
             raw = plan.position.detach().cpu().numpy() if torch.is_tensor(plan.position) else np.array(plan.position)
             if raw.shape[1] >= 3:
@@ -533,6 +588,11 @@ class PlanVisualizer:
         Args:
             spheres: List of robot collision spheres
         """
+        """设想机器人碰撞球。
+
+        参数：
+            spheres: 机器人碰撞领域的列表
+        """
         self._log_spheres(
             spheres=spheres,
             entity_type="robot",
@@ -546,6 +606,11 @@ class PlanVisualizer:
         Args:
             spheres: List of attached object spheres
         """
+        """设想连接的物体碰撞球。
+
+        参数：
+            spheres: 附带物体球列表
+        """
         self._log_spheres(
             spheres=spheres,
             entity_type="attached",
@@ -555,6 +620,7 @@ class PlanVisualizer:
 
     def _clear_attached_spheres(self) -> None:
         """Clear all attached object spheres."""
+        """清除所有附加的物体球。"""
         for entity_id in self._sphere_entities.get("attached", []):
             rr.log(f"world/attached/{entity_id}", rr.Clear(recursive=True))
         self._sphere_entities["attached"] = []
@@ -577,6 +643,14 @@ class PlanVisualizer:
             entity_type: Log path prefix (``robot`` or ``attached``).
             color: RGBA color for the spheres.
             apply_offset: Whether to add ``self._base_translation`` to sphere positions.
+        """
+        """对于球体可视化而言，
+
+        参数：
+            spheres: CuRobo ``Sphere``物体列表
+            entity_type: 记录路径前标 (``robot``或``attached``)。
+            color: 对于球体来说，RGBA颜色。
+            apply_offset: 增加``self._base_translation``到球位置。
         """
         for i, sphere in enumerate(spheres):
             entity_id = f"sphere_{i}"
@@ -605,6 +679,10 @@ class PlanVisualizer:
         Geometry is sent once (cached), but transforms are updated every invocation
         so objects that move (cubes after randomization) appear at the correct
         pose per episode/frame.
+        """
+        """记载世界几何学和动态改变每次电话。
+
+        几何是发送一次 (缓存)，但每次调用时都会更新转换，因此移动的对象 (随机化后的立方体) 在每个集/框架的正确姿势上出现。
         """
         import trimesh  # local import to avoid hard dependency at top
 
@@ -675,6 +753,18 @@ class PlanVisualizer:
             timeline: Name of the Rerun timeline used for the animation frames.
             point_radius: Visual radius (in metres) of the rendered points.
         """
+        """使用Rerun，随着时间的推移，动化机器人末端执行器和 (可选) 连接物体位置。
+
+        这种辅助器每次时间步骤记录一个3D点，以便Rerun可以在提供的``timeline``上播放轨迹。
+        它是故意轻量级的，不试图使整个机器人几何仅是关键点，使数据转移到观众最小。
+
+        参数：
+            ee_positions: 形状阵列 (T，3) 具有终端效应的世界位置。
+            object_positions: 从物体名称到一个数组 (T，3) 的地图，以该物体的世界位置。
+                              每条轨道必须至少长达``ee_positions``；不考虑额外的入口。
+            timeline: 在动画框架中使用的Rerun时间线名称。
+            point_radius: 呈现点的视觉半径 (以米)。
+        """
         if ee_positions is None or len(ee_positions) == 0:
             return
 
@@ -727,6 +817,17 @@ class PlanVisualizer:
             attached_spheres_at_start: Initial attached object spheres (for reference)
             timeline: Name of the Rerun timeline for the animation
             interpolation_steps: Number of interpolated steps between each waypoint pair
+        """
+        """动画机器人和附着物体球沿着计划轨迹进行流插。
+
+        这种方法创建了一个密集的，回合的轨迹，并计算了许多中间点的球状位置，以创建在路径上移动的机器人的流动动作。
+
+        参数：
+            plan: 沿着动态球的联合国家轨迹
+            robot_spheres_at_start: 机器人初始碰撞球 (用于参考)
+            attached_spheres_at_start: 首个附加物体球 (用于参考)
+            timeline: 动画的Rerun时间表名称
+            interpolation_steps: 每个路线点对之间的交叉步骤数
         """
         if plan is None or len(plan.position) == 0:
             if self.debug:
@@ -856,6 +957,7 @@ class PlanVisualizer:
 
     def _hide_static_spheres_for_animation(self) -> None:
         """Hide static sphere visualization during animation to reduce visual clutter."""
+        """在动画过程中隐藏静态球体可视化，以减少视觉混乱。"""
         # Clear static robot spheres
         for entity_id in self._sphere_entities.get("robot", []):
             rr.log(f"world/robot/{entity_id}", rr.Clear(recursive=True))
@@ -876,6 +978,15 @@ class PlanVisualizer:
 
         Returns:
             List of interpolated joint positions
+        """
+        """在路线点之间建立一个平稳的路径。
+
+        参数：
+            plan: 原始联合状态轨迹
+            interpolation_steps: 每个路线点对之间的插射步骤数
+
+        返回：
+            间接位置关节位置列表
         """
         if len(plan.position) < 2:
             # If only one waypoint, just return it
@@ -914,6 +1025,11 @@ class PlanVisualizer:
         Args:
             motion_gen: CuRobo motion generator instance
         """
+        """设置运动生成器参考，用于球体动画。
+
+        参数：
+            motion_gen: CuRobo运动生成器实例
+        """
         self._motion_gen_ref = motion_gen
 
     def mark_idle(self) -> None:
@@ -922,6 +1038,11 @@ class PlanVisualizer:
         This method advances the animation timelines and logs empty data to ensure that
         no leftover visualizations from the previous plan are shown. It's useful for
         creating a clean state between planning episodes.
+        """
+        """给你一个信号，让你知道计划者是空的，清除动画。
+
+        这种方法推进了动画时间表，并记录了空数据，以确保从前的计划中没有剩余的可视化显示。
+        在计划事件之间创建一个清洁的状态。
         """
         # Advance plan timeline and emit empty anim so latest frame is blank
         rr.set_time("plan", sequence=self._current_frame)

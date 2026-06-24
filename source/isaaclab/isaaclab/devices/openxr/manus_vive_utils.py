@@ -104,6 +104,18 @@ class ManusViveIntegration:
                 }
             }
         """
+        """在场景坐标中追踪设备数据。
+
+        返回：
+            马努斯手套关节数据和Vive跟踪器数据。
+            { 'manus_gloves': { '{left/right}_{joint_index}': { 'position': [x， y， z]， 'orientation': [w， x，
+            y， z] }，
+                    ...
+                }， 'vive_trackers': { '{vive_tracker_id}': { 'position': [x， y， z]， 'orientation': [w， x， y，
+                z] }，
+                    ...
+                } }
+        """
         self.update_manus()
         self.update_vive()
         # Get raw data from trackers
@@ -129,10 +141,20 @@ class ManusViveIntegration:
             'right_hand_connected': bool
         }
         """
+        """获取Manus手套和Vive跟踪器的连接和数据新鲜性状态。
+
+        返回：
+            含有连接标志和最后数据时刻标志的字典。
+        Format: { 'manus_gloves': {'connected': bool， 'last_data_time': float}， 'vive_trackers':
+                {'connected': bool， 'last_data_time': float}， 'left_hand_connected': bool，
+                'right_hand_connected': bool
+        }
+        """
         return self.device_status
 
     def update_manus(self):
         """Update raw Manus glove data and status flags."""
+        """更新原始的 Manus 手套数据和状态标志。"""
         self.manus.update()
         self.device_status["manus_gloves"]["last_data_time"] = time()
         manus_data = self.manus.get_data()
@@ -141,6 +163,7 @@ class ManusViveIntegration:
 
     def update_vive(self):
         """Update raw Vive tracker data, and initialize coordinate transformation if it is the first data update."""
+        """更新原始的 Vive 追踪器数据，并启动坐标转换，如果这是第一个数据更新。"""
         self.vive_tracker.update()
         self.device_status["vive_trackers"]["last_data_time"] = time()
         try:
@@ -156,6 +179,11 @@ class ManusViveIntegration:
         The coordinate transformation is used to transform the wrist pose from lighthouse
         coordinate system to isaac sim scene coordinate. It is computed from multiple
         frames of AVP/OpenXR wrist pose and Vive wrist pose samples at the beginning of the session.
+        """
+        """首先将场景转换为灯塔坐标转换。
+
+        坐标转换用于将手腕姿势从灯塔坐标系统转换为Isaac sim场景坐标。
+        在会议开始时，它由AVP/OpenXR手腕姿势和Vive手腕姿势样本的多个框架计算。
         """
         min_frames = 6
         tolerance = 3.0
@@ -261,6 +289,14 @@ class ManusViveIntegration:
         Returns:
             Vive tracker poses in scene coordinates, with device id as keys.
         """
+        """转换Vive跟踪器姿势为场景坐标。
+
+        参数：
+            device_data: 现实追踪器，设备ID作为钥匙。
+
+        返回：
+            视频跟踪器以场景坐标呈现，
+        """
         transformed_data = {}
         for joint_name, joint_data in device_data.items():
             transformed_pose = self.default_pose
@@ -278,6 +314,14 @@ class ManusViveIntegration:
 
         Returns:
             Dictionary with 'left' and 'right' keys mapping to 4x4 transforms.
+        """
+        """计算场景框架的手腕转换为左手和右手。
+
+        参数：
+            vive_data: 视频追踪器姿势以场景坐标表达。
+
+        返回：
+            有"左"和"右"键的字典，将其映射到4x4转换。
         """
         scene_T_wrist = {"left": Gf.Matrix4d().SetIdentity(), "right": Gf.Matrix4d().SetIdentity()}
         # 10 cm offset on Y-axis for change in vive tracker position after flipping the palm
@@ -297,6 +341,15 @@ class ManusViveIntegration:
 
         Returns:
             Dictionary of Manus joint poses in scene coordinates.
+        """
+        """转换曼努斯手套关节从手腕相关的场景坐标。
+
+        参数：
+            manus_data: 毛马努斯联合姿势字典，手腕相关。
+            scene_T_wrist: 场景字典转换左手和右手腕。
+
+        返回：
+            曼努斯的字典在场景坐标中设置。
         """
         Rcorr = Gf.Matrix4d(self.rot_adjust, Gf.Vec3d(0, 0, 0)).GetInverse()
         transformed_data = {}
@@ -319,6 +372,15 @@ class ManusViveIntegration:
         Returns:
             Pose dictionary with 'position' and 'orientation'.
         """
+        """计算从中部 meta骨和近部关节的棕姿势。
+
+        参数：
+            transformed_data: 曼努斯在场景坐标中姿势。
+            hand: 手边，左边或右边。
+
+        返回：
+            用"位置"和"导向"的字典。
+        """
         if f"{hand}_6" not in transformed_data or f"{hand}_7" not in transformed_data:
             # Joint data not arrived yet
             return self.default_pose
@@ -337,6 +399,15 @@ def compute_delta_errors(a: Gf.Matrix4d, b: Gf.Matrix4d) -> tuple[float, float]:
 
     Returns:
         Tuple containing (translation_error_m, rotation_error_deg).
+    """
+    """在两个转换之间计算翻译和转换错误。
+
+    参数：
+        a: 第一个变化。
+        b: 第二个转变。
+
+    返回：
+        含有 (translation_error_m，rotation_error_deg) 的片。
     """
     try:
         delta = a * b.GetInverse()
@@ -361,6 +432,14 @@ def average_transforms(mats: list[Gf.Matrix4d]) -> Gf.Matrix4d:
 
     Returns:
         Averaged 4x4 transform, or None if the list is empty.
+    """
+    """在翻译和四元数中，平均的 transform变。
+
+    参数：
+        mats: 4x4的列表变成平均值。
+
+    返回：
+        如果列表是空的，平均的4x4转换或None。
     """
     if not mats:
         return None
@@ -401,6 +480,16 @@ def select_mode_cluster(
     Returns:
         The largest cluster (mode) of transforms.
     """
+    """选择在近距离门下最大的转换集群。
+
+    参数：
+        mats: 4x4的列表变成集群。
+        trans_thresh_m: 翻译 met值为米。
+        rot_thresh_deg: 转转值在度中。
+
+    返回：
+        最大的变化集群 (模式)。
+    """
     if not mats:
         return []
     best_cluster: list[Gf.Matrix4d] = []
@@ -423,6 +512,14 @@ def get_openxr_wrist_matrix(hand: str) -> Gf.Matrix4d:
 
     Returns:
         4x4 transform for the wrist if valid, otherwise None.
+    """
+    """如果是有效的，就拿出OpenXR手腕矩阵。
+
+    参数：
+        hand: 手边 ("左"或"右")。
+
+    返回：
+        如果有效，则4×4转换手腕，否则None。
     """
     hand = hand.lower()
     try:
@@ -451,6 +548,14 @@ def get_vive_wrist_ids(vive_data: dict) -> tuple[str, str]:
     Returns:
         (wm0_id, wm1_id) if available, otherwise None values.
     """
+    """如果可用，请带Vive手腕追踪器IDs。
+
+    参数：
+        vive_data: 在"Vive"数据字典中。
+
+    返回：
+        (wm0_id， wm1_id) 如果有，否则是None值。
+    """
     wm_ids = [k for k in vive_data.keys() if len(k) >= 2 and k[:2] == "WM"]
     wm_ids.sort()
     if len(wm_ids) >= 2:  # Assumes the first two vive trackers are the wrist trackers
@@ -469,6 +574,14 @@ def pose_to_matrix(pose: dict) -> Gf.Matrix4d:
     Returns:
         A 4x4 transform representing the pose.
     """
+    """转换一个姿势字典成4x4转换矩阵。
+
+    参数：
+        pose: "位置"和"导向"的姿势。
+
+    返回：
+        这是一个4×4转换，代表姿势。
+    """
     pos, ori = pose["position"], pose["orientation"]
     quat = Gf.Quatd(ori[0], Gf.Vec3d(ori[1], ori[2], ori[3]))
     rot = Gf.Matrix3d().SetRotate(quat)
@@ -484,6 +597,14 @@ def matrix_to_pose(matrix: Gf.Matrix4d) -> dict:
 
     Returns:
         Pose dictionary with 'position' and 'orientation'.
+    """
+    """转换一个4x4转换矩阵成一个姿势字典。
+
+    参数：
+        matrix: 4x4转换矩阵转换。
+
+    返回：
+        用"位置"和"导向"的字典。
     """
     pos = matrix.ExtractTranslation()
     rot = matrix.ExtractRotation()
@@ -503,6 +624,15 @@ def get_pairing_error(trans_errs: list, rot_errs: list) -> float:
 
     Returns:
         The weighted sum of medians of translation and rotation errors.
+    """
+    """从翻译和旋转错误计算一个尺度对错。
+
+    参数：
+        trans_errs: 在样本中出现的翻译错误列表。
+        rot_errs: 在样本中出现的旋转错误列表。
+
+    返回：
+        翻译和转换错误的中位数的权重总和。
     """
 
     def _median(values: list) -> float:

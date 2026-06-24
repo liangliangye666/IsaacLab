@@ -82,6 +82,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _set_body_inertias(self):
         """Note: this is to account for the asset_options.armature parameter in IGE."""
+        """Note: 这将解释IGE中的asset_options.armature参数。"""
         inertias = self._robot.root_physx_view.get_inertias()
         offset = torch.zeros_like(inertias)
         offset[:, :, [0, 4, 8]] += 0.01
@@ -90,6 +91,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _set_default_dynamics_parameters(self):
         """Set parameters defining dynamic interactions."""
+        """设置定义动态相互作用的参数。"""
         self.default_gains = torch.tensor(self.cfg.ctrl.default_task_prop_gains, device=self.device).repeat(
             (self.num_envs, 1)
         )
@@ -108,6 +110,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _set_friction(self, asset, value):
         """Update material properties for a given asset."""
+        """更新给定的资产的材料属性。"""
         materials = asset.root_physx_view.get_material_properties()
         materials[..., 0] = value  # Static friction.
         materials[..., 1] = value  # Dynamic friction.
@@ -116,6 +119,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _init_tensors(self):
         """Initialize tensors once."""
+        """一次启动光器。"""
         self.identity_quat = (
             torch.tensor([1.0, 0.0, 0.0, 0.0], device=self.device).unsqueeze(0).repeat(self.num_envs, 1)
         )
@@ -194,6 +198,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _load_assembly_info(self):
         """Load grasp pose and disassembly distance for plugs in each environment."""
+        """每个环境中的插头的负载抓住姿势和拆卸距离。"""
 
         retrieve_file_path(self.cfg_task.plug_grasp_json, download_dir="./")
         with open(os.path.basename(self.cfg_task.plug_grasp_json)) as f:
@@ -209,6 +214,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _get_curriculum_info(self, disassembly_dists):
         """Calculate the ranges and step sizes for Sampling-based Curriculum (SBC) in each environment."""
+        """在每个环境中计算基于样本的课程 (SBC) 的范围和步骤大小。"""
 
         curriculum_height_bound = torch.zeros((self.num_envs, 2), dtype=torch.float32, device=self.device)
         curriculum_height_step = torch.zeros((self.num_envs, 2), dtype=torch.float32, device=self.device)
@@ -222,6 +228,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _load_disassembly_data(self):
         """Load pre-collected disassembly trajectories (end-effector position only)."""
+        """负载预先收集的拆卸轨迹 (仅用于最终效应器的位置)。"""
 
         retrieve_file_path(self.cfg_task.disassembly_path_json, download_dir="./")
         with open(os.path.basename(self.cfg_task.disassembly_path_json)) as f:
@@ -240,6 +247,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _get_keypoint_offsets(self, num_keypoints):
         """Get uniformly-spaced keypoints along a line of unit length, centered at 0."""
+        """得到一个单元长度线沿着均的关键点，中心在0。"""
         keypoint_offsets = torch.zeros((num_keypoints, 3), device=self.device)
         keypoint_offsets[:, -1] = torch.linspace(0.0, 1.0, num_keypoints, device=self.device) - 0.5
 
@@ -247,6 +255,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _setup_scene(self):
         """Initialize simulation scene."""
+        """启动仿真场景。"""
         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg(), translation=(0.0, 0.0, -0.4))
 
         # spawn a usd file of a table into the scene
@@ -272,6 +281,9 @@ class AssemblyEnv(DirectRLEnv):
 
     def _compute_intermediate_values(self, dt):
         """Get values computed from raw tensors. This includes adding noise."""
+        """从原始张量计算的值。
+        这包括增加噪音。
+        """
         # TODO: A lot of these can probably only be set once?
         self.fixed_pos = self._fixed_asset.data.root_pos_w - self.scene.env_origins
         self.fixed_quat = self._fixed_asset.data.root_quat_w
@@ -350,6 +362,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _get_observations(self):
         """Get actor/critic inputs using asymmetric critic."""
+        """用不对称的评论家来获取演员/评论家的输入。"""
 
         obs_dict = {
             "joint_pos": self.joint_pos[:, 0:7],
@@ -385,10 +398,12 @@ class AssemblyEnv(DirectRLEnv):
 
     def _reset_buffers(self, env_ids):
         """Reset buffers."""
+        """重置缓冲器。"""
         self.ep_succeeded[env_ids] = 0
 
     def _pre_physics_step(self, action):
         """Apply policy actions with smoothing."""
+        """采取策略动作，以平滑的方式。"""
         env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)
         if len(env_ids) > 0:
             self._reset_buffers(env_ids)
@@ -399,6 +414,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def move_gripper_in_place(self, ctrl_target_gripper_dof_pos):
         """Keep gripper in current position as gripper closes."""
+        """保持抓住器的位置当抓住器关闭。"""
         actions = torch.zeros((self.num_envs, 6), device=self.device)
         ctrl_target_gripper_dof_pos = 0.0
 
@@ -435,6 +451,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _apply_action(self):
         """Apply actions for policy as delta targets from current position."""
+        """根据当前情况，将策略动作作为多角目标。"""
         # Get current yaw for success checking.
         _, _, curr_yaw = torch_utils.get_euler_xyz(self.fingertip_midpoint_quat)
         self.curr_yaw = torch.where(curr_yaw > np.deg2rad(235), curr_yaw - 2 * np.pi, curr_yaw)
@@ -486,12 +503,16 @@ class AssemblyEnv(DirectRLEnv):
 
     def _set_gains(self, prop_gains, rot_deriv_scale=1.0):
         """Set robot gains using critical damping."""
+        """设置机器人使用关键缩。"""
         self.task_prop_gains = prop_gains
         self.task_deriv_gains = 2 * torch.sqrt(prop_gains)
         self.task_deriv_gains[:, 3:6] /= rot_deriv_scale
 
     def generate_ctrl_signals(self):
         """Get Jacobian. Set Franka DOF position targets (fingers) or DOF torques (arm)."""
+        """找杰科比亚。
+        设置Franka DOF位置目标 (指) 或DOF扭矩 (臂)。
+        """
         self.joint_torque, self.applied_wrench = fc.compute_dof_torque(
             cfg=self.cfg,
             dof_pos=self.joint_pos,
@@ -518,12 +539,14 @@ class AssemblyEnv(DirectRLEnv):
 
     def _get_dones(self):
         """Update intermediate values used for rewards and observations."""
+        """更新用于奖励和观测的中间值。"""
         self._compute_intermediate_values(dt=self.physics_dt)
         time_out = self.episode_length_buf >= self.max_episode_length - 1
         return time_out, time_out
 
     def _get_rewards(self):
         """Update rewards and compute success statistics."""
+        """更新奖励和计算成功统计数据。"""
         # Get successful and failed envs at current timestep
 
         curr_successes = automate_algo.check_plug_inserted_in_socket(
@@ -578,6 +601,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _update_rew_buf(self, curr_successes):
         """Compute reward at current timestep."""
+        """在当前时间步骤计算奖励。"""
         rew_dict = dict({})
 
         # SDF-based reward.
@@ -621,6 +645,8 @@ class AssemblyEnv(DirectRLEnv):
         """
         We assume all envs will always be reset at the same time.
         """
+        """我们假设所有envs将始终同时重置。
+        """
         super()._reset_idx(env_ids)
 
         self._set_assets_to_default_pose(env_ids)
@@ -646,6 +672,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _set_assets_to_default_pose(self, env_ids):
         """Move assets to default pose before randomization."""
+        """在随机化之前将资产移动到默认状态。"""
         held_state = self._held_asset.data.default_root_state.clone()[env_ids]
         held_state[:, 0:3] += self.scene.env_origins[env_ids]
         held_state[:, 7:] = 0.0
@@ -662,6 +689,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _move_gripper_to_grasp_pose(self, env_ids):
         """Define grasp pose for plug and move gripper to pose."""
+        """设定插头的抓住姿势，移动抓住器的姿势。"""
 
         gripper_goal_quat, gripper_goal_pos = torch_utils.tf_combine(
             self.held_quat,
@@ -688,6 +716,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def set_pos_inverse_kinematics(self, env_ids):
         """Set robot joint position using DLS IK."""
+        """使用DLS IK设置机器人关节位置。"""
         ik_time = 0.0
         while ik_time < 0.50:
             # Compute error to target.
@@ -726,6 +755,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def _set_franka_to_default_pose(self, joints, env_ids):
         """Return Franka to its default joint position."""
+        """返回弗兰卡的默认位置。"""
         gripper_width = self.gripper_open_width
         joint_pos = self._robot.data.default_joint_pos[env_ids]
         joint_pos[:, 7:] = gripper_width  # MIMIC
@@ -742,6 +772,9 @@ class AssemblyEnv(DirectRLEnv):
 
     def step_sim_no_action(self):
         """Step the simulation without an action. Used for resets."""
+        """在没有动作的情况下进行仿真。
+        用于重置。
+        """
         self.scene.write_data_to_sim()
         self.sim.step(render=True)
         self.scene.update(dt=self.physics_dt)
@@ -817,6 +850,7 @@ class AssemblyEnv(DirectRLEnv):
 
     def randomize_initial_state(self, env_ids):
         """Randomize initial state and perform any episode-level randomization."""
+        """随机化初始状态和执行任何事件级随机化。"""
         # Disable gravity.
         physics_sim_view = sim_utils.SimulationContext.instance().physics_sim_view
         physics_sim_view.set_gravity(carb.Float3(0.0, 0.0, 0.0))

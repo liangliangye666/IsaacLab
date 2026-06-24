@@ -14,8 +14,18 @@ It uses the `warp` library to run the state machine in parallel on the GPU.
     ./isaaclab.sh -p scripts/environments/state_machine/open_cabinet_sm.py --num_envs 32
 
 """
+"""脚本以使用开放柜机运行环境。
+
+状态机在内核函数`infer_state_machine`中实现。
+它使用`warp`库在GPU上并行运行状态机。
+
+.. code-block:: bash
+
+    ./isaaclab.sh -p scripts/environments/state_machine/open_cabinet_sm.py --num_envs 32
+"""
 
 """Launch Omniverse Toolkit first."""
+"""首先启动全宇宙工具包。"""
 
 import argparse
 
@@ -37,6 +47,7 @@ app_launcher = AppLauncher(headless=args_cli.headless)
 simulation_app = app_launcher.app
 
 """Rest everything else."""
+"""休息其他一切。"""
 
 from collections.abc import Sequence
 
@@ -56,6 +67,7 @@ wp.init()
 
 class GripperState:
     """States for the gripper."""
+    """为了抓住。"""
 
     OPEN = wp.constant(1.0)
     CLOSE = wp.constant(-1.0)
@@ -63,6 +75,7 @@ class GripperState:
 
 class OpenDrawerSmState:
     """States for the cabinet drawer opening state machine."""
+    """开放机器的状态。"""
 
     REST = wp.constant(0)
     APPROACH_INFRONT_HANDLE = wp.constant(1)
@@ -74,6 +87,7 @@ class OpenDrawerSmState:
 
 class OpenDrawerSmWaitTime:
     """Additional wait times (in s) for states for before switching."""
+    """转换前的状态的额外等待时间 (s)。"""
 
     REST = wp.constant(0.5)
     APPROACH_INFRONT_HANDLE = wp.constant(1.25)
@@ -183,6 +197,18 @@ class OpenDrawerSm:
     4. OPEN_DRAWER: The robot opens the drawer.
     5. RELEASE_HANDLE: The robot releases the handle of the drawer. This is the final state.
     """
+    """在机器人任务空间中打开一个柜子的抽。
+
+    状态机是作为一个变形核实现的。
+    它将机器人的末端执行器和对象的当前状态，并输出机器人的末端执行器和抓住器的所需状态。
+    状态机是以以下状态实现的有限状态机:
+
+    1. REST机器人休息了。
+    2. 机器人向抽的句柄移动。
+    3. 机器人抓住了抽的句柄。
+    4. 机器人打开了抽。
+    5. 机器人释放了抽的句柄.这是最后的状态。
+    """
 
     def __init__(self, dt: float, num_envs: int, device: torch.device | str = "cpu", position_threshold=0.01):
         """Initialize the state machine.
@@ -191,6 +217,13 @@ class OpenDrawerSm:
             dt: The environment time step.
             num_envs: The number of environments to simulate.
             device: The device to run the state machine on.
+        """
+        """启动状态机器。
+
+        参数：
+            dt: 环境时间步骤。
+            num_envs: 仿真环境的数量。
+            device: 运行国家机器的设备。
         """
         # save parameters
         self.dt = float(dt)
@@ -233,6 +266,7 @@ class OpenDrawerSm:
 
     def reset_idx(self, env_ids: Sequence[int] | None = None):
         """Reset the state machine."""
+        """重置状态机器。"""
         if env_ids is None:
             env_ids = slice(None)
         # reset state machine
@@ -241,6 +275,7 @@ class OpenDrawerSm:
 
     def compute(self, ee_pose: torch.Tensor, handle_pose: torch.Tensor):
         """Compute the desired state of the robot's end-effector and the gripper."""
+        """计算机器人的末端执行器和抓住器的所需状态。"""
         # convert all transformations from (w, x, y, z) to (x, y, z, w)
         ee_pose = ee_pose[:, [0, 1, 2, 4, 5, 6, 3]]
         handle_pose = handle_pose[:, [0, 1, 2, 4, 5, 6, 3]]

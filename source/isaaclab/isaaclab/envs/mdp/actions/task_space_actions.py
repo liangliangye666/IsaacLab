@@ -45,15 +45,32 @@ class DifferentialInverseKinematicsAction(ActionTerm):
     is the input action from the user, :math:`J` is the Jacobian over the articulation's actuated joints,
     and \text{joint position} is the desired joint position command for the articulation's joints.
     """
+    """反动动力学动作项。
+
+    该操作项采用扩展转换来预处理原材料。
+
+    .. math::
+        \text{action} = \text{scaling} \times \text{input action}
+        \text{joint position} = J^{-} \times \text{action}
+
+    where :数学:`\text{scaling}`是对输入操作所应用的规模，和:`\text{input action}`
+    是用户的输入操作， :math:`J`是关节的动动关节上的Jacobian，和 \text{joint position}是关节关节的所需的关节位置命令。
+    """
 
     cfg: actions_cfg.DifferentialInverseKinematicsActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
     _asset: Articulation
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
     _scale: torch.Tensor
     """The scaling factor applied to the input action. Shape is (1, action_dim)."""
+    """对输入操作所应用的扩展因素。
+    形状为 (1， action_dim)。
+    """
     _clip: torch.Tensor
     """The clip applied to the input action."""
+    """在输入操作中应用的裁剪。"""
 
     def __init__(self, cfg: actions_cfg.DifferentialInverseKinematicsActionCfg, env: ManagerBasedEnv):
         # initialize the action term
@@ -127,6 +144,8 @@ class DifferentialInverseKinematicsAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
@@ -169,6 +188,20 @@ class DifferentialInverseKinematicsAction(ActionTerm):
         Returns:
             The IO descriptor of the action term.
         """
+        """动作项的IO描述符。
+
+        这种描述符用于描述粉红色逆动力动力动力动力的作用项。
+        它将以下信息添加到基础描述符中:
+        - body_name尸体的名字。
+        - joint_names关节的名称。
+        - 规模:动作项的规模。
+        - 动作项的裁剪。
+        - controller_cfg控制器的配置。
+        - body_offset身体的偏移。
+
+        返回：
+            动作项的IO描述符。
+        """
         super().IO_descriptor
         self._IO_descriptor.shape = (self.action_dim,)
         self._IO_descriptor.dtype = str(self.raw_actions.dtype)
@@ -186,6 +219,8 @@ class DifferentialInverseKinematicsAction(ActionTerm):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def process_actions(self, actions: torch.Tensor):
@@ -220,12 +255,19 @@ class DifferentialInverseKinematicsAction(ActionTerm):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _compute_frame_pose(self) -> tuple[torch.Tensor, torch.Tensor]:
         """Computes the pose of the target frame in the root frame.
 
         Returns:
             A tuple of the body's position and orientation in the root frame.
+        """
+        """计算目标框架在根框架中的姿势。
+
+        返回：
+            在根框架中的身体的位置和方向。
         """
         # obtain quantities from simulation
         ee_pos_w = self._asset.data.body_pos_w[:, self._body_idx]
@@ -247,6 +289,10 @@ class DifferentialInverseKinematicsAction(ActionTerm):
 
         This function accounts for the target frame offset and applies the necessary transformations to obtain
         the right Jacobian from the parent body Jacobian.
+        """
+        """计算了目标框架的几何雅可比亚系。
+
+        该函数对目标框架的抵消进行了考虑，并应用了获得正确的Jacobian的必要转换。
         """
         # read the parent jacobian
         jacobian = self.jacobian_b
@@ -271,15 +317,23 @@ class OperationalSpaceControllerAction(ActionTerm):
     This action term performs pre-processing of the raw actions for operational space control.
 
     """
+    """操作空间控制器动作项
+
+    该动作项为运营空间控制的原始动作进行预处理。
+    """
 
     cfg: actions_cfg.OperationalSpaceControllerActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
     _asset: Articulation
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
     _contact_sensor: ContactSensor = None
     """The contact sensor for the end-effector body."""
+    """末端执行器的接触传感器。"""
     _task_frame_transformer: FrameTransformer = None
     """The frame transformer for the task frame."""
+    """为任务框架的框架变压器。"""
 
     def __init__(self, cfg: actions_cfg.OperationalSpaceControllerActionCfg, env: ManagerBasedEnv):
         # initialize the action term
@@ -416,20 +470,25 @@ class OperationalSpaceControllerAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
         """Dimension of the action space of operational space control."""
+        """操作空间控制的动作空间的尺寸。"""
         return self._osc.action_dim
 
     @property
     def raw_actions(self) -> torch.Tensor:
         """Raw actions for operational space control."""
+        """操作空间控制的原始动作。"""
         return self._raw_actions
 
     @property
     def processed_actions(self) -> torch.Tensor:
         """Processed actions for operational space control."""
+        """运营空间控制的处理动作。"""
         return self._processed_actions
 
     @property
@@ -466,6 +525,25 @@ class OperationalSpaceControllerAction(ActionTerm):
         Returns:
             The IO descriptor of the action term.
         """
+        """动作项的IO描述符。
+
+        这种描述符用于描述粉红色逆动力动力动力动力的作用项。
+        它将以下信息添加到基础描述符中:
+        - body_name尸体的名字。
+        - joint_names关节的名称。
+        - position_scale位置的规模。
+        - orientation_scale方向的规模。
+        - wrench_scale匙的尺度。
+        - stiffness_scale硬度的规模。
+        - damping_ratio_scale:压缩比的规模。
+        - nullspace_joint_pos_target零空间合并后目标。
+        - 动作项的裁剪。
+        - controller_cfg控制器的配置。
+        - body_offset身体的偏移。
+
+        返回：
+            动作项的IO描述符。
+        """
         super().IO_descriptor
         self._IO_descriptor.shape = (self.action_dim,)
         self._IO_descriptor.dtype = str(self.raw_actions.dtype)
@@ -489,6 +567,8 @@ class OperationalSpaceControllerAction(ActionTerm):
     """
     Operations.
     """
+    """操作。
+    """
 
     def process_actions(self, actions: torch.Tensor):
         """Pre-processes the raw actions and sets them as commands for for operational space control.
@@ -496,6 +576,12 @@ class OperationalSpaceControllerAction(ActionTerm):
         Args:
             actions (torch.Tensor): The raw actions for operational space control. It is a tensor of
                 shape (``num_envs``, ``action_dim``).
+        """
+        """预处理原始动作并将其设置为操作空间控制的命令。
+
+        参数：
+            actions (torch.Tensor): 运营空间控制的原始动作。
+                                    它是形状张量 (``num_envs``，``action_dim``)。
         """
 
         # Update ee pose, which would be used by relative targets (i.e., pose_rel)
@@ -516,6 +602,7 @@ class OperationalSpaceControllerAction(ActionTerm):
 
     def apply_actions(self):
         """Computes the joint efforts for operational space control and applies them to the articulation."""
+        """计算运营空间控制的联合努力，并将其应用到关节。"""
 
         # Update the relevant states and dynamical quantities
         self._compute_dynamic_quantities()
@@ -544,6 +631,12 @@ class OperationalSpaceControllerAction(ActionTerm):
         Args:
             env_ids (Sequence[int] | None): The environment indices to reset. If ``None``, all environments are reset.
         """
+        """如果可用，重置原始动作和传感器。
+
+        参数：
+            env_ids (Sequence[int] | None): 环境索引要重置。
+                                            如果``None``，所有环境都会重置。
+        """
         self._raw_actions[env_ids] = 0.0
         if self._contact_sensor is not None:
             self._contact_sensor.reset(env_ids)
@@ -554,6 +647,8 @@ class OperationalSpaceControllerAction(ActionTerm):
     Helper functions.
 
     """
+    """辅助函数。
+    """
 
     def _first_RigidObject_child_path(self):
         """Finds the first ``RigidObject`` child under the articulation asset.
@@ -563,6 +658,14 @@ class OperationalSpaceControllerAction(ActionTerm):
 
         Returns:
             str: The path to the first ``RigidObject`` child under the articulation asset.
+        """
+        """在关节资产下找到第一个``RigidObject``孩子。
+
+        异常：
+            ValueError: 如果没有``RigidObject``儿童在关节资产下发现。
+
+        返回：
+            str: 关节资产下面的第一个``RigidObject``孩子的路径。
         """
         child_prims = find_matching_prims(self._asset.cfg.prim_path + "/.*")
         rigid_child_prim = None
@@ -583,6 +686,11 @@ class OperationalSpaceControllerAction(ActionTerm):
 
         Raises:
             ValueError: If any command index is left unresolved.
+        """
+        """解决命令子内的各种命令元素的索引。
+
+        异常：
+            ValueError: 如果任何命令索引未解决。
         """
         # First iterate over the target types to find the indexes of the different command elements
         cmd_idx = 0
@@ -621,6 +729,13 @@ class OperationalSpaceControllerAction(ActionTerm):
             ValueError: If the nullspace joint pos targets are not set when null space control is set to 'position'.
             ValueError: If an invalid value is set for nullspace joint pos targets.
         """
+        """解决运行空间控制器的零空间联合定位目标。
+
+        异常：
+            ValueError: 如果设置了零空间联合定位目标，而没有设置了零空间控制为"位置"。
+            ValueError: 如果在设置为"位置"时设置了零空间联合Pos目标，
+            ValueError: 如果为 nullspace 联合 pos 目标设置了无效值。
+        """
 
         if self.cfg.nullspace_joint_pos_target != "none" and self.cfg.controller_cfg.nullspace_control != "position":
             raise ValueError("Nullspace joint targets can only be set when null space control is set to 'position'.")
@@ -644,6 +759,7 @@ class OperationalSpaceControllerAction(ActionTerm):
 
     def _compute_dynamic_quantities(self):
         """Computes the dynamic quantities for operational space control."""
+        """计算运行空间控制的动态数量。"""
 
         self._mass_matrix[:] = self._asset.root_physx_view.get_generalized_mass_matrices()[:, self._joint_ids, :][
             :, :, self._joint_ids
@@ -655,6 +771,10 @@ class OperationalSpaceControllerAction(ActionTerm):
 
         This function accounts for the target frame offset and applies the necessary transformations to obtain
         the right Jacobian from the parent body Jacobian.
+        """
+        """计算一个体体框架的几何雅可比素在根框架中。
+
+        该函数对目标框架的抵消进行了考虑，并应用了获得正确的Jacobian的必要转换。
         """
         # Get the Jacobian in root frame
         self._jacobian_b[:] = self.jacobian_b
@@ -677,6 +797,7 @@ class OperationalSpaceControllerAction(ActionTerm):
 
     def _compute_ee_pose(self):
         """Computes the pose of the ee frame in root frame."""
+        """计算e框架在根框架中的姿势。"""
         # Obtain quantities from simulation
         self._ee_pose_w[:, 0:3] = self._asset.data.body_pos_w[:, self._ee_body_idx]
         self._ee_pose_w[:, 3:7] = self._asset.data.body_quat_w[:, self._ee_body_idx]
@@ -697,6 +818,7 @@ class OperationalSpaceControllerAction(ActionTerm):
 
     def _compute_ee_velocity(self):
         """Computes the velocity of the ee frame in root frame."""
+        """在根框中计算e框架的速度。"""
         # Extract end-effector velocity in the world frame
         self._ee_vel_w[:] = self._asset.data.body_vel_w[:, self._ee_body_idx, :]
         # Compute the relative velocity in the world frame
@@ -716,6 +838,7 @@ class OperationalSpaceControllerAction(ActionTerm):
 
     def _compute_ee_force(self):
         """Computes the contact forces on the ee frame in root frame."""
+        """计算根框中的e框架上的接触力。"""
         # Obtain contact forces only if the contact sensor is available
         if self._contact_sensor is not None:
             self._contact_sensor.update(self._sim_dt)
@@ -725,12 +848,14 @@ class OperationalSpaceControllerAction(ActionTerm):
 
     def _compute_joint_states(self):
         """Computes the joint states for operational space control."""
+        """计算运行空间控制的联合状态。"""
         # Extract joint positions and velocities
         self._joint_pos[:] = self._asset.data.joint_pos[:, self._joint_ids]
         self._joint_vel[:] = self._asset.data.joint_vel[:, self._joint_ids]
 
     def _compute_task_frame_pose(self):
         """Computes the pose of the task frame in root frame."""
+        """计算任务框架的姿势在根框中。"""
         # Update task frame pose if task frame rigidbody is provided
         if self._task_frame_transformer is not None and self._task_frame_pose_b is not None:
             self._task_frame_transformer.update(self._sim_dt)
@@ -748,6 +873,12 @@ class OperationalSpaceControllerAction(ActionTerm):
         Args:
             actions (torch.Tensor): The raw actions for operational space control. It is a tensor of
                 shape (``num_envs``, ``action_dim``).
+        """
+        """预处理用于操作空间控制的原始动作。
+
+        参数：
+            actions (torch.Tensor): 运营空间控制的原始动作。
+                                    它是形状张量 (``num_envs``，``action_dim``)。
         """
         # Store the raw actions. Please note that the actions contain task space targets
         # (in the order of the target_types), and possibly the impedance parameters depending on impedance_mode.

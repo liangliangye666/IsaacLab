@@ -12,8 +12,16 @@ This script demonstrates different dexterous hands.
     ./isaaclab.sh -p scripts/demos/hands.py
 
 """
+"""这部剧本展示了不同的精英手。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/demos/hands.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -31,6 +39,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import numpy as np
 import torch
@@ -47,6 +56,7 @@ from isaaclab_assets.robots.shadow_hand import SHADOW_HAND_CFG  # isort:skip
 
 def define_origins(num_origins: int, spacing: float) -> list[list[float]]:
     """Defines the origins of the the scene."""
+    """确定场景的起源。"""
     # create tensor based on number of environments
     env_origins = torch.zeros(num_origins, 3)
     # create a grid of origins
@@ -62,6 +72,7 @@ def define_origins(num_origins: int, spacing: float) -> list[list[float]]:
 
 def design_scene() -> tuple[dict, list[list[float]]]:
     """Designs the scene."""
+    """他设计了场景。"""
     # Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
     cfg.func("/World/defaultGroundPlane", cfg)
@@ -93,6 +104,7 @@ def design_scene() -> tuple[dict, list[list[float]]]:
 
 def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articulation], origins: torch.Tensor):
     """Runs the simulation loop."""
+    """运行仿真循环。"""
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()
     sim_time = 0.0
@@ -142,6 +154,7 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articula
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.01, device=args_cli.device)
     sim = sim_utils.SimulationContext(sim_cfg)

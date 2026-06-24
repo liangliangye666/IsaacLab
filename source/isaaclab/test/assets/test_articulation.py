@@ -7,6 +7,7 @@
 # pyright: reportPrivateUsage=none
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -16,6 +17,7 @@ HEADLESS = True
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import ctypes
 
@@ -70,6 +72,30 @@ def generate_articulation_cfg(
     Returns:
         The articulation configuration for the requested articulation type.
 
+    """
+    """生成一个关节配置。
+
+    参数：
+        articulation_type: 发达的关节类型。
+                           它应该是"人性"，"潘达"，"Anymal"，"shadow_hand"，"single_joint_implicit"，"single_joint_ex
+                           plicit"。
+        stiffness: 关节驱动器的硬度值。
+                   目前仅用于"人体"。
+                   默认调到10.0。
+        damping: 关节动机的缩值。
+                 目前仅用于"人体"。
+                 在2.0上设置。
+        velocity_limit: 执行器的速度限制。
+                        目前仅用于"single_joint_implicit"和"single_joint_explicit"。
+        effort_limit: 执行器的功率限制。
+                      目前仅用于"single_joint_implicit"和"single_joint_explicit"。
+        velocity_limit_sim: 执行器的速度限制 (设置在仿真中)。
+                            目前仅用于"single_joint_implicit"和"single_joint_explicit"。
+        effort_limit_sim: 执行器的功率限制 (设置在仿真中)。
+                          目前仅用于"single_joint_implicit"和"single_joint_explicit"。
+
+    返回：
+        要求的关节类型的关节配置。
     """
     if articulation_type == "humanoid":
         articulation_cfg = ArticulationCfg(
@@ -168,6 +194,18 @@ def generate_articulation(
         The articulation and environment translations.
 
     """
+    """从一个配置中生成一个关节。
+
+    处理关节的创建，环境 prims和关节的环境翻译
+
+    参数：
+        articulation_cfg: 关节配置。
+        num_articulations: 需要生成的关节数量。
+        device: 电压器的设备。
+
+    返回：
+        文法和环境翻译。
+    """
     # Generate translations of 2.5 m in x for each articulation
     translations = torch.zeros(num_articulations, 3, device=device)
     translations[:, 0] = torch.arange(num_articulations) * 2.5
@@ -183,6 +221,7 @@ def generate_articulation(
 @pytest.fixture
 def sim(request):
     """Create simulation context with the specified device."""
+    """使用指定设备创建仿真环境。"""
     device = request.getfixturevalue("device")
     if "gravity_enabled" in request.fixturenames:
         gravity_enabled = request.getfixturevalue("gravity_enabled")
@@ -216,6 +255,19 @@ def test_initialization_floating_base_non_root(sim, num_articulations, device, a
         sim: The simulation fixture
         num_articulations: Number of articulations to test
         device: The device to run the simulation on
+    """
+    """测试在硬体上具有关节根的浮动基的初始化。
+
+    本测试证实:
+    1. 关节是正确的初始化
+    2. 关节不是固定的基础
+    3. 所有缓冲器都有正确的形状
+    4. 关节可以仿真
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
     """
     articulation_cfg = generate_articulation_cfg(articulation_type="humanoid", stiffness=0.0, damping=0.0)
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device=sim.device)
@@ -274,6 +326,19 @@ def test_initialization_floating_base(sim, num_articulations, device, add_ground
         num_articulations: Number of articulations to test
         device: The device to run the simulation on
     """
+    """在给定的prim路径上具有关节根的浮动基的测试初始化。
+
+    本测试证实:
+    1. 关节是正确的初始化
+    2. 关节不是固定的基础
+    3. 所有缓冲器都有正确的形状
+    4. 关节可以仿真
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
+    """
     articulation_cfg = generate_articulation_cfg(articulation_type="anymal", stiffness=0.0, damping=0.0)
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device=device)
 
@@ -330,6 +395,19 @@ def test_initialization_fixed_base(sim, num_articulations, device):
         sim: The simulation fixture
         num_articulations: Number of articulations to test
         device: The device to run the simulation on
+    """
+    """测试定基的初始化。
+
+    本测试证实:
+    1. 关节是正确的初始化
+    2. 关节是固定的基础
+    3. 所有缓冲器都有正确的形状
+    4. 关节保持默认状态
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
     """
     articulation_cfg = generate_articulation_cfg(articulation_type="panda")
     articulation, translations = generate_articulation(articulation_cfg, num_articulations, device=device)
@@ -395,6 +473,19 @@ def test_initialization_fixed_base_single_joint(sim, num_articulations, device, 
         num_articulations: Number of articulations to test
         device: The device to run the simulation on
     """
+    """试验初始化，以单个关节的固定基关节。
+
+    本测试证实:
+    1. 关节是正确的初始化
+    2. 关节是固定的基础
+    3. 所有缓冲器都有正确的形状
+    4. 关节保持默认状态
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
+    """
     articulation_cfg = generate_articulation_cfg(articulation_type="single_joint_implicit")
     articulation, translations = generate_articulation(articulation_cfg, num_articulations, device=device)
 
@@ -458,6 +549,19 @@ def test_initialization_hand_with_tendons(sim, num_articulations, device):
         num_articulations: Number of articulations to test
         device: The device to run the simulation on
     """
+    """试验初始化固定底部关节手
+
+    本测试证实:
+    1. 关节是正确的初始化
+    2. 关节是固定的基础
+    3. 所有缓冲器都有正确的形状
+    4. 关节可以仿真
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
+    """
     articulation_cfg = generate_articulation_cfg(articulation_type="shadow_hand")
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device=device)
 
@@ -511,6 +615,18 @@ def test_initialization_floating_base_made_fixed_base(sim, num_articulations, de
     Args:
         sim: The simulation fixture
         num_articulations: Number of articulations to test
+    """
+    """测试初始化用于使用方案属性制成的浮动基底关节。
+
+    本测试证实:
+    1. 关节是正确的初始化
+    2. 在修改后，关节是固定的基础
+    3. 所有缓冲器都有正确的形状
+    4. 关节保持默认状态
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
     """
     articulation_cfg = generate_articulation_cfg(articulation_type="anymal").copy()
     # Fix root link by making it kinematic
@@ -571,6 +687,18 @@ def test_initialization_fixed_base_made_floating_base(sim, num_articulations, de
         sim: The simulation fixture
         num_articulations: Number of articulations to test
     """
+    """测试初始化为固定基构成的浮基使用方案属性。
+
+    本测试证实:
+    1. 关节是正确的初始化
+    2. 在修改后，关节是浮动的基础
+    3. 所有缓冲器都有正确的形状
+    4. 关节可以仿真
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+    """
     articulation_cfg = generate_articulation_cfg(articulation_type="panda")
     # Unfix root link by making it non-kinematic
     articulation_cfg.spawn.articulation_props.fix_root_link = False
@@ -622,6 +750,16 @@ def test_out_of_range_default_joint_pos(sim, num_articulations, device, add_grou
         sim: The simulation fixture
         num_articulations: Number of articulations to test
     """
+    """测试配置中的默认关键位置是否超出范围。
+
+    本测试证实:
+    1. 当关节位置不到范围时，关节不能启动
+    2. 错误正确处理
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+    """
     # Create articulation
     articulation_cfg = generate_articulation_cfg(articulation_type="panda").copy()
     articulation_cfg.init_state.joint_pos = {
@@ -647,6 +785,12 @@ def test_out_of_range_default_joint_vel(sim, device):
     This test verifies that:
     1. The articulation fails to initialize when joint velocities are out of range
     2. The error is properly handled
+    """
+    """测试设置的默认关节速度是否超出范围。
+
+    本测试证实:
+    1. 当关节速度超出范围时，关节不能启动
+    2. 错误正确处理
     """
     articulation_cfg = FRANKA_PANDA_CFG.replace(prim_path="/World/Robot")
     articulation_cfg.init_state.joint_vel = {
@@ -679,6 +823,18 @@ def test_joint_pos_limits(sim, num_articulations, device, add_ground_plane):
     Args:
         sim: The simulation fixture
         num_articulations: Number of articulations to test
+    """
+    """测试write_joint_limits_to_simAPI，当默认位置落在新的限制之外。
+
+    本测试证实:
+    1. 联合限制可以正确设置
+    2. 在设置新的限制时保留默认位置
+    3. 可以通过索引设置联合限制
+    4. 无效的关节位置得到适当的处理
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
     """
     # Create articulation
     articulation_cfg = generate_articulation_cfg(articulation_type="panda")
@@ -744,6 +900,7 @@ def test_joint_pos_limits(sim, num_articulations, device, add_ground_plane):
 @pytest.mark.parametrize("add_ground_plane", [True])
 def test_joint_effort_limits(sim, num_articulations, device, add_ground_plane):
     """Validate joint effort limits via joint_effort_out_of_limit()."""
+    """通过joint_effort_out_of_limit验证联合努力限制。"""
     # Create articulation
     articulation_cfg = generate_articulation_cfg(articulation_type="panda")
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device)
@@ -786,6 +943,17 @@ def test_external_force_buffer(sim, num_articulations, device):
     Args:
         sim: The simulation fixture
         num_articulations: Number of articulations to test
+    """
+    """测试是否对外力缓冲正确更新的力值是零案例。
+
+    本测试证实:
+    1. 外部力量可以正确应用
+    2. 强度缓冲器正确更新
+    3. 零力正确处理
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
     """
     articulation_cfg = generate_articulation_cfg(articulation_type="anymal")
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device=sim.device)
@@ -872,6 +1040,17 @@ def test_external_force_on_single_body(sim, num_articulations, device):
         sim: The simulation fixture
         num_articulations: Number of articulations to test
     """
+    """测试对关节的底部施加外部力。
+
+    本测试证实:
+    1. 外部力量可以应用于特定物体
+    2. 动力正确影响关节运动
+    3. 关节反应的力量是预期的
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+    """
     articulation_cfg = generate_articulation_cfg(articulation_type="anymal")
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device=sim.device)
     # Play the simulator
@@ -933,6 +1112,19 @@ def test_external_force_on_single_body_at_position(sim, num_articulations, devic
     Args:
         sim: The simulation fixture
         num_articulations: Number of articulations to test
+    """
+    """测试在给定的位置对关节基部施加外部力。
+
+    本测试证实:
+    1. 在特定位置，可以对特定物体施加外部力量
+    2. 在全球范围内，外部力量可以应用于特定机构
+    3. 外部力量正确计算和组合
+    4. 动力正确影响关节运动
+    5. 关节反应的力量是预期的
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
     """
     articulation_cfg = generate_articulation_cfg(articulation_type="anymal")
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device=sim.device)
@@ -1026,6 +1218,17 @@ def test_external_force_on_multiple_bodies(sim, num_articulations, device):
         sim: The simulation fixture
         num_articulations: Number of articulations to test
     """
+    """测试对关节腿部施加外部力。
+
+    本测试证实:
+    1. 外部力量可以应用于多个体
+    2. 动力正确影响关节运动
+    3. 关节反应的力量是预期的
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+    """
     articulation_cfg = generate_articulation_cfg(articulation_type="anymal")
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device=sim.device)
 
@@ -1087,6 +1290,19 @@ def test_external_force_on_multiple_bodies_at_position(sim, num_articulations, d
     Args:
         sim: The simulation fixture
         num_articulations: Number of articulations to test
+    """
+    """测试在特定位置对关节腿部施加外部力。
+
+    本测试证实:
+    1. 在某个位置，可以对多个体征外力
+    2. 在全球范围内，可以对多个物体施加外部力量
+    3. 外部力量正确计算和组合
+    4. 动力正确影响关节运动
+    5. 关节反应的力量是预期的
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
     """
     articulation_cfg = generate_articulation_cfg(articulation_type="anymal")
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device=sim.device)
@@ -1179,6 +1395,17 @@ def test_loading_gains_from_usd(sim, num_articulations, device):
         sim: The simulation fixture
         num_articulations: Number of articulations to test
     """
+    """测试如果执行器模型将其作为None，则从USD文件中加载了收益。
+
+    本测试证实:
+    1. 从USD文件中正确加载的收益
+    2. 如果未指定，则使用默认收益
+    3. 收益符合预期值
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+    """
     articulation_cfg = generate_articulation_cfg(articulation_type="humanoid", stiffness=None, damping=None)
     articulation, _ = generate_articulation(articulation_cfg, num_articulations, device=sim.device)
 
@@ -1242,6 +1469,17 @@ def test_setting_gains_from_cfg(sim, num_articulations, device, add_ground_plane
         sim: The simulation fixture
         num_articulations: Number of articulations to test
     """
+    """测试是否从配置中得到正确的加载。
+
+    本测试证实:
+    1. 从配置中获得的收益是正确的
+    2. 收益符合预期值
+    3. 利正确地应用于动机
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+    """
     articulation_cfg = generate_articulation_cfg(articulation_type="humanoid")
     articulation, _ = generate_articulation(
         articulation_cfg=articulation_cfg, num_articulations=num_articulations, device=sim.device
@@ -1275,6 +1513,17 @@ def test_setting_gains_from_cfg_dict(sim, num_articulations, device):
     Args:
         sim: The simulation fixture
         num_articulations: Number of articulations to test
+    """
+    """测试从配置字典中正确加载的收益。
+
+    本测试证实:
+    1. 从配置字典中正确加载的增长
+    2. 收益符合预期值
+    3. 利正确地应用于动机
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
     """
     articulation_cfg = generate_articulation_cfg(articulation_type="humanoid")
     articulation, _ = generate_articulation(
@@ -1314,6 +1563,20 @@ def test_setting_velocity_limit_implicit(sim, num_articulations, device, vel_lim
         device: The device to run the simulation on
         vel_limit_sim: The velocity limit to set in simulation
         vel_limit: The velocity limit to set in actuator
+    """
+    """隐含动机的速度限制测试设置。
+
+    本测试证实:
+    1. 隐含动机的速度限制可以正确设置
+    2. 对仿真进行正确应用的限制
+    3. 设置sim和非sim的限制时，控制限制是正确的
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
+        vel_limit_sim: 在仿真中设置的速度限制
+        vel_limit: 在执行器中设置的速度限制
     """
     # create simulation
     articulation_cfg = generate_articulation_cfg(
@@ -1369,6 +1632,7 @@ def test_setting_velocity_limit_implicit(sim, num_articulations, device, vel_lim
 @pytest.mark.isaacsim_ci
 def test_setting_velocity_limit_explicit(sim, num_articulations, device, vel_limit_sim, vel_limit):
     """Test setting of velocity limit for explicit actuators."""
+    """对于明确执行器的速度限制测试设置。"""
     articulation_cfg = generate_articulation_cfg(
         articulation_type="single_joint_explicit",
         velocity_limit_sim=vel_limit_sim,
@@ -1429,6 +1693,13 @@ def test_setting_effort_limit_implicit(sim, num_articulations, device, effort_li
     - Case 2: If USD value != actuator config value: actuator config value is used
     - Case 3: If actuator config value is None: USD value is used as default
     """
+    """试验设置隐含动机的功耗限制。
+
+    在 :class:`ActuatorBase` 中实现的执行器模型中，本测试验验证了功耗限制分辨率逻辑:
+    - 案例1:如果USD值 ==动机配置值:值正确匹配
+    - 案例2:如果USD值 !=动机配置值:使用动机配置值
+    - 案例3:如果执行器配置值为None:USD值是默认使用的
+    """
     articulation_cfg = generate_articulation_cfg(
         articulation_type="single_joint_implicit",
         effort_limit_sim=effort_limit_sim,
@@ -1483,6 +1754,13 @@ def test_setting_effort_limit_explicit(sim, num_articulations, device, effort_li
     - Case 3: If actuator config value is None: USD value is used as default
 
     """
+    """试验设置明确执行器的功耗限制。
+
+    在 :class:`ActuatorBase` 中实现的执行器模型中，本测试验验证了功耗限制分辨率逻辑:
+    - 案例1:如果USD值 ==动机配置值:值正确匹配
+    - 案例2:如果USD值 !=动机配置值:使用动机配置值
+    - 案例3:如果执行器配置值为None:USD值是默认使用的
+    """
 
     articulation_cfg = generate_articulation_cfg(
         articulation_type="single_joint_explicit",
@@ -1536,6 +1814,7 @@ def test_setting_effort_limit_explicit(sim, num_articulations, device, effort_li
 @pytest.mark.isaacsim_ci
 def test_reset(sim, num_articulations, device):
     """Test that reset method works properly."""
+    """测试是否重置方法正常运行。"""
     articulation_cfg = generate_articulation_cfg(articulation_type="humanoid")
     articulation, _ = generate_articulation(
         articulation_cfg=articulation_cfg, num_articulations=num_articulations, device=device
@@ -1586,6 +1865,7 @@ def test_reset(sim, num_articulations, device):
 @pytest.mark.isaacsim_ci
 def test_apply_joint_command(sim, num_articulations, device, add_ground_plane):
     """Test applying of joint position target functions correctly for a robotic arm."""
+    """对机器人手臂进行正确的关键位置目标功能测试。"""
     articulation_cfg = generate_articulation_cfg(articulation_type="panda")
     articulation, _ = generate_articulation(
         articulation_cfg=articulation_cfg, num_articulations=num_articulations, device=device
@@ -1637,6 +1917,19 @@ def test_body_root_state(sim, num_articulations, device, with_offset):
         num_articulations: Number of articulations to test
         device: The device to run the simulation on
         with_offset: Whether to test with offset
+    """
+    """测试`body_state_w`属性。
+
+    本测试证实:
+    1. 身体状态可以正确阅读
+    2. 国家正确，没有抵消
+    3. 各国在不同设备中一致
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
+        with_offset: 是否使用抵消测试
     """
     sim._app_control_on_stop_handle = None
     articulation_cfg = generate_articulation_cfg(articulation_type="single_joint_implicit")
@@ -1758,6 +2051,21 @@ def test_write_root_state(sim, num_articulations, device, with_offset, state_loc
         with_offset: Whether to test with offset
         state_location: Whether to test COM or link frame
     """
+    """测试root_state的设置器，使用链接框架和质量中心作为参考框架。
+
+    本测试证实:
+    1. 根状态可以正确写
+    2. 国家正确，没有抵消
+    3. 可以为COM和链接框架写国家
+    4. 各国在不同设备中一致
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
+        with_offset: 是否使用抵消测试
+        state_location: 测试COM或链接框架
+    """
     sim._app_control_on_stop_handle = None
     articulation_cfg = generate_articulation_cfg(articulation_type="anymal")
     articulation, env_pos = generate_articulation(articulation_cfg, num_articulations, device)
@@ -1826,6 +2134,18 @@ def test_body_incoming_joint_wrench_b_single_joint(sim, num_articulations, devic
         sim: The simulation fixture
         num_articulations: Number of articulations to test
         device: The device to run the simulation on
+    """
+    """测试data.body_incoming_joint_wrench_b缓冲器对单关键的填充正确和静态正确。
+
+    本测试证实:
+    1. 进入体内的关键缓冲器正确的形状
+    2. 对于单个关节，钥值是静态正确的
+    3. 钥匙的值与重力和外部力量的预期值相匹配
+
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
     """
     articulation_cfg = generate_articulation_cfg(articulation_type="single_joint_implicit")
     articulation, _ = generate_articulation(
@@ -1898,6 +2218,7 @@ def test_body_incoming_joint_wrench_b_single_joint(sim, num_articulations, devic
 @pytest.mark.isaacsim_ci
 def test_setting_articulation_root_prim_path(sim, device):
     """Test that the articulation root prim path can be set explicitly."""
+    """测试是否可以明确设置关节根prim路径。"""
     sim._app_control_on_stop_handle = None
     # Create articulation
     articulation_cfg = generate_articulation_cfg(articulation_type="humanoid")
@@ -1918,6 +2239,7 @@ def test_setting_articulation_root_prim_path(sim, device):
 @pytest.mark.isaacsim_ci
 def test_setting_invalid_articulation_root_prim_path(sim, device):
     """Test that the articulation root prim path can be set explicitly."""
+    """测试是否可以明确设置关节根prim路径。"""
     sim._app_control_on_stop_handle = None
     # Create articulation
     articulation_cfg = generate_articulation_cfg(articulation_type="humanoid")
@@ -1947,6 +2269,16 @@ def test_write_joint_state_data_consistency(sim, num_articulations, device, grav
         sim: The simulation fixture
         num_articulations: Number of articulations to test
         device: The device to run the simulation on
+    """
+    """测试root_state的设置器，使用链接框架和质量中心作为参考框架。
+
+    本测试验验证，在write_joint_state_to_sim操作后:
+    1. 状态，com_state，link_state值一致性
+    2. body_pose链接
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
     """
     sim._app_control_on_stop_handle = None
     articulation_cfg = generate_articulation_cfg(articulation_type="anymal")
@@ -2030,6 +2362,17 @@ def test_spatial_tendons(sim, num_articulations, device):
         num_articulations: Number of articulations to test
         device: The device to run the simulation on
     """
+    """测试空间部。
+    本测试证实:
+    1. 关节是正确的初始化
+    2. 关节有空间节
+    3. 所有缓冲器都有正确的形状
+    4. 关节可以仿真
+    参数：
+        sim: 仿真装置
+        num_articulations: 测试的关节数量
+        device: 运行仿真的设备
+    """
     # skip test if Isaac Sim version is less than 5.0
     if get_isaac_sim_version().major < 5:
         pytest.skip("Spatial tendons are not supported in Isaac Sim < 5.0. Please update to Isaac Sim 5.0 or later.")
@@ -2072,6 +2415,7 @@ def test_spatial_tendons(sim, num_articulations, device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_write_joint_frictions_to_sim(sim, num_articulations, device, add_ground_plane):
     """Test applying of joint position target functions correctly for a robotic arm."""
+    """对机器人手臂进行正确的关键位置目标功能测试。"""
     articulation_cfg = generate_articulation_cfg(articulation_type="panda")
     articulation, _ = generate_articulation(
         articulation_cfg=articulation_cfg, num_articulations=num_articulations, device=device

@@ -16,6 +16,7 @@ from .deformable_object import DeformableObject
 @configclass
 class DeformableObjectCfg(AssetBaseCfg):
     """Configuration parameters for a deformable object."""
+    """对可变化的对象的配置参数。"""
 
     class_type: type = DeformableObject
 
@@ -26,4 +27,10 @@ class DeformableObjectCfg(AssetBaseCfg):
 
     Note:
         This attribute is only used when debug visualization is enabled.
+    """
+    """视觉化标记的配置对象。
+    在DEFORMABLE_TARGET_MARKER_CFG中默认错误。
+
+    说明：
+        只有在启用调试可视化时才使用此属性。
     """

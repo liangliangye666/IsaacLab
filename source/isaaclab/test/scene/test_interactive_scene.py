@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -28,6 +30,7 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
     """Example scene configuration."""
+    """例如场景配置。"""
 
     # articulation
     robot = ArticulationCfg(
@@ -57,6 +60,7 @@ class MySceneCfg(InteractiveSceneCfg):
 @pytest.fixture
 def setup_scene(request):
     """Create simulation context with the specified device."""
+    """使用指定设备创建仿真环境。"""
     device = request.getfixturevalue("device")
     with build_simulation_context(device=device, auto_add_lighting=True, add_ground_plane=True) as sim:
         sim._app_control_on_stop_handle = None
@@ -79,6 +83,11 @@ def test_scene_entity_isolation(device, setup_scene):
     In this test, two InteractiveScene instances are created in a loop and added to a list.
     The scene at index 0 of the list will have all of its entities cleared manually, and
     the test compares that the data held in the scene at index 1 remained intact.
+    """
+    """测试InteractiveScene的多个实例没有共享任何数据。
+
+    在此测试中，在循环中创建两个InteractiveScene实例，并添加到列表中。
+    清单中的0个目录的场景将手动清除所有实体，测试将比较在1个目录的场景中保存的数据保持完整。
     """
     make_scene, sim = setup_scene
     scene_cfg = make_scene(num_envs=1)
@@ -177,6 +186,8 @@ def assert_state_equal(s1: dict, s2: dict, path=""):
     Recursively assert that s1 and s2 have the same nested keys
     and that every tensor leaf is exactly equal.
     """
+    """复制地说，s1和s2具有相同的嵌套键，每个 le子叶是完全相同的。
+    """
     assert set(s1.keys()) == set(s2.keys()), f"Key mismatch at {path}: {s1.keys()} vs {s2.keys()}"
     for k in s1:
         v1, v2 = s1[k], s2[k]
@@ -197,6 +208,9 @@ def assert_state_different(s1: dict, s2: dict, path=""):
     Recursively scan s1 and s2 (which must have identical keys) and
     succeed as soon as you find one tensor leaf that differs.
     If you reach the end with everything equal, fail the test.
+    """
+    """复制扫描s1和s2 (必须具有相同的键) 并且成功，只要找到一个不同的光叶。
+    如果你得到了平等的终点，你就会失败。
     """
     assert set(s1.keys()) == set(s2.keys()), f"Key mismatch at {path}: {s1.keys()} vs {s2.keys()}"
     for k in s1:

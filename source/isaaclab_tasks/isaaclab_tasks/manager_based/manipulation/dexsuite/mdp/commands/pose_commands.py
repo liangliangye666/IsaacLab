@@ -7,6 +7,7 @@
 """Sub-module containing command generators for pose tracking."""
 
 from __future__ import annotations
+"""含有可追踪姿势的命令生成器的子模块。"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -48,9 +49,24 @@ class ObjectUniformPoseCommand(CommandTerm):
         `cfg` must provide the sampling ranges, whether to enforce quaternion uniqueness,
         and optional visualization settings.
     """
+    """对象的统一姿势命令生成器 (在机器人基架中)。
+
+    这个命令项样本目标对象由: • 绘制 (x， y， z) 在配置的卡特西亚边界内均，和 • 绘制在配置范围内均的滚球-pitch-yaw，然后转换为四元数 (w， x， y， z)。
+    通过强制执行一个正面的真实部分，可选地使四元数独一无二。
+
+    Frames: 在机器人的"基础框架"中定义了目标。
+            为了测量/可视化，目标通过机器人根姿势转化为*世界框架*。
+
+    Outputs: 命令缓冲器的形状 (num_envs， 7):`(x， y， z， qw， qx， qy， qz)`。
+
+    Metrics: `position_error`和`orientation_error`是命令世界框架姿势和对象目前的世界框架姿势之间计算的。
+
+    Config: `cfg`必须提供采样范围，是否强制四元数独特性，以及可选的可视化设置。
+    """
 
     cfg: dex_cmd_cfgs.ObjectUniformPoseCommandCfg
     """Configuration for the command generator."""
+    """命令生成器的配置。"""
 
     def __init__(self, cfg: dex_cmd_cfgs.ObjectUniformPoseCommandCfg, env: ManagerBasedEnv):
         """Initialize the command generator class.
@@ -58,6 +74,12 @@ class ObjectUniformPoseCommand(CommandTerm):
         Args:
             cfg: The configuration parameters for the command generator.
             env: The environment object.
+        """
+        """启动命令生成器类。
+
+        参数：
+            cfg: 命令生成器的配置参数。
+            env: 环境对象。
         """
         # initialize the base class
         super().__init__(cfg, env)
@@ -88,6 +110,8 @@ class ObjectUniformPoseCommand(CommandTerm):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def command(self) -> torch.Tensor:
@@ -95,10 +119,17 @@ class ObjectUniformPoseCommand(CommandTerm):
 
         The first three elements correspond to the position, followed by the quaternion orientation in (w, x, y, z).
         """
+        """想要的姿势命令。
+        形状是 (num_envs， 7)。
+
+        第3个元素与位置相匹配，然后是 (w，x，y，z) 中的四元数方向。
+        """
         return self.pose_command_b
 
     """
     Implementation specific functions.
+    """
+    """具体执行功能。
     """
 
     def _update_metrics(self):

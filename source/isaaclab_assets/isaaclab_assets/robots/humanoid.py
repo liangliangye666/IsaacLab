@@ -6,6 +6,7 @@
 """Configuration for the Mujoco Humanoid robot."""
 
 from __future__ import annotations
+"""Mu果人形机器人的配置。"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -68,3 +69,4 @@ HUMANOID_CFG = ArticulationCfg(
     },
 )
 """Configuration for the Mujoco Humanoid robot."""
+"""Mu果人形机器人的配置。"""

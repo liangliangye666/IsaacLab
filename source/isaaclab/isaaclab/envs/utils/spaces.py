@@ -25,6 +25,17 @@ def spec_to_gym_space(spec: SpaceType) -> gym.spaces.Space:
     Raises:
         ValueError: If the given space specification is not valid/supported.
     """
+    """根据给定的空间规范，生成适当的体育馆空间。
+
+    参数：
+        spec: 空间规格。
+
+    返回：
+        Gym空间。
+
+    异常：
+        ValueError: 如果该空间规范不有效/支持。
+    """
     if isinstance(spec, gym.spaces.Space):
         return spec
     # fundamental spaces
@@ -62,6 +73,19 @@ def sample_space(space: gym.spaces.Space, device: str, batch_size: int = -1, fil
 
     Returns:
         Tensorized sampled space.
+    """
+    """测试一个体育馆空间，数据容器是PyTorch子。
+
+    参数：
+        space: Gym空间。
+        device: 应创建子的装置。
+        batch_size: 批量大小。
+                    如果指定值超过零，则将创建一个批量空间，并从中取样。
+        fill_value: 填满创建的子的值。
+                    如果None (默认值)，子将保持随机值。
+
+    返回：
+        压缩的样本空间。
     """
 
     def tensorize(s: gym.spaces.Space, x: Any) -> Any:
@@ -107,6 +131,14 @@ def serialize_space(space: SpaceType) -> str:
 
     Returns:
         Serialized JSON representation.
+    """
+    """将空间规格串行为JSON。
+
+    参数：
+        space: 空间规格。
+
+    返回：
+        系列化JSON表示。
     """
     # Gymnasium spaces
     if isinstance(space, gym.spaces.Discrete):
@@ -160,6 +192,14 @@ def deserialize_space(string: str) -> gym.spaces.Space:
     Returns:
         Space specification.
     """
+    """消化一个编码为JSON的空间规格。
+
+    参数：
+        string: 系列化JSON表示。
+
+    返回：
+        空间规格。
+    """
     obj = json.loads(string)
     # Gymnasium spaces
     if obj["type"] == "gymnasium":
@@ -202,6 +242,14 @@ def replace_env_cfg_spaces_with_strings(env_cfg: object) -> object:
     Returns:
         Environment config instance with spaces replaced if any.
     """
+    """在环境配置中，将空间对象替换成其串行 JSON表示。
+
+    参数：
+        env_cfg: 环境配置实例。
+
+    返回：
+        环境配置实例，如果有，则更换空间。
+    """
     for attr in ["observation_space", "action_space", "state_space"]:
         if hasattr(env_cfg, attr):
             setattr(env_cfg, attr, serialize_space(getattr(env_cfg, attr)))
@@ -219,6 +267,14 @@ def replace_strings_with_env_cfg_spaces(env_cfg: object) -> object:
 
     Returns:
         Environment config instance with spaces replaced if any.
+    """
+    """在环境配置中，将空间对象替换成其串行 JSON表示。
+
+    参数：
+        env_cfg: 环境配置实例。
+
+    返回：
+        环境配置实例，如果有，则更换空间。
     """
     for attr in ["observation_space", "action_space", "state_space"]:
         if hasattr(env_cfg, attr):

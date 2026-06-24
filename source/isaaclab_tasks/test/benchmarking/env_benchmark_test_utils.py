@@ -19,6 +19,7 @@ import carb
 
 def get_env_configs(configs_path):
     """Get environment configurations from yaml filepath."""
+    """从Yamal文件路由中获取环境配置。"""
     with open(configs_path) as env_configs_file:
         env_configs = yaml.safe_load(env_configs_file)
     return env_configs
@@ -26,6 +27,7 @@ def get_env_configs(configs_path):
 
 def get_env_config(env_configs, mode, workflow, task):
     """Get the environment configuration."""
+    """设置环境。"""
     if mode not in env_configs:
         raise ValueError(f"Mode {mode} is not supported in the config file.")
 
@@ -54,6 +56,7 @@ def get_env_config(env_configs, mode, workflow, task):
 
 def evaluate_job(workflow, task, env_config, duration):
     """Evaluate the job."""
+    """评估工作。"""
     log_data = _retrieve_logs(workflow, task)
 
     kpi_payload = {"success": True, "msg": ""}
@@ -101,6 +104,7 @@ def evaluate_job(workflow, task, env_config, duration):
 
 def process_kpi_data(kpi_payloads, tag=""):
     """Combine and augment the KPI payloads."""
+    """结合并增强KPI的有效载荷。"""
     # accumulate workflow outcomes
     totals = {}
     successes = {}
@@ -136,6 +140,7 @@ def process_kpi_data(kpi_payloads, tag=""):
 
 def output_payloads(payloads):
     """Output the KPI payloads to a json file."""
+    """输出KPI的有效载荷到一个JSON文件。"""
     # first grab all log files
     repo_path = os.path.join(carb.tokens.get_tokens_interface().resolve("${app}"), "..")
     output_path = os.path.join(repo_path, "logs/kpi.json")
@@ -149,6 +154,7 @@ def output_payloads(payloads):
 
 def _retrieve_logs(workflow, task):
     """Retrieve training logs."""
+    """检索训练日志。"""
     # first grab all log files
     repo_path = os.path.join(carb.tokens.get_tokens_interface().resolve("${app}"), "..")
     from isaaclab.utils.version import get_isaac_sim_version
@@ -172,6 +178,7 @@ def _retrieve_logs(workflow, task):
 
 def _parse_tf_logs(log):
     """Parse the tensorflow filepath into a dictionary."""
+    """解析 tensorflow 文件路径到字典中。"""
     log_data = {}
     ea = event_accumulator.EventAccumulator(log)
     ea.Reload()
@@ -185,6 +192,7 @@ def _parse_tf_logs(log):
 
 def _extract_log_val(name, log_data, uses_lower_threshold, workflow):
     """Extract the value from the log data."""
+    """从日志数据中提取值。"""
     try:
         if name == "reward":
             reward_tags = {
@@ -220,6 +228,7 @@ def _extract_log_val(name, log_data, uses_lower_threshold, workflow):
 
 def _extract_feature(log_data, feature, uses_lower_threshold):
     """Extract the feature from the log data."""
+    """从日志数据中提取该函数。"""
     log_data = np.array(log_data[feature])[:, 1]
 
     if uses_lower_threshold:
@@ -230,6 +239,7 @@ def _extract_feature(log_data, feature, uses_lower_threshold):
 
 def _extract_reward(log_data, feature, k=8):
     """Extract the averaged max reward from the log data."""
+    """从日志数据中提取平均最高奖励。"""
     log_data = np.array(log_data[feature])[:, 1]
 
     # find avg of k max values

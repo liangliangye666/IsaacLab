@@ -21,8 +21,24 @@ optional arguments:
     --num_success_steps       Number of continuous steps with task success for concluding a demo as successful.
                               (default: 10)
 """
+"""脚本以记录与艾萨克实验室环境的演示，使用人类的远程操作。
+
+这种脚本允许用户记录人类远程操作进行的演示，用于特定任务。
+记录的演示记录在hdf5文件中存储为事件。
+用户可以通过命令行参数指定任务，远程操作设备，数据集目录和环境步骤速度。
+
+要求的参数: --task 任务名称。
+
+选项参数: -h， --help 显示此帮助消息，然后退出--teleop_device设备与环境交互。
+(默认:键盘) --dataset_file 文件路径用于出口记录的演示。
+(默认: "./数据集/dataset.hdf5") --step_hz环境步伐率在Hz。
+(默认:30) --num_demos 记录的示例数量。
+(默认: 0) --num_success_steps 完成演示工作成功的连续步骤数。
+(默认: 10)
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 # Standard library imports
 import argparse
@@ -88,6 +104,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 # Third-party imports
@@ -127,12 +144,18 @@ logger = logging.getLogger(__name__)
 
 class RateLimiter:
     """Convenience class for enforcing rates in loops."""
+    """在循环中执行税率的便利类。"""
 
     def __init__(self, hz: int):
         """Initialize a RateLimiter with specified frequency.
 
         Args:
             hz: Frequency to enforce in Hertz.
+        """
+        """在指定频率上启动RateLimiter
+
+        参数：
+            hz: 频率在赫兹执行。
         """
         self.hz = hz
         self.last_time = time.time()
@@ -144,6 +167,11 @@ class RateLimiter:
 
         Args:
             env: Environment to render during sleep periods.
+        """
+        """试着以hz的规定的速度睡觉。
+
+        参数：
+            env: 睡眠期间的环境。
         """
         next_wakeup_time = self.last_time + self.sleep_duration
         while time.time() < next_wakeup_time:
@@ -168,6 +196,16 @@ def setup_output_directories() -> tuple[str, str]:
         tuple[str, str]: A tuple containing:
             - output_dir: The directory path where the dataset will be saved
             - output_file_name: The filename (without extension) for the dataset
+    """
+    """设置输出目录以保存示范。
+
+    创建输出目录如果它不存在并提取文件名
+    from the dataset file path.
+
+    返回：
+        一个包含:
+            - output_dir:数据集将保存的目录路径
+            - output_file_name:数据集的文件名 (无扩展)
     """
     # get directory path and file name (without extension) from cli arguments
     output_dir = os.path.dirname(args_cli.dataset_file)
@@ -200,6 +238,23 @@ def create_environment_config(
 
     Raises:
         Exception: If parsing the environment configuration fails
+    """
+    """创建和配置环境配置。
+
+    分析环境配置，并为演示录音做出必要的调整。
+    提取成功终止函数并配置记录器管理器。
+
+    参数：
+        output_dir: 记录的示例将存储的目录
+        output_file_name: 展示存储文件名称
+
+    返回：
+        元组[isaaclab_tasks.utils.parse_cfg.EnvCfg，可选[对象]]:包含:
+            - env_cfg:配置环境配置
+            - success_term:成功终止对象或None，如果没有
+
+    异常：
+        Exception: 如果分析环境配置失败
     """
     # parse configuration
     try:
@@ -252,6 +307,18 @@ def create_environment(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg) -> gym.En
     Raises:
         Exception: If environment creation fails for any reason.
     """
+    """从配置中创建环境。
+
+    参数：
+        env_cfg: 环境配置对象，定义了环境属性。
+                 这应该是EnvCfg由parse_env_cfg建立的实例。
+
+    返回：
+        gym.Env: 适用于指定任务的体育馆环境实例。
+
+    异常：
+        Exception: 如果环境创建出任何原因都失败。
+    """
     try:
         env = gym.make(args_cli.task, cfg=env_cfg).unwrapped
         return env
@@ -275,6 +342,20 @@ def setup_teleop_device(callbacks: dict[str, Callable]) -> object:
 
     Raises:
         Exception: If teleop device creation fails
+    """
+    """根据配置设置远程操作设备。
+
+    试图根据环境配置创建一个远程操作设备。
+    如果指定设备不在配置中，则返回默认设备。
+
+    参数：
+        callbacks: 字典映射将调用重回键连接到电话设备的函数
+
+    返回：
+        object: 配置的远程操作设备接口
+
+    异常：
+        Exception: 如果电话设备创建失败
     """
     teleop_interface = None
     try:
@@ -321,6 +402,17 @@ def setup_ui(label_text: str, env: gym.Env) -> InstructionDisplay:
     Returns:
         InstructionDisplay: The configured instruction display object
     """
+    """设置用户界面元素。
+
+    创建指令显示器和UI窗口，以标签显示用户在演示录音期间的信息。
+
+    参数：
+        label_text: 显示当前记录状态的文字
+        env: 为 UI 创建的环境实例
+
+    返回：
+        InstructionDisplay: 配置指示显示对象
+    """
     instruction_display = InstructionDisplay(args_cli.xr)
     if not args_cli.xr:
         window = EmptyWindow(env, "Instruction")
@@ -347,6 +439,21 @@ def process_success_condition(env: gym.Env, success_term: object | None, success
         tuple[int, bool]: A tuple containing:
             - updated success_step_count: The updated count of consecutive successful steps
             - success_reset_needed: Boolean indicating if reset is needed due to success
+    """
+    """处理当前步骤的成功条件。
+
+    检查环境是否满足了对所需数量连续步骤的成功条件。
+    如果符合标准，标记事件成功。
+
+    参数：
+        env: 检查环境实例
+        success_term: 如果没有成功终止对象或None
+        success_step_count: 连续成功步骤的当前数量
+
+    返回：
+        一个含有:
+            - 更新的success_step_count:连续成功步骤的更新数量
+            - success_reset_needed: 布尔式表示是否由于成功需要重置
     """
     if success_term is None:
         return success_step_count, False
@@ -384,6 +491,20 @@ def handle_reset(
     Returns:
         int: Reset success step count (0)
     """
+    """处理环境重置。
+
+    设置环境，记录器管理器和相关状态变量。
+    更新指令显示情况。
+
+    参数：
+        env: 要重置环境实例
+        success_step_count: 连续成功步骤的当前数量
+        instruction_display: 更新的显示对象
+        label_text: 显示当前记录状态的文字
+
+    返回：
+        int: 重置成功步骤数量 (0)
+    """
     print("Resetting environment...")
     env.sim.reset()
     env.recorder_manager.reset()
@@ -413,6 +534,20 @@ def run_simulation_loop(
 
     Returns:
         int: Number of successful demonstrations recorded
+    """
+    """运行主要仿真循环来收集示例。
+
+    设置电话设备的回调函数，初始化UI，并运行处理用户输入和环境步骤的主要循环。
+    在成功条件达到时记录示范。
+
+    参数：
+        env: 环境实例
+        teleop_interface: 可选的电话接口 (如果 None，将创建)
+        success_term: 如果没有成功终止对象或None
+        rate_limiter: 控制仿真速度的可选速度限制器
+
+    返回：
+        int: 记录的成功示例数量
     """
     current_recorded_demo_count = 0
     success_step_count = 0
@@ -527,6 +662,18 @@ def main() -> None:
 
     Raises:
         Exception: Propagates exceptions from any of the called functions
+    """
+    """采用电话接口收集环境中的示范。
+
+    主要功能，是指指整个过程:
+    1. 根据配置设置速度限制
+    2. 创建输出目录以保存示范
+    3. 调整环境
+    4. 运行仿真循环收集示例
+    5. 完成后清理资源
+
+    异常：
+        Exception: 传播任何所谓函数的例外
     """
     # if handtracking is selected, rate limiting is achieved via OpenXR
     if args_cli.xr:

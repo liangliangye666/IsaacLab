@@ -56,9 +56,33 @@ class DeformableObject(AssetBase):
 
     .. _partially kinematic: https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/docs/SoftBodies.html#kinematic-soft-bodies
     """
+    """变形物体资产类别。
+
+    可变形的物体是可以在仿真中变形的资产。
+    它们通常用于软体，如料动物和食物。
+
+    与硬体物体资产不同，可变化的物体结构更复杂，需要额外的处理来仿真。
+    可变形物体的仿真遵循有限元素方法，该物体被分离为节点和元素的网格。
+    这些节点由元素连接，它们定义对象的物质性质。
+    节点可以移动和变形，元素对这些变化作出反应。
+
+    变形物体的状态包括其节点位置和速度，而不是物体的根位置和方向。
+    结点位置和速度在仿真框架中。
+
+    软体可以是`partially kinematic`_，其中一些节点由动态目标驱动，其余则是仿真的。
+    动态目标是节点所需的位置，仿真驱动节点向这些目标。
+    这对于对象的部分控制是有用的，例如在仿真身体的其他部分时移动头。
+
+    .. 注意::
+        这类是实验性的，由于其依赖的底层PhysX API的变化而可能发生变化。
+        我们将尽可能努力保持后退兼容性，
+
+    .. _partially kinematic: https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/docs/SoftBodies.html#kinematic-soft-bodies
+    """
 
     cfg: DeformableObjectCfg
     """Configuration instance for the deformable object."""
+    """对可变化的对象的配置实例。"""
 
     def __init__(self, cfg: DeformableObjectCfg):
         """Initialize the deformable object.
@@ -66,10 +90,17 @@ class DeformableObject(AssetBase):
         Args:
             cfg: A configuration instance.
         """
+        """启动可变的对象。
+
+        参数：
+            cfg: 一个配置实例。
+        """
         super().__init__(cfg)
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -86,6 +117,10 @@ class DeformableObject(AssetBase):
 
         This is always 1 since each object is a single deformable body.
         """
+        """资产中的尸体数量。
+
+        这总是1因为每个对象都是一个可变的体。
+        """
         return 1
 
     @property
@@ -94,6 +129,12 @@ class DeformableObject(AssetBase):
 
         Note:
             Use this view with caution. It requires handling of tensors in a specific way.
+        """
+        """对资产的可变体视图 (PhysX)。
+
+        说明：
+            用这种观点谨慎。
+            它需要以特定的方式处理子。
         """
         return self._root_physx_view
 
@@ -107,30 +148,45 @@ class DeformableObject(AssetBase):
         Note:
             Use this view with caution. It requires handling of tensors in a specific way.
         """
+        """资产可变形材料视图 (PhysX)。
+
+        如果材料没有与可变化体相结合，则这种视图是可选的，并且可能无法使用。
+        如果材料不存在，则材料属性将设置为默认值。
+
+        说明：
+            用这种观点谨慎。
+            它需要以特定的方式处理子。
+        """
         return self._material_physx_view
 
     @property
     def max_sim_elements_per_body(self) -> int:
         """The maximum number of simulation mesh elements per deformable body."""
+        """每个可变体的仿真网格元素的最大数量。"""
         return self.root_physx_view.max_sim_elements_per_body
 
     @property
     def max_collision_elements_per_body(self) -> int:
         """The maximum number of collision mesh elements per deformable body."""
+        """每个可变体的碰撞网元素的最大数量。"""
         return self.root_physx_view.max_elements_per_body
 
     @property
     def max_sim_vertices_per_body(self) -> int:
         """The maximum number of simulation mesh vertices per deformable body."""
+        """每个可变体的仿真网顶数量最大。"""
         return self.root_physx_view.max_sim_vertices_per_body
 
     @property
     def max_collision_vertices_per_body(self) -> int:
         """The maximum number of collision mesh vertices per deformable body."""
+        """每个可变体的碰撞网顶数最大。"""
         return self.root_physx_view.max_vertices_per_body
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -147,6 +203,8 @@ class DeformableObject(AssetBase):
     """
     Operations - Write to simulation.
     """
+    """操作 - 写入仿真。
+    """
 
     def write_nodal_state_to_sim(self, nodal_state: torch.Tensor, env_ids: Sequence[int] | None = None):
         """Set the nodal state over selected environment indices into the simulation.
@@ -158,6 +216,18 @@ class DeformableObject(AssetBase):
             nodal_state: Nodal state in simulation frame.
                 Shape is (len(env_ids), max_sim_vertices_per_body, 6).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置了选择的环境索引上的节点状态。
+
+        节点状态包括节点位置和速度。
+        由于这些是节点，速度只有一个转换成分。
+        所有数量都在仿真框架中。
+
+        参数：
+            nodal_state: 在仿真框架中的点状态。
+                         形状是 (len(env_ids)，max_sim_vertices_per_body，6)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         # set into simulation
         self.write_nodal_pos_to_sim(nodal_state[..., :3], env_ids=env_ids)
@@ -173,6 +243,17 @@ class DeformableObject(AssetBase):
             nodal_pos: Nodal positions in simulation frame.
                 Shape is (len(env_ids), max_sim_vertices_per_body, 3).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置选择的环境索引上的节点位置。
+
+        结点位置包括可变体仿真网格的单个结点位置。
+        位置在仿真框架中。
+
+        参数：
+            nodal_pos: 仿真框架中的点位置。
+                       形状是 (len(env_ids)，max_sim_vertices_per_body，3)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         # resolve all indices
         physx_env_ids = env_ids
@@ -196,6 +277,18 @@ class DeformableObject(AssetBase):
             nodal_vel: Nodal velocities in simulation frame.
                 Shape is (len(env_ids), max_sim_vertices_per_body, 3).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置选择的环境索引上的节点速度。
+
+        结点速度包括可变体仿真网的单个结点速度。
+        由于这些是节点，速度只有一个转换成分。
+        速度在仿真框架中。
+
+        参数：
+            nodal_vel: 在仿真框架中的节点速度。
+                       形状是 (len(env_ids)，max_sim_vertices_per_body，3)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         # resolve all indices
         physx_env_ids = env_ids
@@ -223,6 +316,20 @@ class DeformableObject(AssetBase):
                 Shape is (len(env_ids), max_sim_vertices_per_body, 4).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """设置仿真网的动态目标，用于索引所指定的可变体。
+
+        动态目标包括可变体仿真网格的单个节点位置和一个标志表明节点是否动态驱动。
+        位置在仿真框架中。
+
+        说明：
+            旗为动态驱动节点设置为0.0和自由节点设置为1.0。
+
+        参数：
+            targets: 包含节点位置和标志的动态目标。
+                     形状是 (len(env_ids)，max_sim_vertices_per_body，4)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         # resolve all indices
         physx_env_ids = env_ids
         if env_ids is None:
@@ -235,6 +342,8 @@ class DeformableObject(AssetBase):
 
     """
     Operations - Helper.
+    """
+    """运营 - 助理。
     """
 
     def transform_nodal_pos(
@@ -256,6 +365,26 @@ class DeformableObject(AssetBase):
         Returns:
             The transformed nodal positions. Shape is (N, max_sim_vertices_per_body, 3).
         """
+        """根据姿势转变，转换节点位置。
+
+        这个函数根据姿势转换计算了节点位置的转变。
+        它将节点位置乘以姿势的旋转矩阵并添加翻译。
+        在内部，它调用:meth:`isaaclab.utils.math.transform_points`函数。
+
+        参数：
+            nodal_pos: 在仿真框架中的节点位置。
+                       形状是 (N，max_sim_vertices_per_body，3)。
+            pos: 位置转变。
+                 形状是 (N， 3)。
+                 在 None 时的默认值，在这种情况下，假设位置为零。
+            quat: 方向转变为四元数 (w，x，y，z)。
+                  形状是 (N， 4)。
+                  在 None 时的默认状态下，在这种情况下，取向被认为是身份。
+
+        返回：
+            转变的节点位置。
+            形状是 (N，max_sim_vertices_per_body，3)。
+        """
         # offset the nodal positions to center them around the origin
         mean_nodal_pos = nodal_pos.mean(dim=1, keepdim=True)
         nodal_pos = nodal_pos - mean_nodal_pos
@@ -264,6 +393,8 @@ class DeformableObject(AssetBase):
 
     """
     Internal helper.
+    """
+    """内部助理。
     """
 
     def _initialize_impl(self):
@@ -372,6 +503,7 @@ class DeformableObject(AssetBase):
 
     def _create_buffers(self):
         """Create buffers for storing data."""
+        """创建存储数据的缓冲器。"""
         # constants
         self._ALL_INDICES = torch.arange(self.num_instances, dtype=torch.long, device=self.device)
 
@@ -389,6 +521,8 @@ class DeformableObject(AssetBase):
 
     """
     Internal simulation callbacks.
+    """
+    """内部仿真回调。
     """
 
     def _set_debug_vis_impl(self, debug_vis: bool):
@@ -418,6 +552,7 @@ class DeformableObject(AssetBase):
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         # call parent
         super()._invalidate_initialize_callback(event)
         self._root_physx_view = None

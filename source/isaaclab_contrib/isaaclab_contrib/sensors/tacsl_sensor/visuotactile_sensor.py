@@ -82,15 +82,55 @@ class VisuoTactileSensor(SensorBase):
               should be specified before simulation.
 
     """
+    """触觉传感器用于基于摄像机的触觉传感器和力场触觉传感器。
+
+    这种传感器提供:
+    1. 基于摄像头的触觉传感:从触觉表面的深度图像
+    2. 动力场触觉传感:使用SDF查询的罚款正常和切割力
+
+    传感器可以配置以使用任何一种或两种传感方式。
+
+    **计算管道:**基于摄像头的传感器计算了名义 (无接触) 基线的深度差异，并通过 tac-sl GelSight 渲染器处理它们以产生现实的触觉图像。
+
+        强势场感测查询 签署距离场 (SDF) 来计算透深度，然后应用基于罚款的弹道损伤模型 (:math:`F_n = k_n \cdot \text{depth}`， :math:`F_t =
+        \min(k_t \cdot \|v_t\|， \mu \cdot F_n)`) 来计算在离散触觉点的正常和切割力。
+
+    **例子使用:** 查看完整的工作例子:``scripts/demos/sensors/tacsl/tacsl_example.py``
+
+    **目前的限制:**
+        - 在仿真开始之前，必须预先计算SDF碰撞网和指定物体
+        - 电力场计算需要特定的固体和网格配置
+        - 在运行时间内没有支持动态添加/移除交互对象
+
+    配置要求:为了正常运行传感器，必须满足以下要求:
+
+        **摄像头触觉成像**如果``enable_camera_tactile=True``，必须提供合适的摄像头参数的有效``camera_cfg`` (TiledCameraCfg)。
+
+        **实力场计算**如果``enable_force_field=True``，需要以下参数:
+
+            * ``contact_object_prim_path_expr`` - 寻找接触对象 prim的基本路径表达
+
+        **SDF计算**当启用强力场计算时，使用签署距离场 (SDF) 查询计算基于处罚的正常和切割力。
+        为了实现GPU加速:
+
+            * 交互对象应具有预先计算的SDF碰撞网
+            * 在启动过程中必须定义SDFView，因此在仿真之前应指定相互作用的对象。
+    """
 
     cfg: VisuoTactileSensorCfg
     """The configuration parameters."""
+    """配置参数。"""
 
     def __init__(self, cfg: VisuoTactileSensorCfg):
         """Initializes the tactile sensor object.
 
         Args:
             cfg: The configuration parameters.
+        """
+        """启动触觉传感器对象。
+
+        参数：
+            cfg: 配置参数。
         """
 
         # Create empty variables for storing output data
@@ -126,6 +166,7 @@ class VisuoTactileSensor(SensorBase):
 
     def __del__(self):
         """Unsubscribes from callbacks and detach from the replicator registry."""
+        """退出回调和脱离复制器注册表。"""
         if self._camera_sensor is not None:
             self._camera_sensor.__del__()
         # unsubscribe from callbacks
@@ -133,6 +174,7 @@ class VisuoTactileSensor(SensorBase):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
         return (
             f"Tactile sensor @ '{self.cfg.prim_path}': \n"
             f"\trender config     : {self.cfg.render_cfg.base_data_path}/{self.cfg.render_cfg.sensor_data_dir_name}\n"
@@ -144,6 +186,8 @@ class VisuoTactileSensor(SensorBase):
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -160,9 +204,12 @@ class VisuoTactileSensor(SensorBase):
     """
     Operations
     """
+    """运营
+    """
 
     def reset(self, env_ids: Sequence[int] | None = None):
         """Resets the sensor internals."""
+        """调整传感器内部。"""
         # reset the timestamps
         super().reset(env_ids)
 
@@ -173,9 +220,12 @@ class VisuoTactileSensor(SensorBase):
     """
     Implementation
     """
+    """实施
+    """
 
     def _initialize_impl(self):
         """Initializes the sensor-related handles and internal buffers."""
+        """启动与传感器相关的句柄和内部缓冲器。"""
         super()._initialize_impl()
 
         # Obtain global simulation view
@@ -213,6 +263,22 @@ class VisuoTactileSensor(SensorBase):
         Raises:
             RuntimeError: If camera sensor is not initialized or initial render fails.
         """
+        """得到初始触觉传感器进行比较。
+
+        这种方法在没有接触的情况下捕获触觉传感器的初始状态。
+        这一基线用于触觉相互作用期间计算相对变化。
+
+        .. 警告::
+            当调用这种方法时，用户的责任是确保传感器处于"无接触"状态。
+            如果传感器与物体接触，基线将是错误的，导致错误的触觉读数。
+
+        返回：
+            给你一个命令.None:含有传感器输出键和相应的光值的初始 data渲染数据的字典。
+            如果已禁用摄像头触觉传感器，则返回None。
+
+        异常：
+            RuntimeError: 如果摄像头传感器没有启动或初始渲染失败。
+        """
         if not self.cfg.enable_camera_tactile:
             return None
 
@@ -232,6 +298,7 @@ class VisuoTactileSensor(SensorBase):
 
     def _initialize_camera_tactile(self):
         """Initialize camera-based tactile sensing."""
+        """启动基于相机的触觉传感。"""
         if self.cfg.camera_cfg is None:
             raise ValueError("Camera configuration is None. Please provide a valid camera configuration.")
         # check image size is consistent with the render config
@@ -292,6 +359,17 @@ class VisuoTactileSensor(SensorBase):
         to create a grid of sensing points that will be used for force computation.
 
         """
+        """启动动动力场触觉传感组件。
+
+        这种方法设置了基于力场触觉传感所需的所有组件:
+
+        1. 创建对弹性体和接触物体的PhysX视图
+        2. 通过网格几何学生成弹性质表面上的触觉感觉点
+        3. 启动SDF (标记距离场) 进行碰撞检测
+        4. 创建数据缓冲器用于存储力场测量
+
+        触觉点通过射线在弹性网表面产生，以创建一个用于力计算的感觉点网格。
+        """
 
         # Generate tactile points on elastomer surface
         self._generate_tactile_points(
@@ -316,6 +394,12 @@ class VisuoTactileSensor(SensorBase):
             b. Creates SDF view for collision detection
             c. Creates rigid body view for object
 
+        """
+        """创建接触物体和弹性体的PhysX视图。
+
+        这种方法为力场计算设置了必要的PhysX视图:
+        1. 产生体视图
+        2. 如果接触对象prim路径表达式不是None，那么: a。 找到和验证对象prim及其碰撞网格 b。 创建对撞检测的SDF视图 c。 创建对象的硬体视图
         """
         elastomer_pattern = self._parent_prims[0].GetPath().pathString.replace("env_0", "env_*")
         self._elastomer_body_view = self._physics_sim_view.create_rigid_body_view([elastomer_pattern])
@@ -354,6 +438,17 @@ class VisuoTactileSensor(SensorBase):
             Only SDF meshes are supported for optimal force field computation performance.
             If no SDF mesh is found, the method will log a warning and return None.
         """
+        """找到和验证接触物体SDF网格及其母体体。
+
+        这种方法通过配置过器模式搜索接触对象prim，然后在 prim 层次内找到第一个SDF碰撞网格，并识别其母体硬体用于物理仿真。
+
+        返回：
+            两倍 (contact_object_mesh， contact_object_rigid_body) 退款None如果没有找到接触物体组件。
+
+        说明：
+            只有SDF网格才能实现最佳的力场计算性能。
+            如果没有发现SDF网格，该方法将记录警告并返回None。
+        """
         # Find the contact object prim using the configured pattern
         contact_object_prim = sim_utils.find_first_matching_prim(self.cfg.contact_object_prim_path_expr)
         if contact_object_prim is None:
@@ -363,6 +458,7 @@ class VisuoTactileSensor(SensorBase):
 
         def is_sdf_mesh(prim: Usd.Prim) -> bool:
             """Check if a mesh prim is configured for SDF approximation."""
+            """检查是否设置prim网格为SDF接近。"""
             return (
                 prim.HasAPI(UsdPhysics.MeshCollisionAPI)
                 and UsdPhysics.MeshCollisionAPI(prim).GetApproximationAttr().Get() == "sdf"
@@ -379,6 +475,7 @@ class VisuoTactileSensor(SensorBase):
 
         def find_parent_rigid_body(prim: Usd.Prim) -> Usd.Prim | None:
             """Find the first parent prim with RigidBodyAPI."""
+            """找到第一个母 prim与 RigidBodyAPI。"""
             current_prim = prim
             while current_prim and current_prim.IsValid():
                 if current_prim.HasAPI(UsdPhysics.RigidBodyAPI):
@@ -409,12 +506,23 @@ class VisuoTactileSensor(SensorBase):
             visualize: Whether to show the generated points in trimesh visualization.
 
         """
+        """通过弹体网格几何学生成触觉感觉点。
+
+        这种方法通过射线投射到网格几何学上，在弹体表面创建了触觉感觉点的网格。
+        视觉网格用于更平滑的点样本。
+
+        参数：
+            num_divs: 触觉网的分区数。
+            margin: 从网边缘的边缘距离在米。
+            visualize: 如何显示生成的点在trimesh可视化中。
+        """
 
         # Get the elastomer prim path
         elastomer_prim_path = self._parent_prims[0].GetPath().pathString
 
         def is_visual_mesh(prim) -> bool:
             """Check if a mesh prim has visual properties (visual mesh, not collision mesh)."""
+            """检查prim网是否具有视觉性质 (视觉网，不是碰撞网)。"""
             return prim.IsA(UsdGeom.Mesh) and not prim.HasAPI(UsdPhysics.CollisionAPI)
 
         elastomer_mesh_prim = sim_utils.get_first_matching_child_prim(elastomer_prim_path, predicate=is_visual_mesh)
@@ -511,6 +619,7 @@ class VisuoTactileSensor(SensorBase):
 
     def _initialize_force_field_buffers(self):
         """Initialize data buffers for force field sensing."""
+        """启动数据缓冲器用于强力场传感。"""
         num_pts = self.num_tactile_points
 
         # Initialize force field data tensors
@@ -525,6 +634,7 @@ class VisuoTactileSensor(SensorBase):
 
     def _initialize_visualization(self):
         """Initialize visualization markers for tactile points."""
+        """启动触觉点的可视化标记。"""
         if self.cfg.visualizer_cfg:
             self._visualizer = VisualizationMarkers(self.cfg.visualizer_cfg)
 
@@ -537,6 +647,15 @@ class VisuoTactileSensor(SensorBase):
         Args:
             env_ids: Sequence of environment indices to update. If length equals
                     total number of environments, all environments are updated.
+        """
+        """填充传感器数据的缓冲器。
+
+        这种方法更新了基于摄像头和力场触觉传感数据
+        for the specified environments.
+
+        参数：
+            env_ids: 更新环境索引的序列。
+                     如果长度等于环境的总数，则会更新所有环境。
         """
         # Convert to proper indices for internal methods
         if len(env_ids) == self._num_envs:
@@ -562,6 +681,15 @@ class VisuoTactileSensor(SensorBase):
         Args:
             env_ids: Environment indices or slice to update. Can be a sequence of
                     integers or a slice object for batch processing.
+        """
+        """更新基于摄像头的触觉传感数据。
+
+        这种方法会更新摄像头传感器，并处理深度信息来计算触觉测量。
+        它计算了与名义 (无接触) 状态的差异，并使用GelSight触觉渲染器进行渲染。
+
+        参数：
+            env_ids: 环境索引或切片更新。
+                     可以是整数序列或用于批量处理的切片对象。
         """
         if self._nominal_tactile is None:
             raise RuntimeError("Nominal tactile is not set. Please call get_initial_render() first.")
@@ -602,6 +730,19 @@ class VisuoTactileSensor(SensorBase):
         Note:
             Requires both elastomer and contact object body views to be initialized. Returns
             early if tactile points or body views are not available.
+        """
+        """更新动力场触觉传感数据。
+
+        这种方法通过签署距离场 (SDF) 查询计算基于惩罚的触动力。
+        它将触觉点转换为接触物体本地坐标，查询接触物体的SDF用于碰撞检测，并根据透深度和相对速度计算正常和切割力。
+
+        参数：
+            env_ids: 环境索引或切片更新。
+                     可以是整数序列或用于批量处理的切片对象。
+
+        说明：
+            需要启动弹性体和接触物体体视图。
+            如果没有触觉点或身体视觉，
         """
         # Step 1: Get elastomer pose and precompute pose components
         elastomer_pos_w, elastomer_quat_w = self._elastomer_body_view.get_transforms().split([3, 4], dim=-1)
@@ -649,6 +790,14 @@ class VisuoTactileSensor(SensorBase):
             pos_w: Elastomer positions in world frame. Shape: (num_envs, 3)
             quat_w: Elastomer quaternions in world frame. Shape: (num_envs, 4)
         """
+        """从本地坐标转换为世界坐标。
+
+        参数：
+            pos_w: 在世界框架中，
+                   形状: (num_envs， 3)
+            quat_w: 在世界框架中。
+                    形状: (num_envs， 4)
+        """
         num_pts = self.num_tactile_points
 
         quat_expanded = quat_w.unsqueeze(1).expand(-1, num_pts, -1)
@@ -674,6 +823,19 @@ class VisuoTactileSensor(SensorBase):
 
         Returns:
             Points in contact object local coordinates and inverse quaternions
+        """
+        """优化版本:将世界坐标转换为接触物体本地框架。
+
+        参数：
+            world_points: 在世界坐标中的点。
+                          形状: (num_envs，num_points，3)
+            contact_object_pos_w: 在世界框架中接触物体的位置。
+                                  形状: (num_envs， 3)
+            contact_object_quat_w: 在世界框架中接触物体四元数。
+                                   形状: (num_envs， 4)
+
+        返回：
+            接触物体中的点，本地坐标和逆四角
         """
         # Get inverse transformation (per environment)
         # wxyz in torch
@@ -702,6 +864,20 @@ class VisuoTactileSensor(SensorBase):
 
         Returns:
             Tactile point velocities in world frame. Shape: (num_envs, num_points, 3)
+        """
+        """优化版本:从预计算速度计算触点速度。
+
+        参数：
+            linvel_world: 电阻的线性速度。
+                          形状: (num_envs， 3)
+            angvel_world: 电阻的角度速度
+                          形状: (num_envs， 3)
+            quat_world: 黄四季。
+                        形状: (num_envs， 4)
+
+        返回：
+            在世界框架中的触觉点速度。
+            形状: (num_envs，num_points，3)
         """
         num_pts = self.num_tactile_points
 
@@ -746,6 +922,19 @@ class VisuoTactileSensor(SensorBase):
             elastomer_quat_w: Elastomer quaternions
             env_ids: Environment indices being updated
 
+        """
+        """优化版本:使用预先计算的参数从SDF值计算触动力。
+
+        这种方法现在直接运行预先分配的数据器，以避免不必要的存储器分配和复制。
+
+        参数：
+            points_contact_object_local: 接触对象本地框架中的点
+            sdf_values: SDF值 (负值的透值)
+            sdf_gradients: SDF梯度 (表面正常)
+            contact_object_pos_w: 在世界框架中接触物体的位置
+            contact_object_quat_w: 在世界框架中接触物体四元数
+            elastomer_quat_w: 子子
+            env_ids: 环境索引更新
         """
         depth = self._data.penetration_depth[env_ids]
         tactile_normal_force = self._data.tactile_normal_force[env_ids]
@@ -863,6 +1052,7 @@ class VisuoTactileSensor(SensorBase):
 
     def _set_debug_vis_impl(self, debug_vis: bool):
         """Set debug visualization into visualization objects."""
+        """设置调试可视化到可视化对象。"""
         # set visibility of markers
         # note: parent only deals with callbacks. not their visibility
         if debug_vis:
@@ -889,6 +1079,18 @@ class VisuoTactileSensor(SensorBase):
         2. **SDF debug mode**: When ``cfg.visualize_sdf_closest_pts`` is True, visualizes
             ``debug_closest_points_wolrd`` - the closest surface points computed during
             SDF-based force calculations
+        """
+        """调用触觉传感器数据的错误可视化。
+
+        在每个仿真步骤中调用这种方法，
+        它可视化触觉感知点作为仿真视角中的3D标记，以帮助
+        with debugging and understanding sensor behavior.
+
+        该方法处理两个可视化模式:
+
+        1. **标准模式**:可视化``tactile_points_pos_w`` - 传感器表面触觉感知点的世界位置
+        2. **SDF调试模式**:当``cfg.visualize_sdf_closest_pts``是True时，可视化``debug_closest_points_wolrd`` -
+           在基于SDF的力量计算中计算的最接近表面点
         """
         # Safety check - return if not properly initialized
         if not hasattr(self, "_tactile_visualizer") or self._tactile_visualizer is None:

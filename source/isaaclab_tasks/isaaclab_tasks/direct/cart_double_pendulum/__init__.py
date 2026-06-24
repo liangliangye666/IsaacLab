@@ -6,6 +6,8 @@
 """
 Inverted Double Pendulum on a Cart balancing environment.
 """
+"""在车辆平衡环境上翻转双。
+"""
 
 import gymnasium as gym
 

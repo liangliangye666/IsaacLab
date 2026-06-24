@@ -26,6 +26,21 @@ def convert_camera_intrinsics_to_usd(
         A dictionary of USD camera parameters for focal_length, horizontal_aperture, vertical_aperture,
         horizontal_aperture_offset, and vertical_aperture_offset.
     """
+    """从相机内在和分辨率创建USD相机属性。
+
+    参数：
+        intrinsic_matrix: 摄像头的内在矩阵在线大格式。
+                          矩阵定义为 [f_x， 0， c_x， 0， f_y， c_y， 0， 0， 1]。
+                          形状是 (9，)。
+        width: 图像宽度 (在像素中)。
+        height: 图像的高度 (在像素中)。
+        focal_length: 用于计算像素大小的视角焦距 (在cm)。
+                      默认 None，在这种情况下，焦距将被计算为1/宽。
+
+    返回：
+        对于focal_length，horizontal_aperture，vertical_aperture，horizontal_aperture_offset和vertical_apertur
+        e_offset的USD摄像头参数的字典。
+    """
     # extract parameters from matrix
     f_x = intrinsic_matrix[0]
     f_y = intrinsic_matrix[4]

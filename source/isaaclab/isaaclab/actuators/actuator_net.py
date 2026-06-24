@@ -13,6 +13,13 @@ Currently, the following models are supported:
 """
 
 from __future__ import annotations
+"""执行器的神经网络模型。
+
+目前支持以下模式:
+
+* 多层 Perceptron (MLP)
+* 长期短期记忆 (LSTM)
+"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -39,9 +46,19 @@ class ActuatorNetLSTM(DCMotor):
     Note:
         Only the desired joint positions are used as inputs to the network.
     """
+    """基于循环神经网络 (LSTM) 的执行器模型。
+
+    与MLP实施:`hwangbo2019learning`这类应用了学习模型作为一个时间神经网络 (LSTM) 基于来自
+    :cite:t:`rudin2022learning`这消除了存储历史的必要性
+    网络的隐藏状态捕获历史。
+
+    说明：
+        只有所需的关节位置才可作为网络输入。
+    """
 
     cfg: ActuatorNetLSTMCfg
     """The configuration of the actuator model."""
+    """执行器模型的配置。"""
 
     def __init__(self, cfg: ActuatorNetLSTMCfg, *args, **kwargs):
         super().__init__(cfg, *args, **kwargs)
@@ -66,6 +83,8 @@ class ActuatorNetLSTM(DCMotor):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int]):
@@ -116,9 +135,24 @@ class ActuatorNetMLP(DCMotor):
         Only the desired joint positions are used as inputs to the network.
 
     """
+    """基于多层感知和关节历史的动机模型。
+
+    许多时候，分析模型不足以捕捉执行器动态，执行器响应的延迟或执行器的非线性。
+    在这些情况下，可以使用神经网络模型来近似执行器动态。
+    该模型采用从物理执行器收集的数据进行训练，并将关联状态和所需的关联指令映射到执行器产生的扭矩。
+
+    这类课程将学习模型作为基于
+    :cite:t:`hwangbo2019learning`。 该类存储了关节位置错误的历史
+    它们可以提供输入到神经网络的速度。
+    这种模型是TorchScript的。
+
+    说明：
+        只有所需的关节位置才可作为网络输入。
+    """
 
     cfg: ActuatorNetMLPCfg
     """The configuration of the actuator model."""
+    """执行器模型的配置。"""
 
     def __init__(self, cfg: ActuatorNetMLPCfg, *args, **kwargs):
         super().__init__(cfg, *args, **kwargs)
@@ -136,6 +170,8 @@ class ActuatorNetMLP(DCMotor):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int]):

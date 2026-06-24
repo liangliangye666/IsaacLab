@@ -29,6 +29,18 @@ class Se3RelRetargeter(RetargeterBase):
     - Motion smoothing with adjustable parameters
     - Optional visualization of the target end-effector pose
     """
+    """将OpenXR手动跟踪数据返回使用相对定位的末端执行器命令。
+
+    这种重定位器计算连续的手关键姿势之间的三角形姿势，以产生增量机器人运动。
+    它可以:
+    - 使用手腕的位置和方向
+    - 使用指公和指公之间的中点 (点位置)
+
+    Features:
+    - 选择性限制为零掉X/Y旋转 (仅保持Z轴旋转)
+    - 具有可调节参数的运动平滑
+    - 目标末端执行器姿势的可选可视化
+    """
 
     def __init__(
         self,
@@ -49,6 +61,20 @@ class Se3RelRetargeter(RetargeterBase):
                 lower values smooth more
             enable_visualization: If True, show a visual marker representing the target end-effector pose
             device: The device to place the returned tensor on ('cpu' or 'cuda')
+        """
+        """启动相对运动重定向器。
+
+        参数：
+            bound_hand: 追踪手 (DeviceBase.TrackingTarget.HAND_LEFT或DeviceBase.TrackingTarget.HAND_RIGHT)
+            zero_out_xy_rotation: 如果True，忽略在x和y轴周围的旋转，只允许z轴旋转
+            use_wrist_rotation: 如果True，使用手腕旋转来控制，而不是平均指指向
+            use_wrist_position: 如果True，使用手腕位置而不是点位置 (指之间的中点)
+            delta_pos_scale_factor: 对位置变化的放大因素 (更高 =更大的机器人运动)
+            delta_rot_scale_factor: 转动变化放大因子 (更高 =更大的机器人转动)
+            alpha_pos: 位置平滑参数 (0-1)；较高的值更接近输入，较低的值更平滑
+            alpha_rot: 旋转平滑参数 (0-1)；较高的值更接近输入，较低的值更平滑
+            enable_visualization: 如果True，显示目标末端执行器姿势的视觉标记
+            device: 返回门器的装置 ("cpu"或"cuda")
         """
         # Store the hand to track
         if cfg.bound_hand not in [DeviceBase.TrackingTarget.HAND_LEFT, DeviceBase.TrackingTarget.HAND_RIGHT]:
@@ -99,6 +125,16 @@ class Se3RelRetargeter(RetargeterBase):
             torch.Tensor: 6D tensor containing position (xyz) and rotation vector (rx,ry,rz)
                 for the robot end-effector
         """
+        """转换手关姿势为机器人终端执行器命令。
+
+        参数：
+            data: 根据"数据字典"的定义，
+                  联合名称在isaaclab.devices.openxr.common.HAND_JOINT_NAMES中定义
+
+        返回：
+            torch.Tensor: 包含位置 (xyz) 和旋转向量 (rx，ry，rz) 的6D子
+                for the robot end-effector
+        """
         # Extract key joint poses from the bound hand
         hand_data = data[self.bound_hand]
         thumb_tip = hand_data.get("thumb_tip")
@@ -132,6 +168,15 @@ class Se3RelRetargeter(RetargeterBase):
         Returns:
             np.ndarray: 6D array with position delta (xyz) and rotation delta as axis-angle (rx,ry,rz)
         """
+        """从前的联合姿势计算多达姿势。
+
+        参数：
+            joint_pose: 目前的联合姿势 (位置和方向)
+            previous_joint_pose: 在同一关节上，以前的关节姿势
+
+        返回：
+            np.ndarray: 6D阵列，位置 delta (xyz) 和旋转 delta作为轴角 (rx，ry，rz)
+        """
         delta_pos = joint_pose[:3] - previous_joint_pose[:3]
         abs_rotation = Rotation.from_quat([*joint_pose[4:7], joint_pose[3]])
         previous_rot = Rotation.from_quat([*previous_joint_pose[4:7], previous_joint_pose[3]])
@@ -148,6 +193,16 @@ class Se3RelRetargeter(RetargeterBase):
 
         Returns:
             np.ndarray: 6D array with position delta (xyz) and rotation delta (rx,ry,rz)
+        """
+        """处理相对 (delta) 姿势重定向。
+
+        参数：
+            thumb_tip: 指尖的直角姿势
+            index_tip: 索引尖端的三角姿势
+            wrist: 手腕的多角姿势
+
+        返回：
+            np.ndarray: 6D阵列与位置 delta (xyz) 和旋转 delta (rx，ry，rz)
         """
         # Get position
         if self._use_wrist_position:
@@ -193,6 +248,7 @@ class Se3RelRetargeter(RetargeterBase):
 
     def _update_visualization(self):
         """Update visualization markers with current pose."""
+        """更新可视化标记与当前姿势。"""
         if self._enable_visualization:
             trans = np.array([self._visualization_pos])
             quat = Rotation.from_matrix(self._visualization_rot).as_quat()
@@ -203,6 +259,7 @@ class Se3RelRetargeter(RetargeterBase):
 @dataclass
 class Se3RelRetargeterCfg(RetargeterCfg):
     """Configuration for relative position retargeter."""
+    """对相对位置重定位器的配置。"""
 
     zero_out_xy_rotation: bool = True
     use_wrist_rotation: bool = False

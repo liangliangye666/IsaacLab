@@ -40,6 +40,35 @@ It supports multiple workflows: rl_games, rsl_rl, sb3, and skrl.
         --/persistent/isaaclab/asset_root/pretrained_checkpoints="/some/path"
 
 """
+"""管理伊萨克实验室环境的预训练检查站。
+
+这本脚本用于训练和发布Isaac实验室环境的预训练检查站。
+它支持多个工作流: rl_games， rsl_rl， sb3 和 skrl。
+
+* 通过使用rl_games工作流训练一个代理人在Isaac-Cartpole-v0环境中:
+
+  .. code-block:: shell
+
+    python scripts/tools/train_and_publish_checkpoints.py --train rl_games:Isaac-Cartpole-v0
+
+* 培训和公布所有工作流的检查点，仅在直接的Cartpole环境中:
+
+  .. code-block:: shell
+
+    python scripts/tools/train_and_publish_checkpoints.py         -tp "*:Isaac-Cartpole-*Direct-v0"         --/persistent/isaaclab/asset_root/pretrained_checkpoints="/some/path"
+
+* 审查所有休息立方体工作，除了"Play"任务和"skrl"工作流:
+
+  .. code-block:: shell
+
+    python scripts/tools/train_and_publish_checkpoints.py         -r "*:*Repose-Cube*"         --exclude "*:*Play*"         --exclude skrl:*
+
+* 发布所有结果 (已经过审查和批准)。
+
+  .. code-block:: shell
+
+    python scripts/tools/train_and_publish_checkpoints.py         --publish --all         --/persistent/isaaclab/asset_root/pretrained_checkpoints="/some/path"
+"""
 
 import argparse
 
@@ -167,6 +196,16 @@ def train_job(workflow, task_name, headless=False, force=False, num_envs=None):
         force: Run training even if previous experiments have been run.
         num_envs: How many simultaneous environments to simulate, overriding the config.
     """
+    """这将训练一个使用工作流的train.py脚本的任务， 取代实验名称以确保独特的日志目录。
+    默认情况下，如果已经运行过实验，它会返回。
+
+    参数：
+        workflow: 工作流。
+        task_name: 任务名称。
+        headless: 如果训练没有UI，
+        force: 运行训练，即使之前已经进行过实验。
+        num_envs: 仿真的同时环境是多少?
+    """
 
     log_root_path = get_log_root_path(workflow, task_name)
 
@@ -210,6 +249,16 @@ def review_pretrained_checkpoint(workflow, task_name, force_review=False, num_en
         task_name: The task name.
         force_review: Performs the review even if a review already exists.
         num_envs: How many simultaneous environments to simulate, overriding the config.
+    """
+    """这将启动预训练的检查站的审查。
+    运行工作流的play.py脚本，用户检查结果。
+    在完成后，他们关闭仿真器，
+
+    参数：
+        workflow: 工作流。
+        task_name: 任务名称。
+        force_review: 执行审查，即便已经进行了审查。
+        num_envs: 仿真的同时环境是多少?
     """
 
     # This workflow task pair hasn't been trained
@@ -300,6 +349,13 @@ def publish_pretrained_checkpoint(workflow, task_name, force_publish=False):
         task_name: The task name.
         force_publish: Publish without review.
     """
+    """这将使用 /persistent/isaaclab/asset_root/pretrained_checkpoints Carb变量中的资产路径发布预训练的核检查点。
+
+    参数：
+        workflow: 工作流。
+        task_name: 任务名称。
+        force_publish: 没有审查的发布。
+    """
 
     # This workflow task pair hasn't been trained
     if not has_pretrained_checkpoint_job_run(workflow, task_name):
@@ -339,6 +395,7 @@ def publish_pretrained_checkpoint(workflow, task_name, force_publish=False):
 
 def get_job_summary_row(workflow, task_name):
     """Returns a single row summary of the job"""
+    """返回单行工作总结"""
 
     has_run = has_pretrained_checkpoint_job_run(workflow, task_name)
     has_finished = has_pretrained_checkpoint_job_finished(workflow, task_name)

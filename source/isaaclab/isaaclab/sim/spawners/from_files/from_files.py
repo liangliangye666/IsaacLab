@@ -72,6 +72,37 @@ def spawn_from_usd(
     Raises:
         FileNotFoundError: If the USD file does not exist at the given path.
     """
+    """从 USD 文件中生成一个资产，并通过给定的配置来取消设置。
+
+    在USD文件的情况下，该资产在USD文件中指定的默认prim时产生。
+    如果未指定默认prim，则在根prim生成资产。
+
+    如果一个prim已经存在给定的prim路径，那么函数不会创建一个新的prim或抛出prim已经存在的错误。
+    而是，它只需要现有的prim，
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     在None中默认设置，在这种情况下使用USD文件中指定的翻译。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     在 None 中默认设置，在这种情况下使用USD文件中指定的方向。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        产生的资产的prim。
+
+    异常：
+        FileNotFoundError: 如果USD文件在给定的路径上不存在。
+    """
     # spawn asset from the given usd file
     return _spawn_from_usd_file(prim_path, cfg.usd_path, cfg, translation, orientation)
 
@@ -113,6 +144,37 @@ def spawn_from_urdf(
 
     Raises:
         FileNotFoundError: If the URDF file does not exist at the given path.
+    """
+    """从URDF文件中生成一个资产，并将设置覆盖给定的配置。
+
+    它使用:class:`UrdfConverter`类来从URDF创建USD文件。
+    然后在指定prim路径中导入该文件。
+
+    如果一个prim已经存在给定的prim路径，那么函数不会创建一个新的prim或抛出prim已经存在的错误。
+    而是，它只需要现有的prim，
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     在 None 中默认，在这种情况下使用生成的USD文件中指定的翻译。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认为 None，在这种情况下使用生成的USD文件中指定的方向。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        产生的资产的prim。
+
+    异常：
+        FileNotFoundError: 如果URDF文件在给定的路径上不存在。
     """
     # urdf loader to convert urdf to usd
     urdf_loader = converters.UrdfConverter(cfg)
@@ -156,6 +218,36 @@ def spawn_from_mjcf(
     Raises:
         FileNotFoundError: If the MJCF file does not exist at the given path.
     """
+    """从MJCF文件中生成一个资产，并将设置覆盖给定的配置。
+
+    它使用:class:`MjcfConverter`类来从MJCF创建USD文件。
+    然后在指定prim路径中导入该文件。
+
+    如果一个prim已经存在给定的prim路径，那么函数不会创建一个新的prim或抛出prim已经存在的错误。
+    而是，它只需要现有的prim，
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     在 None 中默认，在这种情况下使用生成的USD文件中指定的翻译。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认为 None，在这种情况下使用生成的USD文件中指定的方向。
+
+    返回：
+        产生的资产的prim。
+
+    异常：
+        FileNotFoundError: 如果MJCF文件在给定的路径上不存在。
+    """
     # mjcf loader to convert mjcf to usd
     mjcf_loader = converters.MjcfConverter(cfg)
     # spawn asset from the generated usd file
@@ -193,6 +285,33 @@ def spawn_ground_plane(
 
     Raises:
         ValueError: If the prim path already exists.
+    """
+    """引发地面飞机进入场景。
+
+    这个函数将包含来自Isaac Sim的网格平面资产的USD文件。
+    它可能不适用于地面飞机的其他资产。
+    在这些情况下，请使用`spawn_from_usd`函数。
+
+    说明：
+        这种函数需要关键词参数，以便与其他产器兼容。
+        然而，它没有使用任何kwargs。
+
+    参数：
+        prim_path: 让我们找到一个方法。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     在None中默认设置，在这种情况下使用USD文件中指定的翻译。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     在 None 中默认设置，在这种情况下使用USD文件中指定的方向。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        产生的资产的prim。
+
+    异常：
+        ValueError: 如果prim路径已经存在。
     """
     # Obtain current stage
     stage = get_current_stage()
@@ -263,6 +382,8 @@ def spawn_ground_plane(
 """
 Helper functions.
 """
+"""辅助函数。
+"""
 
 
 def _spawn_from_usd_file(
@@ -295,6 +416,30 @@ def _spawn_from_usd_file(
 
     Raises:
         FileNotFoundError: If the USD file does not exist at the given path.
+    """
+    """从 USD 文件中生成一个资产，并通过给定的配置来取消设置。
+
+    如果一个prim已经存在给定的prim路径，那么函数不会创建一个新的prim或抛出prim已经存在的错误。
+    而是，它只需要现有的prim，
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        usd_path: 进入USD文件的路径。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     在 None 中默认，在这种情况下使用生成的USD文件中指定的翻译。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认为 None，在这种情况下使用生成的USD文件中指定的方向。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        产生的资产的prim。
+
+    异常：
+        FileNotFoundError: 如果USD文件在给定的路径上不存在。
     """
     # check if usd path exists with periodic logging until timeout
     if not check_usd_path_with_timeout(usd_path):
@@ -398,6 +543,29 @@ def spawn_from_usd_with_compliant_contact_material(
 
     Raises:
         FileNotFoundError: If the USD file does not exist at the given path.
+    """
+    """从USD文件中生成一个资产，并将物理材料应用到指定prims上。
+
+    这种函数扩展了:meth:`spawn_from_usd`函数，通过允许在产生的资产内将符合的接触物理材料应用于指定prims。
+    这对于配置资产内部特定部件的接触行为有用。
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 包含USD文件路径和物理材料设置的配置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     在None中默认设置，在这种情况下使用USD文件中指定的翻译。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     在 None 中默认设置，在这种情况下使用USD文件中指定的方向。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        产生的资产的prim与对指定prims应用的物理材料。
+
+    异常：
+        FileNotFoundError: 如果USD文件在给定的路径上不存在。
     """
 
     prim = _spawn_from_usd_file(prim_path, cfg.usd_path, cfg, translation, orientation)

@@ -30,8 +30,31 @@ Usage:
 """
 
 from __future__ import annotations
+"""对于转换操作，比较XformPrimView与PhysX RigidBodyView的基准脚本。
+
+该脚本测试了使用:
+
+- 艾萨克实验室的XformPrimView (基于USD)
+- 艾萨克实验室的XformPrimView (基于工厂)
+- PhysX RigidBodyView (基于PhysX子，如RigidObject中使用的)
+
+说明：
+    XformPrimView直接运行 USD属性 (用于非物理 prims)，或者在Tabric启用时运行 Fabric属性。
+    while RigidBodyView requires rigid body physics components and operates on PhysX tensors.
+    这一基准有助于了解两种方法之间的绩效妥协。
+
+Usage: #基本基准./isaaclab.sh -p脚本/基准/benchmark_view_comparison.py --num_envs 1024 --device cuda:0
+       --headless
+
+    # 启用配置文件 (用于 snakeviz视觉化)./isaaclab.sh -p脚本/基准/benchmark_view_comparison.py --num_envs 1024
+    --profile --headless
+
+    然后用 snakeviz: snakeviz profile_results/xform_view_benchmark.prof snakeviz
+    profile_results/physx_view_benchmark.prof
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -64,6 +87,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import cProfile
 import time
@@ -89,6 +113,17 @@ def benchmark_view(view_type: str, num_iterations: int) -> tuple[dict[str, float
         A tuple of (timing_results, computed_results) where:
         - timing_results: Dictionary containing timing results for various operations
         - computed_results: Dictionary containing the computed values for validation
+    """
+    """预示指定的视图类。
+
+    参数：
+        view_type: 对基准值的视图类型 ("xform"， "xform_fabric"或 "physx")。
+        num_iterations: 运行的代数。
+
+    返回：
+        一个 (timing_results，computed_results) 的元组，其中:
+        - timing_results:包含各种操作的定时结果的字典
+        - computed_results:包含验证计算值的字典
     """
     timing_results = {}
     computed_results = {}
@@ -220,6 +255,15 @@ def compare_results(
     Returns:
         Nested dictionary: {comparison_pair: {metric: {stats}}}
     """
+    """在实现中比较计算结果。
+
+    参数：
+        results_dict: 字典将实现名称映射到计算值。
+        tolerance: 宽容数值比较。
+
+    返回：
+        嵌套字典: {comparison_pair: {米特里克: {stats}}}
+    """
     comparison_stats = {}
     impl_names = list(results_dict.keys())
 
@@ -266,6 +310,12 @@ def print_comparison_results(comparison_stats: dict[str, dict[str, dict[str, flo
     Args:
         comparison_stats: Nested dictionary containing comparison statistics.
         tolerance: Tolerance used for comparison.
+    """
+    """打印比较结果。
+
+    参数：
+        comparison_stats: 包含比较统计数据的嵌套字典。
+        tolerance: 用于比较的宽容。
     """
     for pair_key, pair_stats in comparison_stats.items():
         if not pair_stats:  # Skip if no comparable results
@@ -316,6 +366,13 @@ def print_results(results_dict: dict[str, dict[str, float]], num_prims: int, num
         results_dict: Dictionary mapping implementation names to their timing results.
         num_prims: Number of prims tested.
         num_iterations: Number of iterations run.
+    """
+    """打印基准结果以格式表格。
+
+    参数：
+        results_dict: 字典将执行名称映射到它们的时间结果。
+        num_prims: 测试的prims号码。
+        num_iterations: 运行的代数。
     """
     print("\n" + "=" * 100)
     print(f"BENCHMARK RESULTS: {num_prims} prims, {num_iterations} iterations")
@@ -428,6 +485,7 @@ def print_results(results_dict: dict[str, dict[str, float]], num_prims: int, num
 
 def main():
     """Main benchmark function."""
+    """主要基准函数"""
     print("=" * 100)
     print("View Comparison Benchmark - XformPrimView vs PhysX RigidBodyView")
     print("=" * 100)

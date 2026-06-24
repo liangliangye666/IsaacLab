@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -16,6 +17,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 
@@ -29,16 +31,19 @@ from isaaclab.utils import configclass
 @configclass
 class EmptySceneCfg(InteractiveSceneCfg):
     """Configuration for an empty scene."""
+    """设置为空场景。"""
 
     pass
 
 
 def get_empty_base_env_cfg(device: str = "cuda:0", num_envs: int = 1, env_spacing: float = 1.0):
     """Generate base environment config based on device"""
+    """根据设备生成基环境配置"""
 
     @configclass
     class EmptyEnvCfg(DirectMARLEnvCfg):
         """Configuration for the empty test environment."""
+        """对于空试环境的配置。"""
 
         # Scene settings
         scene: EmptySceneCfg = EmptySceneCfg(num_envs=num_envs, env_spacing=env_spacing)
@@ -56,6 +61,7 @@ def get_empty_base_env_cfg(device: str = "cuda:0", num_envs: int = 1, env_spacin
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_initialization(device):
     """Test initialization of DirectMARLEnv."""
+    """测试启动DirectMARLEnv。"""
     # create a new stage
     omni.usd.get_context().new_stage()
     try:

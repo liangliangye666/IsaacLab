@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 import pytest
@@ -23,6 +25,7 @@ from isaaclab.utils.assets import ISAACLAB_NUCLEUS_DIR
 @pytest.fixture
 def sim():
     """Create a simulation context."""
+    """创建一个仿真环境。"""
     sim_utils.create_new_stage()
     dt = 0.1
     sim = SimulationContext(SimulationCfg(dt=dt))
@@ -36,6 +39,7 @@ def sim():
 
 def test_spawn_multiple_shapes_with_global_settings(sim):
     """Test spawning of shapes randomly with global rigid body settings."""
+    """测试随机产生形状，使用全球的硬体设置。"""
     num_clones = 10
     for i in range(num_clones):
         sim_utils.create_prim(f"/World/env_{i}", "Xform", translation=(i, i, 0))
@@ -78,6 +82,7 @@ def test_spawn_multiple_shapes_with_global_settings(sim):
 
 def test_spawn_multiple_shapes_with_individual_settings(sim):
     """Test spawning of shapes randomly with individual rigid object settings."""
+    """测试随机产生形状，使用单个硬体设置。"""
     num_clones = 10
     for i in range(num_clones):
         sim_utils.create_prim(f"/World/env_{i}", "Xform", translation=(i, i, 0))
@@ -125,10 +130,13 @@ def test_spawn_multiple_shapes_with_individual_settings(sim):
 """
 Tests - Multiple USDs.
 """
+"""测试 - 多个USDs。
+"""
 
 
 def test_spawn_multiple_files_with_global_settings(sim):
     """Test spawning of files randomly with global articulation settings."""
+    """测试随机生成文件，使用全球关节设置。"""
     num_clones = 10
     for i in range(num_clones):
         sim_utils.create_prim(f"/World/env_{i}", "Xform", translation=(i, i, 0))

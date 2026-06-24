@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -12,6 +13,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 
@@ -29,6 +31,7 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 @pytest.fixture(autouse=True)
 def test_setup_teardown():
     """Create a blank new stage for each test."""
+    """创建一个空白的新阶段。"""
     # Setup: Create a new stage
     sim_utils.create_new_stage()
     sim_utils.update_stage()
@@ -42,6 +45,7 @@ def test_setup_teardown():
 
 def assert_quat_close(q1: Gf.Quatf | Gf.Quatd, q2: Gf.Quatf | Gf.Quatd, eps: float = 1e-6):
     """Assert two quaternions are close."""
+    """假定两个四季接近。"""
     assert math.isclose(q1.GetReal(), q2.GetReal(), abs_tol=eps)
     for i in range(3):
         assert math.isclose(q1.GetImaginary()[i], q2.GetImaginary()[i], abs_tol=eps)
@@ -50,10 +54,13 @@ def assert_quat_close(q1: Gf.Quatf | Gf.Quatd, q2: Gf.Quatf | Gf.Quatd, eps: flo
 """
 General Utils
 """
+"""乌蒂尔斯将军
+"""
 
 
 def test_create_prim():
     """Test create_prim() function."""
+    """测试create_prim() 函数。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
     # create scene
@@ -126,6 +133,7 @@ def test_create_prim():
 )
 def test_create_prim_with_different_input_types(input_type: str):
     """Test create_prim() with different input types (list, tuple, numpy array, torch tensor)."""
+    """测试create_prim() 有不同的输入类型 (列表，元组，木偶阵列，火)。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -189,6 +197,7 @@ def test_create_prim_with_different_input_types(input_type: str):
 )
 def test_create_prim_with_world_position_different_types(input_type: str):
     """Test create_prim() with world position using different input types."""
+    """使用不同输入类型的世界位置测试create_prim()。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -257,6 +266,11 @@ def test_create_prim_non_xformable():
     are created successfully but transform operations are not applied to them.
     This is expected behavior as documented in the create_prim function.
     """
+    """测试create_prim() 使用非prim型 (材料，阴影，范围)。
+
+    该测试验验证，非Xformable的prims (如材料，阴影，范围) 已成功创建，但转换操作并未适用于它们。
+    这就是create_prim函数所记录的预期行为。
+    """
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -307,6 +321,7 @@ def test_create_prim_non_xformable():
 
 def test_delete_prim():
     """Test delete_prim() function."""
+    """测试delete_prim() 函数。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
     # create scene
@@ -338,6 +353,7 @@ def test_delete_prim():
 
 def test_move_prim():
     """Test move_prim() function."""
+    """测试move_prim() 函数。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
     # create scene
@@ -378,10 +394,13 @@ def test_move_prim():
 """
 USD references and variants.
 """
+"""USD引用和变体。
+"""
 
 
 def test_get_usd_references():
     """Test get_usd_references() function."""
+    """测试get_usd_references() 函数。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -406,6 +425,7 @@ def test_get_usd_references():
 
 def test_select_usd_variants():
     """Test select_usd_variants() function."""
+    """测试select_usd_variants() 函数。"""
     stage = sim_utils.get_current_stage()
 
     # Create a dummy prim
@@ -427,6 +447,7 @@ def test_select_usd_variants():
 
 def test_select_usd_variants_in_usd_file():
     """Test select_usd_variants() function in USD file."""
+    """在USD文件中测试select_usd_variants() 函数。"""
     stage = sim_utils.get_current_stage()
 
     prim = sim_utils.create_prim(
@@ -473,10 +494,13 @@ def test_select_usd_variants_in_usd_file():
 """
 Property Management.
 """
+"""财产管理。
+"""
 
 
 def test_change_prim_property_basic():
     """Test change_prim_property() with existing property."""
+    """测试change_prim_property() 与现有属性。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
     # create a cube prim
@@ -499,6 +523,7 @@ def test_change_prim_property_basic():
 
 def test_change_prim_property_create_new():
     """Test change_prim_property() creates new property when it doesn't exist."""
+    """测试change_prim_property() 创建了新的属性，当它不存在。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
     # create a prim
@@ -523,6 +548,7 @@ def test_change_prim_property_create_new():
 
 def test_change_prim_property_clear_value():
     """Test change_prim_property() clears property value when value is None."""
+    """测试change_prim_property() 清除了值为None时的属性值。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
     # create a cube with an attribute
@@ -558,6 +584,7 @@ def test_change_prim_property_clear_value():
 )
 def test_change_prim_property_different_types(attr_name: str, value, value_type, expected):
     """Test change_prim_property() with different value types."""
+    """用不同的值类型测试change_prim_property()。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
     # create a prim
@@ -590,6 +617,7 @@ def test_change_prim_property_different_types(attr_name: str, value, value_type,
 )
 def test_change_prim_property_path_types(prop_path_input):
     """Test change_prim_property() with different path input types."""
+    """测试change_prim_property() 用不同的路径输入类型。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
     # create a cube prim
@@ -609,6 +637,7 @@ def test_change_prim_property_path_types(prop_path_input):
 
 def test_change_prim_property_error_invalid_prim():
     """Test change_prim_property() raises error for invalid prim path."""
+    """测试change_prim_property() 显示了无效的prim路径的错误。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -623,6 +652,7 @@ def test_change_prim_property_error_invalid_prim():
 
 def test_change_prim_property_error_missing_type():
     """Test change_prim_property() returns False when property doesn't exist and type not provided."""
+    """测试change_prim_property() 返回False 当属性不存在，并且类型未提供时。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
     # create a prim
@@ -644,10 +674,13 @@ def test_change_prim_property_error_missing_type():
 """
 Internal Helpers.
 """
+"""内部助理。
+"""
 
 
 def test_to_tuple_basic():
     """Test _to_tuple() with basic input types."""
+    """使用基本输入类型进行测试。"""
     # Test with list
     result = _to_tuple([1.0, 2.0, 3.0])
     assert result == (1.0, 2.0, 3.0)
@@ -675,6 +708,7 @@ def test_to_tuple_basic():
 
 def test_to_tuple_raises_error():
     """Test _to_tuple() raises an error for N-dimensional arrays."""
+    """测试_to_tuple() 给N维数组带来了一个错误。"""
 
     with pytest.raises(ValueError, match="not one dimensional"):
         _to_tuple(np.array([[1.0, 2.0], [3.0, 4.0]]))
@@ -688,6 +722,7 @@ def test_to_tuple_raises_error():
 
 def test_to_tuple_mixed_sequences():
     """Test _to_tuple() with mixed type sequences."""
+    """测试_to_tuple() 用混合类型序列。"""
 
     # Mixed list with numpy and floats
     result = _to_tuple([np.float32(1.0), 2.0, 3.0])
@@ -705,6 +740,7 @@ def test_to_tuple_mixed_sequences():
 
 def test_to_tuple_precision():
     """Test _to_tuple() maintains numerical precision."""
+    """测试_to_tuple() 保持数值精度。"""
     from isaaclab.sim.utils.prims import _to_tuple
 
     # Test with high precision values

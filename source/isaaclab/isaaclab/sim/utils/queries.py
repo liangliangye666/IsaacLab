@@ -6,6 +6,7 @@
 """Utilities for querying the USD stage."""
 
 from __future__ import annotations
+"""查询USD阶段的公用事项。"""
 
 import logging
 import re
@@ -42,6 +43,27 @@ def get_next_free_prim_path(path: str, stage: Usd.Stage | None = None) -> str:
         >>> sim_utils.get_next_free_prim_path("/World/Cube")
         /World/Cube_02
     """
+    """得到一个新的prim路径，没有在阶段的基础路径。
+
+    如果已在阶段没有给定的路径，则返回给定的路径。
+    否则，它将一个增量数的后音添加到给定的路径上。
+
+    参数：
+        path: 要检查prim基地路径。
+        stage: 我们要检查。
+               默认的状态。
+
+    返回：
+        在目前的阶段，保证不存在的新道路
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> # given the stage: /World/Cube, /World/Cube_01.
+        >>> # Get the next available path for /World/Cube
+        >>> sim_utils.get_next_free_prim_path("/World/Cube")
+        /世界/立方_02
+    """
     # get current stage
     stage = get_current_stage() if stage is None else stage
     # get next free path
@@ -68,6 +90,25 @@ def get_first_matching_ancestor_prim(
 
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
+    """
+    """得到了通过预言函数的第一个祖先prim。
+
+    这个函数从目标prim开始 prim等级上升，并返回通过预言函数的第一个祖先prim。
+    这包括prim本身，如果它通过预言。
+
+    参数：
+        prim_path: 在舞台上prim的路径。
+        predicate: 测试prims的功能。
+                   它将prim作为输入，然后返回布尔式。
+        stage: 在prim存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        第一个通过预言的祖先prim。
+        如果没有祖先prim通过预言，它返回None。
+
+    异常：
+        ValueError: 如果prim路径不是全球 (i.e:不以"/"开始)。
     """
     # get stage handle
     if stage is None:
@@ -130,6 +171,37 @@ def get_first_matching_child_prim(
 
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
+    """
+    """在路径字符串中，一次性地得到第一个USD Prime，
+
+    这个函数从:attr:`prim_path`开始执行prim等级的第一次深度穿越，返回满足提供的:attr:`predicate`的第一个prim。
+    它可通过实例prims进行横跨，通常在标准USD横跨中被跳过。
+
+    USD实例prims是原型场景结构的轻量拷贝，除非明确处理，否则不会被包含在默认的穿越中。
+    这种函数允许通过实例
+    when :attr:`traverse_instance_prims`设置为:attr:`True`。
+
+    ..
+    改版: 2.3.0
+
+        Added :attr:`traverse_instance_prims`控制是否通过实例prims。
+        默认情况下，实例prims现在被穿过。
+
+    参数：
+        prim_path: 在舞台上prim的路径。
+        predicate: 测试prims的功能。
+                   它将prim作为输入，然后返回布尔式。
+        stage: 在prim存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+        traverse_instance_prims: 是否通过实例prims。
+                                 默认为 True。
+
+    返回：
+        通过预言的路径上的第一个prim。
+        如果没有prim通过预言，它返回None。
+
+    异常：
+        ValueError: 如果prim路径不是全球 (i.e:不以"/"开始)。
     """
     # get stage handle
     if stage is None:
@@ -198,6 +270,39 @@ def get_all_matching_child_prims(
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
     """
+    """执行从根开始的搜索，并返回所有与预言相匹配的prims。
+
+    这个函数从:attr:`prim_path`开始执行prim等级的第一次深度穿越，返回满足提供的:attr:`predicate`的所有prims。
+    它可通过实例prims进行横跨，通常在标准USD横跨中被跳过。
+
+    USD实例prims是原型场景结构的轻量拷贝，除非明确处理，否则不会被包含在默认的穿越中。
+    这种函数允许通过实例
+    when :attr:`traverse_instance_prims`设置为:attr:`True`。
+
+    ..
+    改版: 2.3.0
+
+        Added :attr:`traverse_instance_prims`控制是否通过实例prims。
+        默认情况下，实例prims现在被穿过。
+
+    参数：
+        prim_path: 根prim路径开始搜索。
+        predicate: 这种预言检查prim是否符合所需的标准。
+                   它将prim作为输入，然后返回布尔式。
+                   总是返回True的函数。
+        depth: 如果指定，可穿越的最大深度应大于零。
+               在None中默认出现故障 (i.e:穿越到树尾发生)。
+        stage: 在prim存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+        traverse_instance_prims: 是否通过实例prims。
+                                 默认为 True。
+
+    返回：
+        一个包含所有与预言符相匹配的prims的列表。
+
+    异常：
+        ValueError: 如果prim路径不是全球 (i.e:不以"/"开始)。
+    """
     # get stage handle
     if stage is None:
         stage = get_current_stage()
@@ -252,6 +357,20 @@ def find_first_matching_prim(prim_path_regex: str, stage: Usd.Stage | None = Non
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
     """
+    """根据输入regex表达式，在阶段找到第一个匹配的prim。
+
+    参数：
+        prim_path_regex: 为prim路径的regex表达式。
+        stage: 在prim存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        第一个与输入表达式匹配的prim。
+        如果没有prim匹配，则返回None。
+
+    异常：
+        ValueError: 如果prim路径不是全球 (i.e:不以"/"开始)。
+    """
     # get stage handle
     if stage is None:
         stage = get_current_stage()
@@ -273,6 +392,7 @@ def find_first_matching_prim(prim_path_regex: str, stage: Usd.Stage | None = Non
 
 def _normalize_legacy_wildcard_pattern(prim_path_regex: str) -> str:
     """Convert legacy '*' wildcard usage to '.*' and warn users."""
+    """转换传统的'*'野生卡使用为'*'并警告用户。"""
     fixed_regex = re.sub(r"(?<![\\\.])\*", ".*", prim_path_regex)
     if fixed_regex != prim_path_regex:
         logger.warning(
@@ -296,6 +416,19 @@ def find_matching_prims(prim_path_regex: str, stage: Usd.Stage | None = None) ->
 
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
+    """
+    """根据输入regex表达式，在阶段找到所有匹配的prims。
+
+    参数：
+        prim_path_regex: 为prim路径的regex表达式。
+        stage: 在prim存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        一个与输入表达式相匹配的prims列表。
+
+    异常：
+        ValueError: 如果prim路径不是全球 (i.e:不以"/"开始)。
     """
     # get stage handle
     if stage is None:
@@ -338,6 +471,19 @@ def find_matching_prim_paths(prim_path_regex: str, stage: Usd.Stage | None = Non
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
     """
+    """根据输入regex表达，在阶段找到所有匹配的prim路径。
+
+    参数：
+        prim_path_regex: 为prim路径的regex表达式。
+        stage: 在prim存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        一列与输入表达相匹配的prim路径。
+
+    异常：
+        ValueError: 如果prim路径不是全球 (i.e:不以"/"开始)。
+    """
     # obtain matching prims
     output_prims = find_matching_prims(prim_path_regex, stage)
     # convert prims to prim paths
@@ -371,6 +517,31 @@ def find_global_fixed_joint_prim(
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
         ValueError: If the prim path does not exist on the stage.
+    """
+    """在指定的prim路径下找到固定关联prim，将目标连接到仿真世界。
+
+    关节是两个身体之间的连接。
+    固定关节是不允许两体之间的相对运动的关节。
+    当固定关节只有一个目标身体时，它被认为将身体连接到仿真世界。
+
+    这个函数在指定prim路径下找到固定关节prim的目标。
+    如果没有这样的固定关节prim，则返回None。
+
+    参数：
+        prim_path: 寻找固定关节prim的prim路径。
+        check_enabled_only: 考虑是否只允许固定关节。
+                            默认为 False。
+                            如果 False，则将考虑所有关节 (启用或禁用)。
+        stage: 在prim存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        固定的关节prim只有一个目标。
+        如果没有这样的固定关节prim，则返回None。
+
+    异常：
+        ValueError: 如果prim路径不是全球 (i.e:不以"/"开始)。
+        ValueError: 如果prim路线不在舞台上。
     """
     # get stage handle
     if stage is None:

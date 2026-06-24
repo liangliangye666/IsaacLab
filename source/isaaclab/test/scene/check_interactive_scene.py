@@ -7,8 +7,11 @@
 This script demonstrates how to use the scene interface to quickly setup a scene with multiple
 articulated robots and sensors.
 """
+"""这本脚本展示了如何使用场景界面快速设置一个场景，
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -26,6 +29,7 @@ app_launcher = AppLauncher(headless=args_cli.headless)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import AssetBaseCfg
@@ -45,6 +49,7 @@ from isaaclab_assets.robots.anymal import ANYMAL_C_CFG  # isort: skip
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
     """Example scene configuration."""
+    """例如场景配置。"""
 
     # terrain - flat terrain plane
     terrain = TerrainImporterCfg(
@@ -78,6 +83,7 @@ class MySceneCfg(InteractiveSceneCfg):
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # Load kit helper
     sim = SimulationContext(sim_utils.SimulationCfg(dt=0.005))

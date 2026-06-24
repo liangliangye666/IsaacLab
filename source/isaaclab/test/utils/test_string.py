@@ -6,6 +6,7 @@
 # NOTE: While we don't actually use the simulation app in this test, we still need to launch it
 #       because warp is only available in the context of a running simulation
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +14,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import random
 
@@ -23,6 +25,7 @@ import isaaclab.utils.string as string_utils
 
 def test_case_conversion():
     """Test case conversion between camel case and snake case."""
+    """在驼和蛇之间进行试验。"""
     # test camel case to snake case
     assert string_utils.to_snake_case("CamelCase") == "camel_case"
     assert string_utils.to_snake_case("camelCase") == "camel_case"
@@ -35,6 +38,7 @@ def test_case_conversion():
 
 def test_resolve_matching_names_with_basic_strings():
     """Test resolving matching names with a basic expression."""
+    """测试用基本表达式解决匹配的名称。"""
     # list of strings
     target_names = ["a", "b", "c", "d", "e"]
     # test matching names
@@ -59,6 +63,7 @@ def test_resolve_matching_names_with_basic_strings():
 
 def test_resolve_matching_names_with_joint_name_strings():
     """Test resolving matching names with joint names."""
+    """测试解决与共同名称相匹配的名称。"""
     # list of strings
     robot_joint_names = []
     for i in ["hip", "thigh", "calf"]:
@@ -103,6 +108,7 @@ def test_resolve_matching_names_with_joint_name_strings():
 
 def test_resolve_matching_names_with_preserved_order():
     """Test resolving matching names with preserved order."""
+    """测试解决与保存顺序相匹配的名称。"""
     # list of strings and query list
     robot_joint_names = []
     for i in ["hip", "thigh", "calf"]:
@@ -140,6 +146,7 @@ def test_resolve_matching_names_with_preserved_order():
 
 def test_resolve_matching_names_values_with_basic_strings():
     """Test resolving matching names with a basic expression."""
+    """测试用基本表达式解决匹配的名称。"""
     # list of strings
     target_names = ["a", "b", "c", "d", "e"]
     # test matching names
@@ -166,6 +173,7 @@ def test_resolve_matching_names_values_with_basic_strings():
 
 def test_resolve_matching_names_values_with_strict_false():
     """Test resolving matching names with strict=False parameter."""
+    """测试解决与strict=False参数相匹配的名称。"""
     # list of strings
     target_names = ["a", "b", "c", "d", "e"]
     # test strict=False
@@ -187,6 +195,7 @@ def test_resolve_matching_names_values_with_strict_false():
 
 def test_resolve_matching_names_values_with_basic_strings_and_preserved_order():
     """Test resolving matching names with a basic expression."""
+    """测试用基本表达式解决匹配的名称。"""
     # list of strings
     target_names = ["a", "b", "c", "d", "e"]
     # test matching names

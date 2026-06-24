@@ -7,6 +7,7 @@
 
 # needed to import for allowing type-hinting: torch.Tensor | np.ndarray
 from __future__ import annotations
+"""包含各种数学操作的工具的子模块。"""
 
 import logging
 import math
@@ -21,6 +22,8 @@ logger = logging.getLogger(__name__)
 
 """
 General
+"""
+"""一般
 """
 
 
@@ -38,6 +41,22 @@ def scale_transform(x: torch.Tensor, lower: torch.Tensor, upper: torch.Tensor) -
 
     Returns:
         Normalized transform of the tensor. Shape is (N, dims).
+    """
+    """将给定的输入数正常化为 [-1， 1] 范围。
+
+    .. 说明::
+        它使用pytorch播放功能来处理批量输入。
+
+    参数：
+        x: 输入形状张量 (N，色)。
+        lower: 子的最小值。
+               形状是 (N，暗色) 或 (暗色)。
+        upper: 子的最大值。
+               形状是 (N，暗色) 或 (暗色)。
+
+    返回：
+        子的正常化转变。
+        形状是 (N，色)。
     """
     # default value of center
     offset = (lower + upper) * 0.5
@@ -60,6 +79,22 @@ def unscale_transform(x: torch.Tensor, lower: torch.Tensor, upper: torch.Tensor)
     Returns:
         De-normalized transform of the tensor. Shape is (N, dims).
     """
+    """从 [-1， 1] 范围到 (下，上) 范围的给定的输入子。
+
+    .. 说明::
+        它使用pytorch播放功能来处理批量输入。
+
+    参数：
+        x: 输入形状张量 (N，色)。
+        lower: 子的最小值。
+               形状是 (N，暗色) 或 (暗色)。
+        upper: 子的最大值。
+               形状是 (N，暗色) 或 (暗色)。
+
+    返回：
+        变态变化。
+        形状是 (N，色)。
+    """
     # default value of center
     offset = (lower + upper) * 0.5
     # return normalized tensor
@@ -80,6 +115,21 @@ def saturate(x: torch.Tensor, lower: torch.Tensor, upper: torch.Tensor) -> torch
     Returns:
         Clamped transform of the tensor. Shape is (N, dims).
     """
+    """将给定的输入子紧缩到 (下，上)。
+
+    它使用pytorch播放功能来处理批量输入。
+
+    参数：
+        x: 输入形状张量 (N，色)。
+        lower: 子的最小值。
+               形状是 (N，暗色) 或 (暗色)。
+        upper: 子的最大值。
+               形状是 (N，暗色) 或 (暗色)。
+
+    返回：
+        紧器的转换。
+        形状是 (N，色)。
+    """
     return torch.max(torch.min(x, upper), lower)
 
 
@@ -93,6 +143,16 @@ def normalize(x: torch.Tensor, eps: float = 1e-9) -> torch.Tensor:
 
     Returns:
         Normalized tensor of shape (N, dims).
+    """
+    """将给定的输入子正常化为单位长度。
+
+    参数：
+        x: 输入形状张量 (N，色)。
+        eps: 一个小值以避免零分。
+             默认调整1e-9。
+
+    返回：
+        规范化形状度 (N，暗)。
     """
     return x / x.norm(p=2, dim=-1).clamp(min=eps, max=None).unsqueeze(-1)
 
@@ -115,6 +175,20 @@ def wrap_to_pi(angles: torch.Tensor) -> torch.Tensor:
     Returns:
         Angles in the range :math:`[-\pi, \pi]`.
     """
+    """将输入角度 (在半径中) 卷入为:数学:`[-\pi， \pi]`范围。
+
+    这种函数将角在半径中包裹到范围:数学:`[-\pi， \pi]`，这样
+    :math:运算的 `\pi` 地图:`\pi`，和运算的 `-\pi` 地图:`-\pi`。
+    :math:`\pi`的奇数正倍数被映射到:math:`\pi`，和:math:`\pi`的奇数负倍数被映射到:math:`-\pi`。
+
+    函数的行为类似于MATLAB现在`wrapToPi <https://www.mathworks.com/help/map/ref/wraptopi.html>`函数
+
+    参数：
+        angles: 任何形状的输入角。
+
+    返回：
+        在范围中的角度:数学:`[-\pi， \pi]`。
+    """
     # wrap to [0, 2*pi)
     wrapped_angle = (angles + torch.pi) % (2 * torch.pi)
     # map to [-pi, pi]
@@ -136,12 +210,27 @@ def copysign(mag: float, other: torch.Tensor) -> torch.Tensor:
     Returns:
         The output tensor.
     """
+    """创建一个新的浮点子， 输入大小和其他元素的标志。
+
+    说明：
+        实施是从`torch.copysign`中得到的。
+        函数允许一个 skalar 大小。
+
+    参数：
+        mag: 这就是大小尺度。
+        other: 含有值的子，其信号位应用于大小。
+
+    返回：
+        输出子。
+    """
     mag_torch = abs(mag) * torch.ones_like(other)
     return torch.copysign(mag_torch, other)
 
 
 """
 Rotation
+"""
+"""旋转
 """
 
 
@@ -158,6 +247,19 @@ def quat_unique(q: torch.Tensor) -> torch.Tensor:
     Returns:
         Standardized quaternions. Shape is (..., 4).
     """
+    """转换一个单元四角形到一个标准形式，其中真实部分是非负的。
+
+    四元数表示具有单一性，因为``q``和``-q``代表相同的旋转。
+    这种函数确保四ater的真实部分是非负的。
+
+    参数：
+        q: 在 (w，x，y，z) 中的四元数方向。
+           形状是 (...， 4)。
+
+    返回：
+        标准化四季节。
+        形状是 (...， 4)。
+    """
     return torch.where(q[..., 0:1] < 0, -q, q)
 
 
@@ -173,6 +275,20 @@ def matrix_from_quat(quaternions: torch.Tensor) -> torch.Tensor:
 
     Reference:
         https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversions.py#L41-L70
+    """
+    """转换作为四元数的旋转为旋转矩阵。
+
+    参数：
+        quaternions: 在 (w，x，y，z) 中的四元数方向。
+                     形状是 (...， 4)。
+
+    返回：
+        旋转矩阵。
+        形状是 (...， 3， 3)。
+
+    Reference:
+        https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversion
+              s.py#L41-L70
     """
     r, i, j, k = torch.unbind(quaternions, -1)
     # pyre-fixme[58]: `/` is not supported for operand types `float` and `Tensor`.
@@ -211,6 +327,23 @@ def convert_quat(quat: torch.Tensor | np.ndarray, to: Literal["xyzw", "wxyz"] = 
     Raises:
         ValueError: Invalid input argument `to`, i.e. not "xyzw" or "wxyz".
         ValueError: Invalid shape of input `quat`, i.e. not (..., 4,).
+    """
+    """转换四元数从一个会议到另一个。
+
+    转换TO的约定是选项参数。
+    如果 == 'xyzw'，则输入是'wxyz'格式，反之亦然。
+
+    参数：
+        quat: 形状的四角形 (...， 4)。
+        to: 为了将四元数转换为..。
+            在"xyzw"上默认设置。
+
+    返回：
+        在规定的公约中转换的四元数。
+
+    异常：
+        ValueError: 不有效的输入参数 `to`， i.e。 不是"xyzw"或"wxyz"。
+        ValueError: 输入 `quat`， i.e。 不有效的形状 (...， 4，)。
     """
     # check input is correct
     if quat.shape[-1] != 4:
@@ -251,6 +384,16 @@ def quat_conjugate(q: torch.Tensor) -> torch.Tensor:
     Returns:
         The conjugate quaternion in (w, x, y, z). Shape is (..., 4).
     """
+    """计算一个四元数的结合。
+
+    参数：
+        q: 在 (w，x，y，z) 中的四元数方向。
+           形状是 (...， 4)。
+
+    返回：
+        在 (w，x，y，z) 中的合并四方体。
+        形状是 (...， 4)。
+    """
     shape = q.shape
     q = q.reshape(-1, 4)
     return torch.cat((q[..., 0:1], -q[..., 1:]), dim=-1).view(shape)
@@ -266,6 +409,18 @@ def quat_inv(q: torch.Tensor, eps: float = 1e-9) -> torch.Tensor:
 
     Returns:
         The inverse quaternion in (w, x, y, z). Shape is (N, 4).
+    """
+    """计算一个四元数的逆向。
+
+    参数：
+        q: 在 (w，x，y，z) 中的四元数方向。
+           形状是 (N， 4)。
+        eps: 一个小值以避免零分。
+             默认调整1e-9。
+
+    返回：
+        在 (w，x，y，z) 中的逆四元数。
+        形状是 (N， 4)。
     """
     return quat_conjugate(q) / q.pow(2).sum(dim=-1, keepdim=True).clamp(min=eps)
 
@@ -284,6 +439,23 @@ def quat_from_euler_xyz(roll: torch.Tensor, pitch: torch.Tensor, yaw: torch.Tens
 
     Returns:
         The quaternion in (w, x, y, z). Shape is (N, 4).
+    """
+    """转换为维勒角的旋转为四元数。
+
+    说明：
+        在XYZ公约中假设了尤勒角。
+
+    参数：
+        roll: 在 x 轴周围的旋转 (在半径中)。
+              形状是 (N，)。
+        pitch: 绕在 y 轴的旋转 (在半径中)。
+               形状是 (N，)。
+        yaw: 在z轴周围的旋转 (在半径中)。
+             形状是 (N，)。
+
+    返回：
+        在 (w，x，y，z) 中的四元数。
+        形状是 (N， 4)。
     """
     cy = torch.cos(yaw * 0.5)
     sy = torch.sin(yaw * 0.5)
@@ -307,6 +479,12 @@ def _sqrt_positive_part(x: torch.Tensor) -> torch.Tensor:
     Reference:
         https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversions.py#L91-L99
     """
+    """返回torch.sqrt(torch.max(0，x)) 但以零次分数，其中x是0。
+
+    Reference:
+        https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversion
+              s.py#L91-L99
+    """
     ret = torch.zeros_like(x)
     positive_mask = x > 0
     ret[positive_mask] = torch.sqrt(x[positive_mask])
@@ -325,6 +503,20 @@ def quat_from_matrix(matrix: torch.Tensor) -> torch.Tensor:
 
     Reference:
         https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversions.py#L102-L161
+    """
+    """转换作为转动矩阵的旋转为四元数。
+
+    参数：
+        matrix: 转动矩阵。
+                形状是 (...， 3， 3)。
+
+    返回：
+        在 (w，x，y，z) 中的四元数。
+        形状是 (...， 4)。
+
+    Reference:
+        https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversion
+              s.py#L102-L161
     """
     if matrix.size(-1) != 3 or matrix.size(-2) != 3:
         raise ValueError(f"Invalid rotation matrix shape {matrix.shape}.")
@@ -385,6 +577,21 @@ def _axis_angle_rotation(axis: Literal["X", "Y", "Z"], angle: torch.Tensor) -> t
     Reference:
         https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversions.py#L164-L191
     """
+    """返回旋转矩阵，为一个关于尤勒角描述的轴的旋转，
+    for each value of the angle given.
+
+    参数：
+        axis: 轴标签"X"或"Y"或"Z"。
+        angle: 在任何形状的半径中。
+
+    返回：
+        旋转矩阵。
+        形状是 (...， 3， 3)。
+
+    Reference:
+        https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversion
+              s.py#L164-L191
+    """
     cos = torch.cos(angle)
     sin = torch.sin(angle)
     one = torch.ones_like(angle)
@@ -417,6 +624,22 @@ def matrix_from_euler(euler_angles: torch.Tensor, convention: str) -> torch.Tens
 
     Reference:
         https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversions.py#L194-L220
+    """
+    """转换在半径中作为尤勒角 (内在) 的旋转为旋转矩阵。
+
+    参数：
+        euler_angles: 在半径中，
+                      形状是 (...， 3)。
+        convention: 从{"X"， "Y"， and "Z"}起3个大字母的会议字符串。
+                    例如"，XYZ"意味着轮换应该首先应用到x，然后y，然后z。
+
+    返回：
+        旋转矩阵。
+        形状是 (...， 3， 3)。
+
+    Reference:
+        https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversion
+              s.py#L194-L220
     """
     if euler_angles.dim() == 0 or euler_angles.shape[-1] != 3:
         raise ValueError("Invalid input euler angles.")
@@ -453,6 +676,25 @@ def euler_xyz_from_quat(
     Reference:
         https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
     """
+    """转换作为四元数的旋转为雷达人的尤勒角。
+
+    说明：
+        在XYZ外观约定中，
+
+    参数：
+        quat: 在 (w，x，y，z) 中的四元数方向。
+              形状是 (N， 4)。
+        wrap_to_2pi (bool): 要否将输出尤勒角卷入 [0， 2π)。
+                            如果 False，则返回默认范围的角度 (−π， π)。
+                            默认为 False。
+
+    返回：
+        一个含有滚球yaw的。
+        每个元素都是形状张量 (N，)。
+
+    Reference:
+        https://en.wikipedia.org/wiki/转换_之间的_四角_和_艾勒_角
+    """
     q_w, q_x, q_y, q_z = quat[:, 0], quat[:, 1], quat[:, 2], quat[:, 3]
     # roll (x-axis rotation)
     sin_roll = 2.0 * (q_w * q_x + q_y * q_z)
@@ -488,6 +730,23 @@ def axis_angle_from_quat(quat: torch.Tensor, eps: float = 1.0e-6) -> torch.Tenso
     Reference:
         https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversions.py#L526-L554
     """
+    """转换作为四元数的旋转为轴/角。
+
+    参数：
+        quat: 在 (w，x，y，z) 中的四元数方向。
+              形状是 (...， 4)。
+        eps: 对于泰勒近似的宽容。
+             在1.0e-6上默认。
+
+    返回：
+        在轴角形式中作为向量的旋转。
+        形状是 (...， 3)。
+        矢量的大小是绕向向的方向转向反时针的角。
+
+    Reference:
+        https://github.com/facebookresearch/pytorch3d/blob/main/pytorch3d/transforms/rotation_conversion
+              s.py#L526-L554
+    """
     # Modified to take in quat as [q_w, q_x, q_y, q_z]
     # Quaternion is [q_w, q_x, q_y, q_z] = [cos(theta/2), n_x * sin(theta/2), n_y * sin(theta/2), n_z * sin(theta/2)]
     # Axis-angle is [a_x, a_y, a_z] = [theta * n_x, theta * n_y, theta * n_z]
@@ -516,6 +775,18 @@ def quat_from_angle_axis(angle: torch.Tensor, axis: torch.Tensor) -> torch.Tenso
     Returns:
         The quaternion in (w, x, y, z). Shape is (N, 4).
     """
+    """转换作为角轴的旋转为四元数。
+
+    参数：
+        angle: 角度在向量方向周围的半径中反时针转向。
+               形状是 (N，)。
+        axis: 旋转的轴。
+              形状是 (N， 3)。
+
+    返回：
+        在 (w，x，y，z) 中的四元数。
+        形状是 (N， 4)。
+    """
     theta = (angle / 2).unsqueeze(-1)
     xyz = normalize(axis) * theta.sin()
     w = theta.cos()
@@ -535,6 +806,21 @@ def quat_mul(q1: torch.Tensor, q2: torch.Tensor) -> torch.Tensor:
 
     Raises:
         ValueError: Input shapes of ``q1`` and ``q2`` are not matching.
+    """
+    """乘以两个四元数。
+
+    参数：
+        q1: 在 (w，x，y，z) 中的第一个四角形。
+            形状是 (...， 4)。
+        q2: 在 (w，x，y，z) 中的第二个四元数。
+            形状是 (...， 4)。
+
+    返回：
+        在 (w，x，y，z) 中的两个四元数的产量。
+        形状是 (...， 4)。
+
+    异常：
+        ValueError: ``q1``和``q2``的输入形状不匹配。
     """
     # check input is correct
     if q1.shape != q2.shape:
@@ -571,6 +857,15 @@ def yaw_quat(quat: torch.Tensor) -> torch.Tensor:
     Returns:
         A quaternion with only yaw component.
     """
+    """提取一个四元数的部件。
+
+    参数：
+        quat: 在 (w，x，y，z) 中的方向。
+              形状是 (...， 4)
+
+    返回：
+        一个只有的四元数。
+    """
     shape = quat.shape
     quat_yaw = quat.view(-1, 4)
     qw = quat_yaw[:, 0]
@@ -599,6 +894,21 @@ def quat_box_minus(q1: torch.Tensor, q2: torch.Tensor) -> torch.Tensor:
     Reference:
         https://github.com/ANYbotics/kindr/blob/master/doc/cheatsheet/cheatsheet_latest.pdf
     """
+    """两个四元数之间的盒子减值运算器 (四元数区别)。
+
+    参数：
+        q1: 在 (w，x，y，z) 中的第一个四角形。
+            形状是 (N， 4)。
+        q2: 在 (w，x，y，z) 中的第二个四元数。
+            形状是 (N， 4)。
+
+    返回：
+        这两个四元数的区别。
+        形状是 (N， 3)。
+
+    Reference:
+        https://github.com/ANYbotics/kindr/blob/master/doc/cheatsheet/cheatsheet_latest.pdf
+    """
     quat_diff = quat_mul(q1, quat_conjugate(q2))  # q1 * q2^-1
     return axis_angle_from_quat(quat_diff)  # log(qd)
 
@@ -614,6 +924,23 @@ def quat_box_plus(q: torch.Tensor, delta: torch.Tensor, eps: float = 1.0e-6) -> 
 
     Returns:
         The updated quaternion after applying the perturbation. Shape is (N, 4).
+
+    Reference:
+        https://github.com/ANYbotics/kindr/blob/master/doc/cheatsheet/cheatsheet_latest.pdf
+    """
+    """方块加算器 (四元数更新) 将增值用于四元数。
+
+    参数：
+        q: 在 (w，x，y，z) 中的初始四分之一。
+           形状是 (N， 4)。
+        delta: 轴角的扰乱。
+               形状是 (N， 3)。
+            eps: 一个小值以避免零分。
+                 默认的1e-6。
+
+    返回：
+        在使用乱后更新的四元数。
+        形状是 (N， 4)。
 
     Reference:
         https://github.com/ANYbotics/kindr/blob/master/doc/cheatsheet/cheatsheet_latest.pdf
@@ -634,6 +961,18 @@ def quat_apply(quat: torch.Tensor, vec: torch.Tensor) -> torch.Tensor:
 
     Returns:
         The rotated vector in (x, y, z). Shape is (..., 3).
+    """
+    """运用四元数转向向量。
+
+    参数：
+        quat: 在 (w，x，y，z) 中的四元数。
+              形状是 (...， 4)。
+        vec: 在 (x，y，z) 中的向量。
+             形状是 (...， 3)。
+
+    返回：
+        在 (x，y，z) 中旋转的向量。
+        形状是 (...， 3)。
     """
     # store shape
     shape = vec.shape
@@ -657,6 +996,18 @@ def quat_apply_inverse(quat: torch.Tensor, vec: torch.Tensor) -> torch.Tensor:
     Returns:
         The rotated vector in (x, y, z). Shape is (..., 3).
     """
+    """运用反向四元数转向向量。
+
+    参数：
+        quat: 在 (w，x，y，z) 中的四元数。
+              形状是 (...， 4)。
+        vec: 在 (x，y，z) 中的向量。
+             形状是 (...， 3)。
+
+    返回：
+        在 (x，y，z) 中旋转的向量。
+        形状是 (...， 3)。
+    """
     # store shape
     shape = vec.shape
     # reshape to (N, 3) for multiplication
@@ -679,6 +1030,18 @@ def quat_apply_yaw(quat: torch.Tensor, vec: torch.Tensor) -> torch.Tensor:
     Returns:
         The rotated vector in (x, y, z). Shape is (N, 3).
     """
+    """只有围绕方向旋转向量。
+
+    参数：
+        quat: 在 (w，x，y，z) 中的方向。
+              形状是 (N， 4)。
+        vec: 在 (x，y，z) 中的向量。
+             形状是 (N， 3)。
+
+    返回：
+        在 (x，y，z) 中旋转的向量。
+        形状是 (N， 3)。
+    """
     quat_yaw = yaw_quat(quat)
     return quat_apply(quat_yaw, vec)
 
@@ -695,6 +1058,21 @@ def quat_rotate(q: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
 
     Returns:
         The rotated vector in (x, y, z). Shape is (..., 3).
+    """
+    """在q和v的最后一个维度上旋转一个向量，
+
+    ..
+    已过时 v2.1.0:该函数将在未来的版本中被删除以支持更快的实现:meth:`quat_apply`。
+
+    参数：
+        q: 在 (w，x，y，z) 中的四元数。
+           形状是 (...， 4)。
+        v: 在 (x，y，z) 中的向量。
+           形状是 (...， 3)。
+
+    返回：
+        在 (x，y，z) 中旋转的向量。
+        形状是 (...， 3)。
     """
     # deprecation
     logger.warning(
@@ -718,6 +1096,21 @@ def quat_rotate_inverse(q: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
     Returns:
         The rotated vector in (x, y, z). Shape is (..., 3).
     """
+    """在q和v的最后一个维度上旋转向量，
+
+    ..
+    已过时 v2.1.0:该函数将在未来的版本中被删除以支持更快的实现:meth:`quat_apply_inverse`。
+
+    参数：
+        q: 在 (w，x，y，z) 中的四元数。
+           形状是 (...， 4)。
+        v: 在 (x，y，z) 中的向量。
+           形状是 (...， 3)。
+
+    返回：
+        在 (x，y，z) 中旋转的向量。
+        形状是 (...， 3)。
+    """
     logger.warning(
         "The function 'quat_rotate_inverse' will be deprecated in favor of the faster method 'quat_apply_inverse'."
         " Please use 'quat_apply_inverse' instead...."
@@ -736,6 +1129,17 @@ def quat_error_magnitude(q1: torch.Tensor, q2: torch.Tensor) -> torch.Tensor:
     Returns:
         Angular error between input quaternions in radians.
     """
+    """计算两个四元数之间的旋转差异。
+
+    参数：
+        q1: 在 (w，x，y，z) 中的第一个四角形。
+            形状是 (...， 4)。
+        q2: 在 (w，x，y，z) 中的第二个四元数。
+            形状是 (...， 4)。
+
+    返回：
+        在射线中输入四元数之间的角错误。
+    """
     axis_angle_error = quat_box_minus(q1, q2)
     return torch.norm(axis_angle_error, dim=-1)
 
@@ -752,6 +1156,19 @@ def skew_symmetric_matrix(vec: torch.Tensor) -> torch.Tensor:
 
     Raises:
         ValueError: If input tensor is not of shape (..., 3).
+    """
+    """计算一个向量的偏差对称矩阵。
+
+    参数：
+        vec: 输入向量。
+             形状为 (3，) 或 (N， 3)。
+
+    返回：
+        偏差对称矩阵。
+        形状是 (1， 3， 3) 或 (N， 3， 3)。
+
+    异常：
+        ValueError: 如果输入子没有形状 (...， 3)。
     """
     # check input is correct
     if vec.shape[-1] != 3:
@@ -774,6 +1191,8 @@ def skew_symmetric_matrix(vec: torch.Tensor) -> torch.Tensor:
 """
 Transformations
 """
+"""变化
+"""
 
 
 def is_identity_pose(pos: torch.tensor, rot: torch.tensor) -> bool:
@@ -788,6 +1207,21 @@ def is_identity_pose(pos: torch.tensor, rot: torch.tensor) -> bool:
 
     Returns:
         True if all the input poses result in identity transform. Otherwise, False.
+    """
+    """检查是否输入姿势是身份转变。
+
+    该函数通过L2标准检查输入位置和方向是否接近零和身份。
+    它会NOT检查方向的错误。
+
+    参数：
+        pos: 卡特斯人的位置。
+             形状是 (N， 3)。
+        rot: 在 (w，x，y，z) 中的四元数。
+             形状是 (N， 4)。
+
+    返回：
+        True如果所有输入构成了身份变化。
+        否则，False。
     """
     # create identity transformations
     pos_identity = torch.zeros_like(pos)
@@ -817,6 +1251,32 @@ def combine_frame_transforms(
     Returns:
         A tuple containing the position and orientation of frame 2 w.r.t. frame 0.
         Shape of the tensors are (N, 3) and (N, 4) respectively.
+    """
+    """将两个参考框架之间的转换组合成静止框架。
+
+    它执行以下转换操作:`T_{02} = T_{01} \times T_{12}`，
+    where :数学:`T_{AB}`是从框架A到B的均质转换矩阵。
+
+    参数：
+        t01: 框架1 w.r.t的位置。
+             框架 0
+             形状是 (N， 3)。
+        q01: 框架1 w.r.t的四元数方向。
+             在 (w，x，y，z) 中的框架0
+             形状是 (N， 4)。
+        t12: 框架2 w.r.t的位置
+             框架1
+             形状是 (N， 3)。
+             在 None 时的默认值，在这种情况下，假设位置为零。
+        q12: 框架2 w.r.t的四元数方向。
+             在 (w，x，y，z) 中的框架1
+             形状是 (N， 4)。
+             在 None 时的默认状态下，在这种情况下，取向被认为是身份。
+
+    返回：
+        包含2 w.r.t框架的位置和方向的图布。
+        框架 0
+        紧器的形状分别为 (N， 3) 和 (N， 4)。
     """
     # compute orientation
     if q12 is not None:
@@ -864,6 +1324,41 @@ def rigid_body_twist_transform(
         - The transformed linear velocity in frame 1. Shape is (N, 3).
         - The transformed angular velocity in frame 1. Shape is (N, 3).
     """
+    """在参考框架之间转换硬体的线性和角性速度。
+
+    鉴于0的扭曲相对于 0 ，这个函数计算了1的扭曲相对于 1
+    from the position and orientation of frame 1 relative to frame 0. The transformation follows the
+    equations:
+
+    .. math::
+
+        w_11 = R_{10} w_00 = R_{01}^{-1} w_00
+        v_11 = R_{10} v_00 + R_{10} (w_00 \times t_01) = R_{01}^{-1} (v_00 + (w_00 \times t_01))
+
+    在哪里
+
+        - 数学:`R_{01}`是从四元数中取出的从0到1的轮回矩阵:`q_{01}`。
+        - :数学:`t_{01}`是框架1对框架0的位置，表达为框架0
+        - 数学:`w_0`是 0 的角度速度在 0 框架中
+        - 数学:`v_0`是 0 的线性速度
+
+    参数：
+        v0: 在 0 架子中的线性速度
+            形状是 (N， 3)。
+        w0: 在 0 中 0 的角速度
+            形状是 (N， 3)。
+        t01: 框架1 w.r.t的位置。
+             框架 0
+             形状是 (N， 3)。
+        q01: 框架1 w.r.t的四元数方向。
+             在 (w，x，y，z) 中的框架0
+             形状是 (N， 4)。
+
+    返回：
+        含有:
+        - 形状是 (N，3)
+        - 形状是 (N， 3)。
+    """
     w1 = quat_rotate_inverse(q01, w0)
     v1 = quat_rotate_inverse(q01, v0 + torch.cross(w0, t01, dim=-1))
     return v1, w1
@@ -889,6 +1384,32 @@ def subtract_frame_transforms(
     Returns:
         A tuple containing the position and orientation of frame 2 w.r.t. frame 1.
         Shape of the tensors are (N, 3) and (N, 4) respectively.
+    """
+    """减去两个参考框架之间的转换成静止框架。
+
+    它执行以下转换操作:`T_{12} = T_{01}^{-1} \times T_{02}`，
+    where :数学:`T_{AB}`是从框架A到B的均质转换矩阵。
+
+    参数：
+        t01: 框架1 w.r.t的位置。
+             框架 0
+             形状是 (N， 3)。
+        q01: 框架1 w.r.t的四元数方向。
+             在 (w，x，y，z) 中的框架0
+             形状是 (N， 4)。
+        t02: 框架2 w.r.t的位置
+             框架 0
+             形状是 (N， 3)。
+             在 None 时的默认值，在这种情况下，假设位置为零。
+        q02: 框架2 w.r.t的四元数方向。
+             在 (w，x，y，z) 中的框架0
+             形状是 (N， 4)。
+             在 None 时的默认状态下，在这种情况下，取向被认为是身份。
+
+    返回：
+        包含2 w.r.t框架的位置和方向的图布。
+        框架1
+        紧器的形状分别为 (N， 3) 和 (N， 4)。
     """
     # compute orientation
     q10 = quat_inv(q01)
@@ -934,6 +1455,31 @@ def compute_pose_error(
     Raises:
         ValueError: Invalid rotation error type.
     """
+    """计算源和目标框架之间的位置和方向错误。
+
+    参数：
+        t01: 源框架的位置。
+             形状是 (N， 3)。
+        q01: 在 (w，x，y，z) 中源框架的四元数定向。
+             形状是 (N， 4)。
+        t02: 目标框架的位置。
+             形状是 (N， 3)。
+        q02: 在 (w，x，y，z) 中目标框架的四元数定向。
+             形状是 (N， 4)。
+        rot_error_type: 转换错误类型: "quat"， "axis_angle"。
+                        在"axis_angle"上默认。
+
+    返回：
+        包含位置和方向错误的元组。
+        位置错误的形状是 (N， 3)。
+        导向错误的形状取决于:attr:`rot_error_type`的值:
+
+        - 如果:attr:`rot_error_type`是"quat"，则导向错误被返回为quaternion。
+        - 如果:attr:`rot_error_type`是"axis_angle"，导向错误将作为轴角向量返回。
+
+    异常：
+        ValueError: 无效的旋转错误类型
+    """
     # Compute quaternion error (i.e., difference quaternion)
     # Reference: https://personal.utdallas.edu/~sxb027100/dock/quaternion.html
     # q_current_norm = q_current * q_current_conj
@@ -976,6 +1522,25 @@ def apply_delta_pose(
     Returns:
         A tuple containing the displaced position and orientation frames.
         Shape of the tensors are (N, 3) and (N, 4) respectively.
+    """
+    """在源姿势上应用 delta姿势转换。
+
+    `delta_pose`的前三个元素被解释为卡特式位置移动。
+    在角度轴格式中，`delta_pose`的剩余三个元素被解释为方向移动。
+
+    参数：
+        source_pos: 源框架的位置。
+                    形状是 (N， 3)。
+        source_rot: 在 (w，x，y，z) 中源框架的四元数定向。
+                    形状是 (N，4).。
+        delta_pose: 位置和方向转移。
+                    形状为 (N， 6)。
+        eps: 视导向移动为零的宽容。
+             在1.0e-6上默认。
+
+    返回：
+        包含移动位置和方向框架的图普。
+        紧器的形状分别为 (N， 3) 和 (N， 4)。
     """
     # number of poses given
     num_poses = source_pos.shape[0]
@@ -1031,6 +1596,39 @@ def transform_points(
         ValueError: If the inputs `pos` is not of shape (N, 3) or (3,).
         ValueError: If the inputs `quat` is not of shape (N, 4) or (4,).
     """
+    """将给定的框架中的输入点转换为目标框架。
+
+    这个函数将点从源框转换为目标框。
+    转型由
+    position :数学:`t`和方向:数学:`R`的目标框架在源框架。
+
+    .. math::
+        p_{target} = R_{target} \times p_{source} + t_{target}
+
+    如果输入 `points` 是一个点分组，则输入 `pos` 和 `quat` 必须是位置和四元数的分组或单个位置和四元数。
+    如果输入`pos`和`quat`是单个位置和四方位，则应对批次的所有点进行相同的转换。
+
+    如果输入 :attr:`pos` 和 :attr:`quat` 是 None，则不应运行相应的转换。
+
+    参数：
+        points: 转换的点。
+                形状是 (N，P，3) 或 (P，3)。
+        pos: 目标框架的位置。
+             形状是 (N， 3) 或 (3，)。
+             在 None 时的默认值，在这种情况下，假设位置为零。
+        quat: 在 (w，x，y，z) 中目标框架的四元数定向。
+              形状是 (N， 4) 或 (4，)。
+              在 None 时的默认状态下，在这种情况下，取向被认为是身份。
+
+    返回：
+        目标框架中的转换点。
+        形状是 (N，P，3) 或 (P，3)。
+
+    异常：
+        ValueError: 如果输入 `points` 没有形状 (N，P，3) 或 (P，3)。
+        ValueError: 如果输入 `pos` 没有形状 (N， 3) 或 (3，)。
+        ValueError: 如果输入 `quat` 没有形状 (N， 4) 或 (4，)。
+    """
     points_batch = points.clone()
     # check if inputs are batched
     is_batched = points_batch.dim() == 3
@@ -1073,6 +1671,8 @@ def transform_points(
 """
 Projection operations.
 """
+"""投影动作。
+"""
 
 
 @torch.jit.script
@@ -1097,6 +1697,29 @@ def orthogonalize_perspective_depth(depth: torch.Tensor, intrinsics: torch.Tenso
     Raises:
         ValueError: When depth is not of shape (H, W) or (H, W, 1) or (N, H, W) or (N, H, W, 1).
         ValueError: When intrinsics is not of shape (3, 3) or (N, 3, 3).
+    """
+    """将视角深度图像转换为直角深度图像。
+
+    视角深度图像包含从相机的光学中心测量的距离。
+    与此同时，直角深度图像提供了相机的图像平面距离。
+    这种方法使用摄像头几何来将视角深度转换为直角深度图像。
+
+    函数假设宽度和高度都超过1。
+
+    参数：
+        depth: 视角深度图像。
+               形状是 (H， W) 或 (H， W， 1) 或 (N， H， W) 或 (N， H， W， 1)。
+        intrinsics: 摄像机的校准矩阵。
+                    如果提供单个矩阵，则在批量中的所有深度图像中使用相同的校准矩阵。
+                    形状是 (3， 3) 或 (N， 3， 3)。
+
+    返回：
+        ort形深度图像。
+        形状与深度图像的输入形状一致。
+
+    异常：
+        ValueError: 如果深度没有形状 (H， W) 或 (H， W， 1) 或 (N， H， W) 或 (N， H， W， 1)。
+        ValueError: 当本质不具有形状 (3， 3) 或 (N， 3， 3)
     """
     # Clone inputs to avoid in-place modifications
     perspective_depth_batch = depth.clone()
@@ -1204,6 +1827,43 @@ def unproject_depth(depth: torch.Tensor, intrinsics: torch.Tensor, is_ortho: boo
         ValueError: When depth is not of shape (H, W) or (H, W, 1) or (N, H, W) or (N, H, W, 1).
         ValueError: When intrinsics is not of shape (3, 3) or (N, 3, 3).
     """
+    """没有投影的深度图像进入点云。
+
+    这种函数将直角或视角深度图像转换为相机校准矩阵的点。
+    它使用基于相机几何学的以下变化:
+
+    .. math::
+        p_{3D} = K^{-1} \times [u, v, 1]^T \times d
+
+    where :数学:`p_{3D}`是3D点， 数学:`d`是深度值 (从图像平面测量)，
+    :math:`u`和数学:`v`是像素坐标和数学:`K`是内在的矩阵。
+
+    函数假设宽度和高度都超过1。
+    这使得函数处理许多可能的深度图像和内在矩阵。
+
+    .. 说明::
+        If :attr:`is_ortho`是False，输入深度图像转换为直角深度图像
+        使用:meth:`orthogonalize_perspective_depth`方法。
+
+    参数：
+        depth: 测量深度。
+               形状是 (H， W) 或 (H， W， 1) 或 (N， H， W) 或 (N， H， W， 1)。
+        intrinsics: 摄像机的校准矩阵。
+                    如果提供单个矩阵，则在批量中的所有深度图像中使用相同的校准矩阵。
+                    形状是 (3， 3) 或 (N， 3， 3)。
+        is_ortho: 如果输入深度图像是直角或视角深度图像。
+                  如果True，输入深度图像将被视为*直角*类型，测量来自相机的图像平面。
+                  如果False，深度图像将被视为 *视角*类型，测量来自相机的光学中心。
+                  默认为 True。
+
+    返回：
+        它们的3D坐标。
+        形状是 (P， 3) 或 (N， P， 3)。
+
+    异常：
+        ValueError: 如果深度没有形状 (H， W) 或 (H， W， 1) 或 (N， H， W) 或 (N， H， W， 1)。
+        ValueError: 当本质不具有形状 (3， 3) 或 (N， 3， 3)
+    """
     # clone inputs to avoid in-place modifications
     intrinsics_batch = intrinsics.clone()
     # convert depth image to orthogonal if needed
@@ -1282,6 +1942,34 @@ def project_points(points: torch.Tensor, intrinsics: torch.Tensor) -> torch.Tens
     Returns:
         Projected 3D coordinates of points. Shape is (P, 3) or (N, P, 3).
     """
+    """项目3D指向2D图像平面。
+
+    这个项目3D指向2D图像平面。
+    变化是由摄像机内在矩阵定义的。
+
+    .. math::
+
+        \begin{align}
+            p &= K \times p_{3D}  = \\
+            p_{2D} &= \begin{pmatrix} u \\ v \\  d \end{pmatrix}
+                    = \begin{pmatrix} p[0] / p[2] \\  p[1] / p[2] \\ Z \end{pmatrix}
+        \end{align}
+
+    where :数学:`p_{2D} = (u， v， d)`是预测的3D点:`p_{3D} = (X， Y， Z)`是
+    3D点和数学:`K \in \mathbb{R}^{3 \times 3}`是内在矩阵。
+
+    如果`points`是一个3D点的批量，而`intrinsics`是一个单一的内在矩阵，则应对该批量的所有点应用相同的校准矩阵。
+
+    参数：
+        points: 它们的3D坐标。
+                形状是 (P， 3) 或 (N， P， 3)。
+        intrinsics: 摄像头的校准矩阵。
+                    形状是 (3， 3) 或 (N， 3， 3)。
+
+    返回：
+        预测点的3D坐标。
+        形状是 (P， 3) 或 (N， P， 3)。
+    """
     # clone the inputs to avoid in-place operations modifying the original data
     points_batch = points.clone()
     intrinsics_batch = intrinsics.clone()
@@ -1316,6 +2004,8 @@ def project_points(points: torch.Tensor, intrinsics: torch.Tensor) -> torch.Tens
 """
 Sampling
 """
+"""采样
+"""
 
 
 @torch.jit.script
@@ -1328,6 +2018,16 @@ def default_orientation(num: int, device: str) -> torch.Tensor:
 
     Returns:
         Identity quaternion in (w, x, y, z). Shape is (num, 4).
+    """
+    """返回身份转换。
+
+    参数：
+        num: 取样的旋转数量
+        device: 电脑的电压。
+
+    返回：
+        在 (w，x，y，z) 中的身份四方体。
+        形状是 (第4号)。
     """
     quat = torch.zeros((num, 4), dtype=torch.float, device=device)
     quat[..., 0] = 1.0
@@ -1349,6 +2049,19 @@ def random_orientation(num: int, device: str) -> torch.Tensor:
     Reference:
         https://docs.scipy.org/doc/scipy/reference/generated/scipy.spatial.transform.Rotation.random.html
     """
+    """返回样本中的3D旋转作为四元数。
+
+    参数：
+        num: 取样的旋转数量
+        device: 电脑的电压。
+
+    返回：
+        在 (w， x， y， z) 中采样四角形。
+        形状是 (第4号)。
+
+    Reference:
+        https://docs.scipy.org/doc/scipy/引用/生成/scipy.spatial.transform.Rotation.random.html
+    """
     # sample random orientation from normal distribution
     quat = torch.randn((num, 4), dtype=torch.float, device=device)
     # normalize the quaternion
@@ -1365,6 +2078,16 @@ def random_yaw_orientation(num: int, device: str) -> torch.Tensor:
 
     Returns:
         Sampled quaternion in (w, x, y, z). Shape is (num, 4).
+    """
+    """返回在z轴周围的样本旋转。
+
+    参数：
+        num: 取样的旋转数量
+        device: 电脑的电压。
+
+    返回：
+        在 (w， x， y， z) 中采样四角形。
+        形状是 (第4号)。
     """
     roll = torch.zeros(num, dtype=torch.float, device=device)
     pitch = torch.zeros(num, dtype=torch.float, device=device)
@@ -1384,6 +2107,18 @@ def sample_triangle(lower: float, upper: float, size: int | tuple[int, ...], dev
 
     Returns:
         Sampled tensor. Shape is based on :attr:`size`.
+    """
+    """随机抽取来自三角分布的子。
+
+    参数：
+        lower: 采样子的较低范围。
+        upper: 采样子的上层范围。
+        size: 子的形状。
+        device: 电脑的电压。
+
+    返回：
+        抽取了子。
+        形状是基于:attr:`size`的。
     """
     # convert to tuple
     if isinstance(size, int):
@@ -1411,6 +2146,18 @@ def sample_uniform(
 
     Returns:
         Sampled tensor. Shape is based on :attr:`size`.
+    """
+    """在范围内均的样本。
+
+    参数：
+        lower: 统一范围的下边界。
+        upper: 统一范围的上限。
+        size: 子的形状。
+        device: 电脑的电压。
+
+    返回：
+        抽取了子。
+        形状是基于:attr:`size`的。
     """
     # convert to tuple
     if isinstance(size, int):
@@ -1441,6 +2188,26 @@ def sample_log_uniform(
     Returns:
         Sampled tensor. Shape is based on :attr:`size`.
     """
+    """采样使用在范围内的日志均分布。
+
+    记载均分布定义为记载空间中的均分布。
+    它对于跨越数个大小顺序的样本取值是有用的。
+    在日记空间中，采样值均分布，然后指数化以获得最终值。
+
+    .. math::
+
+        x = \exp(\text{uniform}(\log(\text{lower}), \log(\text{upper})))
+
+    参数：
+        lower: 统一范围的下边界。
+        upper: 统一范围的上限。
+        size: 子的形状。
+        device: 电脑的电压。
+
+    返回：
+        抽取了子。
+        形状是基于:attr:`size`的。
+    """
     # cast to tensor if not already
     if not isinstance(lower, torch.Tensor):
         lower = torch.tensor(lower, dtype=torch.float, device=device)
@@ -1463,6 +2230,17 @@ def sample_gaussian(
 
     Returns:
         Sampled tensor.
+    """
+    """使用高斯分布的样本。
+
+    参数：
+        mean: 这就是高斯人。
+        std: 斯人。
+        size: 子的形状。
+        device: 电脑的电压。
+
+    返回：
+        抽取了子。
     """
     if isinstance(mean, float):
         if isinstance(size, int):
@@ -1492,6 +2270,23 @@ def sample_cylinder(
     Returns:
         Sampled tensor. Shape is :obj:`(*size, 3)`.
     """
+    """在面上均的3D点样本。
+
+    圆柱以原点为中心，并与z轴一致。
+    cyl的高度从:obj:`h_range`范围均抽样，而半径固定在:obj:`radius`。
+
+    返回样本点为 :obj:`(*size， 3)`， i.e.的形状，最后一个维度包含样本点的x，y和z坐标。
+
+    参数：
+        radius: 圆柱的半径。
+        h_range: minimum筒的最小和最大高度。
+        size: 子的形状。
+        device: 电脑的电压。
+
+    返回：
+        抽取了子。
+        形状是:obj:`(*size， 3)`。
+    """
     # sample angles
     angles = (torch.rand(size, device=device) * 2 - 1) * torch.pi
     h_min, h_max = h_range
@@ -1511,6 +2306,8 @@ def sample_cylinder(
 
 """
 Orientation Conversions
+"""
+"""方向转变
 """
 
 
@@ -1560,6 +2357,50 @@ def convert_camera_frame_orientation_convention(
 
     Returns:
         Quaternion of form `(w, x, y, z)` with shape (..., 4) in target convention
+    """
+    """转换一个四元数，代表从一个会议转换到另一个会议。
+
+    在USD中，相机遵循``"opengl"``规则。
+    因此，它总是在**Y up**会议。
+    这意味着摄像头正在向下看 -Z轴， +Y轴向上， +X轴向右。
+    然而，在ROS中，摄像头看着+Z轴， +Y轴向下， +X轴向右。
+    因此，摄像头需要通过:math:`180^{\circ}`绕X轴旋转以遵循ROS规则。
+
+    .. math::
+
+        T_{ROS} =
+            \begin{bmatrix}
+                1 & 0 & 0 & 0 \ 0 & -1 & 0 & 0 \ 0 & 0 & -1 & 0 \ 0 & 0 & 0 & 1
+            \end{bmatrix} T_{USD}
+
+    另一方面，典型的世界坐标系统是+X向前，+Y向左，+Z向上。
+    通过通过:`90^{\circ}`在 X 轴周围:`-90^{\circ}`在 Y 轴周围。
+
+    .. math::
+
+        T_{WORLD} =
+            \begin{bmatrix}
+                0 & 0 & -1 & 0 \ -1 & 0 & 0 & 0 \ 0 & 1 & 0 & 0 \ 0 & 0 & 0 & 1
+            \end{bmatrix} T_{USD}
+
+    因此，根据它们的应用，摄像头遵循不同的定向规范。
+    这种函数将一个四元数从一个会议转换到另一个。
+
+    可能的会议是:
+
+    - 在OpenGL (Usd.Camera) 公约中，应用:obj:`"opengl"` - 前轴: -Z - 上轴 +Y - 抵消
+    - :obj:`"ros"`- 前向轴: +Z - 上向轴 -YROS公约
+    - 在"世界框架"公约中，应用:obj:`"world"` - 前轴:+X - 上轴 +Z - 偏移
+
+    参数：
+        orientation: 形状`(w， x， y， z)`的四角形，形状 (...， 4) 在源合约中。
+        origin: 让我们转换。
+                默认的"开放"
+        target: 会议要转换。
+                默认的"ros"。
+
+    返回：
+        形状`(w， x， y， z)`的四角形，形状 (...， 4) 在目标合约中
     """
     if target == origin:
         return orientation.clone()
@@ -1636,6 +2477,34 @@ def create_rotation_matrix_from_view(
     Reference:
     Based on PyTorch3D (https://github.com/facebookresearch/pytorch3d/blob/eaf0709d6af0025fe94d1ee7cec454bc3054826a/pytorch3d/renderer/cameras.py#L1635-L1685)
     """
+    """计算来自世界的旋转矩阵，以查看坐标。
+
+    这种函数采用"眼睛"向量，指明相机在世界坐标中的位置，以及"目标"向量，指明对象的位置。
+    输出是一个转换矩阵
+    from world coordinates -> view coordinates.
+
+        输入眼睛和目标都可以
+        - 3个元素tuple/列表
+        - 形状的火 (1， 3)
+        - 形状的火 (N，3)
+
+    参数：
+        eyes: 摄像机在世界坐标中的位置。
+        targets: 在世界坐标中对象的位置。
+        up_axis: 摄像头的上轴。
+                 默认的"Z"。
+        device: 发射火的装置。
+                默认的"CPU"。
+
+    这些向量相互传播，所以它们都有形状 (N， 3)。
+
+    返回：
+        R: (N， 3， 3) 批量旋转矩阵
+
+    Reference:
+    基于PyTorch3D (https://github.com/facebookresearch/pytorch3d/blob/eaf0709d6af0025fe94d1ee7cec454bc3054
+    826a/pytorch3d/renderer/cameras.py#L1635-L1685)
+    """
     if up_axis == "Y":
         up_axis_vec = torch.tensor((0, 1, 0), device=device, dtype=torch.float32).repeat(eyes.shape[0], 1)
     elif up_axis == "Z":
@@ -1665,6 +2534,15 @@ def make_pose(pos: torch.Tensor, rot: torch.Tensor) -> torch.Tensor:
     Returns:
         Batch of pose matrices with last 2 dimensions of (4, 4).
     """
+    """从位置和旋转矩阵创建转换矩阵。
+
+    参数：
+        pos: 位置向量组，最后的维度为3。
+        rot: 轮换矩阵的批量，最后的2个尺寸为 (3， 3)。
+
+    返回：
+        有 (4，4) 的最后2个维度的姿势矩阵组。
+    """
     assert isinstance(pos, torch.Tensor), "Input must be a torch tensor"
     assert isinstance(rot, torch.Tensor), "Input must be a torch tensor"
     assert pos.shape[:-1] == rot.shape[:-2]
@@ -1687,6 +2565,16 @@ def unmake_pose(pose: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
             - Batch of position vectors with last dimension of 3.
             - Batch of rotation matrices with last 2 dimensions of (3, 3).
     """
+    """分开转换矩阵成位置和旋转矩阵。
+
+    参数：
+        pose: 有 (4，4) 的最后2个维度的姿势矩阵组。
+
+    返回：
+        含有:
+            - 位置向量组，最后的维度为3。
+            - 轮换矩阵的批量，最后的2个尺寸为 (3， 3)。
+    """
     assert isinstance(pose, torch.Tensor), "Input must be a torch tensor"
     return pose[..., :3, 3], pose[..., :3, :3]
 
@@ -1701,6 +2589,16 @@ def pose_inv(pose: torch.Tensor) -> torch.Tensor:
 
     Returns:
         Batch of inverse pose matrices with last 2 dimensions of (4, 4).
+    """
+    """计算转换矩阵的逆向。
+
+    一个姿势矩阵的逆向 [R t； 0 1] 是 [R.T -R.T*t； 0 1]。
+
+    参数：
+        pose: 有 (4，4) 的最后2个维度的姿势矩阵组。
+
+    返回：
+        逆姿矩阵的批量，最后的2个维度为 (4， 4)。
     """
     assert isinstance(pose, torch.Tensor), "Input must be a torch tensor"
     num_axes = len(pose.shape)
@@ -1735,6 +2633,21 @@ def pose_in_A_to_pose_in_B(pose_in_A: torch.Tensor, pose_A_in_B: torch.Tensor) -
     Returns:
         Batch of transformation matrices of point C in frame B.
     """
+    """转换从一个坐标框架到另一个。
+
+    转换图形 A 中点 C 的矩阵为图形 B 中点 C 的矩阵。
+
+    例如使用:
+
+    frame_C_in_B = pose_in_A_to_pose_in_B(frame_C_in_A, frame_A_in_B)
+
+    参数：
+        pose_in_A: 在格A中的C点转换矩阵的批量
+        pose_A_in_B: 框架 A 在框架 B 中的转换矩阵组
+
+    返回：
+        在图B中的点C的转换矩阵批量
+    """
     assert isinstance(pose_in_A, torch.Tensor), "Input must be a torch tensor"
     assert isinstance(pose_A_in_B, torch.Tensor), "Input must be a torch tensor"
     return torch.matmul(pose_A_in_B, pose_in_A)
@@ -1752,6 +2665,18 @@ def quat_slerp(q1: torch.Tensor, q2: torch.Tensor, tau: float) -> torch.Tensor:
 
     Returns:
         Interpolated quaternion in (w, x, y, z) format.
+    """
+    """在两个四元数之间执行圆形线性插射 (SLERP)。
+
+    该函数不支持批量加工。
+
+    参数：
+        q1: 在 (w，x，y，z) 格式中，
+        q2: 在 (w，x，y，z) 格式中进行第二个四元数。
+        tau: 在0 (q1) 和1 (q2) 间的插射系数。
+
+    返回：
+        在 (w， x， y， z) 格式中回合的四元数。
     """
     assert isinstance(q1, torch.Tensor), "Input must be a torch tensor"
     assert isinstance(q2, torch.Tensor), "Input must be a torch tensor"
@@ -1789,6 +2714,20 @@ def interpolate_rotations(R1: torch.Tensor, R2: torch.Tensor, num_steps: int, ax
     Returns:
         Stack of interpolated rotation matrices of shape (num_steps + 1, 4, 4),
         including the start and end rotations.
+    """
+    """在两个旋转矩阵之间进行回合。
+
+    参数：
+        R1: 第一个旋转矩阵。
+            (4x4)
+        R2: 第二旋转矩阵。
+            (4x4)
+        num_steps: 预期的间断旋转数量 (不包括开始和结束)。
+        axis_angle: 如果 True，则在轴角表示中插入；否则使用slerp。
+                    默认为 True。
+
+    返回：
+        交叉旋转矩阵的形状 (num_steps + 1， 4， 4)，包括开始和结束旋转。
     """
     assert isinstance(R1, torch.Tensor), "Input must be a torch tensor"
     assert isinstance(R2, torch.Tensor), "Input must be a torch tensor"
@@ -1850,6 +2789,22 @@ def interpolate_poses(
             - Array of shape (N + 2, 4, 4) corresponding to the interpolated pose path.
             - Number of interpolated points (N) in the path.
     """
+    """执行两种姿势之间的线性回合。
+
+    参数：
+        pose_1: 4x4开始姿势。
+        pose_2: 4x4终端姿势。
+        num_steps: 如果提供，指定所需的插点数量。
+                   通过0对应无回合。
+                   如果None，必须提供step_size。
+        step_size: 如果提供，根据姿势之间的距离确定步骤数。
+        perturb: 如果True，随机扰乱插入位置点。
+
+    返回：
+        含有:
+            - 形状阵列 (N + 2， 4， 4) 与回合的姿势路径相应。
+            - 路径中插入点数 (N)。
+    """
     assert isinstance(pose_1, torch.Tensor), "Input must be a torch tensor"
     assert isinstance(pose_2, torch.Tensor), "Input must be a torch tensor"
     assert step_size is None or num_steps is None
@@ -1905,6 +2860,16 @@ def transform_poses_from_frame_A_to_frame_B(
     Returns:
         Transformed pose sequence of shape [T, 4, 4].
     """
+    """转换从一个坐标框架到另一个保存相对姿势。
+
+    参数：
+        src_poses: 输入姿势序列 (形状 [T， 4， 4]) 来自源示范。
+        frame_A: 4x4框架A姿势。
+        frame_B: 4x4框架B姿势。
+
+    返回：
+        转型姿势序列的形状 [T， 4， 4]。
+    """
     # Transform source end effector poses to be relative to source object frame
     src_poses_rel_frame_B = pose_in_A_to_pose_in_B(
         pose_in_A=src_poses,
@@ -1927,6 +2892,14 @@ def generate_random_rotation(rot_boundary: float = (2 * math.pi)) -> torch.Tenso
 
     Returns:
         3x3 rotation matrix.
+    """
+    """使用尤勒角度生成一个随机旋转矩阵。
+
+    参数：
+        rot_boundary: 每个轴 (x，y，z) 周围随机旋转角的范围。
+
+    返回：
+        3x3旋转矩阵。
     """
     angles = torch.rand(3) * rot_boundary
     Rx = torch.tensor(
@@ -1955,6 +2928,14 @@ def generate_random_translation(pos_boundary: float = 1) -> torch.Tensor:
     Returns:
         3-element translation vector.
     """
+    """产生一个随机翻译向量。
+
+    参数：
+        pos_boundary: 在3D空间中随机翻译值的范围。
+
+    返回：
+        三个元素的转换向量。
+    """
     return torch.rand(3) * 2 * pos_boundary - pos_boundary  # Random translation in 3D space
 
 
@@ -1967,6 +2948,15 @@ def generate_random_transformation_matrix(pos_boundary: float = 1, rot_boundary:
 
     Returns:
         4x4 transformation matrix.
+    """
+    """产生一个结合转换和转换的随机转换矩阵。
+
+    参数：
+        pos_boundary: 随机翻译值的范围。
+        rot_boundary: 随机旋转角的范围。
+
+    返回：
+        4x4转换矩阵。
     """
     R = generate_random_rotation(rot_boundary)
     translation = generate_random_translation(pos_boundary)

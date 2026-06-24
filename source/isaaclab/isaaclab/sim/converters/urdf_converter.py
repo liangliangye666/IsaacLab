@@ -51,15 +51,44 @@ class UrdfConverter(AssetConverterBase):
 
     .. _isaacsim.asset.importer.urdf: https://docs.isaacsim.omniverse.nvidia.com/latest/importer_exporter/ext_isaacsim_asset_importer_urdf.html
     """
+    """转换URDF描述文件为USD文件。
+
+    这个类包围`isaacsim.asset.importer.urdf`_扩展以提供惰的实现
+    for URDF to USD conversion. It stores the output USD file in an instanceable format since that is
+    在所有学习相关应用中通常使用。
+
+    .. 谨慎::
+        如果只修改URDF所使用的网格文件，目前的惰转换实现不会自动触发USD生成。
+        要强制生成，要么设置:obj:`AssetConverterBaseCfg.force_usd_conversion`为True，要么删除输出目录。
+
+    .. 说明::
+        从Isaac Sim4.5开始，扩展名称从``omni.importer.urdf``变为``isaacsim.asset.importer.urdf``。
+
+    .. 说明::
+        在Isaac Sim 5.1中，URDF进口商改变了固定结合的默认行为。
+        通过``fixed_joint``元素连接的链接不再合并，当它们的URDF链接输入指定质量和惯性时，即使``merge-joint``设置为True。
+        新的行为将与质量/惰性的链接视为整体而不是零质量的参考框架。
+
+        为了保持向后兼容性，**这个转换器将其转换到旧版本的URDF进口扩展** (版本2.4.31) 中，该扩展器仍然默认合并固定关节。
+        这使得现有的URDFs可以按照预期运行，而不需要修改。
+
+    .. _isaacsim.asset.importer.urdf: https://docs.isaacsim.omniverse.nvidia.com/latest/importer_exporter/ext_isaacsim_asset_importer_urdf.html
+    """
 
     cfg: UrdfConverterCfg
     """The configuration instance for URDF to USD conversion."""
+    """为URDF转换到USD的配置实例。"""
 
     def __init__(self, cfg: UrdfConverterCfg):
         """Initializes the class.
 
         Args:
             cfg: The configuration instance for URDF to USD conversion.
+        """
+        """开始课程。
+
+        参数：
+            cfg: 为URDF转换到USD的配置实例。
         """
         # switch to older version of the URDF importer extension
         if get_isaac_sim_version() >= Version("5.1"):
@@ -76,12 +105,19 @@ class UrdfConverter(AssetConverterBase):
     """
     Implementation specific methods.
     """
+    """具体实施方法。
+    """
 
     def _convert_asset(self, cfg: UrdfConverterCfg):
         """Calls underlying Omniverse command to convert URDF to USD.
 
         Args:
             cfg: The URDF conversion configuration.
+        """
+        """调用底层的全宇宙命令将URDF转换为USD。
+
+        参数：
+            cfg: 转换配置的URDF。
         """
 
         import_config = self._get_urdf_import_config()
@@ -113,12 +149,19 @@ class UrdfConverter(AssetConverterBase):
     """
     Helper methods.
     """
+    """帮助方法。
+    """
 
     def _get_urdf_import_config(self) -> isaacsim.asset.importer.urdf._urdf.ImportConfig:
         """Create and fill URDF ImportConfig with desired settings
 
         Returns:
             The constructed ``ImportConfig`` object containing the desired settings.
+        """
+        """创建和填写URDF ImportConfig与所需的设置
+
+        返回：
+            包含所需设置的构建``ImportConfig``对象。
         """
         # create a new import config
         _, import_config = omni.kit.commands.execute("URDFCreateImportConfig")
@@ -155,6 +198,7 @@ class UrdfConverter(AssetConverterBase):
 
     def _update_joint_parameters(self):
         """Update the joint parameters based on the configuration."""
+        """根据配置更新联合参数。"""
         # set the drive type
         self._set_joints_drive_type()
         # set the drive target type
@@ -164,6 +208,7 @@ class UrdfConverter(AssetConverterBase):
 
     def _set_joints_drive_type(self):
         """Set the joint drive type for all joints in the URDF model."""
+        """设置URDF模型的所有关节的关节驱动类型。"""
         from isaacsim.asset.importer.urdf._urdf import UrdfJointDriveType
 
         drive_type_mapping = {
@@ -189,6 +234,7 @@ class UrdfConverter(AssetConverterBase):
 
     def _set_joints_drive_target_type(self):
         """Set the joint drive target type for all joints in the URDF model."""
+        """设置URDF模型的所有关节的关节驱动目标类型。"""
         from isaacsim.asset.importer.urdf._urdf import UrdfJointTargetType
 
         target_type_mapping = {
@@ -215,6 +261,7 @@ class UrdfConverter(AssetConverterBase):
 
     def _set_joint_drive_gains(self):
         """Set the joint drive gains for all joints in the URDF model."""
+        """设置URDF模型的所有关节的联合驱动增长率。"""
 
         # set the gains directly from stiffness and damping values
         if isinstance(self.cfg.joint_drive.gains, UrdfConverterCfg.JointDriveCfg.PDGainsCfg):
@@ -296,6 +343,12 @@ class UrdfConverter(AssetConverterBase):
             joint: The joint from the URDF robot model.
             stiffness: The stiffness value.
         """
+        """设置联合驱动硬度。
+
+        参数：
+            joint: 这是一个来自URDF机器人模型。
+            stiffness: 硬度值。
+        """
         from isaacsim.asset.importer.urdf._urdf import UrdfJointType
 
         if joint.type == UrdfJointType.JOINT_PRISMATIC:
@@ -311,6 +364,12 @@ class UrdfConverter(AssetConverterBase):
             joint: The joint from the URDF robot model.
             damping: The damping value.
         """
+        """设置关节驱动。
+
+        参数：
+            joint: 这是一个来自URDF机器人模型。
+            damping: 压缩值。
+        """
         from isaacsim.asset.importer.urdf._urdf import UrdfJointType
 
         if joint.type == UrdfJointType.JOINT_PRISMATIC:
@@ -324,6 +383,11 @@ class UrdfConverter(AssetConverterBase):
 
         Args:
             joint: The joint from the URDF robot model.
+        """
+        """根据自然频率和缩比计算联合驱动增长。
+
+        参数：
+            joint: 这是一个来自URDF机器人模型。
         """
         from isaacsim.asset.importer.urdf._urdf import UrdfJointDriveType, UrdfJointTargetType
 

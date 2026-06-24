@@ -13,6 +13,7 @@ from isaaclab.managers.recorder_manager import RecorderTerm
 
 class InitialStateRecorder(RecorderTerm):
     """Recorder term that records the initial state of the environment after reset."""
+    """在重置后记录环境的初始状态。"""
 
     def record_post_reset(self, env_ids: Sequence[int] | None):
         def extract_env_ids_values(value):
@@ -26,6 +27,7 @@ class InitialStateRecorder(RecorderTerm):
 
 class PostStepStatesRecorder(RecorderTerm):
     """Recorder term that records the state of the environment at the end of each step."""
+    """每一步结束时记录环境状态的记录项。"""
 
     def record_post_step(self):
         return "states", self._env.scene.get_state(is_relative=True)
@@ -33,6 +35,7 @@ class PostStepStatesRecorder(RecorderTerm):
 
 class PreStepActionsRecorder(RecorderTerm):
     """Recorder term that records the actions in the beginning of each step."""
+    """记录每个步骤开始的行为。"""
 
     def record_pre_step(self):
         return "actions", self._env.action_manager.action
@@ -40,6 +43,7 @@ class PreStepActionsRecorder(RecorderTerm):
 
 class PreStepFlatPolicyObservationsRecorder(RecorderTerm):
     """Recorder term that records the policy group observations in each step."""
+    """每一步记录策略组的观测。"""
 
     def record_pre_step(self):
         return "obs", self._env.obs_buf["policy"]
@@ -47,6 +51,7 @@ class PreStepFlatPolicyObservationsRecorder(RecorderTerm):
 
 class PostStepProcessedActionsRecorder(RecorderTerm):
     """Recorder term that records processed actions at the end of each step."""
+    """在每个步骤结束时记录处理的动作的记录项。"""
 
     def record_post_step(self):
         processed_actions = None

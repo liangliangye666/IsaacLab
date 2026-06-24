@@ -12,6 +12,15 @@ For more information, please check information on `Omniverse Nucleus`_.
 
 .. _Omniverse Nucleus: https://docs.omniverse.nvidia.com/nucleus/latest/overview/overview.html
 """
+"""定义存储资产和资源的主机服务器的子模块。
+
+默认情况下，我们使用了Isaac Sim核服务器来托管资产和资源。
+这使得资产的分配变得更容易，并且使存储库的规模更小。
+
+更多信息请查看`Omniverse Nucleus`_的信息。
+
+.. _Omniverse Nucleus: https://docs.omniverse.nvidia.com/nucleus/latest/overview/overview.html
+"""
 
 import asyncio
 import io
@@ -29,15 +38,19 @@ logger = logging.getLogger(__name__)
 
 NUCLEUS_ASSET_ROOT_DIR = carb.settings.get_settings().get("/persistent/isaac/asset_root/cloud")
 """Path to the root directory on the Nucleus Server."""
+"""核服务器的根目录。"""
 
 NVIDIA_NUCLEUS_DIR = f"{NUCLEUS_ASSET_ROOT_DIR}/NVIDIA"
 """Path to the root directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的根目录。"""
 
 ISAAC_NUCLEUS_DIR = f"{NUCLEUS_ASSET_ROOT_DIR}/Isaac"
 """Path to the ``Isaac`` directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的``Isaac``目录。"""
 
 ISAACLAB_NUCLEUS_DIR = f"{ISAAC_NUCLEUS_DIR}/IsaacLab"
 """Path to the ``Isaac/IsaacLab`` directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的``Isaac/IsaacLab``目录。"""
 
 
 def check_file_path(path: str) -> Literal[0, 1, 2]:
@@ -52,6 +65,19 @@ def check_file_path(path: str) -> Literal[0, 1, 2]:
         * :obj:`0` if the file does not exist
         * :obj:`1` if the file exists locally
         * :obj:`2` if the file exists on the Nucleus Server
+    """
+    """检查一个文件是否存在于核服务器或本地。
+
+    参数：
+        path: 文件的路径。
+
+    返回：
+        文件的状态。
+        下面列出了可能的值。
+
+        * :obj:`0`如果文件不存在
+        * :obj:`1` 如果文件存在本地
+        * :obj:`2` 如果文件存在于Nucleus服务器
     """
     if os.path.isfile(path):
         return 1
@@ -83,6 +109,27 @@ def retrieve_file_path(path: str, download_dir: str | None = None, force_downloa
         FileNotFoundError: When the file not found locally or on Nucleus Server.
         RuntimeError: When the file cannot be copied from the Nucleus Server to the local machine. This
             can happen when the file already exists locally and :attr:`force_download` is set to False.
+    """
+    """检索核服务器或本地文件的路径。
+
+    如果文件存在本地，则返回文件的绝对路径。
+    如果文件存在于Nucleus服务器上，则该文件将下载到本地机器，返回文件的绝对路径。
+
+    参数：
+        path: 文件的路径。
+        download_dir: 文件应该下载的目录。
+                      在 None 上默认，在这种情况下，文件被下载到系统的临时目录中。
+        force_download: 是否强迫从核服务器下载文件。
+                        如果存在，则将重写本地文件。
+                        默认为 True。
+
+    返回：
+        在本地机器上的文件的路径。
+
+    异常：
+        FileNotFoundError: 当文件在本地或在Nucleus服务器上没有找到时。
+        RuntimeError: 当文件不能从核服务器复制到本机时。
+                      当文件已经存在本地，并且设置:attr:`force_download`为False时，
     """
     # check file status
     file_status = check_file_path(path)
@@ -123,6 +170,17 @@ def read_file(path: str) -> io.BytesIO:
     Returns:
         The content of the file.
     """
+    """读取来自核服务器或本地文件。
+
+    参数：
+        path: 文件的路径。
+
+    异常：
+        FileNotFoundError: 当文件在本地或在Nucleus服务器上没有找到时。
+
+    返回：
+        文件的内容。
+    """
     # check file status
     file_status = check_file_path(path)
     if file_status == 1:
@@ -137,6 +195,8 @@ def read_file(path: str) -> io.BytesIO:
 
 """
 Nucleus Connection.
+"""
+"""核连接。
 """
 
 
@@ -157,6 +217,23 @@ def check_usd_path_with_timeout(usd_path: str, timeout: float = 300, log_interva
 
     Returns:
         Whether the given USD path is available on the server.
+    """
+    """检查该USD文件路径是否可用在NVIDIA核服务器上。
+
+    这种函数同步运行异步USD路径可用性检查，定期记录进步直到完成。
+    文件在服务器上可用
+    if the HTTP status code is 200. Otherwise, the file is not available on the server.
+
+    在试图加载远程资产之前，这有助于检查服务器响应能力。
+    它将阻止执行，直到检查完成或结束。
+
+    参数：
+        usd_path: 需要检查远程USD文件路径。
+        timeout: 最长时间 (几秒钟) 等待服务器检查。
+        log_interval: 记录进步的间隔 (秒钟)。
+
+    返回：
+        服务器是否可用给定的USD路径。
     """
     start_time = time.time()
     loop = asyncio.get_event_loop()
@@ -184,6 +261,8 @@ def check_usd_path_with_timeout(usd_path: str, timeout: float = 300, log_interva
 """
 Helper functions.
 """
+"""辅助函数。
+"""
 
 
 async def _is_usd_path_available(usd_path: str, timeout: float) -> bool:
@@ -199,6 +278,18 @@ async def _is_usd_path_available(usd_path: str, timeout: float) -> bool:
 
     Returns:
         Whether the given USD path is available on the server.
+    """
+    """检查Omniverse Nucleus服务器上是否可用给定的USD路径。
+
+    这个函数是一个异步的程序来检查Omniverse Nucleus服务器上给定的USD路径的可用性。
+    如果服务器上有USD路径，则将返回True，否则False。
+
+    参数：
+        usd_path: 要检查远程或本地USD文件路径。
+        timeout: 在几秒钟内取消异步数据通话。
+
+    返回：
+        服务器是否可用给定的USD路径。
     """
     try:
         result, _ = await asyncio.wait_for(omni.client.stat_async(usd_path), timeout=timeout)

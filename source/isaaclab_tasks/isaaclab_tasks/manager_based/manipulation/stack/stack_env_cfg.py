@@ -31,6 +31,9 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
     This is the abstract base implementation, the exact scene is defined in the derived classes
     which need to set the target object, robot and end-effector frames
     """
+    """机器人和物体的电梯场景配置。
+    这是抽象的基础实现，精确的场景是定义在衍生类，需要设置目标对象，机器人和最终效应器框架
+    """
 
     # robots: will be populated by agent env cfg
     robot: ArticulationCfg = MISSING
@@ -64,6 +67,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     # will be set by agent env cfg
     arm_action: mdp.JointPositionActionCfg = MISSING
@@ -73,10 +77,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group with state values."""
+        """对国家价值观的策略组的观测。"""
 
         actions = ObsTerm(func=mdp.last_action)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
@@ -95,6 +101,7 @@ class ObservationsCfg:
     @configclass
     class RGBCameraPolicyCfg(ObsGroup):
         """Observations for policy group with RGB images."""
+        """策略群体的观测以RGB图像。"""
 
         def __post_init__(self):
             self.enable_corruption = False
@@ -103,6 +110,7 @@ class ObservationsCfg:
     @configclass
     class SubtaskCfg(ObsGroup):
         """Observations for subtask group."""
+        """部分任务组的观测。"""
 
         grasp_1 = ObsTerm(
             func=mdp.object_grasped,
@@ -142,6 +150,7 @@ class ObservationsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -163,6 +172,7 @@ class TerminationsCfg:
 @configclass
 class StackEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the stacking environment."""
+    """对堆叠环境的配置。"""
 
     # Scene settings
     scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=4096, env_spacing=2.5, replicate_physics=False)
@@ -185,6 +195,7 @@ class StackEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 5
         self.episode_length_s = 30.0

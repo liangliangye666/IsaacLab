@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 # Import pinocchio in the main script to force the use of the dependencies
 # installed by IsaacLab and not the one installed by Isaac Sim
@@ -19,6 +20,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import contextlib
 import json
@@ -44,6 +46,7 @@ from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 
 def load_test_config(env_name):
     """Load test configuration based on environment type."""
+    """基于环境类型的负载测试配置。"""
     # Determine which config file to load based on environment name
     if "G1" in env_name:
         config_file = "pink_ik_g1_test_configs.json"
@@ -59,6 +62,7 @@ def load_test_config(env_name):
 
 def is_waist_enabled(env_cfg):
     """Check if waist joints are enabled in the environment configuration."""
+    """检查环境配置中是否启用腰节。"""
     if not hasattr(env_cfg.actions, "upper_body_ik"):
         return False
 
@@ -70,6 +74,7 @@ def is_waist_enabled(env_cfg):
 
 def create_test_env(env_name, num_envs):
     """Create a test environment with the Pink IK controller."""
+    """用粉红色IK控制器创建测试环境。"""
     device = "cuda:0"
 
     omni.usd.get_context().new_stage()
@@ -97,6 +102,7 @@ def create_test_env(env_name, num_envs):
 )
 def env_and_cfg(request):
     """Create environment and configuration for tests."""
+    """为测试创建环境和配置。"""
     env_name = request.param
 
     # Load the appropriate test configuration based on environment type
@@ -141,6 +147,7 @@ def env_and_cfg(request):
 @pytest.fixture
 def test_setup(env_and_cfg):
     """Set up test case - runs before each test."""
+    """在每次测试之前设置测试案例。"""
     env, env_cfg, test_cfg, test_params = env_and_cfg
 
     num_joints_in_robot_hands = env_cfg.actions.upper_body_ik.controller.num_hand_joints
@@ -189,6 +196,7 @@ def test_setup(env_and_cfg):
 )
 def test_movement_types(test_setup, test_name):
     """Test different movement types using parametrization."""
+    """使用参数化测试不同的运动类型。"""
     test_cfg = test_setup["test_cfg"]
     env_cfg = test_setup["env_cfg"]
 
@@ -217,6 +225,7 @@ def test_movement_types(test_setup, test_name):
 
 def run_movement_test(test_setup, test_config, test_cfg, aux_function=None):
     """Run a movement test with the given configuration."""
+    """运行一个运动测试。"""
     env = test_setup["env"]
     num_joints_in_robot_hands = test_setup["num_joints_in_robot_hands"]
 
@@ -296,6 +305,7 @@ def run_movement_test(test_setup, test_config, test_cfg, aux_function=None):
 
 def get_link_pose(env, link_name):
     """Get the position and orientation of a link."""
+    """获取链接的位置和方向。"""
     link_index = env.scene["robot"].data.body_names.index(link_name)
     link_states = env.scene._articulations["robot"]._data.body_link_state_w
     link_pose = link_states[:, link_index, :7]
@@ -304,6 +314,7 @@ def get_link_pose(env, link_name):
 
 def calculate_rotation_error(current_rot, target_rot):
     """Calculate the rotation error between current and target orientations in axis-angle format."""
+    """在轴角格式计算电流和目标方向之间的旋转错误。"""
     if isinstance(target_rot, torch.Tensor):
         target_rot_tensor = (
             target_rot.unsqueeze(0).expand(current_rot.shape[0], -1) if target_rot.dim() == 1 else target_rot
@@ -322,6 +333,7 @@ def compute_errors(
     test_setup, env, left_target_pose, right_target_pose, left_eef_urdf_link_name, right_eef_urdf_link_name
 ):
     """Compute all error metrics for the current state."""
+    """为当前状态计算所有错误指标。"""
     action_term = test_setup["action_term"]
     pink_controllers = test_setup["pink_controllers"]
     articulation = test_setup["articulation"]
@@ -390,6 +402,7 @@ def compute_errors(
 
 def verify_errors(errors, test_setup, tolerances):
     """Verify that all error metrics are within tolerance."""
+    """检查所有错误指标是否符合容忍范围。"""
     env = test_setup["env"]
     device = env.device
     num_envs = env.num_envs
@@ -438,6 +451,7 @@ def verify_errors(errors, test_setup, tolerances):
 
 def print_debug_info(errors, test_counter):
     """Print debug information about the current state."""
+    """打印关于当前状态的调试信息。"""
     print(f"\nTest iteration {test_counter + 1}:")
     for hand in ["left", "right"]:
         print(f"Measured {hand} hand position error:", errors[f"{hand}_pos_error"])

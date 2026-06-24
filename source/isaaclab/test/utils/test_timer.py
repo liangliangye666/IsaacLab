@@ -6,6 +6,7 @@
 # NOTE: While we don't actually use the simulation app in this test, we still need to launch it
 #       because warp is only available in the context of a running simulation
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +14,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import time
 
@@ -24,6 +26,7 @@ PRECISION_PLACES = 2
 
 def test_timer_as_object():
     """Test using a `Timer` as a regular object."""
+    """测试使用`Timer`作为普通对象。"""
     timer = Timer()
     timer.start()
     assert abs(0 - timer.time_elapsed) < 10 ** (-PRECISION_PLACES)
@@ -35,6 +38,7 @@ def test_timer_as_object():
 
 def test_timer_as_context_manager():
     """Test using a `Timer` as a context manager."""
+    """使用`Timer`作为语境管理器进行测试。"""
     with Timer() as timer:
         assert abs(0 - timer.time_elapsed) < 10 ** (-PRECISION_PLACES)
         time.sleep(1)

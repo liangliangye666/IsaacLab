@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module containing different buffers."""
+"""包含不同缓冲器的子模块。"""
 
 from .circular_buffer import CircularBuffer
 from .delay_buffer import DelayBuffer

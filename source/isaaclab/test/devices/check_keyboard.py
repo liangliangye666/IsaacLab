@@ -9,8 +9,14 @@ This script shows how to use a teleoperation device with Isaac Sim.
 The teleoperation device is a keyboard device that allows the user to control the robot.
 It is possible to add additional callbacks to it for user-defined operations.
 """
+"""这本脚本显示了如何使用与Isaac Sim的遥控设备。
+
+远程操作设备是一个键盘设备，允许用户控制机器人。
+可以为用户定义的操作添加额外的回调。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 from isaaclab.app import AppLauncher
@@ -20,6 +26,7 @@ app_launcher = AppLauncher()
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import ctypes
 
@@ -29,11 +36,13 @@ from isaaclab.sim import SimulationCfg, SimulationContext
 
 def print_cb():
     """Dummy callback function executed when the key 'L' is pressed."""
+    """在键"L"时执行的假调回函数。"""
     print("Print callback")
 
 
 def quit_cb():
     """Dummy callback function executed when the key 'ESC' is pressed."""
+    """在键"ESC"时执行虚假回调函数。"""
     print("Quit callback")
     simulation_app.close()
 

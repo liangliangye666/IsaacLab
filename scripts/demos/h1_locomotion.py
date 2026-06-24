@@ -12,8 +12,16 @@ This script demonstrates an interactive demo with the H1 rough terrain environme
     ./isaaclab.sh -p scripts/demos/h1_locomotion.py
 
 """
+"""这本脚本展示了与H1粗地形环境的交互演示。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/demos/h1_locomotion.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import os
@@ -41,6 +49,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 from rsl_rl.runners import OnPolicyRunner
@@ -78,10 +87,25 @@ class H1RoughDemo:
     * DOWN: stop
     * C: switch between third-person and perspective views
     * ESC: exit current third-person view"""
+    """这类为H1粗地形环境提供了交互演示。
+    它为Isaac-Velocity-Rough-H1-v0任务加载了预训练的检查点，使用RSL RL训练，并定义了一组键盘命令来指导选定的机器人运动。
+
+    通过鼠标点击可以从场景选择机器人。
+    一旦选择，可使用以下键盘控制器来控制机器人:
+
+    * UP继续前进
+    * LEFT转左
+    * RIGHT转向右
+    * DOWN停止
+    * C:转换第三方和观点
+    * ESC:出口电流第三人视图
+    """
 
     def __init__(self):
         """Initializes environment config designed for the interactive model and sets up the environment,
         loads pre-trained checkpoints, and registers keyboard events."""
+        """启动为交互模型设计的环境配置，设置环境，加载预训练的检查站点，记录键盘事件。
+        """
         agent_cfg: RslRlOnPolicyRunnerCfg = cli_args.parse_rsl_rl_cfg(TASK, args_cli)
         # load the trained jit policy
         checkpoint = get_published_pretrained_checkpoint(RL_LIBRARY, TASK)
@@ -112,6 +136,7 @@ class H1RoughDemo:
 
     def create_camera(self):
         """Creates a camera to be used for third-person view."""
+        """创建一个用于第三人视觉的相机。"""
         stage = get_current_stage()
         self.viewport = get_viewport_from_window_name("Viewport")
         # Create camera
@@ -128,6 +153,7 @@ class H1RoughDemo:
 
     def set_up_keyboard(self):
         """Sets up interface for keyboard input and registers the desired keys for control."""
+        """设置键盘输入接口，并记录控制所需的键。"""
         self._input = carb.input.acquire_input_interface()
         self._keyboard = omni.appwindow.get_default_app_window().get_keyboard()
         self._sub_keyboard = self._input.subscribe_to_keyboard_events(self._keyboard, self._on_keyboard_event)
@@ -143,6 +169,7 @@ class H1RoughDemo:
 
     def _on_keyboard_event(self, event):
         """Checks for a keyboard event and assign the corresponding command control depending on key pressed."""
+        """检查键盘事件并根据键分配相应的命令控制。"""
         if event.type == carb.input.KeyboardEventType.KEY_PRESS:
             # Arrow keys map to pre-defined command vectors to control navigation of robot
             if event.input.name in self._key_to_control:
@@ -168,6 +195,10 @@ class H1RoughDemo:
         For valid robots, we enter the third-person view for that robot.
         When a new robot is selected, we reset the command of the previously selected
         to continue random commands."""
+        """确定目前选择哪个机器人，以及是否是有效的H1机器人。
+        对于有效的机器人，我们输入第三人视图。
+        当一个新机器人被选中时，我们重置之前选定的命令，
+        """
 
         self._previous_selected_id = self._selected_id
         selected_prim_paths = self._prim_selection.get_selected_prim_paths()
@@ -195,6 +226,8 @@ class H1RoughDemo:
     def _update_camera(self):
         """Updates the per-frame transform of the third-person view camera to follow
         the selected robot's torso transform."""
+        """更新第三人视图相机的每框转换，以跟踪选定的机器人的体转换。
+        """
 
         base_pos = self.env.unwrapped.scene["robot"].data.root_pos_w[self._selected_id, :]  # - env.scene.env_origins
         base_quat = self.env.unwrapped.scene["robot"].data.root_quat_w[self._selected_id, :]
@@ -210,6 +243,7 @@ class H1RoughDemo:
 
 def main():
     """Main function."""
+    """主要功能。"""
     demo_h1 = H1RoughDemo()
     obs, _ = demo_h1.env.reset()
     while simulation_app.is_running():

@@ -54,6 +54,7 @@ class AnymalDFlatPPORunnerCfg(AnymalDRoughPPORunnerCfg):
 @configclass
 class AnymalDFlatPPORunnerWithSymmetryCfg(AnymalDFlatPPORunnerCfg):
     """Configuration for the PPO agent with symmetry augmentation."""
+    """设置PPO代理与对称增强。"""
 
     algorithm = RslRlPpoAlgorithmCfg(
         value_loss_coef=1.0,
@@ -77,6 +78,7 @@ class AnymalDFlatPPORunnerWithSymmetryCfg(AnymalDFlatPPORunnerCfg):
 @configclass
 class AnymalDRoughPPORunnerWithSymmetryCfg(AnymalDRoughPPORunnerCfg):
     """Configuration for the PPO agent with symmetry augmentation."""
+    """设置PPO代理与对称增强。"""
 
     # all the other settings are inherited from the parent class
     algorithm = RslRlPpoAlgorithmCfg(

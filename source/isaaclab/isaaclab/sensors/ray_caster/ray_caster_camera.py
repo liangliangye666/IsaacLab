@@ -47,9 +47,29 @@ class RayCasterCamera(RayCaster):
         Currently, only static meshes are supported. Extending the warp mesh to support dynamic meshes
         is a work in progress.
     """
+    """一个射线摄像头传感器。
+
+    射线摄像机使用一组射线，
+    在传感器的本地坐标框架中定义了射线。
+    传感器与:class:`isaaclab.sensors.Camera`相同的界面，通过USD相机prims实现了相机类。
+    然而，这个类提供更快的图像生成。
+    传感器将在配置中提供的原始路径列表中的网格转换为Warp网格。
+    然后，相机只向这些变形网射。
+
+    目前，仅支持以下注释符:
+
+    - ``"distance_to_camera"``:包含到相机光学中心的距离的图像。
+    - ``"distance_to_image_plane"``:包含3D点距离相机平面的图像，沿着相机的z轴。
+    - ``"normals"``:包含每个像素的本地表面正常向量的图像。
+
+    .. 说明::
+        目前，仅支持静态网格。
+        扩大 war形网以支持动态网格是正在进行的工作。
+    """
 
     cfg: RayCasterCameraCfg
     """The configuration parameters."""
+    """配置参数。"""
     UNSUPPORTED_TYPES: ClassVar[set[str]] = {
         "rgb",
         "instance_id_segmentation",
@@ -67,6 +87,7 @@ class RayCasterCamera(RayCaster):
         "bounding_box_3d_fast",
     }
     """A set of sensor types that are not supported by the ray-caster camera."""
+    """一组没有射线相机支持的传感器类型。"""
 
     def __init__(self, cfg: RayCasterCameraCfg):
         """Initializes the camera object.
@@ -77,6 +98,14 @@ class RayCasterCamera(RayCaster):
         Raises:
             ValueError: If the provided data types are not supported by the ray-caster camera.
         """
+        """启动摄像头对象。
+
+        参数：
+            cfg: 配置参数。
+
+        异常：
+            ValueError: 如果提供的数据类型不支持射线摄像头。
+        """
         # perform check on supported data types
         self._check_supported_data_types(cfg)
         # initialize base class
@@ -86,6 +115,7 @@ class RayCasterCamera(RayCaster):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
         return (
             f"Ray-Caster-Camera @ '{self.cfg.prim_path}': \n"
             f"\tview type            : {self._view.__class__}\n"
@@ -100,6 +130,8 @@ class RayCasterCamera(RayCaster):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def data(self) -> CameraData:
@@ -111,15 +143,19 @@ class RayCasterCamera(RayCaster):
     @property
     def image_shape(self) -> tuple[int, int]:
         """A tuple containing (height, width) of the camera sensor."""
+        """包含摄像头传感器 (高度，宽度) 的图布。"""
         return (self.cfg.pattern_cfg.height, self.cfg.pattern_cfg.width)
 
     @property
     def frame(self) -> torch.tensor:
         """Frame number when the measurement took place."""
+        """在测量时的框架号码。"""
         return self._frame
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def set_intrinsic_matrices(
@@ -131,6 +167,16 @@ class RayCasterCamera(RayCaster):
             matrices: The intrinsic matrices for the camera. Shape is (N, 3, 3).
             focal_length: Focal length to use when computing aperture values (in cm). Defaults to 1.0.
             env_ids: A sensor ids to manipulate. Defaults to None, which means all sensor indices.
+        """
+        """设置摄像机的内在矩阵。
+
+        参数：
+            matrices: 摄像机的内在矩阵。
+                      形状是 (N， 3， 3)。
+            focal_length: 在计算开口值时使用焦点长度 (在cm)。
+                          默认到1.0。
+            env_ids: 一个传感器识别器来操纵。
+                     默认为 None，这意味着所有传感器索引。
         """
         # resolve env_ids
         if env_ids is None:
@@ -190,6 +236,35 @@ class RayCasterCamera(RayCaster):
         Raises:
             RuntimeError: If the camera prim is not set. Need to call :meth:`initialize` method first.
         """
+        """设置摄像头w.r.t的姿势。
+        根据规定的公约，
+
+        由于不同领域使用不同的相机定向公约，因此该方法允许用户设置相机姿势在指定公约中。
+        可能的会议是:
+
+        - 在OpenGL (Usd.Camera) 公约中，应用:obj:`"opengl"` - 前轴: -Z - 上轴 +Y - 抵消
+        - :obj:`"ros"`- 前向轴: +Z - 上向轴 -YROS公约
+        - 在"世界框架"公约中，应用:obj:`"world"` - 前轴:+X - 上轴 +Z - 偏移
+
+        See :麻:`isaaclab.utils.maths.convert_camera_frame_orientation_convention`更多详情
+        在会议上。
+
+        参数：
+            positions: 卡特西亚坐标 (以米)。
+                       形状是 (N， 3)。
+                       默认为 None，在这种情况下，摄像头位置没有改变。
+            orientations: 在 (w，x，y，z) 中的四元数方向。
+                          形状是 (N， 4)。
+                          默认为 None，在这种情况下，摄像头的方向没有改变。
+            env_ids: 一个传感器识别器来操纵。
+                     默认为 None，这意味着所有传感器索引。
+            convention: 在这个会议上，人们养姿势。
+                        默认的"ros"。
+
+        异常：
+            RuntimeError: 如果相机prim不设置。
+                          首先需要打电话给:meth:`initialize`方法。
+        """
         # resolve env_ids
         if env_ids is None or isinstance(env_ids, slice):
             env_ids = self._ALL_INDICES
@@ -229,6 +304,21 @@ class RayCasterCamera(RayCaster):
             RuntimeError: If the camera prim is not set. Need to call :meth:`initialize` method first.
             NotImplementedError: If the stage up-axis is not "Y" or "Z".
         """
+        """设置摄像头的姿势从眼睛的位置，
+
+        参数：
+            eyes: 摄像机的眼睛位置。
+                  形状为N， 3)。
+            targets: 目标地点要查看。
+                     形状是 (N， 3)。
+            env_ids: 一个传感器识别器来操纵。
+                     默认为 None，这意味着所有传感器索引。
+
+        异常：
+            RuntimeError: 如果相机prim不设置。
+                          首先需要打电话给:meth:`initialize`方法。
+            NotImplementedError: 如果阶段上轴不是"Y"或"Z"。
+        """
         # get up axis of current stage
         up_axis = UsdGeom.GetStageUpAxis(self.stage)
         # camera position and rotation in opengl convention
@@ -239,6 +329,8 @@ class RayCasterCamera(RayCaster):
 
     """
     Implementation.
+    """
+    """执行。
     """
 
     def _initialize_rays_impl(self):
@@ -266,6 +358,7 @@ class RayCasterCamera(RayCaster):
 
     def _update_buffers_impl(self, env_ids: Sequence[int]):
         """Fills the buffers of the sensor data."""
+        """填充传感器数据的缓冲器。"""
         # increment frame count
         self._frame[env_ids] += 1
 
@@ -340,9 +433,12 @@ class RayCasterCamera(RayCaster):
     """
     Private Helpers
     """
+    """个人助手
+    """
 
     def _check_supported_data_types(self, cfg: RayCasterCameraCfg):
         """Checks if the data types are supported by the ray-caster camera."""
+        """检查数据类型是否支持射线摄像机。"""
         # check if there is any intersection in unsupported types
         # reason: we cannot obtain this data from simplified warp-based ray caster
         common_elements = set(cfg.data_types) & RayCasterCamera.UNSUPPORTED_TYPES
@@ -356,6 +452,7 @@ class RayCasterCamera(RayCaster):
 
     def _create_buffers(self):
         """Create buffers for storing data."""
+        """创建存储数据的缓冲器。"""
         # prepare drift
         self.drift = torch.zeros(self._view.count, 3, device=self.device)
         self.ray_cast_drift = torch.zeros(self._view.count, 3, device=self.device)
@@ -383,6 +480,7 @@ class RayCasterCamera(RayCaster):
 
     def _compute_intrinsic_matrices(self):
         """Computes the intrinsic matrices for the camera based on the config provided."""
+        """根据提供配置计算了相机的内在矩阵。"""
         # get the sensor properties
         pattern_cfg = self.cfg.pattern_cfg
 
@@ -417,6 +515,14 @@ class RayCasterCamera(RayCaster):
 
 
         """
+        """在世界框架中，摄像头被附着的视图的姿势。
+
+        ..
+        这种功能将在未来的版本中被删除以支持实现:meth:`obtain_world_pose_from_view`。
+
+        返回：
+            位置 (以米) 和四元数 (w， x， y， z) 的元组。
+        """
         # deprecation
         logger.warning(
             "The function '_compute_view_world_poses' will be deprecated in favor of the util method"
@@ -442,6 +548,24 @@ class RayCasterCamera(RayCaster):
 
         Returns:
             A tuple of the position (in meters) and quaternion (w, x, y, z) in "world" convention.
+        """
+        """计算了相机在世界框架中的姿势。
+
+        这种函数将偏移姿势应用于相机连接的视图姿势。
+
+        ..
+        这种功能将在未来版本中被删除。
+        换取此，请使用下面的代码区块:
+
+            .. code-block:: python
+
+                pos_w, quat_w = obtain_world_pose_from_view(self._view, env_ids, clone=True)
+                pos_w, quat_w = math_utils.combine_frame_transforms(
+                    pos_w, quat_w, self._offset_pos[env_ids], self._offset_quat[env_ids]
+                )
+
+        返回：
+            在"世界"公约中，位置 (以米) 和四元数 (w， x， y， z) 的一倍。
         """
 
         # deprecation

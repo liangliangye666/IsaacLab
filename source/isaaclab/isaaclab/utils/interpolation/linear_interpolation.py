@@ -18,6 +18,17 @@ class LinearInterpolation:
     the class does a zero-order-hold extrapolation based on the boundary values. This means that the class
     returns the value of the closest point in x.
     """
+    """在任意查询点中线性插入样本的尺度函数。
+
+    这个类实现了对 skalar 函数的线性回合。
+    函数从实际值，x，到实际值，y。
+    它预计从函数域，x，和相应的值，y，
+    该类允许在任意点查询函数的值。
+
+    通过找到 x 中最接近查询点的两个点，然后在相应的 y 值之间线性地进行回合。
+    在输入点之外的查询点上，该类根据边界值进行了零顺序持久外分。
+    这意味着该类返回x中最接近点的值。
+    """
 
     def __init__(self, x: torch.Tensor, y: torch.Tensor, device: str):
         """Initializes the linear interpolation.
@@ -37,6 +48,27 @@ class LinearInterpolation:
         Raises:
             ValueError: If the input tensors are empty or have different sizes.
             ValueError: If the input tensor x is not sorted in ascending order.
+        """
+        """开始线性插射。
+
+        尺度函数从实值，x，到实值，y。
+        类的输入是样本集
+        from the function's domain, x, and the corresponding values, y.
+
+        说明：
+            输入子x应按上升顺序进行排序。
+
+        参数：
+            x: 函数域中的样本向量。
+               值应按上升顺序进行排序。
+               形状是 (num_samples，)
+            y: 与输入 x 相关的函数值。
+               形状是 (num_samples，)
+            device: 用于加工的装置。
+
+        异常：
+            ValueError: 如果输入子是空的或有不同的尺寸。
+            ValueError: 如果输入子 x 不按上升顺序排序。
         """
         # make sure that input tensors are 1D of size (num_samples,)
         self._x = x.view(-1).clone().to(device=device)
@@ -59,6 +91,16 @@ class LinearInterpolation:
 
         Returns:
             The interpolated values at query points. It has the same shape as the input tensor.
+        """
+        """计算对查询点的线性插入值。
+
+        参数：
+           q: 查询点。
+              它可以有任意的形状。
+
+        返回：
+            在查询点中插入的值。
+            它的形状与输入子相同。
         """
         # serialized q
         q_1d = q.view(-1)

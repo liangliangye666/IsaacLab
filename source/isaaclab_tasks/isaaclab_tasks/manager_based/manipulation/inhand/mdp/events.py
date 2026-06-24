@@ -6,6 +6,7 @@
 """Functions specific to the in-hand dexterous manipulation environments."""
 
 from __future__ import annotations
+"""专用于手中的精通操纵环境的功能。"""
 
 from typing import TYPE_CHECKING, Literal
 
@@ -51,6 +52,30 @@ class reset_joints_within_limits_range(ManagerTermBase):
         If the dictionary does not contain a key, the joint position or joint velocity is set to the default value for
         that joint.
 
+    """
+    """在给定的极限范围中将关节重置为随机位置。
+
+    这个函数从给定的极限范围中抽取了关节位置和速度的随机值。
+    然后将值设置在物理仿真中。
+
+    函数的参数是:
+
+    * :attr:`position_range` - 每个关联的位置范围字典.字典的关键是资产的关联名称 (或正则表达式)。
+    * :attr:`velocity_range` - 每个关联的速度范围字典.字典的键是资产的联合名称 (或正则表达式)。
+    * :attr:`use_default_offset`- 显示范围是否被默认的联合状态抵消.False。
+    * :attr:`asset_cfg` - 要重置资产的配置。 在场景中被命名为"机器人"的实体的默认。
+    * :attr:`operation` - 范围是否是联合极限或绝对极限的规模值。
+
+    字典值是表格``(a， b)``的图布尔。
+    根据操作，这些值的解释不同:
+
+    * 如果操作是"abs"，则值为关节的绝对最小和最大值，i.e.的关节范围变成``[a， b]``。
+    * 如果操作是"尺度"，则值为关节限制的尺度因素，i.e.的关节范围变成``[a * min_joint_limit， b * max_joint_limit]``。
+
+    如果``a``或``b``值是``None``，则使用联合限值。
+
+    说明：
+        如果字典中没有关键，则将关节位置或关节速度设置为该联合的默认值。
     """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):

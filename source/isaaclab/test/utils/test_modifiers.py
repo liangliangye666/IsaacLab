@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 from dataclasses import MISSING
 
@@ -24,6 +26,7 @@ from isaaclab.utils import configclass
 @configclass
 class ModifierTestCfg:
     """Configuration for testing modifiers."""
+    """测试修改器的配置"""
 
     cfg: modifiers.ModifierCfg = MISSING
     init_data: torch.Tensor = MISSING
@@ -33,6 +36,7 @@ class ModifierTestCfg:
 
 def test_scale_modifier():
     """Test scale modifier."""
+    """测试尺度调整器。"""
     # create test data
     init_data = torch.tensor([1.0, 2.0, 3.0])
     scale = 2.0
@@ -53,6 +57,7 @@ def test_scale_modifier():
 
 def test_bias_modifier():
     """Test bias modifier."""
+    """测试偏差修改器。"""
     # create test data
     init_data = torch.tensor([1.0, 2.0, 3.0])
     bias = 1.0
@@ -73,6 +78,7 @@ def test_bias_modifier():
 
 def test_clip_modifier():
     """Test clip modifier."""
+    """测试裁剪修改器。"""
     # create test data
     init_data = torch.tensor([1.0, 2.0, 3.0])
     min_val = 1.5
@@ -94,6 +100,7 @@ def test_clip_modifier():
 
 def test_clip_no_upper_bound_modifier():
     """Test clip modifier with no upper bound."""
+    """没有上限的测试裁剪调整器。"""
     # create test data
     init_data = torch.tensor([1.0, 2.0, 3.0])
     min_val = 1.5
@@ -114,6 +121,7 @@ def test_clip_no_upper_bound_modifier():
 
 def test_clip_no_lower_bound_modifier():
     """Test clip modifier with no lower bound."""
+    """没有下边界的试验裁剪调整器。"""
     # create test data
     init_data = torch.tensor([1.0, 2.0, 3.0])
     max_val = 2.5
@@ -134,6 +142,7 @@ def test_clip_no_lower_bound_modifier():
 
 def test_torch_relu_modifier():
     """Test torch relu modifier."""
+    """测试火调节器。"""
     # create test data
     init_data = torch.tensor([-1.0, 0.0, 1.0])
     result = torch.tensor([0.0, 0.0, 1.0])
@@ -154,6 +163,7 @@ def test_torch_relu_modifier():
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_digital_filter(device):
     """Test digital filter modifier."""
+    """测试数字过器。"""
     # create test data
     init_data = torch.tensor([0.0, 0.0, 0.0], device=device)
     A = [0.0, 0.1]
@@ -190,6 +200,7 @@ def test_digital_filter(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_integral(device):
     """Test integral modifier."""
+    """测试整体修改器。"""
     # create test data
     init_data = torch.tensor([0.0], device=device)
     dt = 1.0

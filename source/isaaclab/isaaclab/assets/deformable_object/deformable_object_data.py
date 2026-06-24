@@ -32,6 +32,25 @@ class DeformableObjectData:
     when the data is expensive to compute or retrieve. The data is updated when the timestamp of the buffer
     is older than the current simulation timestamp. The timestamp is updated whenever the data is updated.
     """
+    """对可变化的物体的数据容器。
+
+    这类包含仿真中可变化的对象的数据。
+    数据包括对象中的根可变体的节点状态。
+    除非另有说明，则数据存储在仿真世界框架中。
+
+    在 PhysX 中，可变形的对象使用两个四面形网格来表示对象:
+
+    1. **仿真网**:该网用于仿真，是溶剂扭曲的网。
+    2. **碰撞网**:该网只需要与仿真网的表面相匹配，用于碰撞检测。
+
+    暴露的APIs提供了仿真和碰撞网格的数据。
+    这些在物业名称中的`sim`和`collision`前置符所指定。
+
+    数据更新缓慢，这意味着数据只有在获取时才会更新。
+    如果数据计算或检索昂贵，这很有用。
+    当缓冲器的时间标比当前仿真时间标更老时，数据会更新。
+    每次数据更新时，时刻标签都会更新。
+    """
 
     def __init__(self, root_physx_view: physx.SoftBodyView, device: str):
         """Initializes the deformable object data.
@@ -39,6 +58,12 @@ class DeformableObjectData:
         Args:
             root_physx_view: The root deformable body view of the object.
             device: The device used for processing.
+        """
+        """启动可变化的对象数据。
+
+        参数：
+            root_physx_view: 基因可变化的体体视图。
+            device: 用于加工的装置。
         """
         # Set the parameters
         self.device = device
@@ -71,6 +96,12 @@ class DeformableObjectData:
         Args:
             dt: The time step for the update. This must be a positive value.
         """
+        """更新可变化的对象的数据。
+
+        参数：
+            dt: 更新的时间。
+                这一定是积极的价值。
+        """
         # update the simulation timestamp
         self._sim_timestamp += dt
 
@@ -81,6 +112,9 @@ class DeformableObjectData:
     default_nodal_state_w: torch.Tensor = None
     """Default nodal state ``[nodal_pos, nodal_vel]`` in simulation world frame.
     Shape is (num_instances, max_sim_vertices_per_body, 6).
+    """
+    """在仿真世界框架中的默认节点状态``[nodal_pos， nodal_vel]``。
+    形状是 (num_instances，max_sim_vertices_per_body， 6)。
     """
 
     ##
@@ -96,6 +130,13 @@ class DeformableObjectData:
     flag indicating whether the vertex is kinematic or not. The flag is set to 0 for kinematic vertices
     and 1 for non-kinematic vertices.
     """
+    """对可变体的仿真网动目标。
+    形状是 (num_instances，max_sim_vertices_per_body， 4)。
+
+    动态目标用于将仿真网顶向目标位置驱动。
+    目标存储为 (x， y， z， is_not_kinematic)，其中"is_not_kinematic"是一个二进制标志，表明顶点是否动态。
+    标志为动态顶点设置为0和非动态顶点设置为1。
+    """
 
     ##
     # Properties.
@@ -104,6 +145,9 @@ class DeformableObjectData:
     @property
     def nodal_pos_w(self):
         """Nodal positions in simulation world frame. Shape is (num_instances, max_sim_vertices_per_body, 3)."""
+        """在仿真世界框架中。
+        形状是 (num_instances，max_sim_vertices_per_body， 3)。
+        """
         if self._nodal_pos_w.timestamp < self._sim_timestamp:
             self._nodal_pos_w.data = self._root_physx_view.get_sim_nodal_positions()
             self._nodal_pos_w.timestamp = self._sim_timestamp
@@ -112,6 +156,9 @@ class DeformableObjectData:
     @property
     def nodal_vel_w(self):
         """Nodal velocities in simulation world frame. Shape is (num_instances, max_sim_vertices_per_body, 3)."""
+        """在仿真世界框架中，
+        形状是 (num_instances，max_sim_vertices_per_body， 3)。
+        """
         if self._nodal_vel_w.timestamp < self._sim_timestamp:
             self._nodal_vel_w.data = self._root_physx_view.get_sim_nodal_velocities()
             self._nodal_vel_w.timestamp = self._sim_timestamp
@@ -121,6 +168,9 @@ class DeformableObjectData:
     def nodal_state_w(self):
         """Nodal state ``[nodal_pos, nodal_vel]`` in simulation world frame.
         Shape is (num_instances, max_sim_vertices_per_body, 6).
+        """
+        """结核状态``[nodal_pos， nodal_vel]``在仿真世界框架中。
+        形状是 (num_instances，max_sim_vertices_per_body， 6)。
         """
         if self._nodal_state_w.timestamp < self._sim_timestamp:
             self._nodal_state_w.data = torch.cat((self.nodal_pos_w, self.nodal_vel_w), dim=-1)
@@ -133,6 +183,11 @@ class DeformableObjectData:
         Shape is (num_instances, max_sim_elements_per_body, 4).
 
         The rotations are stored as quaternions in the order (w, x, y, z).
+        """
+        """在仿真世界框架中，可变形体的四元数以仿真网格元素进行旋转。
+        形状是 (num_instances，max_sim_elements_per_body， 4)。
+
+        旋转按顺序 (w，x，y，z) 存储为四元数。
         """
         if self._sim_element_quat_w.timestamp < self._sim_timestamp:
             # convert from xyzw to wxyz
@@ -150,6 +205,11 @@ class DeformableObjectData:
 
         The rotations are stored as quaternions in the order (w, x, y, z).
         """
+        """在仿真世界框架中，可变形体的四元数作为碰撞网元素的旋转。
+        形状是 (num_instances，max_collision_elements_per_body， 4)。
+
+        旋转按顺序 (w，x，y，z) 存储为四元数。
+        """
         if self._collision_element_quat_w.timestamp < self._sim_timestamp:
             # convert from xyzw to wxyz
             quats = self._root_physx_view.get_element_rotations().view(self._root_physx_view.count, -1, 4)
@@ -163,6 +223,9 @@ class DeformableObjectData:
     def sim_element_deform_gradient_w(self):
         """Simulation mesh element-wise second-order deformation gradient tensors for the deformable bodies
         in simulation world frame. Shape is (num_instances, max_sim_elements_per_body, 3, 3).
+        """
+        """在仿真世界框架中可变化体的仿真网格元素的第二级变形梯度紧缩器。
+        形状是 (num_instances，max_sim_elements_per_body，3，3)。
         """
         if self._sim_element_deform_gradient_w.timestamp < self._sim_timestamp:
             # set the buffer data and timestamp
@@ -179,6 +242,9 @@ class DeformableObjectData:
         """Collision mesh element-wise second-order deformation gradient tensors for the deformable bodies
         in simulation world frame. Shape is (num_instances, max_collision_elements_per_body, 3, 3).
         """
+        """在仿真世界框架中可变化体的碰撞网元素的第二级变形梯度子。
+        形状是 (num_instances，max_collision_elements_per_body，3，3)。
+        """
         if self._collision_element_deform_gradient_w.timestamp < self._sim_timestamp:
             # set the buffer data and timestamp
             self._collision_element_deform_gradient_w.data = (
@@ -192,6 +258,9 @@ class DeformableObjectData:
         """Simulation mesh element-wise second-order Cauchy stress tensors for the deformable bodies
         in simulation world frame. Shape is (num_instances, max_sim_elements_per_body, 3, 3).
         """
+        """在仿真世界框架中，可变化体的二级考希压力器。
+        形状是 (num_instances，max_sim_elements_per_body，3，3)。
+        """
         if self._sim_element_stress_w.timestamp < self._sim_timestamp:
             # set the buffer data and timestamp
             self._sim_element_stress_w.data = self._root_physx_view.get_sim_element_stresses().view(
@@ -204,6 +273,9 @@ class DeformableObjectData:
     def collision_element_stress_w(self):
         """Collision mesh element-wise second-order Cauchy stress tensors for the deformable bodies
         in simulation world frame. Shape is (num_instances, max_collision_elements_per_body, 3, 3).
+        """
+        """在仿真世界框架中，可变体的二级考希压力器。
+        形状是 (num_instances，max_collision_elements_per_body，3，3)。
         """
         if self._collision_element_stress_w.timestamp < self._sim_timestamp:
             # set the buffer data and timestamp
@@ -224,6 +296,11 @@ class DeformableObjectData:
 
         This quantity is computed as the mean of the nodal positions.
         """
+        """在仿真世界框架中可变形体的仿真网格从节点位置的根位置。
+        形状是 (num_instances， 3)。
+
+        这种数量被计算为节点位置的平均值。
+        """
         return self.nodal_pos_w.mean(dim=1)
 
     @property
@@ -232,5 +309,10 @@ class DeformableObjectData:
         Shape is (num_instances, 3).
 
         This quantity is computed as the mean of the nodal velocities.
+        """
+        """在仿真世界框架中的可变体的顶点速度的根速度。
+        形状是 (num_instances， 3)。
+
+        这种数量是节点速度的平均值。
         """
         return self.nodal_vel_w.mean(dim=1)

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """TacSL Tactile Sensor implementation for IsaacLab."""
+"""TacSL触觉传感器实现 IsaacLab。"""
 
 from .visuotactile_sensor import VisuoTactileSensor
 from .visuotactile_sensor_cfg import GelSightRenderCfg, VisuoTactileSensorCfg

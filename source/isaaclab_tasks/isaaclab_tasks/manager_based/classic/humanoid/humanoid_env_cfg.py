@@ -29,6 +29,7 @@ from isaaclab_assets.robots.humanoid import HUMANOID_CFG  # isort:skip
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
     """Configuration for the terrain scene with a humanoid robot."""
+    """对于地形场景的配置，用人形机器人。"""
 
     # terrain
     terrain = TerrainImporterCfg(
@@ -57,6 +58,7 @@ class MySceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     joint_effort = mdp.JointEffortActionCfg(
         asset_name="robot",
@@ -78,10 +80,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for the policy."""
+        """关于策略的观测。"""
 
         base_height = ObsTerm(func=mdp.base_pos_z)
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
@@ -110,6 +114,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_base = EventTerm(
         func=mdp.reset_root_state_uniform,
@@ -130,6 +135,7 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     # (1) Reward for moving forward
     progress = RewTerm(func=mdp.progress_reward, weight=1.0, params={"target_pos": (1000.0, 0.0, 0.0)})
@@ -185,6 +191,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     # (1) Terminate if the episode length is exceeded
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
@@ -195,6 +202,7 @@ class TerminationsCfg:
 @configclass
 class HumanoidEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the MuJoCo-style Humanoid walking environment."""
+    """对于MuJoCo式的人类走行环境的配置。"""
 
     # Scene settings
     scene: MySceneCfg = MySceneCfg(num_envs=4096, env_spacing=5.0, clone_in_fabric=True)
@@ -208,6 +216,7 @@ class HumanoidEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 2
         self.episode_length_s = 16.0

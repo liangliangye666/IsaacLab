@@ -6,6 +6,7 @@
 """Utility functions for ray-cast sensors."""
 
 from __future__ import annotations
+"""射线传感器的实用功能。"""
 
 import torch
 
@@ -33,6 +34,20 @@ def obtain_world_pose_from_view(
 
     Raises:
         NotImplementedError: If the prim view is not of the supported type.
+    """
+    """得到prim视图所引用的prim的世界姿势。
+
+    参数：
+        physx_view: 让世界从prim视图中获得姿势。
+        env_ids: 环境信息prims让全世界做好姿势。
+        clone: 复返的子是否被克隆 (默认False)。
+
+    返回：
+        一个包含prims的世界位置和方向的图普。
+        导向是 (w， x， y， z) 格式的。
+
+    异常：
+        NotImplementedError: 如果prim视图不是支持类型。
     """
     if isinstance(physx_view, XformPrimView):
         pos_w, quat_w = physx_view.get_world_poses(env_ids)

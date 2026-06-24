@@ -11,6 +11,7 @@ from .joint_pos_env_cfg import UR10eReachEnvCfg
 @configclass
 class UR10eReachROSInferenceEnvCfg(UR10eReachEnvCfg):
     """Exposing variables for ROS inferences"""
+    """对ROS推理的暴露变量"""
 
     def __post_init__(self):
         # post init of parent

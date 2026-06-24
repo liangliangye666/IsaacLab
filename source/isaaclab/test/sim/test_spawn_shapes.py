@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 
@@ -21,6 +23,7 @@ from isaaclab.sim import SimulationCfg, SimulationContext
 @pytest.fixture
 def sim():
     """Create a simulation context."""
+    """创建一个仿真环境。"""
     sim_utils.create_new_stage()
     dt = 0.1
     sim = SimulationContext(SimulationCfg(dt=dt))
@@ -36,10 +39,13 @@ def sim():
 """
 Basic spawning.
 """
+"""基本的繁殖。
+"""
 
 
 def test_spawn_cone(sim):
     """Test spawning of UsdGeom.Cone prim."""
+    """测试UsdGeom.Coneprim的产卵。"""
     cfg = sim_utils.ConeCfg(radius=1.0, height=2.0, axis="Y")
     prim = cfg.func("/World/Cone", cfg)
 
@@ -56,6 +62,7 @@ def test_spawn_cone(sim):
 
 def test_spawn_capsule(sim):
     """Test spawning of UsdGeom.Capsule prim."""
+    """测试UsdGeom.Capsuleprim的产卵。"""
     cfg = sim_utils.CapsuleCfg(radius=1.0, height=2.0, axis="Y")
     prim = cfg.func("/World/Capsule", cfg)
 
@@ -73,6 +80,7 @@ def test_spawn_capsule(sim):
 
 def test_spawn_cylinder(sim):
     """Test spawning of UsdGeom.Cylinder prim."""
+    """测试UsdGeom.Cylinderprim的产卵。"""
     cfg = sim_utils.CylinderCfg(radius=1.0, height=2.0, axis="Y")
     prim = cfg.func("/World/Cylinder", cfg)
 
@@ -90,6 +98,7 @@ def test_spawn_cylinder(sim):
 
 def test_spawn_cuboid(sim):
     """Test spawning of UsdGeom.Cube prim."""
+    """测试UsdGeom.Cubeprim的产卵。"""
     cfg = sim_utils.CuboidCfg(size=(1.0, 2.0, 3.0))
     prim = cfg.func("/World/Cube", cfg)
 
@@ -105,6 +114,7 @@ def test_spawn_cuboid(sim):
 
 def test_spawn_sphere(sim):
     """Test spawning of UsdGeom.Sphere prim."""
+    """测试UsdGeom.Sphereprim的产卵。"""
     cfg = sim_utils.SphereCfg(radius=1.0)
     prim = cfg.func("/World/Sphere", cfg)
 
@@ -121,6 +131,8 @@ def test_spawn_sphere(sim):
 """
 Physics properties.
 """
+"""物理特性。
+"""
 
 
 def test_spawn_cone_with_rigid_props(sim):
@@ -129,6 +141,12 @@ def test_spawn_cone_with_rigid_props(sim):
     Note:
         Playing the simulation in this case will give a warning that no mass is specified!
         Need to also setup mass and colliders.
+    """
+    """测试UsdGeom.Coneprim的胎，使用硬体API。
+
+    说明：
+        在这种情况下，玩仿真将给出警告，没有指定质量!
+        需要安装质量和碰撞机。
     """
     cfg = sim_utils.ConeCfg(
         radius=1.0,
@@ -154,6 +172,7 @@ def test_spawn_cone_with_rigid_props(sim):
 
 def test_spawn_cone_with_rigid_and_mass_props(sim):
     """Test spawning of UsdGeom.Cone prim with rigid body and mass API."""
+    """测试UsdGeom.Cone prim的硬体和质量API产卵。"""
     cfg = sim_utils.ConeCfg(
         radius=1.0,
         height=2.0,
@@ -185,6 +204,14 @@ def test_spawn_cone_with_rigid_and_density_props(sim):
         the collision shape to compute the mass. Thus, we have to set the collider properties. In
         order to not have a collision shape, we disable the collision.
     """
+    """测试UsdGeom.Cone prim的硬体和质量API产卵。
+
+    说明：
+        在这种情况下，我们指定密度而不是质量。
+        在这种情况下，物理学需要知道碰撞形状来计算质量。
+        因此，我们必须设置碰撞机的特性。
+        为了避免碰撞形状，我们将碰撞禁用。
+    """
     cfg = sim_utils.ConeCfg(
         radius=1.0,
         height=2.0,
@@ -211,6 +238,7 @@ def test_spawn_cone_with_rigid_and_density_props(sim):
 
 def test_spawn_cone_with_all_props(sim):
     """Test spawning of UsdGeom.Cone prim with all properties."""
+    """测试UsdGeom.Coneprim的所有特性。"""
     cfg = sim_utils.ConeCfg(
         radius=1.0,
         height=2.0,
@@ -243,10 +271,13 @@ def test_spawn_cone_with_all_props(sim):
 """
 Cloning.
 """
+"""克隆。
+"""
 
 
 def test_spawn_cone_clones_invalid_paths(sim):
     """Test spawning of cone clones on invalid cloning paths."""
+    """在不有效的克隆路径上测试 cl子克隆。"""
     num_clones = 10
     for i in range(num_clones):
         sim_utils.create_prim(f"/World/env_{i}", "Xform", translation=(i, i, 0))
@@ -258,6 +289,7 @@ def test_spawn_cone_clones_invalid_paths(sim):
 
 def test_spawn_cone_clones(sim):
     """Test spawning of cone clones."""
+    """测试 cl子克隆的繁殖。"""
     num_clones = 10
     for i in range(num_clones):
         sim_utils.create_prim(f"/World/env_{i}", "Xform", translation=(i, i, 0))
@@ -275,6 +307,7 @@ def test_spawn_cone_clones(sim):
 
 def test_spawn_cone_clone_with_all_props_global_material(sim):
     """Test spawning of cone clones with global material reference."""
+    """测试使用全球材料参考的子克隆。"""
     num_clones = 10
     for i in range(num_clones):
         sim_utils.create_prim(f"/World/env_{i}", "Xform", translation=(i, i, 0))

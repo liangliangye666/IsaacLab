@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-package containing utilities for common operations and helper functions."""
+"""包含常见操作和辅助功能的公用工具的子包。"""
 
 from .array import *
 from .buffers import *

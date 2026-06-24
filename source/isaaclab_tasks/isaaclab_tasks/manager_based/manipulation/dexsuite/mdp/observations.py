@@ -34,6 +34,18 @@ def object_pos_b(
     Returns:
         Tensor of shape ``(num_envs, 3)``: object position [x, y, z] expressed in the robot root frame.
     """
+    """在机器人的根框架中设置物体。
+
+    参数：
+        env: 环境。
+        robot_cfg: 机器人的场景实体 (参考框架)。
+                   在``SceneEntityCfg("robot")``上默认。
+        object_cfg: 对象的场景实体。
+                    在``SceneEntityCfg("object")``上默认。
+
+    返回：
+        形状度 ``(num_envs， 3)``:对象位置 [x，y，z] 表示在机器人根框架中。
+    """
     robot: RigidObject = env.scene[robot_cfg.name]
     object: RigidObject = env.scene[object_cfg.name]
     return quat_apply_inverse(robot.data.root_quat_w, object.data.root_pos_w - robot.data.root_pos_w)
@@ -53,6 +65,18 @@ def object_quat_b(
 
     Returns:
         Tensor of shape ``(num_envs, 4)``: object quaternion ``(w, x, y, z)`` in the robot root frame.
+    """
+    """在机器人的根框架中，物体的导向。
+
+    参数：
+        env: 环境。
+        robot_cfg: 机器人的场景实体 (参考框架)。
+                   在``SceneEntityCfg("robot")``上默认。
+        object_cfg: 对象的场景实体。
+                    在``SceneEntityCfg("object")``上默认。
+
+    返回：
+        形状度``(num_envs， 4)``:在机器人根框架中的对象四角形 ``(w， x， y， z)``。
     """
     robot: RigidObject = env.scene[robot_cfg.name]
     object: RigidObject = env.scene[object_cfg.name]
@@ -76,6 +100,18 @@ def body_state_b(
 
     Returns:
         Tensor of shape ``(num_envs, num_bodies * 13)`` with per-body states expressed in the base root frame.
+    """
+    """基资产根框架中的体体状态 (pos， quat， lin vel， ang vel)。
+
+    每个身体的状态水平上堆叠为``[position(3)， quaternion(4)(wxyz)， linvel(3)， angvel(3)]``，然后连接到身体上。
+
+    参数：
+        env: 环境。
+        body_asset_cfg: 对于观测连接的关节体的场景实体。
+        base_asset_cfg: 提供参考 (根) 框架的场景实体。
+
+    返回：
+        形状 ``(num_envs， num_bodies * 13)``的电力，以基根框架表达的每体状态。
     """
     body_asset: Articulation = env.scene[body_asset_cfg.name]
     base_asset: Articulation = env.scene[base_asset_cfg.name]
@@ -113,6 +149,25 @@ class object_point_cloud_b(ManagerTermBase):
     Returns (from ``__call__``):
         If ``flatten=False``: tensor of shape ``(num_envs, num_points, 3)``.
         If ``flatten=True``: tensor of shape ``(num_envs, 3 * num_points)``.
+    """
+    """在参考资产的根框架中表达的对象表面点云。
+
+    在物体的表面上，点在本地框架中进行预测，然后转化为世界，然后转化为参考 (e.g.，机器人) 根框架。
+    选择性可视化点。
+
+    Args (from ``cfg.params``):
+        object_cfg: 对象的场景实体。
+                    在``SceneEntityCfg("object")``上默认。
+        ref_asset_cfg: 提供参考框架的场景实体。
+                       在``SceneEntityCfg("robot")``上默认。
+        num_points: 对象表面的样本点数。
+                    在``10``上默认。
+        visualize: 是否为积分绘制标记。
+                   在``True``上默认。
+        static: 如果 ``True``，在重置时缓存世界空间点，然后再使用它们 (没有每步重新样本)。
+
+    Returns (from ``__call__``): 如果``flatten=False``:形状``(num_envs， num_points， 3)``的子。
+                                 如果``flatten=True``:形状``(num_envs， 3 * num_points)``的子。
     """
 
     def __init__(self, cfg, env: ManagerBasedRLEnv):
@@ -162,6 +217,24 @@ class object_point_cloud_b(ManagerTermBase):
         Returns:
             Tensor of shape ``(num_envs, num_points, 3)`` or flattened if requested.
         """
+        """在参考资产的根框架中计算对象点云。
+
+        说明：
+            在使用``self.num_points``的初始化时，积分预先采样；``num_points``参数为API对称保持，并不会在运行时改变采样集。
+
+        参数：
+            env: 环境。
+            ref_asset_cfg: 参考框架提供商 (根)。
+                           在``SceneEntityCfg("robot")``上默认。
+            object_cfg: 反对采样。
+                        在``SceneEntityCfg("object")``上默认。
+            num_points: 在运行时未使用；参见上述注释。
+            flatten: 如果 ``True``，返回一个平坦的子 ``(num_envs， 3 * num_points)``。
+            visualize: 如果 ``True``，为点画标记。
+
+        返回：
+            电压 ``(num_envs， num_points， 3)``形状或要求平坦。
+        """
         ref_pos_w = self.ref_asset.data.root_pos_w.unsqueeze(1).repeat(1, num_points, 1)
         ref_quat_w = self.ref_asset.data.root_quat_w.unsqueeze(1).repeat(1, num_points, 1)
 
@@ -190,6 +263,15 @@ def fingers_contact_force_b(
     Returns:
         Tensor of shape ``(num_envs, 3 * num_sensors)`` with forces stacked horizontally as
         ``[fx, fy, fz]`` per sensor.
+    """
+    """从列表的传感器中获得的基框架接触力，每env连接。
+
+    参数：
+        env: 环境。
+        contact_sensor_names: 在``env.scene.sensors``中查看的接触传感器名称。
+
+    返回：
+        形状``(num_envs， 3 * num_sensors)``的电压，以每个传感器的 ``[fx， fy， fz]``为水平堆的力量。
     """
     force_w = [env.scene.sensors[name].data.force_matrix_w.view(env.num_envs, 3) for name in contact_sensor_names]
     force_w = torch.stack(force_w, dim=1)

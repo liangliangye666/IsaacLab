@@ -35,9 +35,26 @@ class MjcfConverter(AssetConverterBase):
 
     .. _isaacsim.asset.importer.mjcf:  https://docs.isaacsim.omniverse.nvidia.com/latest/importer_exporter/ext_isaacsim_asset_importer_mjcf.html
     """
+    """转换MJCF描述文件为USD文件。
+
+    这个类包围`isaacsim.asset.importer.mjcf`_扩展以提供惰的实现
+    for MJCF to USD conversion. It stores the output USD file in an instanceable format since that is
+    在所有学习相关应用中通常使用。
+
+    .. 谨慎::
+        如果只修改MJCF所使用的网格文件，目前的惰转换实现不会自动触发USD生成。
+        要强制生成，要么设置:obj:`AssetConverterBaseCfg.force_usd_conversion`为True，要么删除输出目录。
+
+    .. 说明::
+        从Isaac Sim4.5开始，扩展名称从``omni.importer.mjcf``变为``isaacsim.asset.importer.mjcf``。
+        这类转换器现在使用了Isaac Sim最新的扩展。
+
+    .. _isaacsim.asset.importer.mjcf:  https://docs.isaacsim.omniverse.nvidia.com/latest/importer_exporter/ext_isaacsim_asset_importer_mjcf.html
+    """
 
     cfg: MjcfConverterCfg
     """The configuration instance for MJCF to USD conversion."""
+    """为MJCF转换到USD的配置实例。"""
 
     def __init__(self, cfg: MjcfConverterCfg):
         """Initializes the class.
@@ -45,10 +62,17 @@ class MjcfConverter(AssetConverterBase):
         Args:
             cfg: The configuration instance for URDF to USD conversion.
         """
+        """开始课程。
+
+        参数：
+            cfg: 为URDF转换到USD的配置实例。
+        """
         super().__init__(cfg=cfg)
 
     """
     Implementation specific methods.
+    """
+    """具体实施方法。
     """
 
     def _convert_asset(self, cfg: MjcfConverterCfg):
@@ -56,6 +80,11 @@ class MjcfConverter(AssetConverterBase):
 
         Args:
             cfg: The configuration instance for MJCF to USD conversion.
+        """
+        """调用底层的全宇宙命令将MJCF转换为USD。
+
+        参数：
+            cfg: 为MJCF转换到USD的配置实例。
         """
         import_config = self._get_mjcf_import_config()
         file_basename, _ = os.path.basename(cfg.asset_path).split(".")
@@ -72,6 +101,11 @@ class MjcfConverter(AssetConverterBase):
 
         Returns:
             The constructed ``ImportConfig`` object containing the desired settings.
+        """
+        """返回MJCF到USD转换的进口配置。
+
+        返回：
+            包含所需设置的构建``ImportConfig``对象。
         """
 
         _, import_config = omni.kit.commands.execute("MJCFCreateImportConfig")

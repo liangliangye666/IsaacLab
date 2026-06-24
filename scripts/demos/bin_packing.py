@@ -19,8 +19,19 @@ and out-of-bounds recovery inside an interactive simulation loop.
 """
 
 from __future__ import annotations
+"""随机垃圾包装与艾萨克实验室的示范。
+
+这种脚本将多个环境构建，产生一个可配置的杂货对象集，并不断随机化它们的姿势，速度，质量属性和活性/缓存状态，以模仿垃圾填充工作流。
+它展示了如何使用``RigidObjectCollection``公用程序进行批量重置姿势，缓存管理和在交互式仿真循环内进行非界限恢复。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/demos/bin_packing.py --num_envs 32
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -40,6 +51,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 
@@ -101,6 +113,7 @@ GROCERIES = {
 @configclass
 class MultiObjectSceneCfg(InteractiveSceneCfg):
     """Configuration for a multi-object scene."""
+    """为多个物体场景的配置。"""
 
     # ground plane
     ground = AssetBaseCfg(prim_path="/World/defaultGroundPlane", spawn=sim_utils.GroundPlaneCfg())
@@ -158,6 +171,21 @@ def reset_object_collections(
     Returns:
         None: This function updates ``view_states`` and the underlying PhysX view in-place.
     """
+    """将状态应用于集合的子集，可选择噪音。
+
+    更新``view_states``在``view_ids``的位置，并将转换/速度写入PhysX视图 ``asset_name``的集合。
+    当``noise``是True时，将``POSE_RANGE``和``VELOCITY_RANGE``的速度和波音 (XYZ + Euler) 添加到均的 perturbations。
+
+    参数：
+        scene: 集中的交互场景。
+        asset_name: 在场景的关键 (e.g.， ``"groceries"``) 为RigidObjectCollection。
+        view_states: 在世界框架中，具有 [x， y， z， qx， qy， qz， qw， lin(3)， ang(3) 的平坦子。
+        view_ids: 在 ``view_states`` 中进行更新。
+        noise: 如果True，在写作前应对姿势和速度噪音。
+
+    返回：
+        None: 这个函数会更新``view_states``和底层PhysX视图。
+    """
     rigid_object_collection: RigidObjectCollection = scene[asset_name]
     sel_view_states = view_states[view_ids]
     positions = sel_view_states[:, :3]
@@ -210,6 +238,19 @@ def build_grocery_defaults(
         ``(num_envs, M, 7)`` with ``[x, y, z, qx, qy, qz, qw]`` where ``M`` equals
         ``MAX_NUM_OBJECTS``.
     """
+    """为所有环境创建默认的活跃/缓存产生的姿势。
+
+    - 活跃姿势:每层 ``ACTIVE_LAYER_SPACING``的3D格子堆叠在垃圾桶上。
+    - 隐藏的姿势:在``CACHE_HEIGHT``的2D格子，将无事件物体置于视野之外。
+
+    参数：
+        num_envs: 设置的环境数量。
+        device: 用于分配的火装置 (e.g.，``"cuda:0"``或``"cpu"``)。
+
+    返回：
+        tuple[torch.Tensor，torch.Tensor]: 活跃和缓存的生殖姿势，每个形状是``(num_envs， M， 7)``和``[x， y， z， qx， qy， qz，
+        qw]``，其中``M``等于``MAX_NUM_OBJECTS``。
+    """
 
     # The bin has a size of 0.2 x 0.3 x 0.15 m
     bin_x_dim, bin_y_dim, bin_z_dim = BIN_DIMENSIONS
@@ -258,6 +299,11 @@ def run_simulator(sim: SimulationContext, scene: InteractiveScene) -> None:
 
     Returns:
         None: The simulator side-effects are applied through ``scene`` and ``sim``.
+    """
+    """运行一个仿真循环，该循环协调生殖随机化和步骤。
+
+    返回：
+        None: 仿真器的副作用通过``scene``和``sim``进行应用。
     """
     # Extract scene entities
     # note: we only do this here for readability.
@@ -327,6 +373,11 @@ def main() -> None:
 
     Returns:
         None: The function drives the simulation for its side-effects.
+    """
+    """主要功能。
+
+    返回：
+        None: 函数为其副作用驱动仿真。
     """
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(dt=0.005, device=args_cli.device)

@@ -10,6 +10,10 @@ the termination introduced by the function.
 """
 
 from __future__ import annotations
+"""常见功能，可用于激活某些升降任务的终止。
+
+函数可以传递到:class:`isaaclab.managers.TerminationTermCfg`对象，以实现函数引入的终止。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -55,6 +59,28 @@ def task_done_pick_place(
 
     Returns:
         Boolean tensor indicating which environments have completed the task.
+    """
+    """确定对象放置任务是否完成。
+
+    该函数检查任务是否符合所有成功条件:
+    1. 对象在目标 x/y 范围内
+    2. 对象低于最低高度
+    3. 对象的速度低于门
+    4. 右机器人手腕向身体拉回 (经过给定的x后门)
+
+    参数：
+        env: 在RL环境实例。
+        object_cfg: 对象实体的配置
+        right_wrist_max_x: 完成任务的右手腕最大x位置。
+        min_x: 任务完成时对象的最小x位置。
+        max_x: 任务完成时对象的最大x位置。
+        min_y: 任务完成时对象的最小y位置。
+        max_y: 任务完成时对象的最大位置。
+        max_height: 任务完成时对象的最大高度 (z位置)。
+        min_vel: 完成任务的对象最小速度大小。
+
+    返回：
+        布尔电压器表示哪些环境完成任务。
     """
     if task_link_name == "":
         raise ValueError("task_link_name must be provided to task_done_pick_place")
@@ -131,6 +157,33 @@ def task_done_nut_pour(
     Returns:
         Boolean tensor indicating which environments have completed the task.
     """
+    """确定坚果倒任务是否完成。
+
+    该函数检查任务是否符合所有成功条件:
+    1. 工厂的 factory子在分类碗里
+    2. 排序杯在排序箱里
+    3. 排序碗放在排序尺度上
+
+    参数：
+        env: 在RL环境实例。
+        sorting_scale_cfg: 对分类规模实体的配置。
+        sorting_bowl_cfg: 排序碗实体的配置。
+        sorting_beaker_cfg: 对分类杯实体的配置。
+        factory_nut_cfg: 工厂 entity蛋实体的配置。
+        sorting_bin_cfg: 排序桶实体的配置。
+        max_bowl_to_scale_x: 排序碗的最大x位置与任务完成的排序规模相比。
+        max_bowl_to_scale_y: 排序碗的最大位置与任务完成的排序规模相比。
+        max_bowl_to_scale_z: 排序碗的最大z位置与任务完成的排序规模相比。
+        max_nut_to_bowl_x: 工厂坚果对分类碗进行完成任务的最大x位置。
+        max_nut_to_bowl_y: 工厂核子与分类碗相比的最大位置为完成任务。
+        max_nut_to_bowl_z: 工厂核子对分类碗的最大z位置，以完成任务。
+        max_beaker_to_bin_x: 排序杯与排序箱相比的最大x位置，以完成任务。
+        max_beaker_to_bin_y: 排序杯与排序箱相比的最大位置为完成任务。
+        max_beaker_to_bin_z: 排序杯与排序箱相比的最大z位置完成任务。
+
+    返回：
+        布尔电压器表示哪些环境完成任务。
+    """
     # Get object entities from the scene
     sorting_scale: RigidObject = env.scene[sorting_scale_cfg.name]
     sorting_bowl: RigidObject = env.scene[sorting_bowl_cfg.name]
@@ -200,6 +253,22 @@ def task_done_exhaust_pipe(
 
     Returns:
         Boolean tensor indicating which environments have completed the task.
+    """
+    """确定排气管任务是否完成。
+
+    该函数检查任务是否符合所有成功条件:
+    1. 蓝色排气管放在正确的位置
+
+    参数：
+        env: 在RL环境实例。
+        blue_exhaust_pipe_cfg: 蓝色排气管的配置
+        blue_sorting_bin_cfg: 蓝色分类垃圾桶实体的配置。
+        max_blue_exhaust_to_bin_x: 蓝色排气管与蓝色分类箱相对的最大x位置，以便完成任务。
+        max_blue_exhaust_to_bin_y: 蓝色排气管与蓝色分类箱相比的最大位置为完成任务。
+        max_blue_exhaust_to_bin_z: 蓝色排气管与蓝色分类箱相比的最大z位置，以便完成任务。
+
+    返回：
+        布尔电压器表示哪些环境完成任务。
     """
     # Get object entities from the scene
     blue_exhaust_pipe: RigidObject = env.scene[blue_exhaust_pipe_cfg.name]

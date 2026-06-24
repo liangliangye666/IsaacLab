@@ -24,6 +24,7 @@ def upright_posture_bonus(
     env: ManagerBasedRLEnv, threshold: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
     """Reward for maintaining an upright posture."""
+    """保持直立的姿势是奖励。"""
     up_proj = obs.base_up_proj(env, asset_cfg).squeeze(-1)
     return (up_proj > threshold).float()
 
@@ -35,12 +36,14 @@ def move_to_target_bonus(
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
     """Reward for moving to the target heading."""
+    """为了向目标方向移动，"""
     heading_proj = obs.base_heading_proj(env, target_pos, asset_cfg).squeeze(-1)
     return torch.where(heading_proj > threshold, 1.0, heading_proj / threshold)
 
 
 class progress_reward(ManagerTermBase):
     """Reward for making progress towards the target."""
+    """为了实现目标的进步，"""
 
     def __init__(self, env: ManagerBasedRLEnv, cfg: RewardTermCfg):
         # initialize the base class
@@ -80,6 +83,7 @@ class progress_reward(ManagerTermBase):
 
 class joint_pos_limits_penalty_ratio(ManagerTermBase):
     """Penalty for violating joint position limits weighted by the gear ratio."""
+    """违反 joint位限制的处罚，加权变速率。"""
 
     def __init__(self, env: ManagerBasedRLEnv, cfg: RewardTermCfg):
         # add default argument
@@ -119,6 +123,10 @@ class power_consumption(ManagerTermBase):
     """Penalty for the power consumed by the actions to the environment.
 
     This is computed as commanded torque times the joint velocity.
+    """
+    """对环境行为所消耗的能量的处罚。
+
+    这将被计算为指令扭矩乘以关节速度。
     """
 
     def __init__(self, env: ManagerBasedRLEnv, cfg: RewardTermCfg):

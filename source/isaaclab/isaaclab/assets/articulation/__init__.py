@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module for rigid articulated assets."""
+"""固体关节资产子模块"""
 
 from .articulation import Articulation
 from .articulation_cfg import ArticulationCfg

@@ -6,6 +6,8 @@
 """
 Script to add mimic annotations to demos to be used as source demos for mimic dataset generation.
 """
+"""脚本将模仿注释添加到演示，用于模仿数据集生成的源演示。
+"""
 
 import argparse
 import math
@@ -57,6 +59,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import contextlib
 import os
@@ -111,6 +114,7 @@ def mark_subtask_cb():
 
 class PreStepDatagenInfoRecorder(RecorderTerm):
     """Recorder term that records the datagen info data in each step."""
+    """每一步记录数据数据的记录项。"""
 
     def record_pre_step(self):
         eef_pose_dict = {}
@@ -128,12 +132,14 @@ class PreStepDatagenInfoRecorder(RecorderTerm):
 @configclass
 class PreStepDatagenInfoRecorderCfg(RecorderTermCfg):
     """Configuration for the datagen info recorder term."""
+    """数据记录器的配置。"""
 
     class_type: type[RecorderTerm] = PreStepDatagenInfoRecorder
 
 
 class PreStepSubtaskStartsObservationsRecorder(RecorderTerm):
     """Recorder term that records the subtask start observations in each step."""
+    """在每一步记录子任务开始观测的记录项。"""
 
     def record_pre_step(self):
         return "obs/datagen_info/subtask_start_signals", self._env.get_subtask_start_signals()
@@ -142,12 +148,14 @@ class PreStepSubtaskStartsObservationsRecorder(RecorderTerm):
 @configclass
 class PreStepSubtaskStartsObservationsRecorderCfg(RecorderTermCfg):
     """Configuration for the subtask start observations recorder term."""
+    """对于子任务开始观测记录器的配置。"""
 
     class_type: type[RecorderTerm] = PreStepSubtaskStartsObservationsRecorder
 
 
 class PreStepSubtaskTermsObservationsRecorder(RecorderTerm):
     """Recorder term that records the subtask completion observations in each step."""
+    """在每个步骤中记录子任务完成的观测。"""
 
     def record_pre_step(self):
         return "obs/datagen_info/subtask_term_signals", self._env.get_subtask_term_signals()
@@ -156,6 +164,7 @@ class PreStepSubtaskTermsObservationsRecorder(RecorderTerm):
 @configclass
 class PreStepSubtaskTermsObservationsRecorderCfg(RecorderTermCfg):
     """Configuration for the step subtask terms observation recorder term."""
+    """步骤子任务项的配置"""
 
     class_type: type[RecorderTerm] = PreStepSubtaskTermsObservationsRecorder
 
@@ -163,6 +172,7 @@ class PreStepSubtaskTermsObservationsRecorderCfg(RecorderTermCfg):
 @configclass
 class MimicRecorderManagerCfg(ActionStateRecorderManagerCfg):
     """Mimic specific recorder terms."""
+    """模仿特定的录音器项。"""
 
     record_pre_step_datagen_info = PreStepDatagenInfoRecorderCfg()
     record_pre_step_subtask_start_signals = PreStepSubtaskStartsObservationsRecorderCfg()
@@ -171,6 +181,7 @@ class MimicRecorderManagerCfg(ActionStateRecorderManagerCfg):
 
 def main():
     """Add Isaac Lab Mimic annotations to the given demo dataset file."""
+    """添加Isaac Lab Mimic注释到给定的示范数据集文件中。"""
     global is_paused, current_action_index, marked_subtask_action_indices
 
     # Load input dataset to be annotated
@@ -351,6 +362,19 @@ def replay_episode(
         True if the episode was successfully replayed and the success condition was met (if provided),
         False otherwise.
     """
+    """在环境中播放一个事件。
+
+    这个函数在环境中重复记录的事件。
+    它可选择地检查是否成功完成任务，使用成功终止条件输入。
+
+    参数：
+        env: 播放回放的环境。
+        episode: 录制的事件数据要重播。
+        success_term: 选项终止项检查任务是否成功。
+
+    返回：
+        如果回合成功重播，并且满足成功条件 (如果提供)，则True，否则False。
+    """
     global current_action_index, skip_episode, is_paused
     # read initial state and actions from the loaded episode
     initial_state = episode.data["initial_state"]
@@ -395,6 +419,20 @@ def annotate_episode_in_auto_mode(
 
     Returns:
         True if the episode was successfully annotated, False otherwise.
+    """
+    """在自动模式下记录一段事件。
+
+    这种函数在环境中重复给定的事件并检查任务是否成功完成。
+    如果任务未完成，它将打印一个消息，返回False。
+    否则，它将检查所有子任务项信号是否注释，并返回True如果是，False否则。
+
+    参数：
+        env: 播放回放的环境。
+        episode: 录制的事件数据要重播。
+        success_term: 选项终止项检查任务是否成功。
+
+    返回：
+        True如果事件成功注释，False否则。
     """
     global skip_episode
     skip_episode = False
@@ -442,6 +480,20 @@ def annotate_episode_in_manual_mode(
         subtask_start_signal_names: Dictionary mapping eef names to lists of subtask start signal names.
     Returns:
         True if the episode was successfully annotated, False otherwise.
+    """
+    """在手动模式下注释一个事件。
+
+    这种函数在环境中重现给定的事件，并允许手动标记子任务项信号。
+    它反复在每个eef上，并要求用户标记该eef的子任务项信号。
+
+    参数：
+        env: 播放回放的环境。
+        episode: 录制的事件数据要重播。
+        success_term: 选项终止项检查任务是否成功。
+        subtask_term_signal_names: 字典将eef名称映射到子任务项信号名称列表。
+        subtask_start_signal_names: 字典将eef名称映射到子任务开始信号名称列表。
+    返回：
+        True如果事件成功注释，False否则。
     """
     global is_paused, marked_subtask_action_indices, skip_episode
     # iterate over the eefs for marking subtask term signals

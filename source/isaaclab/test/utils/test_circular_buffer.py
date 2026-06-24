@@ -7,6 +7,7 @@ import pytest
 import torch
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -14,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows from here."""
+"""休息，从这里开始。"""
 
 from isaaclab.utils import CircularBuffer
 
@@ -21,6 +23,7 @@ from isaaclab.utils import CircularBuffer
 @pytest.fixture
 def circular_buffer():
     """Create a circular buffer for testing."""
+    """建立一个循环缓冲器进行测试。"""
     max_len = 5
     batch_size = 3
     device = "cpu"
@@ -29,6 +32,7 @@ def circular_buffer():
 
 def test_initialization(circular_buffer):
     """Test initialization of the circular buffer."""
+    """测试循环缓冲器初始化。"""
     assert circular_buffer.max_length == 5
     assert circular_buffer.batch_size == 3
     assert circular_buffer.device == "cpu"
@@ -37,6 +41,7 @@ def test_initialization(circular_buffer):
 
 def test_reset(circular_buffer):
     """Test resetting the circular buffer."""
+    """测试重置循环缓冲器。"""
     # append some data
     data = torch.ones((circular_buffer.batch_size, 2), device=circular_buffer.device)
     circular_buffer.append(data)
@@ -49,6 +54,7 @@ def test_reset(circular_buffer):
 
 def test_reset_subset(circular_buffer):
     """Test resetting a subset of batches in the circular buffer."""
+    """测试在循环缓冲中重置一组分组。"""
     data1 = torch.ones((circular_buffer.batch_size, 2), device=circular_buffer.device)
     data2 = 2.0 * data1.clone()
     data3 = 3.0 * data1.clone()
@@ -72,6 +78,7 @@ def test_reset_subset(circular_buffer):
 
 def test_append_and_retrieve(circular_buffer):
     """Test appending and retrieving data from the circular buffer."""
+    """测试从循环缓冲器中添加和检索数据。"""
     # append some data
     data1 = torch.tensor([[1, 1], [1, 1], [1, 1]], device=circular_buffer.device)
     data2 = torch.tensor([[2, 2], [2, 2], [2, 2]], device=circular_buffer.device)
@@ -92,6 +99,10 @@ def test_buffer_overflow(circular_buffer):
     """Test buffer overflow.
 
     If the buffer is full, the oldest data should be overwritten.
+    """
+    """测试缓冲器过剩。
+
+    如果缓冲器充满，最古老的数据应该被覆盖。
     """
     # add data in ascending order
     for count in range(circular_buffer.max_length + 2):
@@ -125,12 +136,14 @@ def test_buffer_overflow(circular_buffer):
 
 def test_empty_buffer_access(circular_buffer):
     """Test accessing an empty buffer."""
+    """测试访问一个空缓冲器。"""
     with pytest.raises(RuntimeError):
         circular_buffer[torch.tensor([0, 0, 0], device=circular_buffer.device)]
 
 
 def test_invalid_batch_size(circular_buffer):
     """Test appending data with an invalid batch size."""
+    """测试无效批量数据附加。"""
     data = torch.ones((circular_buffer.batch_size + 1, 2), device=circular_buffer.device)
     with pytest.raises(ValueError):
         circular_buffer.append(data)
@@ -143,6 +156,10 @@ def test_key_greater_than_pushes(circular_buffer):
     """Test retrieving data with a key greater than the number of pushes.
 
     In this case, the oldest data should be returned.
+    """
+    """测试检索数据的键超过按数量。
+
+    在这种情况下，应返回最古老的数据。
     """
     data1 = torch.tensor([[1, 1], [1, 1], [1, 1]], device=circular_buffer.device)
     data2 = torch.tensor([[2, 2], [2, 2], [2, 2]], device=circular_buffer.device)
@@ -157,6 +174,9 @@ def test_key_greater_than_pushes(circular_buffer):
 def test_return_buffer_prop(circular_buffer):
     """Test retrieving the whole buffer for correct size and contents.
     Returning the whole buffer should have the shape [batch_size,max_len,data.shape[1:]]
+    """
+    """检查整个缓冲器的正确尺寸和内容。
+    返回整个缓冲器的形状应该是[batch_size，max_len，data.shape[1:]]
     """
     num_overflow = 2
     for i in range(circular_buffer.max_length + num_overflow):

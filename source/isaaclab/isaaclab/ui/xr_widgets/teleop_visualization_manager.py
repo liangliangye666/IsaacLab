@@ -16,12 +16,23 @@ class TeleopVisualizationManager(VisualizationManager):
     Provides teleoperation-specific visualization features including:
     - IK error handling and display
     """
+    """专业视觉化管理器用于远程操作场景。
+    用于样本和调试。
+
+    提供特定于远程操作的可视化功能，包括:
+    - IK错误处理和显示
+    """
 
     def __init__(self, data_collector: DataCollector):
         """Initialize the teleop visualization manager and register callbacks.
 
         Args:
             data_collector: DataCollector instance to read data for visualization use.
+        """
+        """启动电话视觉管理器，并记录回调。
+
+        参数：
+            data_collector: 为可视化使用阅读数据的DataCollector实例。
         """
         super().__init__(data_collector)
 
@@ -36,6 +47,11 @@ class TeleopVisualizationManager(VisualizationManager):
 
         Args:
             data_collector: DataCollector instance (unused in this handler)
+        """
+        """通过显示错误信息小组件来处理IK错误事件。
+
+        参数：
+            data_collector: 在本处理器中未使用的DataCollector实例
         """
         # Todo: move display_widget to instruction_widget.py
         if not hasattr(mgr, "_ik_error_widget_timer"):
@@ -60,6 +76,11 @@ class TeleopVisualizationManager(VisualizationManager):
 
         Args:
             data_collector: DataCollector instance (unused in this handler)
+        """
+        """隐藏IK错误小组件。
+
+        参数：
+            data_collector: 在本处理器中未使用的DataCollector实例
         """
 
         hide_instruction(mgr.ik_error_widget_id)

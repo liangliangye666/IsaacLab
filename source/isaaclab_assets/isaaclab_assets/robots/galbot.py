@@ -11,6 +11,12 @@ The following configuration parameters are available:
 * :obj:`GALBOT_ONE_CHARLIE_CFG`: The galbot_one_charlie humanoid robot.
 
 """
+"""格尔博特人形机器人的配置。
+
+下列配置参数可用:
+
+* :obj:`GALBOT_ONE_CHARLIE_CFG`其他:galbot_one_charlie人类机器人。
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -101,3 +107,4 @@ GALBOT_ONE_CHARLIE_CFG = ArticulationCfg(
     },
 )
 """Configuration of Galbot_one_charlie humanoid using implicit actuator models."""
+"""使用隐含的执行器模型的Galbot_one_charlie人形配置。"""

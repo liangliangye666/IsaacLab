@@ -11,8 +11,16 @@
     ./isaaclab.sh -p scripts/tutorials/01_assets/run_articulation.py
 
 """
+"""这本脚本展示了如何产生和与它交互的车杆。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/01_assets/run_articulation.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -31,6 +39,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -46,6 +55,7 @@ from isaaclab_assets import CARTPOLE_CFG  # isort:skip
 
 def design_scene() -> tuple[dict, list[list[float]]]:
     """Designs the scene."""
+    """他设计了场景。"""
     # Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
     cfg.func("/World/defaultGroundPlane", cfg)
@@ -73,6 +83,7 @@ def design_scene() -> tuple[dict, list[list[float]]]:
 
 def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articulation], origins: torch.Tensor):
     """Runs the simulation loop."""
+    """运行仿真循环。"""
     # Extract scene entities
     # note: we only do this here for readability. In general, it is better to access the entities directly from
     #   the dictionary. This dictionary is replaced by the InteractiveScene class in the next tutorial.
@@ -118,6 +129,7 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, Articula
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
     sim = SimulationContext(sim_cfg)

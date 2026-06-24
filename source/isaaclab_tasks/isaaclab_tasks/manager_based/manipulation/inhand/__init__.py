@@ -12,3 +12,10 @@ modifications and additional features.
 .. _dexterous cube manipulation: https://github.com/NVIDIA-Omniverse/IsaacGymEnvs/blob/main/isaacgymenvs/tasks/allegro_hand.py
 
 """
+"""在手中进行对象重定向环境。
+
+这些环境基于`dexterous cube manipulation`在IsaacGymEnvs从NVIDIA。
+然而，它们包含了某些修改和额外的特征。
+
+.. _dexterous cube manipulation: https://github.com/NVIDIA-Omniverse/IsaacGymEnvs/blob/main/isaacgymenvs/tasks/allegro_hand.py
+"""

@@ -40,6 +40,29 @@ def spawn_rigid_body_material(prim_path: str, cfg: physics_materials_cfg.RigidBo
     Raises:
         ValueError:  When a prim already exists at the specified prim path and is not a material.
     """
+    """创建具有固体物理特性的材料。
+
+    硬体材料用于定义硬体的物理特性。
+    这些包括摩擦，恢复和它们各自的组合方式。
+    关于硬体材料的更多信息请参阅`documentation on PxMaterial
+    <https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/_api_build/classPxBaseMaterial.html>`_。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 物理材料的配置。
+
+    返回：
+        产生的硬体材料prim。
+
+    异常：
+        ValueError:  如果prim在指定prim路径上已经存在，并且不是材料。
+    """
     # get stage handle
     stage = get_current_stage()
 
@@ -98,6 +121,30 @@ def spawn_deformable_body_material(prim_path: str, cfg: physics_materials_cfg.De
 
     Raises:
         ValueError:  When a prim already exists at the specified prim path and is not a material.
+
+    .. _PxFEMSoftBodyMaterial: https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/_api_build/structPxFEMSoftBodyMaterialModel.html
+    """
+    """创建具有可变体物理特性的材料。
+
+    可变形体材料用于定义变形体的物理特性。
+    这些包括摩擦和可变化的体质。
+    对于可变形体材料的更多信息，请参阅`PxFEMSoftBodyMaterial`_的文档。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 物理材料的配置。
+
+    返回：
+        产生的可变体材质prim。
+
+    异常：
+        ValueError:  如果prim在指定prim路径上已经存在，并且不是材料。
 
     .. _PxFEMSoftBodyMaterial: https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/_api_build/structPxFEMSoftBodyMaterialModel.html
     """

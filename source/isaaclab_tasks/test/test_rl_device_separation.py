@@ -34,6 +34,35 @@ Tested Libraries:
         * Wrapper keeps observations on sim_device, only transfers actions
 
 """
+"""在所有支持的RL库中测试RL设备分离。
+
+这项测试验验证，当仿真装置与RL训练装置不同时，RL库包装正确处理设备转移。
+
+设备架构:
+    1. sim_device:在物理仿真运行和环境缓冲存在的地方
+    2. rl_device:策略网络和培训计算发生的地方
+
+测试场景:
+    - GPU仿真+GPU RL:相同的设备 (不需要转移，最佳性能)
+    - GPU仿真+CPU RL:跨设备转移 (包装句柄转移)
+    - CPU仿真 + CPU RL:仅使用CPU
+
+每次测试都会正确验证包装:
+    1. 未包装的env:完全使用sim_device
+    2. 包装:在rl_device上接受动作 (如果策略产生它们)
+    3. 包装:内部转移动作rl_device → sim_device对于env.step()
+    4. 包装:从sim_device →rl_device输出转移 (用于策略使用)
+
+测试的库:
+    - RSL-RL:TensorDict观测，通过OnPolicyRunner (agent_cfg.device) 设备分离
+        * 包装器返回sim_device的数据，Runner处理转移到rl_device
+    - RL游戏:指令观测，包装中的明确rl_device参数
+        * 包装器将数据从sim_device转移到rl_device
+    - 稳定基线3:形阵列 (设计仅为CPU)
+        * 包装器将子转换为/从在CPU上的子
+    - skrl:指标观测，使用skrl.config.torch.device为RL设备
+        * 包装器在sim_device上保留观测，只转移操作
+"""
 
 from isaaclab.app import AppLauncher
 
@@ -42,6 +71,7 @@ app_launcher = AppLauncher(headless=True)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import gymnasium as gym
 import pytest
@@ -66,6 +96,14 @@ def _create_env(sim_device: str):
 
     Returns:
         Initialized gym environment
+    """
+    """创建和启动测试环境。
+
+    参数：
+        sim_device: 仿真设备 (e.g.， "cuda:0"， "cpu")
+
+    返回：
+        启动Gym环境
     """
     # Create a new stage
     omni.usd.get_context().new_stage()
@@ -95,6 +133,12 @@ def _verify_unwrapped_env(env, sim_device: str):
     Args:
         env: Unwrapped gym environment
         sim_device: Expected simulation device
+    """
+    """检查未包装的环境完全在sim_device上运行。
+
+    参数：
+        env: 没有包装的Gym环境
+        sim_device: 预期仿真装置
     """
     assert env.unwrapped.device == sim_device, (
         f"Environment device mismatch: expected {sim_device}, got {env.unwrapped.device}"
@@ -128,6 +172,13 @@ def _verify_tensor_device(data, expected_device: str, name: str):
         expected_device: Expected device string
         name: Name for error messages
     """
+    """检查电压器或电压器的定位是预期的设备。
+
+    参数：
+        data: 紧张器，紧张器的定制，或形数组
+        expected_device: 预期设备链
+        name: 错误消息名称
+    """
     if isinstance(data, torch.Tensor):
         assert data.device.type == torch.device(expected_device).type, (
             f"{name} should be on {expected_device}, got {data.device}"
@@ -150,6 +201,16 @@ def _test_rsl_rl_device_separation(sim_device: str, rl_device: str):
     Args:
         sim_device: Device for simulation (e.g., "cuda:0", "cpu")
         rl_device: Device for RL agent (e.g., "cuda:0", "cpu") - where policy generates actions
+    """
+    """辅助函数测试RSL-RL与指定设备配置。
+
+    Note: RSL-RL设备的分离由OnPolicyRunner处理，而不是包装。
+    包装将sim_device的观测返回，而运行者处理设备转移。
+    通过此测试验证，当来自不同设备的操作时，包装正确工作。
+
+    参数：
+        sim_device: 仿真设备 (e.g.， "cuda:0"， "cpu")
+        rl_device: 对于RL代理的设备 (e.g.， "cuda:0"， "cpu") - 策略产生动作
     """
     from tensordict import TensorDict
 
@@ -188,6 +249,12 @@ def _test_rl_games_device_separation(sim_device: str, rl_device: str):
         sim_device: Device for simulation (e.g., "cuda:0", "cpu")
         rl_device: Device for RL agent (e.g., "cuda:0", "cpu")
     """
+    """辅助函数测试RL游戏与指定设备配置。
+
+    参数：
+        sim_device: 仿真设备 (e.g.， "cuda:0"， "cpu")
+        rl_device: 对RL代理的设备 (e.g.， "cuda:0"， "cpu")
+    """
     from isaaclab_rl.rl_games import RlGamesVecEnvWrapper
 
     env = _create_env(sim_device)
@@ -219,6 +286,13 @@ def _test_sb3_device_separation(sim_device: str):
 
     Args:
         sim_device: Device for simulation (e.g., "cuda:0", "cpu")
+    """
+    """辅助函数测试稳定基线3与指定设备配置。
+
+    Note: SB3总是转化为CPU我们不测试rl_device参数
+
+    参数：
+        sim_device: 仿真设备 (e.g.， "cuda:0"， "cpu")
     """
     import numpy as np
 
@@ -255,6 +329,15 @@ def _test_skrl_device_separation(sim_device: str, rl_device: str):
     Args:
         sim_device: Device for simulation (e.g., "cuda:0", "cpu")
         rl_device: Device for RL agent (e.g., "cuda:0", "cpu")
+    """
+    """辅助函数，用于测试与指定设备配置的skrl。
+
+    Note: skrl用于设备配置的skrl.config.torch.device。
+    在sim_device上仍有观测；只有从rl_device转移的动作。
+
+    参数：
+        sim_device: 仿真设备 (e.g.， "cuda:0"， "cpu")
+        rl_device: 对RL代理的设备 (e.g.， "cuda:0"， "cpu")
     """
     try:
         import skrl
@@ -304,6 +387,7 @@ def _test_skrl_device_separation(sim_device: str, rl_device: str):
 
 def test_rsl_rl_device_separation_gpu_to_gpu():
     """Test RSL-RL with GPU simulation and GPU RL (default configuration)."""
+    """测试RSL-RL使用GPU仿真和GPU RL (默认配置)。"""
     try:
         import isaaclab_rl.rsl_rl  # noqa: F401
     except ImportError:
@@ -314,6 +398,7 @@ def test_rsl_rl_device_separation_gpu_to_gpu():
 
 def test_rsl_rl_device_separation_gpu_to_cpu():
     """Test RSL-RL with GPU simulation and CPU RL (cross-device transfer)."""
+    """测试RSL-RL使用GPU仿真和CPU RL (跨设备传输)。"""
     try:
         import isaaclab_rl.rsl_rl  # noqa: F401
     except ImportError:
@@ -324,6 +409,7 @@ def test_rsl_rl_device_separation_gpu_to_cpu():
 
 def test_rl_games_device_separation_gpu_to_gpu():
     """Test RL Games with GPU simulation and GPU RL (default configuration)."""
+    """测试RL游戏与GPU仿真和GPU RL (默认配置)。"""
     try:
         import isaaclab_rl.rl_games  # noqa: F401
     except ImportError:
@@ -334,6 +420,7 @@ def test_rl_games_device_separation_gpu_to_gpu():
 
 def test_rl_games_device_separation_gpu_to_cpu():
     """Test RL Games with GPU simulation and CPU RL (cross-device transfer)."""
+    """测试RL游戏，使用GPU仿真和CPUXRL (跨设备转移)。"""
     try:
         import isaaclab_rl.rl_games  # noqa: F401
     except ImportError:
@@ -347,6 +434,10 @@ def test_sb3_device_separation_gpu():
 
     Note: SB3 always converts to CPU/numpy, so only GPU simulation is tested.
     """
+    """使用GPU仿真测试稳定基线3。
+
+    Note: SB3总是转化为CPU，所以只有GPU仿真测试。
+    """
     try:
         import isaaclab_rl.sb3  # noqa: F401
     except ImportError:
@@ -357,6 +448,7 @@ def test_sb3_device_separation_gpu():
 
 def test_skrl_device_separation_gpu():
     """Test skrl with GPU simulation and GPU policy (matching devices)."""
+    """使用GPU仿真和GPU策略 (匹配设备) 测试skrl。"""
     try:
         import skrl  # noqa: F401
     except ImportError:
@@ -369,6 +461,11 @@ def test_skrl_device_separation_cpu_to_gpu():
     """Test skrl with CPU simulation and GPU policy.
 
     Note: Uses skrl.config.torch.device to set the policy device to GPU
+    while the environment runs on CPU.
+    """
+    """用CPU仿真和GPU策略进行试验。
+
+    Note: 使用skrl.config.torch.device来设置策略设备为GPU
     while the environment runs on CPU.
     """
     try:

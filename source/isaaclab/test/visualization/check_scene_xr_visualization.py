@@ -12,8 +12,16 @@ This script checks if the XR visualization widgets are visible from the camera.
     ./isaaclab.sh -p source/isaaclab/test/visualization/check_scene_visualization.py
 
 """
+"""这种脚本检查XR可视化 widget是否可见于相机。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p source/isaaclab/test/visualization/check_scene_visualization.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -33,6 +41,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import time
 from typing import Any
@@ -53,6 +62,7 @@ from isaaclab.utils import configclass
 @configclass
 class SimpleSceneCfg(InteractiveSceneCfg):
     """Design the scene with sensors on the robot."""
+    """用机器人的传感器设计场景。"""
 
     # ground plane
     ground = AssetBaseCfg(prim_path="/World/defaultGroundPlane", spawn=sim_utils.GroundPlaneCfg())
@@ -68,6 +78,11 @@ def get_camera_position():
 
     Returns:
         tuple: (x, y, z) camera position or None if not available
+    """
+    """从USD阶段得到当前的摄像头位置。
+
+    返回：
+        tuple: (x，y，z) 摄像头位置或如果没有None
     """
     try:
         from pxr import UsdGeom
@@ -220,6 +235,7 @@ def run_simulator(
     scene: InteractiveScene,
 ):
     """Run the simulator."""
+    """运行仿真器。"""
 
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()
@@ -239,6 +255,7 @@ def run_simulator(
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.005)

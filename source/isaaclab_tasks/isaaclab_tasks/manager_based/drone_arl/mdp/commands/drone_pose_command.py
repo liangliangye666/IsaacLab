@@ -6,6 +6,7 @@
 """Sub-module containing command generators for pose tracking."""
 
 from __future__ import annotations
+"""含有可追踪姿势的命令生成器的子模块。"""
 
 import torch
 
@@ -29,6 +30,19 @@ class DroneUniformPoseCommand(UniformPoseCommand):
         sub-terrain shift) and current body pose using the existing visualizers.
 
     The implementation overrides :meth:`_update_metrics` and :meth:`_debug_vis_callback`
+    from the base class to implement these drone-specific behaviors.
+    """
+    """专用无人机的UniformPoseCommand扩展。
+
+    该类为无人机 (多动机) 使用案例定制了通用:class:`UniformPoseCommand`。
+    主要的区别和补充:
+
+    - 在使用前将无人机的基框架转换为世界框架。
+    - 计算位置错误时，每环境的原始抵消 (``scene.env_origins``) 计算，因此在移动/地下环境中运行的任务计算了有意义的错误。
+    - 计算和揭露高层代码使用的简单指标:``position_error``和``orientation_error`` (存储在``self.metrics``中)。
+    - 提供一个调试可视化回调，通过现有可视化器将目标姿势 (地下转移) 和当前身体姿势转换。
+
+    执行将取决于:meth:`_update_metrics`和:meth:`_debug_vis_callback`
     from the base class to implement these drone-specific behaviors.
     """
 

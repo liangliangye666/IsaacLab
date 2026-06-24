@@ -28,15 +28,22 @@ logger = logging.getLogger(__name__)
 
 class RMPFlowAction(ActionTerm):
     """RMPFlow task space action term."""
+    """RMPFlow任务空间动作项。"""
 
     cfg: rmpflow_actions_cfg.RMPFlowActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
     _asset: Articulation
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
     _scale: torch.Tensor
     """The scaling factor applied to the input action. Shape is (1, action_dim)."""
+    """对输入操作所应用的扩展因素。
+    形状为 (1， action_dim)。
+    """
     _clip: torch.Tensor
     """The clip applied to the input action."""
+    """在输入操作中应用的裁剪。"""
 
     def __init__(self, cfg: rmpflow_actions_cfg.RMPFlowActionCfg, env: ManagerBasedEnv):
         # initialize the action term
@@ -109,6 +116,8 @@ class RMPFlowAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
@@ -141,6 +150,8 @@ class RMPFlowAction(ActionTerm):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     # This is called each env.step()
@@ -195,12 +206,19 @@ class RMPFlowAction(ActionTerm):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _compute_frame_pose(self) -> tuple[torch.Tensor, torch.Tensor]:
         """Computes the pose of the target frame in the root frame.
 
         Returns:
             A tuple of the body's position and orientation in the root frame.
+        """
+        """计算目标框架在根框架中的姿势。
+
+        返回：
+            在根框架中的身体的位置和方向。
         """
         # obtain quantities from simulation
         ee_pos_w = self._asset.data.body_pos_w[:, self._body_idx]

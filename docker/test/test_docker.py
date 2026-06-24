@@ -12,6 +12,7 @@ import pytest
 
 def start_stop_docker(profile, suffix):
     """Test starting and stopping docker profile with suffix."""
+    """测试启动和停止后音符。"""
     environ = os.environ
     context_dir = Path(__file__).resolve().parent.parent
 
@@ -61,4 +62,5 @@ def start_stop_docker(profile, suffix):
 )
 def test_docker_profiles(profile, suffix):
     """Test starting and stopping docker profiles with and without suffixes."""
+    """测试启动和停止后音符和无后音符。"""
     start_stop_docker(profile, suffix)

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Utilities for file I/O with yaml."""
+"""用于 Yaml 的文件 I/O。"""
 
 import os
 
@@ -24,6 +25,17 @@ def load_yaml(filename: str) -> dict:
     Returns:
         The data read from the input file.
     """
+    """安全地加载输入PKL文件。
+
+    参数：
+        filename: 走向皮文件的路径。
+
+    异常：
+        FileNotFoundError: 当指定文件不存在时。
+
+    返回：
+        在输入文件中读取的数据。
+    """
     if not os.path.exists(filename):
         raise FileNotFoundError(f"File not found: {filename}")
     with open(filename) as f:
@@ -41,6 +53,17 @@ def dump_yaml(filename: str, data: dict | object, sort_keys: bool = False):
         filename: The path to save the file at.
         data: The data to save either a dictionary or class object.
         sort_keys: Whether to sort the keys in the output file. Defaults to False.
+    """
+    """保存数据到一个安全的YAML文件。
+
+    说明：
+        该函数在文件的路径上创建任何缺失的目录。
+
+    参数：
+        filename: 保存文件的路径。
+        data: 保存字典或类对象的数据。
+        sort_keys: 输出文件中的键是否进行排序。
+                   默认为 False。
     """
     # check ending
     if not filename.endswith("yaml"):

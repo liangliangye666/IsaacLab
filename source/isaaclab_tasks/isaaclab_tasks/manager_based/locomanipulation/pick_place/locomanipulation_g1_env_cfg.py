@@ -54,6 +54,11 @@ class LocomanipulationG1SceneCfg(InteractiveSceneCfg):
     allowing both locomotion and manipulation capabilities. The robot can move its
     base and use its arms for manipulation tasks.
     """
+    """用G1机器人进行位置操纵环境的场景配置。
+
+    这种配置设置了G1的人类型机器人进行位置操作任务，允许移动和操纵能力。
+    机器人可以移动其基础并使用其手臂进行操纵任务。
+    """
 
     # Table
     packing_table = AssetBaseCfg(
@@ -94,6 +99,7 @@ class LocomanipulationG1SceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     upper_body_ik = G1_UPPER_BODY_IK_ACTION_CFG
 
@@ -115,10 +121,14 @@ class ObservationsCfg:
     """Observation specifications for the MDP.
     This class is required by the environment configuration but not used in this implementation
     """
+    """对MDP的观测规格。
+    这个类是环境配置所要求的，但不是在这个实现中使用的
+    """
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group with state values."""
+        """对国家价值观的策略组的观测。"""
 
         actions = ObsTerm(func=manip_mdp.last_action)
         robot_joint_pos = ObsTerm(
@@ -155,6 +165,7 @@ class ObservationsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=locomanip_mdp.time_out, time_out=True)
 
@@ -179,6 +190,11 @@ class LocomanipulationG1EnvCfg(ManagerBasedRLEnvCfg):
     base and use its arms for manipulation tasks, enabling complex mobile manipulation
     behaviors.
     """
+    """对G1位置操纵环境的配置。
+
+    这种环境是用于机器人操作任务，其中G1的人类型机器人可以同时执行机器人操作和操作。
+    机器人可以移动其基础并使用其手臂进行操纵任务，从而实现复杂的移动操纵行为。
+    """
 
     # Scene settings
     scene: LocomanipulationG1SceneCfg = LocomanipulationG1SceneCfg(num_envs=1, env_spacing=2.5, replicate_physics=True)
@@ -200,6 +216,7 @@ class LocomanipulationG1EnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 4
         self.episode_length_s = 20.0

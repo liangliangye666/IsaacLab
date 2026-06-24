@@ -24,6 +24,7 @@ from isaaclab_assets.robots.shadow_hand import SHADOW_HAND_CFG
 @configclass
 class EventCfg:
     """Configuration for randomization."""
+    """配置为随机化。"""
 
     # -- robot
     robot_physics_material = EventTerm(

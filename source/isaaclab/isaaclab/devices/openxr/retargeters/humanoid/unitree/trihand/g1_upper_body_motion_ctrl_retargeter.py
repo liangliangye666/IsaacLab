@@ -25,9 +25,17 @@ class G1TriHandUpperBodyMotionControllerRetargeter(RetargeterBase):
     - Trigger (analog 0-1) → Index finger joints
     - Squeeze (analog 0-1) → Middle finger joints
     """
+    """简单的回器，将运动控制器输入映射到G1手关节。
+
+    Mapping:
+    - 一个按 (数字0/1) → 指关节
+    - 触发器 (类似于0-1) →指指纹关节
+    - 挤压 (类似于0-1) →中指关节
+    """
 
     def __init__(self, cfg: G1TriHandUpperBodyMotionControllerRetargeterCfg):
         """Initialize the retargeter."""
+        """启动重定位器。"""
         super().__init__(cfg)
         self._sim_device = cfg.sim_device
         self._hand_joint_names = cfg.hand_joint_names
@@ -63,6 +71,16 @@ class G1TriHandUpperBodyMotionControllerRetargeter(RetargeterBase):
                     left_proximal(3), right_proximal(3), left_distal(2), left_thumb_middle(1),
                     right_distal(2), right_thumb_middle(1), left_thumb_tip(1), right_thumb_tip(1)
                 ]
+        """
+        """将控制器输入转换为机器人命令。
+
+        参数：
+            data: 字典MotionControllerTrackingTarget.LEFT/RIGHT每个值都是2D数组: [pose(7)，输入(7)]
+
+        返回：
+            Tensor: [left_wrist(7)， right_wrist(7)， hand_joints(14)]
+            hand_joints序列: [left_proximal(3)， right_proximal(3)， left_distal(2)， left_thumb_middle(1)，
+            right_distal(2)， right_thumb_middle(1)， left_thumb_tip(1)， right_thumb_tip(1) ]
         """
 
         # Get controller data
@@ -129,6 +147,15 @@ class G1TriHandUpperBodyMotionControllerRetargeter(RetargeterBase):
         Returns:
             Wrist pose array [x, y, z, w, x, y, z]
         """
+        """从控制器数据中提取手腕姿势。
+
+        参数：
+            controller_data: 2D阵列 [pose(7)，输入(7)]
+            default_pose: 如果没有数据，则使用默认状态
+
+        返回：
+            手腕姿势阵列 [x， y， z， w， x， y， z]
+        """
         if len(controller_data) > DeviceBase.MotionControllerDataRowIndex.POSE.value:
             return controller_data[DeviceBase.MotionControllerDataRowIndex.POSE.value]
         return default_pose
@@ -142,6 +169,15 @@ class G1TriHandUpperBodyMotionControllerRetargeter(RetargeterBase):
 
         Returns:
             Hand joint angles (7 joints per hand) in radians
+        """
+        """控制器输入地图到手关角。
+
+        参数：
+            controller_data: 2D阵列 [pose(7)，输入(7)]
+            is_left: 左手的True，右手的False
+
+        返回：
+            手关节角 (每手7个关节)
         """
 
         # Initialize all joints to zero
@@ -204,6 +240,7 @@ class G1TriHandUpperBodyMotionControllerRetargeter(RetargeterBase):
 
     def _retarget_abs(self, wrist: np.ndarray, is_left: bool) -> np.ndarray:
         """Handle absolute pose retargeting for controller wrists."""
+        """控制器手腕的绝对姿势重定向。"""
         wrist_pos = torch.tensor(wrist[:3], dtype=torch.float32)
         wrist_quat = torch.tensor(wrist[3:], dtype=torch.float32)
 
@@ -224,6 +261,7 @@ class G1TriHandUpperBodyMotionControllerRetargeter(RetargeterBase):
 @dataclass
 class G1TriHandUpperBodyMotionControllerRetargeterCfg(RetargeterCfg):
     """Configuration for the G1 Controller Upper Body retargeter."""
+    """控制器G1上部重定位器的配置。"""
 
     enable_visualization: bool = False
     hand_joint_names: list[str] | None = None  # List of robot hand joint names

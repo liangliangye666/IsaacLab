@@ -6,6 +6,8 @@
 """
 Cartpole balancing environment with camera.
 """
+"""卡特波尔平衡环境和摄像头。
+"""
 
 import gymnasium as gym
 

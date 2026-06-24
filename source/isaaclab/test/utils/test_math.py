@@ -7,6 +7,10 @@
 
 This is only needed because of warp dependency.
 """
+"""首先发射艾萨克仿真器。
+
+这仅仅是因为变形依赖。
+"""
 
 from isaaclab.app import AppLauncher
 
@@ -15,6 +19,7 @@ simulation_app = AppLauncher(headless=True).app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 from math import pi as PI
@@ -33,12 +38,19 @@ DECIMAL_PRECISION = 5
 This value is used since float operations are inexact. For reference:
 https://github.com/pytorch/pytorch/issues/17678
 """
+"""测试的精度。
+
+由于浮动操作是不准确的，则使用此值。
+为参考:
+https://github.com/pytorch/pytorch/发行/17678
+"""
 
 
 @pytest.mark.parametrize("device", ("cpu", "cuda:0"))
 @pytest.mark.parametrize("size", ((5, 4, 3), (10, 2)))
 def test_scale_unscale_transform(device, size):
     """Test scale_transform and unscale_transform."""
+    """测试scale_transform和unscale_transform。"""
 
     inputs = torch.tensor(range(math.prod(size)), device=device, dtype=torch.float32).reshape(size)
 
@@ -98,6 +110,7 @@ def test_saturate(device, size):
 @pytest.mark.parametrize("size", ((5, 4, 3), (10, 2)))
 def test_normalize(device, size):
     """Test normalize of a tensor along its last dimension and check the norm of that dimension is close to 1.0."""
+    """测试在最后一个维度沿着一个子进行正常化，检查该维度的标准接近1.0。"""
 
     num_elements = math.prod(size)
     input = torch.tensor(range(num_elements), device=device, dtype=torch.float32).reshape(size)
@@ -110,6 +123,8 @@ def test_normalize(device, size):
 def test_copysign(device):
     """Test copysign by copying a sign from both a negative and positive value and
     verify that the new sign is the same.
+    """
+    """测试复制标志，通过从负值和积极值复制标志，并验证新的标志是相同的。
     """
 
     size = (10, 2)
@@ -139,6 +154,7 @@ def test_copysign(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_is_identity_pose(device):
     """Test is_identity_pose method."""
+    """测试is_identity_pose方法。"""
     # Single row identity pose
     identity_pos = torch.zeros(3, device=device)
     identity_rot = torch.tensor((1.0, 0.0, 0.0, 0.0), device=device)
@@ -163,6 +179,7 @@ def test_is_identity_pose(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_axis_angle_from_quat(device):
     """Test axis_angle_from_quat method."""
+    """测试axis_angle_from_quat方法。"""
     # Quaternions of the form (2,4) and (2,2,4)
     quats = [
         torch.Tensor([[1.0, 0.0, 0.0, 0.0], [0.8418536, 0.142006, 0.0, 0.5206887]]).to(device),
@@ -190,6 +207,10 @@ def test_axis_angle_from_quat_approximation(device):
 
     This test checks for unstable conversions where theta is very small.
     """
+    """从axis_angle_from_quat方法测试泰勒近似。
+
+    在太太非常小的地方，这种测试检查了不稳定的转换。
+    """
     # Generate a small rotation quaternion
     # Small angle
     theta = torch.Tensor([0.0000001]).to(device)
@@ -213,6 +234,7 @@ def test_axis_angle_from_quat_approximation(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_quat_error_magnitude(device):
     """Test quat_error_magnitude method."""
+    """测试quat_error_magnitude方法。"""
     # No rotation
     q1 = torch.Tensor([1, 0, 0, 0]).to(device)
     q2 = torch.Tensor([1, 0, 0, 0]).to(device)
@@ -252,6 +274,7 @@ def test_quat_error_magnitude(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_quat_unique(device):
     """Test quat_unique method."""
+    """测试quat_unique方法。"""
     # Define test cases
     quats = math_utils.random_orientation(num=1024, device=device)
 
@@ -274,6 +297,11 @@ def test_quat_mul_with_quat_unique(device):
     This test checks that the quaternion multiplication is consistent when using positive real quaternions
     and regular quaternions. It makes sure that the result is the same regardless of the input quaternion sign
     (i.e. q and -q are same quaternion in the context of rotations).
+    """
+    """测试quat_mul方法使用不同的四元数。
+
+    在使用正确的真实四元数和常规四元数时，该测试检查四元数乘法是否一致。
+    它确保结果不论输入四元数标志是相同的 (i.e。 q 和 -q 在旋转的情况下是相同的四元数)。
     """
 
     quats_1 = math_utils.random_orientation(num=1024, device=device)
@@ -303,6 +331,7 @@ def test_quat_mul_with_quat_unique(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_quat_error_mag_with_quat_unique(device):
     """Test quat_error_magnitude method with positive real quaternions."""
+    """测试quat_error_magnitude方法，用正确的四元数。"""
 
     quats_1 = math_utils.random_orientation(num=1024, device=device)
     quats_2 = math_utils.random_orientation(num=1024, device=device)
@@ -326,6 +355,7 @@ def test_quat_error_mag_with_quat_unique(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_convention_converter(device):
     """Test convert_camera_frame_orientation_convention to and from ros, opengl, and world conventions."""
+    """测试convert_camera_frame_orientation_convention到和从ROS，OpenGL和世界会议。"""
     quat_ros = torch.tensor([[-0.17591989, 0.33985114, 0.82047325, -0.42470819]], device=device)
     quat_opengl = torch.tensor([[0.33985113, 0.17591988, 0.42470818, 0.82047324]], device=device)
     quat_world = torch.tensor([[-0.3647052, -0.27984815, -0.1159169, 0.88047623]], device=device)
@@ -367,6 +397,10 @@ def test_convert_quat(device, size):
 
     Also check the correct exceptions are raised for bad inputs for the quaternion and the 'to'.
     """
+    """测试convert_quat从"xyzw"到"wxyz"然后回到"xyzw"并验证子的正确滚动。
+
+    检查对四元数和"to"的错误输入提出的正确例外。
+    """
 
     quat = torch.zeros(size, device=device)
     quat[..., 0] = 1.0
@@ -398,6 +432,7 @@ def test_convert_quat(device, size):
 @pytest.mark.parametrize("device", ("cpu", "cuda:0"))
 def test_quat_conjugate(device):
     """Test quat_conjugate by checking the sign of the imaginary part changes but the magnitudes stay the same."""
+    """测试quat_conjugate通过检查假设部分的信号变化，"""
 
     quat = math_utils.random_orientation(1000, device=device)
 
@@ -423,6 +458,7 @@ def test_quat_conjugate(device):
 )
 def test_quat_from_euler_xyz(device, num_envs, euler_angles):
     """Test quat_from_euler_xyz against scipy."""
+    """测试quat_from_euler_xyz与Scipy。"""
 
     angles = torch.tensor(euler_angles, device=device).unsqueeze(0).repeat((num_envs, 1))
     quat_value = math_utils.quat_unique(math_utils.quat_from_euler_xyz(angles[:, 0], angles[:, 1], angles[:, 2]))
@@ -442,6 +478,7 @@ def test_quat_from_euler_xyz(device, num_envs, euler_angles):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_wrap_to_pi(device):
     """Test wrap_to_pi method."""
+    """测试wrap_to_pi方法。"""
     # No wrapping needed
     angle = torch.Tensor([0.0]).to(device)
     expected_angle = torch.Tensor([0.0]).to(device)
@@ -479,6 +516,7 @@ def test_wrap_to_pi(device):
 @pytest.mark.parametrize("shape", ((3,), (1024, 3)))
 def test_skew_symmetric_matrix(device, shape):
     """Test skew_symmetric_matrix."""
+    """测试skew_symmetric_matrix。"""
 
     vec_rand = torch.zeros(shape, device=device)
     vec_rand.uniform_(-1000.0, 1000.0)
@@ -508,6 +546,7 @@ def test_skew_symmetric_matrix(device, shape):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_orthogonalize_perspective_depth(device):
     """Test for converting perspective depth to orthogonal depth."""
+    """测试将视角深度转换为直角深度。"""
     # Create a sample perspective depth image (N, H, W)
     perspective_depth = torch.tensor([[[10.0, 0.0, 100.0], [0.0, 3000.0, 0.0], [100.0, 0.0, 100.0]]], device=device)
 
@@ -529,6 +568,7 @@ def test_orthogonalize_perspective_depth(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_combine_frame_transform(device):
     """Test combine_frame_transforms function."""
+    """测试combine_frame_transforms功能。"""
     # create random poses
     pose01 = torch.rand(1, 7, device=device)
     pose01[:, 3:7] = torch.nn.functional.normalize(pose01[..., 3:7], dim=-1)
@@ -557,6 +597,11 @@ def test_interpolate_poses(device):
 
     This test checks the output from the :meth:`~isaaclab.utils.math_utils.interpolate_poses` function against
     the output from :func:`scipy.spatial.transform.Slerp` and :func:`np.linspace`.
+    """
+    """测试interpolate_poses功能。
+
+    该测试将:meth:`~isaaclab.utils.math_utils.interpolate_poses`函数的输出与:func:`scipy.spatial.transform.Slerp`和
+    :func:`np.linspace`的输出进行检查。
     """
     for _ in range(100):
         mat1 = math_utils.generate_random_transformation_matrix()
@@ -597,6 +642,14 @@ def test_pose_inv():
     1. Checking the inverse of a random transformation matrix matches Numpy's built-in inverse.
     2. Checking the inverse of a batch of random transformation matrices matches Numpy's built-in inverse.
     """
+    """测试pose_inv功能。
+
+    这项测试将:meth:`~isaaclab.utils.math_utils.pose_inv`函数的输出与:func:`np.linalg.inv`的输出进行检查。
+    进行两个试验:
+
+    1. 检查一个随机转换矩阵的逆向与Numpy的内置反向相匹配。
+    2. 检查一批随机转换矩阵的逆向与Numpy的内置逆相匹配。
+    """
     # Check against a single matrix
     for _ in range(100):
         test_mat = math_utils.generate_random_transformation_matrix(pos_boundary=10, rot_boundary=(2 * np.pi))
@@ -619,6 +672,7 @@ def test_pose_inv():
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_quat_to_and_from_angle_axis(device):
     """Test that axis_angle_from_quat against scipy and that quat_from_angle_axis are the inverse of each other."""
+    """测试axis_angle_from_quat与scipy和quat_from_angle_axis是彼此相反的。"""
     n = 1024
     q_rand = math_utils.quat_unique(math_utils.random_orientation(num=n, device=device))
     rot_vec_value = math_utils.axis_angle_from_quat(q_rand)
@@ -643,6 +697,10 @@ def test_quat_box_minus(device):
     Ensures that quat_box_minus correctly computes the axis-angle difference
     between two quaternions representing rotations around the same axis.
     """
+    """测试quat_box_minus方法。
+
+    确保quat_box_minus正确计算在同一轴周围旋转的两个四元数之间的轴角差异。
+    """
     axis_angles = torch.tensor([0.0, 0.0, 1.0], device=device)
     angle_a = math.pi - 0.1
     angle_b = -math.pi + 0.1
@@ -660,6 +718,10 @@ def test_quat_box_minus_and_quat_box_plus(device):
 
     Checks that applying quat_box_plus to accumulate rotations and then using
     quat_box_minus to retrieve differences results in expected values.
+    """
+    """quat_box_plus和 quat_box_minus的测试一致性。
+
+    检查使用quat_box_plus来积累旋转，然后使用quat_box_minus来检索差异的结果是预期值。
     """
 
     # Perform closed-loop integration using quat_box_plus to accumulate rotations,
@@ -703,6 +765,8 @@ def test_combine_frame_transforms(device, t12_inputs, q12_inputs):
     """Test combine_frame_transforms such that inputs for delta translation and delta rotation
     can be :obj:`None` or specified.
     """
+    """测试combine_frame_transforms，使得 delta转换和 delta转换的输入可以是:obj:`None`或指定。
+    """
     n = 1024
     t01 = torch.zeros((n, 3), device=device)
     t01.uniform_(-1000.0, 1000.0)
@@ -744,6 +808,12 @@ def test_subtract_frame_transforms(device, t02_inputs, q02_inputs):
     This test verifies that :meth:`~isaaclab.utils.math_utils.subtract_frame_transforms` is the inverse operation
     to :meth:`~isaaclab.utils.math_utils.combine_frame_transforms`.
     ."""
+    """测试subtract_frame_transforms使用t02和q02的指定和未指定输入。
+
+    这种测试验验证:meth:`~isaaclab.utils.math_utils.subtract_frame_transforms`是逆运算
+    to :麻:`~isaaclab.utils.math_utils.combine_frame_transforms`。
+    .
+    """
     n = 1024
     t01 = torch.zeros((n, 3), device=device)
     t01.uniform_(-1000.0, 1000.0)
@@ -779,6 +849,7 @@ def test_subtract_frame_transforms(device, t02_inputs, q02_inputs):
 @pytest.mark.parametrize("rot_error_type", ("quat", "axis_angle"))
 def test_compute_pose_error(device, rot_error_type):
     """Test compute_pose_error for different rot_error_type."""
+    """测试compute_pose_error为不同的rot_error_type。"""
     n = 1000
     t01 = torch.zeros((n, 3), device=device)
     t01.uniform_(-1000.0, 1000.0)
@@ -809,6 +880,10 @@ def test_rigid_body_twist_transform(device):
 
     Verifies correct transformation of twists (linear and angular velocity) between coordinate frames.
     """
+    """测试rigid_body_twist_transform方法。
+
+    验证坐标框架之间的扭曲 (线性和角速度) 正确转换。
+    """
     num_bodies = 100
     # Frame A to B
     t_AB = torch.randn((num_bodies, 3), device=device)
@@ -836,6 +911,8 @@ def test_yaw_quat(device):
     """
     Test for yaw_quat methods.
     """
+    """测试yaw_quat方法。
+    """
     # 90-degree (n/2 radians) rotations about the Y-axis
     quat_input = torch.tensor([0.7071, 0, 0.7071, 0], device=device)
     cloned_quat_input = quat_input.clone()
@@ -859,6 +936,11 @@ def test_quat_slerp(device):
 
     This test checks the output from the :meth:`~isaaclab.utils.math_utils.quat_slerp` function against
     the output from :func:`scipy.spatial.transform.Slerp`.
+    """
+    """测试quat_slerp功能。
+
+    这项测试将:meth:`~isaaclab.utils.math_utils.quat_slerp`函数的输出与:func:`scipy.spatial.transform.Slerp`的输出进行检查
+    。
     """
     # Generate 100 random rotation matrices
     random_rotation_matrices_1 = [math_utils.generate_random_rotation() for _ in range(100)]
@@ -886,6 +968,7 @@ def test_quat_slerp(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_matrix_from_quat(device):
     """test matrix_from_quat against scipy."""
+    """测试matrix_from_quat对scipy。"""
     # prepare random quaternions and vectors
     n = 1024
     # prepare random quaternions and vectors
@@ -918,6 +1001,7 @@ def test_matrix_from_quat(device):
 )
 def test_matrix_from_euler(device, euler_angles, convention):
     """Test matrix_from_euler against scipy for different permutations of the X,Y,Z euler angle conventions."""
+    """测试matrix_from_euler与scipy对X，Y，Z angle角规定的不同变量。"""
 
     num_envs = 1024
     angles = torch.tensor(euler_angles, device=device).unsqueeze(0).repeat((num_envs, 1))
@@ -937,6 +1021,7 @@ def test_matrix_from_euler(device, euler_angles, convention):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_quat_apply(device):
     """Test for quat_apply against scipy."""
+    """测试quat_apply与Scipy。"""
     # prepare random quaternions and vectors
     n = 1024
     q_rand = math_utils.random_orientation(num=n, device=device)
@@ -953,6 +1038,7 @@ def test_quat_apply(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda:0"])
 def test_quat_apply_inverse(device):
     """Test for quat_apply against scipy."""
+    """测试quat_apply与Scipy。"""
 
     # prepare random quaternions and vectors
     n = 1024
@@ -976,6 +1062,10 @@ def test_quat_inv(device):
     For random unit and non-unit quaternions q, the Hamilton products
     q ⊗ q⁻¹ and q⁻¹ ⊗ q must both equal the identity quaternion (1,0,0,0)
     within numerical precision.
+    """
+    """测试quat_inv方法。
+
+    对于随机单元和非单元四元数 q，汉密尔顿产品 q q−1 和 q−1 q 必须在数值精度内均等于身份四元数 (1，0，0，0)。
     """
     num = 2048
 
@@ -1001,6 +1091,10 @@ def test_quat_inv(device):
 def test_quat_apply_benchmarks():
     """Test for quat_apply and quat_apply_inverse methods compared to old methods using torch.bmm and torch.einsum.
     The new implementation uses :meth:`torch.einsum` instead of `torch.bmm` which allows
+    for more flexibility in the input dimensions and is faster than `torch.bmm`.
+    """
+    """与使用torch.bmm和torch.einsum的旧方法相比，测试quat_apply和quat_apply_inverse方法。
+    新的实现使用:meth:`torch.einsum`而不是`torch.bmm`，
     for more flexibility in the input dimensions and is faster than `torch.bmm`.
     """
 
@@ -1083,6 +1177,7 @@ def test_quat_apply_benchmarks():
         # create functions to test
         def iter_quat_apply(q: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
             """Iterative implementation of new quat_apply."""
+            """新quat_apply的重复实施。"""
             out = torch.empty_like(v)
             for i in range(q.shape[1]):
                 for j in range(q.shape[2]):
@@ -1091,6 +1186,7 @@ def test_quat_apply_benchmarks():
 
         def iter_quat_apply_inverse(q: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
             """Iterative implementation of new quat_apply_inverse."""
+            """新quat_apply_inverse的重复实施。"""
             out = torch.empty_like(v)
             for i in range(q.shape[1]):
                 for j in range(q.shape[2]):
@@ -1099,6 +1195,7 @@ def test_quat_apply_benchmarks():
 
         def iter_bmm_quat_rotate(q: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
             """Iterative implementation of old quat_rotate using torch.bmm."""
+            """使用torch.bmm的旧quat_rotate的重复实现。"""
             out = torch.empty_like(v)
             for i in range(q.shape[1]):
                 for j in range(q.shape[2]):
@@ -1107,6 +1204,7 @@ def test_quat_apply_benchmarks():
 
         def iter_bmm_quat_rotate_inverse(q: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
             """Iterative implementation of old quat_rotate_inverse using torch.bmm."""
+            """使用torch.bmm的旧quat_rotate_inverse的重复实现。"""
             out = torch.empty_like(v)
             for i in range(q.shape[1]):
                 for j in range(q.shape[2]):
@@ -1115,6 +1213,7 @@ def test_quat_apply_benchmarks():
 
         def iter_einsum_quat_rotate(q: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
             """Iterative implementation of old quat_rotate using torch.einsum."""
+            """使用torch.einsum的旧quat_rotate的重复实现。"""
             out = torch.empty_like(v)
             for i in range(q.shape[1]):
                 for j in range(q.shape[2]):
@@ -1123,6 +1222,7 @@ def test_quat_apply_benchmarks():
 
         def iter_einsum_quat_rotate_inverse(q: torch.Tensor, v: torch.Tensor) -> torch.Tensor:
             """Iterative implementation of old quat_rotate_inverse using torch.einsum."""
+            """使用torch.einsum的旧quat_rotate_inverse的重复实现。"""
             out = torch.empty_like(v)
             for i in range(q.shape[1]):
                 for j in range(q.shape[2]):
@@ -1221,6 +1321,11 @@ def test_interpolate_rotations():
     This test checks the output from the :meth:`~isaaclab.utils.math_utils.interpolate_rotations` function against
     the output from :func:`scipy.spatial.transform.Slerp`.
     """
+    """测试interpolate_rotations功能。
+
+    这项测试将:meth:`~isaaclab.utils.math_utils.interpolate_rotations`函数的输出与:func:`scipy.spatial.transform.Sl
+    erp`的输出进行检查。
+    """
     # Generate NUM_ITERS random rotation matrices
     random_rotation_matrices_1 = [math_utils.generate_random_rotation() for _ in range(100)]
     random_rotation_matrices_2 = [math_utils.generate_random_rotation() for _ in range(100)]
@@ -1261,6 +1366,12 @@ def test_euler_xyz_from_quat():
     against the expected output for various quaternions.
     The test includes quaternions representing different rotations around the x, y, and z axes.
     The test is performed for both the default output range (-π, π] and the wrapped output range [0, 2π).
+    """
+    """测试euler_xyz_from_quat功能。
+
+    这种测试对:meth:`~isaaclab.utils.math_utils.euler_xyz_from_quat`函数的输出与各种四元数的预期输出进行检查。
+    测试包括在x，y和z轴周围不同的旋转的四元数。
+    测试对默认输出范围 (-π， π) 和包装输出范围 [0， 2π]进行。
     """
     quats = [
         torch.Tensor([[1.0, 0.0, 0.0, 0.0]]),  # 0° around x, y, z

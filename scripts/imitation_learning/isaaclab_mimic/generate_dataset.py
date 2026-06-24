@@ -6,8 +6,11 @@
 """
 Main data generation script.
 """
+"""主要数据生成脚本。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -60,6 +63,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import asyncio
 import inspect

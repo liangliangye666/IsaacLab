@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Configuration for Velodyne LiDAR sensors."""
+"""设置Velodyne LiDAR传感器。"""
 
 from isaaclab.sensors import RayCasterCfg, patterns
 
@@ -22,4 +23,9 @@ VELODYNE_VLP_16_RAYCASTER_CFG = RayCasterCfg(
 """Configuration for Velodyne Puck LiDAR (VLP-16) as a :class:`RayCasterCfg`.
 
 Reference: https://velodynelidar.com/wp-content/uploads/2019/12/63-9229_Rev-K_Puck-_Datasheet_Web.pdf
+"""
+"""作为:class:`RayCasterCfg`的Velodyne Puck LiDAR (VLP-16) 的配置。
+
+Reference: https://velodynelidar.com/wp-content/uploads/2019/12/63-9229_Rev-K_Puck-_Datasheet_Web.pd
+           f
 """

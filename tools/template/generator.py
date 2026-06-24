@@ -26,6 +26,11 @@ def _setup_git_repo(project_dir: str) -> None:
     Args:
         project_dir: The directory of the project.
     """
+    """设置 Git 存储库。
+
+    参数：
+        project_dir: 项目目录。
+    """
     commands = [
         ["git", "init"],
         ["git", "add", "-f", "."],
@@ -45,6 +50,14 @@ def _replace_in_file(replacements: list[tuple[str, str]], src: str, dst: str | N
         src: The source file.
         dst: The destination file. If not provided, the source file will be overwritten.
     """
+    """取代文件中的位置持有人。
+
+    参数：
+        replacements: 需要做替代品。
+        src: 源文件。
+        dst: 目的地文件。
+             如果没有提供，则将重写源文件。
+    """
     with open(src) as file:
         content = file.read()
     for old, new in replacements:
@@ -60,6 +73,12 @@ def _write_file(dst: str, content: str) -> None:
         dst: The path to the file.
         content: The content to write to the file.
     """
+    """把内容写入一个文件。
+
+    参数：
+        dst: 文件的路径。
+        content: 文件的内容。
+    """
     with open(dst, "w") as file:
         file.write(content)
 
@@ -70,6 +89,12 @@ def _generate_task_per_workflow(task_dir: str, specification: dict) -> None:
     Args:
         task_dir: The directory where the task files will be generated.
         specification: The specification of the project/task.
+    """
+    """生成一个工作流的任务文件。
+
+    参数：
+        task_dir: 任务文件将生成的目录。
+        specification: 项目/任务的规格。
     """
     task_spec = specification["task"]
     agents_dir = os.path.join(task_dir, "agents")
@@ -127,6 +152,15 @@ def _generate_tasks(specification: dict, task_dir: str) -> list[dict]:
     Returns:
         A list of specifications for the tasks.
     """
+    """为外部项目或内部任务生成任务文件。
+
+    参数：
+        specification: 项目/任务的规格。
+        task_dir: 任务将生成的目录。
+
+    返回：
+        任务规格清单。
+    """
     specifications = []
     task_name_prefix = "Template" if specification["external"] else "Isaac"
     general_task_name = "-".join([item.capitalize() for item in specification["name"].split("_")])
@@ -154,6 +188,11 @@ def _external(specification: dict) -> None:
 
     Args:
         specification: The specification of the project/task.
+    """
+    """创建一个外部项目。
+
+    参数：
+        specification: 项目/任务的规格。
     """
     name = specification["name"]
     project_dir = os.path.join(specification["path"], name)
@@ -301,6 +340,11 @@ def generate(specification: dict) -> None:
 
     Args:
         specification: The specification of the project/task.
+    """
+    """创建项目/任务。
+
+    参数：
+        specification: 项目/任务的规格。
     """
     # validate specification
     print("\nValidating specification...")

@@ -17,8 +17,23 @@ To reproduce the issue, run this script and check the reference count of the rob
 
 For more details, please check: https://github.com/isaac-sim/IsaacLab/issues/639
 """
+"""这本脚本显示了Isaac Sim中的机器人视图的参考数量。
+
+当我们做一个类实例时，该类实例的参考数应该是1。
+然而，在这个脚本中，在类创建后，机器人视图的参考数量为2。
+这会导致Isaac Sim仿真器的内存泄漏，
+
+这种问题在火2.2和Isaac Sim 4.0中被观测到。
+它与火2.0.1和艾萨克西姆20231工作得很好。
+它可以通过不评论在主函数中创建仿真子的行来解决。
+
+为了复制问题，运行此脚本并检查机器人视图的参考数量。
+
+更多详情请查看:https://github.com/isaac-sim/IsaacLab/issues/639
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import contextlib
@@ -32,6 +47,7 @@ from isaacsim import SimulationApp
 simulation_app = SimulationApp({"headless": True})
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import ctypes
 import gc
@@ -60,21 +76,27 @@ if nucleus_utils.get_assets_root_path() is None:
 
 ISAAC_NUCLEUS_DIR = f"{nucleus_utils.get_assets_root_path()}/Isaac"
 """Path to the `Isaac` directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的`Isaac`目录。"""
 
 ISAACLAB_NUCLEUS_DIR = f"{ISAAC_NUCLEUS_DIR}/IsaacLab"
 """Path to the `Isaac/IsaacLab` directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的`Isaac/IsaacLab`目录。"""
 
 
 """
 Classes
 """
+"""类
+"""
 
 
 class AnymalArticulation:
     """Anymal articulation class."""
+    """任何一个关节课程。"""
 
     def __init__(self):
         """Initialize the Anymal articulation class."""
+        """启动Anymal的关节课程。"""
         # resolve asset
         usd_path = f"{ISAACLAB_NUCLEUS_DIR}/Robots/ANYbotics/ANYmal-C/anymal_c.usd"
         # add asset
@@ -88,21 +110,26 @@ class AnymalArticulation:
 
     def __del__(self):
         """Delete the Anymal articulation class."""
+        """删除 Anymal 关节类。"""
         print("Deleting the Anymal view.")
         self.view = None
 
     def initialize(self):
         """Initialize the Anymal view."""
+        """启动Anymal视图。"""
         self.view.initialize()
 
 
 """
 Main
 """
+"""主要
+"""
 
 
 def main():
     """Spawns the ANYmal robot and clones it using Isaac Sim Cloner API."""
+    """发育的ANYmal机器人使用Isaac Sim Cloner进行克隆API。"""
 
     # Load kit helper
     sim = SimulationContext(physics_dt=0.005, rendering_dt=0.005, backend="torch", device="cuda:0")

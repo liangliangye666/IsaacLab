@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to run an environment with zero action agent."""
+"""脚本可以运行一个没有动作代理的环境。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -28,6 +30,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import gymnasium as gym
 import torch
@@ -40,6 +43,7 @@ from isaaclab_tasks.utils import parse_env_cfg
 
 def main():
     """Zero actions agent with Isaac Lab environment."""
+    """艾萨克实验室环境的零动作代理。"""
     # parse configuration
     env_cfg = parse_env_cfg(
         args_cli.task, device=args_cli.device, num_envs=args_cli.num_envs, use_fabric=not args_cli.disable_fabric

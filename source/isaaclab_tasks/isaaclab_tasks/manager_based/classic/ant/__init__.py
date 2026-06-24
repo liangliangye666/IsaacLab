@@ -6,6 +6,8 @@
 """
 Ant locomotion environment (similar to OpenAI Gym Ant-v2).
 """
+"""运动环境 (类似于OpenAIGym-v2)。
+"""
 
 import gymnasium as gym
 

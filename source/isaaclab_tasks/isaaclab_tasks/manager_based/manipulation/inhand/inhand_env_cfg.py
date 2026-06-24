@@ -33,6 +33,7 @@ import isaaclab_tasks.manager_based.manipulation.inhand.mdp as mdp
 @configclass
 class InHandObjectSceneCfg(InteractiveSceneCfg):
     """Configuration for a scene with an object and a dexterous hand."""
+    """设置一个场景，用一个物体和一个巧妙的手。"""
 
     # robots
     robot: ArticulationCfg = MISSING
@@ -77,6 +78,7 @@ class InHandObjectSceneCfg(InteractiveSceneCfg):
 @configclass
 class CommandsCfg:
     """Command specifications for the MDP."""
+    """对MDP的命令规格。"""
 
     object_pose = mdp.InHandReOrientationCommandCfg(
         asset_name="object",
@@ -92,6 +94,7 @@ class CommandsCfg:
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     joint_pos = mdp.EMAJointPositionToLimitsActionCfg(
         asset_name="robot",
@@ -104,12 +107,17 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class KinematicObsGroupCfg(ObsGroup):
         """Observations with full-kinematic state information.
 
         This does not include acceleration or force information.
+        """
+        """完全动态状态信息的观测。
+
+        这不包括加速或力信息。
         """
 
         # observation terms (order preserved)
@@ -156,6 +164,11 @@ class ObservationsCfg:
         about the robot joints and the object root frame. This is useful for tasks where velocity information
         is not available or has a lot of noise.
         """
+        """有部分动态状态信息的观测。
+
+        与全动态状态组不同，这个组不包括机器人关节和对象根框架的速度信息。
+        这对于没有速度信息或有大量噪音的任务是有用的。
+        """
 
         def __post_init__(self):
             # call parent post init
@@ -172,6 +185,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for randomization."""
+    """配置为随机化。"""
 
     # startup
     # -- robot
@@ -254,6 +268,7 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     # -- task
     # track_pos_l2 = RewTerm(
@@ -288,6 +303,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -310,6 +326,7 @@ class TerminationsCfg:
 @configclass
 class InHandObjectEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the in hand reorientation environment."""
+    """为手中转向环境的配置。"""
 
     # Scene settings
     scene: InHandObjectSceneCfg = InHandObjectSceneCfg(num_envs=8192, env_spacing=0.6)
@@ -336,6 +353,7 @@ class InHandObjectEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 4
         self.episode_length_s = 20.0

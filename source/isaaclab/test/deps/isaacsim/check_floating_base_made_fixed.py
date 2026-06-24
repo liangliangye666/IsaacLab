@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """This script demonstrates how to make a floating robot fixed in Isaac Sim."""
+"""这本脚本展示了如何在Isaac Sim中固定一个漂浮机器人。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -29,6 +31,7 @@ args_cli = parser.parse_args()
 simulation_app = SimulationApp({"headless": args_cli.headless})
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import logging
 
@@ -60,18 +63,23 @@ if nucleus_utils.get_assets_root_path() is None:
 
 ISAAC_NUCLEUS_DIR = f"{nucleus_utils.get_assets_root_path()}/Isaac"
 """Path to the `Isaac` directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的`Isaac`目录。"""
 
 ISAACLAB_NUCLEUS_DIR = f"{ISAAC_NUCLEUS_DIR}/IsaacLab"
 """Path to the `Isaac/IsaacLab` directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的`Isaac/IsaacLab`目录。"""
 
 
 """
 Main
 """
+"""主要
+"""
 
 
 def main():
     """Spawns the ANYmal robot and makes it fixed."""
+    """起ANYmal机器人，并修复它。"""
     # Load kit helper
     world = World(physics_dt=0.005, rendering_dt=0.005, backend="torch", device="cpu")
     # Set main camera

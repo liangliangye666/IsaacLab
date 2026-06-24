@@ -15,6 +15,17 @@ Reference:
 * https://www.wonikrobotics.com/robot-hand
 
 """
+"""对于库卡-布尔-伊瓦臂机器人和阿莱格罗手机的配置。
+
+下列配置可用:
+
+* :obj:`KUKA_ALLEGRO_CFG`Kuka卡·阿莱格罗与隐含动机模型。
+
+Reference:
+
+* https://www.kuka.com/en-us/products/robotics-systems/industrial-robots/lbr-iiwa
+* https://www.wonikrobotics.com/robot-hand
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg

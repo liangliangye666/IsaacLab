@@ -17,6 +17,16 @@ The following example shows how to wrap an environment for Stable-Baselines3:
 
 # needed to import for allowing type-hinting: torch.Tensor | dict[str, torch.Tensor]
 from __future__ import annotations
+"""包装器将环境实例配置为稳定基线3向量化环境。
+
+下面的例子显示了如何包装稳定基线的环境3:
+
+.. code-block:: python
+
+    from isaaclab_rl.sb3 import Sb3VecEnvWrapper
+
+    env = Sb3VecEnvWrapper(env)
+"""
 
 import warnings
 from typing import Any
@@ -37,6 +47,8 @@ warnings.filterwarnings("ignore", message="You are trying to run PPO on the GPU"
 """
 Configuration Parser.
 """
+"""配置解析器。
+"""
 
 
 def process_sb3_cfg(cfg: dict, num_envs: int) -> dict:
@@ -51,6 +63,19 @@ def process_sb3_cfg(cfg: dict, num_envs: int) -> dict:
 
     Reference:
         https://github.com/DLR-RM/rl-baselines3-zoo/blob/0e5eb145faefa33e7d79c7f8c179788574b20da5/utils/exp_manager.py#L358
+    """
+    """将简单的YAML类型转换为稳定基线类/组件。
+
+    参数：
+        cfg: 一个配置字典。
+        num_envs: 平行环境数量 (用于计算`batch_size`为所需数量的小型批量)
+
+    返回：
+        包含转换配置的字典。
+
+    Reference:
+        https://github.com/DLR-RM/rl-baselines3-zoo/blob/0e5eb145faefa33e7d79c7f8c179788574b20da5/工具/exp
+              _manager.py#L358
     """
 
     def update_dict(hyperparams: dict[str, Any], depth: int) -> dict[str, Any]:
@@ -87,6 +112,8 @@ def process_sb3_cfg(cfg: dict, num_envs: int) -> dict:
 
 """
 Vectorized environment wrapper.
+"""
+"""面向环境包装。
 """
 
 
@@ -134,6 +161,45 @@ class Sb3VecEnvWrapper(VecEnv):
     2. https://stable-baselines3.readthedocs.io/en/master/common/monitor.html
 
     """
+    """围绕伊萨克实验室环境进行稳定基线3。
+
+    伊萨克·西姆内部实现了向量化环境。
+    然而，由于它仍然被认为是一个单一的环境实例，稳定基线试图使用:class:`DummyVecEnv`包裹它。
+    如果环境不继承他们的:class:`VecEnv`，
+    因此，这种类型从:class:`ManagerBasedRLEnv`或:class:`DirectRLEnv`的环境中很薄。
+
+    说明：
+        虽然Stable-Baselines3支持Gym 0.26+API，但它们的向量化环境使用了自己的API (i.e.更接近Gym 0.21)。
+        因此，我们将API用于向量化环境。
+
+    我们还添加了监控功能，
+    return and length. This information is added to the info dicts under key `episode`.
+
+    与艾萨克实验室环境不同，稳定基线预计:
+
+    1. MDP信号的数据类型
+    2. 每个子环境的信息指令清单 (而不是指令)
+    3. 在环境结束时，环境中的观测应与重置后的观测相匹配.使用``terminal_observation``键下的信息指示通过"真实"的最终观测。
+
+    .. 警告::
+
+        由于物理在伊萨克·西姆中踏入，
+        因此，在实际物理步骤完成后，在:meth:`step()`函数内进行重置。
+        因此，终止环境的返回观测是重置后的。
+
+    .. 谨慎::
+
+        这类必须是包装链中的最后一个包装。
+        这是因为包裹不跟随
+        the :类:`gym.Wrapper`接口。
+             任何随后的包装都需要修改，以使用此
+        包装。
+
+    Reference:
+
+    1. https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
+    2. https://stable-baselines3.readthedocs.io/en/master/common/monitor.html
+    """
 
     def __init__(self, env: ManagerBasedRLEnv | DirectRLEnv, fast_variant: bool = True):
         """Initialize the wrapper.
@@ -144,6 +210,14 @@ class Sb3VecEnvWrapper(VecEnv):
                 (Only episodic reward, lengths and truncation info are included)
         Raises:
             ValueError: When the environment is not an instance of :class:`ManagerBasedRLEnv` or :class:`DirectRLEnv`.
+        """
+        """启动包装。
+
+        参数：
+            env: 周围的环境。
+            fast_variant: 使用快速变量来处理信息 (仅包含回合奖励，长度和缩短信息)
+        异常：
+            ValueError: 当环境不是:class:`ManagerBasedRLEnv`或:class:`DirectRLEnv`的实例时。
         """
         # check that input is valid
         if not isinstance(env.unwrapped, ManagerBasedRLEnv) and not isinstance(env.unwrapped, DirectRLEnv):
@@ -166,19 +240,24 @@ class Sb3VecEnvWrapper(VecEnv):
 
     def __str__(self):
         """Returns the wrapper name and the :attr:`env` representation string."""
+        """返回包装名称和:attr:`env`表示字符串。"""
         return f"<{type(self).__name__}{self.env}>"
 
     def __repr__(self):
         """Returns the string representation of the wrapper."""
+        """返回包装的字符串表示。"""
         return str(self)
 
     """
     Properties -- Gym.Wrapper
     """
+    """属性 - Gym.Wrapper
+    """
 
     @classmethod
     def class_name(cls) -> str:
         """Returns the class name of the wrapper."""
+        """返回包装的类名字。"""
         return cls.__name__
 
     @property
@@ -187,22 +266,32 @@ class Sb3VecEnvWrapper(VecEnv):
 
         This will be the bare :class:`gymnasium.Env` environment, underneath all layers of wrappers.
         """
+        """返回包装的基础环境。
+
+        这将是赤裸裸的:class:`gymnasium.Env`环境，
+        """
         return self.env.unwrapped
 
     """
     Properties
     """
+    """产品
+    """
 
     def get_episode_rewards(self) -> list[float]:
         """Returns the rewards of all the episodes."""
+        """返回了所有集中的奖励。"""
         return self._ep_rew_buf.tolist()
 
     def get_episode_lengths(self) -> list[int]:
         """Returns the number of time-steps of all the episodes."""
+        """返回所有集中的时间步骤。"""
         return self._ep_len_buf.tolist()
 
     """
     Operations - MDP
+    """
+    """运营 - MDP
     """
 
     def seed(self, seed: int | None = None) -> list[int | None]:  # noqa: D102
@@ -295,6 +384,8 @@ class Sb3VecEnvWrapper(VecEnv):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _process_spaces(self):
         # process observation space
@@ -350,6 +441,7 @@ class Sb3VecEnvWrapper(VecEnv):
 
     def _process_obs(self, obs_dict: torch.Tensor | dict[str, torch.Tensor]) -> np.ndarray | dict[str, np.ndarray]:
         """Convert observations into NumPy data type."""
+        """将观测转换为NumPy数据类型。"""
         # Sb3 doesn't support asymmetric observation spaces, so we only use "policy"
         obs = obs_dict["policy"]
         # note: ManagerBasedRLEnv uses torch backend (by default).
@@ -368,6 +460,7 @@ class Sb3VecEnvWrapper(VecEnv):
         self, obs: np.ndarray, terminated: np.ndarray, truncated: np.ndarray, extras: dict, reset_ids: np.ndarray
     ) -> list[dict[str, Any]]:
         """Convert miscellaneous information into dictionary for each sub-environment."""
+        """转换各种信息为每个子环境的字典。"""
         # faster version: only process env that terminated and add bootstrapping info
         if self.fast_variant:
             infos = [{} for _ in range(self.num_envs)]

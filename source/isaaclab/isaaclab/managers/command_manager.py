@@ -6,6 +6,7 @@
 """Command manager for generating and updating commands."""
 
 from __future__ import annotations
+"""命令生成和更新的命令管理器。"""
 
 import inspect
 import weakref
@@ -37,6 +38,15 @@ class CommandTerm(ManagerTermBase):
     Additionally, it is possible to assign a visualization function to the command term
     that can be used to visualize the command in the simulator.
     """
+    """执行命令项的基础类。
+
+    一个命令项用于生成目标条件任务的命令。
+    例如，在目标条件导航任务的情况下，命令项可以用于生成机器人导航的目标位置。
+
+    它实施了重新样本机制，允许命令在固定频率上重新样本。
+    在配置对象中可指定重样频率。
+    此外，可以将可视化函数分配给命令项，可用于可视化仿真器中的命令。
+    """
 
     def __init__(self, cfg: CommandTermCfg, env: ManagerBasedRLEnv):
         """Initialize the command generator class.
@@ -44,6 +54,12 @@ class CommandTerm(ManagerTermBase):
         Args:
             cfg: The configuration parameters for the command generator.
             env: The environment object.
+        """
+        """启动命令生成器类。
+
+        参数：
+            cfg: 命令生成器的配置参数。
+            env: 环境对象。
         """
         super().__init__(cfg, env)
 
@@ -62,6 +78,7 @@ class CommandTerm(ManagerTermBase):
 
     def __del__(self):
         """Unsubscribe from the callbacks."""
+        """取消回电话。"""
         if self._debug_vis_handle:
             self._debug_vis_handle.unsubscribe()
             self._debug_vis_handle = None
@@ -69,22 +86,30 @@ class CommandTerm(ManagerTermBase):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     @abstractmethod
     def command(self) -> torch.Tensor:
         """The command tensor. Shape is (num_envs, command_dim)."""
+        """命令子。
+        形状是 (num_envs，command_dim)。
+        """
         raise NotImplementedError
 
     @property
     def has_debug_vis_implementation(self) -> bool:
         """Whether the command generator has a debug visualization implemented."""
+        """命令生成器是否实现了调试可视化。"""
         # check if function raises NotImplementedError
         source_code = inspect.getsource(self._set_debug_vis_impl)
         return "NotImplementedError" not in source_code
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def set_debug_vis(self, debug_vis: bool) -> bool:
@@ -96,6 +121,15 @@ class CommandTerm(ManagerTermBase):
         Returns:
             Whether the debug visualization was successfully set. False if the command
             generator does not support debug visualization.
+        """
+        """设置是否可可视化命令数据。
+
+        参数：
+            debug_vis: 是否可视化命令数据。
+
+        返回：
+            设置错误可视化是否成功。
+            False如果命令生成器不支持调试可视化。
         """
         # check if debug visualization is supported
         if not self.has_debug_vis_implementation:
@@ -130,6 +164,18 @@ class CommandTerm(ManagerTermBase):
         Returns:
             A dictionary containing the information to log under the "{name}" key.
         """
+        """设置命令生成器和记录数据。
+
+        这个函数重置命令计数器并重新仿真命令。
+        应在每个集的开始召开。
+
+        参数：
+            env_ids: 环境 IDs的重置列表。
+                     默认为 None。
+
+        返回：
+            包含在"{name}"键下记录信息的字典。
+        """
         # resolve the environment IDs
         if env_ids is None:
             env_ids = slice(None)
@@ -155,6 +201,11 @@ class CommandTerm(ManagerTermBase):
         Args:
             dt: The time step passed since the last call to compute.
         """
+        """计算命令。
+
+        参数：
+            dt: 在最后一次电话计算之后，时间已经过去了。
+        """
         # update the metrics based on current state
         self._update_metrics()
         # reduce the time left before resampling
@@ -169,6 +220,8 @@ class CommandTerm(ManagerTermBase):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _resample(self, env_ids: Sequence[int]):
         """Resample the command.
@@ -178,6 +231,13 @@ class CommandTerm(ManagerTermBase):
 
         Args:
             env_ids: The list of environment IDs to resample.
+        """
+        """再试命令。
+
+        这项函数为指定的环境索引重新示范了命令和时间。
+
+        参数：
+            env_ids: 环境 IDs重新样本的列表。
         """
         if len(env_ids) != 0:
             # resample the time left before resampling
@@ -190,20 +250,25 @@ class CommandTerm(ManagerTermBase):
     """
     Implementation specific functions.
     """
+    """具体执行功能。
+    """
 
     @abstractmethod
     def _update_metrics(self):
         """Update the metrics based on the current state."""
+        """根据当前状态更新数据。"""
         raise NotImplementedError
 
     @abstractmethod
     def _resample_command(self, env_ids: Sequence[int]):
         """Resample the command for the specified environments."""
+        """对于指定环境来说，重新样本命令。"""
         raise NotImplementedError
 
     @abstractmethod
     def _update_command(self):
         """Update the command based on the current state."""
+        """根据当前状态更新命令。"""
         raise NotImplementedError
 
     def _set_debug_vis_impl(self, debug_vis: bool):
@@ -213,12 +278,21 @@ class CommandTerm(ManagerTermBase):
         and input ``debug_vis`` is True. If the visualization objects exist, the function should
         set their visibility into the stage.
         """
+        """设置调试可视化到可视化对象。
+
+        如果它们不存在，并且输入 ``debug_vis`` 是 True，
+        如果可视化对象存在，函数应该将它们的可视性设置在舞台上。
+        """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
     def _debug_vis_callback(self, event):
         """Callback for debug visualization.
 
         This function calls the visualization objects and sets the data to visualize into them.
+        """
+        """检查错误可视化。
+
+        这个函数将可视化对象调用，并设置数据可视化到它们中。
         """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
@@ -236,9 +310,20 @@ class CommandManager(ManagerBase):
     Each command generator term should also have a corresponding configuration class that inherits from the
     :class:`CommandTermCfg` class.
     """
+    """管理器生成命令。
+
+    命令管理器用于生成命令，使代理执行。
+    在同一个环境中，它使得更方便地切换不同的命令生成策略。
+    例如，在一个由四脚机器人组成的环境中，它的命令可能是速度命令或位置命令。
+    通过将命令生成逻辑与环境分开，很容易在不同的命令生成策略之间切换。
+
+    命令项是从:class:`CommandTerm`类继承的类。
+    每个命令生成器项还应具有来自:class:`CommandTermCfg`类的相应配置类。
+    """
 
     _env: ManagerBasedRLEnv
     """The environment instance."""
+    """环境情况。"""
 
     def __init__(self, cfg: object, env: ManagerBasedRLEnv):
         """Initialize the command manager.
@@ -246,6 +331,12 @@ class CommandManager(ManagerBase):
         Args:
             cfg: The configuration object or dictionary (``dict[str, CommandTermCfg]``).
             env: The environment instance.
+        """
+        """启动命令管理器。
+
+        参数：
+            cfg: 配置对象或字典 (``dict[str， CommandTermCfg]``)。
+            env: 环境情况。
         """
         # create buffers to parse and store terms
         self._terms: dict[str, CommandTerm] = dict()
@@ -261,6 +352,7 @@ class CommandManager(ManagerBase):
 
     def __str__(self) -> str:
         """Returns: A string representation for the command manager."""
+        """Returns: 命令管理器的字符串表示。"""
         msg = f"<CommandManager> contains {len(self._terms.values())} active terms.\n"
 
         # create table for term information
@@ -281,15 +373,19 @@ class CommandManager(ManagerBase):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def active_terms(self) -> list[str]:
         """Name of active command terms."""
+        """事件命令项的名称。"""
         return list(self._terms.keys())
 
     @property
     def has_debug_vis_implementation(self) -> bool:
         """Whether the command terms have debug visualization implemented."""
+        """命令项是否实现了调试可视化。"""
         # check if function raises NotImplementedError
         has_debug_vis = False
         for term in self._terms.values():
@@ -298,6 +394,8 @@ class CommandManager(ManagerBase):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def get_active_iterable_terms(self, env_idx: int) -> Sequence[tuple[str, Sequence[float]]]:
@@ -310,6 +408,16 @@ class CommandManager(ManagerBase):
 
         Returns:
             The active terms.
+        """
+        """返回活跃的项作为可反复的双数序列。
+
+        元组的第一个元素是项的名称，第二个元素是项的原始值。
+
+        参数：
+            env_idx: 具体的环境，可以从中提取活跃项。
+
+        返回：
+            积极的项。
         """
 
         terms = []
@@ -329,6 +437,15 @@ class CommandManager(ManagerBase):
             Whether the debug visualization was successfully set. False if the command
             generator does not support debug visualization.
         """
+        """设置是否可可视化命令数据。
+
+        参数：
+            debug_vis: 是否可视化命令数据。
+
+        返回：
+            设置错误可视化是否成功。
+            False如果命令生成器不支持调试可视化。
+        """
         for term in self._terms.values():
             term.set_debug_vis(debug_vis)
 
@@ -343,6 +460,18 @@ class CommandManager(ManagerBase):
 
         Returns:
             A dictionary containing the information to log under the "Metrics/{term_name}/{metric_name}" key.
+        """
+        """重置命令项并记录它们的指标。
+
+        这个函数重置命令计数器，并为每个项重建命令。
+        应在每个集的开始召开。
+
+        参数：
+            env_ids: 环境 IDs的重置列表。
+                     默认为 None。
+
+        返回：
+            一个包含"Metrics/{term_name}/{metric_name}"键下记录信息的字典。
         """
         # resolve environment ids
         if env_ids is None:
@@ -367,6 +496,13 @@ class CommandManager(ManagerBase):
             dt: The time-step interval of the environment.
 
         """
+        """更新命令。
+
+        这个函数调用每个由类管理的命令项。
+
+        参数：
+            dt: 环境的时间间隔。
+        """
         # iterate over all the command terms
         for term in self._terms.values():
             # compute term's value
@@ -381,6 +517,14 @@ class CommandManager(ManagerBase):
         Returns:
             The command tensor of the specified command term.
         """
+        """返回指令为指定指令项。
+
+        参数：
+            name: 命令项的名称。
+
+        返回：
+            指定命令项的命令数。
+        """
         return self._terms[name].command
 
     def get_term(self, name: str) -> CommandTerm:
@@ -392,10 +536,20 @@ class CommandManager(ManagerBase):
         Returns:
             The command term with the specified name.
         """
+        """返回指定名称的命令项。
+
+        参数：
+            name: 命令项的名称。
+
+        返回：
+            指令项与指定名称。
+        """
         return self._terms[name]
 
     """
     Helper functions.
+    """
+    """辅助函数。
     """
 
     def _prepare_terms(self):

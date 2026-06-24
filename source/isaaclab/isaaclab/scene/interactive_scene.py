@@ -113,12 +113,82 @@ class InteractiveScene:
         modules called "managers" in the framework. Please refer to the :mod:`isaaclab.managers` sub-package
         for more details.
     """
+    """一个包含实体添加到仿真的场景。
+
+    交互场景分析:class:`InteractiveSceneCfg`类，创建场景。
+    基于指定数量的环境，它克隆实体并将它们分为不同类别 (e.g.，关节，传感器等)。
+
+    克隆可以通过两种方式进行:
+
+    * 对于所有环境都含有相同的资产的任务，可以使用更高性能的克隆范式，以便更快地创建环境.``replicate_physics``标志。
+
+      .. code-block:: python
+
+          scene = InteractiveScene(cfg=InteractiveSceneCfg(replicate_physics=True))
+
+    * 对于需要在环境中拥有单独的资产的任务，``replicate_physics``必须设置为False，这将增加一些成本。
+
+      .. code-block:: python
+
+          scene = InteractiveScene(cfg=InteractiveSceneCfg(replicate_physics=False))
+
+    每个实体都根据其在配置类中的名称进行登记。
+    例如，如果用户在配置类中指定以下机器人:
+
+    .. code-block:: python
+
+        from isaaclab.scene import InteractiveSceneCfg
+        from isaaclab.utils import configclass
+
+        from isaaclab_assets.robots.anymal import ANYMAL_C_CFG
+
+
+        @configclass
+        class MySceneCfg(InteractiveSceneCfg):
+            # ANYmal-C robot spawned in each environment
+            robot = ANYMAL_C_CFG.replace(prim_path="{ENV_REGEX_NS}/Robot")
+
+    然后可以从场景访问机器人如下:
+
+    .. code-block:: python
+
+        from isaaclab.scene import InteractiveScene
+
+        # create 128 environments
+        scene = InteractiveScene(cfg=MySceneCfg(num_envs=128))
+
+        # access the robot from the scene
+        robot = scene["robot"]
+        # access the robot based on its type
+        robot = scene.articulations["robot"]
+
+    如果:class:`InteractiveSceneCfg`类不包括资产实体，如果资产在:class:`InteractiveScene`类之外的阶段被添加，则仍然可以启动克隆过程:
+
+    .. code-block:: python
+
+        scene = InteractiveScene(cfg=InteractiveSceneCfg(num_envs=128, replicate_physics=True))
+        scene.clone_environments()
+
+    .. 说明::
+        值得注意的是，场景只对实体进行共同操作。
+        例如，重置内部缓冲器，将缓冲器写入仿真并更新仿真中的缓冲器。
+        场景不执行对实体特定的任务。
+        例如，它不适用于对机器人的操作或计算机器人的观测。
+        这些任务由框架中的不同的模块称为"管理器"来处理。
+        请参阅:mod:`isaaclab.managers`子包
+        for more details.
+    """
 
     def __init__(self, cfg: InteractiveSceneCfg):
         """Initializes the scene.
 
         Args:
             cfg: The configuration class for the scene.
+        """
+        """启动场景。
+
+        参数：
+            cfg: 场景的配置类。
         """
         # check that the config is valid
         cfg.validate()
@@ -222,6 +292,13 @@ class InteractiveScene:
             If True, clones are independent copies of the source prim and won't reflect its changes (start-up time
             may increase). Defaults to False.
         """
+        """创建了环境的克隆``/World/envs/env_0``。
+
+        参数：
+            copy_from_source: (bool): 如果设置为False，克隆将继承 /世界/envs/env_0，并反映其变化。
+            如果True，克隆是源prim的独立副本，不会反映其变化 (启动时间可能会增加)。
+            默认为 False。
+        """
         # check if user spawned different assets in individual environments
         # this flag will be None if no multi asset is spawned
         carb_settings_iface = carb.settings.get_settings()
@@ -284,6 +361,14 @@ class InteractiveScene:
             global_prim_paths: A list of global prim paths to enable collisions with.
                 Defaults to None, in which case no global prim paths are considered.
         """
+        """过环境碰撞。
+
+        禁用``/World/envs/env_.*``中环境之间的碰撞，并使全球prim路径 (e.g.地面平面) 中与prims发生碰撞。
+
+        参数：
+            global_prim_paths: 一份全球prim路径列表，
+                               默认对None的故障，在这种情况下，不考虑全球prim路径。
+        """
         # validate paths in global prim paths
         if global_prim_paths is None:
             global_prim_paths = []
@@ -309,6 +394,7 @@ class InteractiveScene:
 
     def __str__(self) -> str:
         """Returns a string representation of the scene."""
+        """返回场景的字符串表示。"""
         msg = f"<class {self.__class__.__name__}>\n"
         msg += f"\tNumber of environments: {self.cfg.num_envs}\n"
         msg += f"\tEnvironment spacing   : {self.cfg.env_spacing}\n"
@@ -320,10 +406,13 @@ class InteractiveScene:
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def physics_scene_path(self) -> str:
         """The path to the USD Physics Scene."""
+        """进入USD物理场景的道路。"""
         if self._physics_scene_path is None:
             for prim in self.stage.Traverse():
                 if prim.HasAPI(PhysxSchema.PhysxSceneAPI):
@@ -337,11 +426,13 @@ class InteractiveScene:
     @property
     def physics_dt(self) -> float:
         """The physics timestep of the scene."""
+        """场景的物理时间。"""
         return sim_utils.SimulationContext.instance().get_physics_dt()  # pyright: ignore [reportOptionalMemberAccess]
 
     @property
     def device(self) -> str:
         """The device on which the scene is created."""
+        """场景的装置。"""
         return sim_utils.SimulationContext.instance().device  # pyright: ignore [reportOptionalMemberAccess]
 
     @property
@@ -351,21 +442,31 @@ class InteractiveScene:
         The environments are present w.r.t. this namespace under "env_{N}" prim,
         where N is a natural number.
         """
+        """在所有环境中创建的名称空间``/World/envs``。
+
+        环境存在 w.r.t。
+        在"env_"下的这个名字空间{N}" prim，其中N是自然数。
+        """
         return "/World/envs"
 
     @property
     def env_regex_ns(self) -> str:
         """The namespace ``/World/envs/env_.*`` in which all environments created."""
+        """在所有环境中创建的名称空间``/World/envs/env_.*``。"""
         return f"{self.env_ns}/env_.*"
 
     @property
     def num_envs(self) -> int:
         """The number of environments handled by the scene."""
+        """场景所处理的环境数量。"""
         return self.cfg.num_envs
 
     @property
     def env_origins(self) -> torch.Tensor:
         """The origins of the environments in the scene. Shape is (num_envs, 3)."""
+        """场景环境的起源。
+        形状是 (num_envs， 3)。
+        """
         if self._terrain is not None:
             return self._terrain.env_origins
         else:
@@ -379,36 +480,48 @@ class InteractiveScene:
             We treat terrain separate from :attr:`extras` since terrains define environment origins and are
             handled differently from other miscellaneous entities.
         """
+        """在场景的地形。
+        如果是None，那么场景没有地形。
+
+        说明：
+            我们将地形与:attr:`extras`分开，因为地形定义了环境的起源，
+        """
         return self._terrain
 
     @property
     def articulations(self) -> dict[str, Articulation]:
         """A dictionary of articulations in the scene."""
+        """在场景的关节字典。"""
         return self._articulations
 
     @property
     def deformable_objects(self) -> dict[str, DeformableObject]:
         """A dictionary of deformable objects in the scene."""
+        """场景中的可变物体的字典。"""
         return self._deformable_objects
 
     @property
     def rigid_objects(self) -> dict[str, RigidObject]:
         """A dictionary of rigid objects in the scene."""
+        """在场景中，一个ction固物体的字典。"""
         return self._rigid_objects
 
     @property
     def rigid_object_collections(self) -> dict[str, RigidObjectCollection]:
         """A dictionary of rigid object collections in the scene."""
+        """一个关于场景的硬物体的字典。"""
         return self._rigid_object_collections
 
     @property
     def sensors(self) -> dict[str, SensorBase]:
         """A dictionary of the sensors in the scene, such as cameras and contact reporters."""
+        """场景传感器的字典，例如摄像头和联系记者。"""
         return self._sensors
 
     @property
     def surface_grippers(self) -> dict[str, SurfaceGripper]:
         """A dictionary of the surface grippers in the scene."""
+        """一个处于场景的表面抓住器字典。"""
         return self._surface_grippers
 
     @property
@@ -426,6 +539,16 @@ class InteractiveScene:
             handled by the interactive scene, but are useful to be accessed by the user.
 
         """
+        """一个由资产或传感器继承的各种仿真物体的字典。
+
+        键是各种对象的名称，值是相应的prims的:class:`~isaaclab.sim.views.XformPrimView`实例。
+
+        例如，在场景中没有任何你想要在运行时改变的属性或属性的灯光或其他道具可以添加到这个字典中。
+
+        说明：
+            这些都没有被场景重置或更新。
+            它们主要是其他prims，它们不一定由交互场景处理，但用户可以访问它们。
+        """
         return self._extras
 
     @property
@@ -434,10 +557,16 @@ class InteractiveScene:
 
         Please refer to :meth:`get_state` for the format.
         """
+        """仿真世界框架中的场景实体状态字典。
+
+        请查看:meth:`get_state`的格式。
+        """
         return self.get_state(is_relative=False)
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -446,6 +575,12 @@ class InteractiveScene:
         Args:
             env_ids: The indices of the environments to reset.
                 Defaults to None (all instances).
+        """
+        """重置场景实体。
+
+        参数：
+            env_ids: 设置环境的索引。
+                     在 None 中默认设置 (所有实例)。
         """
         # -- assets
         for articulation in self._articulations.values():
@@ -464,6 +599,7 @@ class InteractiveScene:
 
     def write_data_to_sim(self):
         """Writes the data of the scene entities to the simulation."""
+        """写出场景实体的数据。"""
         # -- assets
         for articulation in self._articulations.values():
             articulation.write_data_to_sim()
@@ -481,6 +617,11 @@ class InteractiveScene:
 
         Args:
             dt: The amount of time passed from last :meth:`update` call.
+        """
+        """更新场景实体。
+
+        参数：
+            dt: 从最后一次:meth:`update`电话以来的时间。
         """
         # -- assets
         for articulation in self._articulations.values():
@@ -500,6 +641,8 @@ class InteractiveScene:
     """
     Operations: Scene State.
     """
+    """Operations: 场景状态。
+    """
 
     def reset_to(
         self,
@@ -515,6 +658,16 @@ class InteractiveScene:
                 all environment instances are reset.
             is_relative: If set to True, the state is considered relative to the environment origins.
                 Defaults to False.
+        """
+        """将场景实体重置为所提供的状态。
+
+        参数：
+            state: 设置场景实体的状态。
+                   请查看:meth:`get_state`的格式。
+            env_ids: 设置环境的索引。
+                     默认为 None，在这种情况下，所有环境实例都会重置。
+            is_relative: 如果设置为True，状态将被视为与环境起源相对。
+                         默认为 False。
         """
         # resolve env_ids
         if env_ids is None:
@@ -615,6 +768,56 @@ class InteractiveScene:
         Returns:
             A dictionary of the state of the scene entities.
         """
+        """返回场景实体的状态。
+
+        根据实体类型，该实体由不同的组成部分组成。
+
+        * 对于关节，状态包括根姿势，根速度和关节位置和速度。
+        * 对于可变形的物体，状态包括节点位置和速度。
+        * 对于硬体，状态包括根姿势和根速度。
+
+        返回的状态是以下格式的字典:
+
+        .. code-block:: python
+
+            {
+                "articulation": {
+                    "entity_1_name": {
+                        "root_pose": torch.Tensor,
+                        "root_velocity": torch.Tensor,
+                        "joint_position": torch.Tensor,
+                        "joint_velocity": torch.Tensor,
+                    },
+                    "entity_2_name": {
+                        "root_pose": torch.Tensor,
+                        "root_velocity": torch.Tensor,
+                        "joint_position": torch.Tensor,
+                        "joint_velocity": torch.Tensor,
+                    },
+                },
+                "deformable_object": {
+                    "entity_3_name": {
+                        "nodal_position": torch.Tensor,
+                        "nodal_velocity": torch.Tensor,
+                    }
+                },
+                "rigid_object": {
+                    "entity_4_name": {
+                        "root_pose": torch.Tensor,
+                        "root_velocity": torch.Tensor,
+                    }
+                },
+            }
+
+        在 ``entity_N_name`` 是场景注册的实体名称。
+
+        参数：
+            is_relative: 如果设置为True，状态将被视为与环境起源相对。
+                         默认为 False。
+
+        返回：
+            一个关于场景实体的字典。
+        """
         state = dict()
         # articulations
         state["articulation"] = dict()
@@ -654,12 +857,19 @@ class InteractiveScene:
     """
     Operations: Iteration.
     """
+    """Operations: 代。
+    """
 
     def keys(self) -> list[str]:
         """Returns the keys of the scene entities.
 
         Returns:
             The keys of the scene entities.
+        """
+        """返回场景实体的钥匙。
+
+        返回：
+            场景实体的钥匙。
         """
         all_keys = ["terrain"]
         for asset_family in [
@@ -682,6 +892,14 @@ class InteractiveScene:
 
         Returns:
             The scene entity.
+        """
+        """返回场景实体，用给定的键。
+
+        参数：
+            key: 场景实体的钥匙。
+
+        返回：
+            场景实体。
         """
         # check if it is a terrain
         if key == "terrain":
@@ -709,12 +927,19 @@ class InteractiveScene:
     """
     Internal methods.
     """
+    """内部方法。
+    """
 
     def _is_scene_setup_from_cfg(self) -> bool:
         """Check if scene entities are setup from the config or not.
 
         Returns:
             True if scene entities are setup from the config, False otherwise.
+        """
+        """检查从配置中是否设置了场景实体。
+
+        返回：
+            如果从配置中设置了场景实体，则True，否则False。
         """
         return any(
             not (asset_name in InteractiveSceneCfg.__dataclass_fields__ or asset_cfg is None)
@@ -723,6 +948,7 @@ class InteractiveScene:
 
     def _add_entities_from_cfg(self):
         """Add scene entities from the config."""
+        """在配置中添加场景实体。"""
         # store paths that are in global collision filter
         self._global_prim_paths = list()
         # parse the entire scene config and resolve regex

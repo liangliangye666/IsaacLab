@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module for camera wrapper around USD camera prim."""
+"""在USD相机prim周围的相机包装子模块。"""
 
 from .camera import Camera
 from .camera_cfg import CameraCfg

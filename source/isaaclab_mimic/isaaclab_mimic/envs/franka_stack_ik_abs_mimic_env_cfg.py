@@ -14,6 +14,8 @@ class FrankaCubeStackIKAbsMimicEnvCfg(FrankaCubeStackEnvCfg, MimicEnvCfg):
     """
     Isaac Lab Mimic environment config class for Franka Cube Stack IK Abs env.
     """
+    """艾萨克实验室仿真环境配置类对弗兰卡立方堆IKABSenv。
+    """
 
     def __post_init__(self):
         # post init of parents

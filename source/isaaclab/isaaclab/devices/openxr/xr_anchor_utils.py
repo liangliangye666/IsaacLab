@@ -8,6 +8,7 @@
 """Utilities for synchronizing XR anchor pose with a reference prim and XR config."""
 
 from __future__ import annotations
+"""用于同步XR杆姿势的实用工具与参考prim和XR配置。"""
 
 import contextlib
 import logging
@@ -32,6 +33,7 @@ with contextlib.suppress(ModuleNotFoundError):
 
 class XrAnchorSynchronizer:
     """Keeps the XR anchor prim aligned with a reference prim according to XR config."""
+    """根据XR配置，将XR prim与参考prim保持一致。"""
 
     def __init__(self, xr_core: Any, xr_cfg: Any, xr_anchor_headset_path: str):
         self._xr_core = xr_core
@@ -69,6 +71,7 @@ class XrAnchorSynchronizer:
 
     def sync_headset_to_anchor(self):
         """Sync XR anchor pose in USD from reference prim (in Fabric/usdrt)."""
+        """在 USD 中同步XR杆姿势，从参考prim (在 Fabric/usdrt 中)。"""
         try:
             if self._xr_cfg.anchor_prim_path is None:
                 return

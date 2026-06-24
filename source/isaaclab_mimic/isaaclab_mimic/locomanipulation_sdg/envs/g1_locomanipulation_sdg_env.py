@@ -96,6 +96,9 @@ class G1LocomanipulationSDGObservationsCfg(ObservationsCfg):
     """Observation specifications for the MDP.
     This class is required by the environment configuration but not used in this implementation
     """
+    """对MDP的观测规格。
+    这个类是环境配置所要求的，但不是在这个实现中使用的
+    """
 
     @configclass
     class PolicyCfg(ObservationsCfg.PolicyCfg):
@@ -110,6 +113,7 @@ class G1LocomanipulationSDGObservationsCfg(ObservationsCfg):
 @configclass
 class G1LocomanipulationSDGEnvCfg(LocomanipulationG1EnvCfg, LocomanipulationSDGEnvCfg):
     """Configuration for the G1 29DoF environment."""
+    """对G1 29DoF环境的配置。"""
 
     viewer: ViewerCfg = ViewerCfg(
         eye=(0.0, 3.0, 1.25), lookat=(0.0, 0.0, 0.5), origin_type="asset_body", asset_name="robot", body_name="pelvis"
@@ -124,6 +128,7 @@ class G1LocomanipulationSDGEnvCfg(LocomanipulationG1EnvCfg, LocomanipulationSDGE
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 4
         self.episode_length_s = 100.0

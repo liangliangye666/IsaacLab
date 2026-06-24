@@ -13,6 +13,7 @@ from isaaclab.app import AppLauncher
 @pytest.mark.usefixtures("mocker")
 def test_livestream_launch_with_argparser(mocker):
     """Test launching with argparser arguments."""
+    """用 argparser 参数进行测试。"""
     # Mock the parse_args method
     mocker.patch("argparse.ArgumentParser.parse_args", return_value=argparse.Namespace(livestream=1, headless=True))
     # create argparser

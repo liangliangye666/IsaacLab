@@ -4,5 +4,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Manipulation environments for fixed-arm robots."""
+"""固定臂机器人操作环境。"""
 
 from .reach import *  # noqa

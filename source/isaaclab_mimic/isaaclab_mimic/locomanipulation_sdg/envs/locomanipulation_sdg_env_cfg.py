@@ -17,6 +17,7 @@ from .locomanipulation_sdg_env import LocomanipulationSDGOutputDataRecorder
 @configclass
 class LocomanipulationSDGOutputDataRecorderCfg(RecorderTermCfg):
     """Configuration for the step policy observation recorder term."""
+    """步骤策略观测记录器的配置"""
 
     class_type: type[RecorderTerm] = LocomanipulationSDGOutputDataRecorder
 
@@ -29,6 +30,7 @@ class LocomanipulationSDGRecorderManagerCfg(ActionStateRecorderManagerCfg):
 @configclass
 class LocomanipulationSDGTerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=base_mdp.time_out, time_out=True)
 
@@ -36,6 +38,7 @@ class LocomanipulationSDGTerminationsCfg:
 @configclass
 class LocomanipulationSDGEventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_all = EventTerm(func=base_mdp.reset_scene_to_default, mode="reset")
 

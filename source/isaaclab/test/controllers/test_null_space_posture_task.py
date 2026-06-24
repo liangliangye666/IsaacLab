@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 # Import pinocchio in the main script to force the use of the dependencies installed
 # by IsaacLab and not the one installed by Isaac Sim
@@ -22,6 +23,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Unit tests for NullSpacePostureTask with simplified robot configuration using Pink library directly."""
+"""用Pink库直接进行简化机器人配置的NullSpacePostureTask单元测试。"""
 
 import numpy as np
 import pytest
@@ -34,15 +36,18 @@ from isaaclab.controllers.pink_ik.null_space_posture_task import NullSpacePostur
 
 class TestNullSpacePostureTaskSimplifiedRobot:
     """Test cases for NullSpacePostureTask with simplified robot configuration."""
+    """简化机器人配置的NullSpacePostureTask测试案例。"""
 
     @pytest.fixture
     def num_joints(self):
         """Number of joints in the simplified robot."""
+        """简化的机器人中关节数量。"""
         return 20
 
     @pytest.fixture
     def joint_configurations(self):
         """Pre-generated joint configurations for testing."""
+        """为测试预先生成的联合配置。"""
         # Set random seed for reproducible tests
         np.random.seed(42)
 
@@ -55,6 +60,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
     @pytest.fixture
     def robot_urdf(self):
         """Load the simplified test robot URDF file."""
+        """装载简体测试机器人URDF文件。"""
         import os
 
         current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -64,12 +70,14 @@ class TestNullSpacePostureTaskSimplifiedRobot:
     @pytest.fixture
     def robot_configuration(self, robot_urdf):
         """Simplified robot wrapper."""
+        """简单的机器人包装。"""
         wrapper = RobotWrapper.BuildFromURDF(robot_urdf, None, root_joint=None)
         return Configuration(wrapper.model, wrapper.data, wrapper.q0)
 
     @pytest.fixture
     def tasks(self):
         """pink tasks."""
+        """色的任务。"""
         return [
             FrameTask("left_hand_pitch_link", position_cost=1.0, orientation_cost=1.0),
             NullSpacePostureTask(
@@ -89,6 +97,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
         self, robot_configuration, tasks, joint_configurations, num_joints
     ):
         """Test that velocities projected through null space Jacobian result in zero end-effector velocity."""
+        """测试通过零空间投射的速度 Jacobian 结果零终端效应速度。"""
         # Set specific joint configuration
         robot_configuration.q = joint_configurations["random"]
 
@@ -127,6 +136,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
 
     def test_null_space_jacobian_properties(self, robot_configuration, tasks, joint_configurations, num_joints):
         """Test mathematical properties of the null space Jacobian."""
+        """测试零空间雅可比亚的数学性能。"""
         # Set specific joint configuration
         robot_configuration.q = joint_configurations["random"]
 
@@ -159,6 +169,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
         self, robot_configuration, joint_configurations, num_joints
     ):
         """Test that null space Jacobian is identity when no frame tasks are defined."""
+        """在没有定义框架任务时，测试虚空空间Jacobian是身份。"""
         # Create null space task without frame task controlled joints
         null_space_task = NullSpacePostureTask(cost=1.0, controlled_frames=[], controlled_joints=[])
 
@@ -182,6 +193,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
         self, robot_configuration, tasks, joint_configurations, num_joints
     ):
         """Test that null space Jacobian is consistent across different joint configurations."""
+        """测试在不同的联合配置中是否一致。"""
         # Test multiple joint configurations
         test_configs = [
             np.zeros(num_joints),  # Zero configuration
@@ -222,6 +234,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
 
     def test_compute_error_without_target(self, robot_configuration, joint_configurations):
         """Test that compute_error raises ValueError when no target is set."""
+        """在没有设置目标时，测试compute_error提高ValueError。"""
         null_space_task = NullSpacePostureTask(
             cost=1.0,
             controlled_frames=["left_hand_pitch_link"],
@@ -236,6 +249,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
 
     def test_joint_masking(self, robot_configuration, joint_configurations, num_joints):
         """Test that joint mask correctly filters only controlled joints."""
+        """检查关节面具正确过了只有控制关节。"""
 
         controlled_joint_names = ["waist_pitch_joint", "left_shoulder_pitch_joint", "left_elbow_pitch_joint"]
 
@@ -272,6 +286,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
 
     def test_empty_controlled_joints(self, robot_configuration, joint_configurations, num_joints):
         """Test behavior when controlled_joints is empty."""
+        """在controlled_joints空时测试行为。"""
         null_space_task = NullSpacePostureTask(
             cost=1.0, controlled_frames=["left_hand_pitch_link"], controlled_joints=[]
         )
@@ -289,6 +304,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
 
     def test_set_target_from_configuration(self, robot_configuration, joint_configurations):
         """Test set_target_from_configuration method."""
+        """测试set_target_from_configuration方法。"""
         null_space_task = NullSpacePostureTask(
             cost=1.0,
             controlled_frames=["left_hand_pitch_link"],
@@ -308,6 +324,7 @@ class TestNullSpacePostureTaskSimplifiedRobot:
 
     def test_multiple_frame_tasks(self, robot_configuration, joint_configurations, num_joints):
         """Test null space projection with multiple frame tasks."""
+        """用多个框架任务测试零空间投影。"""
         # Create task with multiple controlled frames
         null_space_task = NullSpacePostureTask(
             cost=1.0,

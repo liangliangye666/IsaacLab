@@ -19,6 +19,22 @@ The following configurations are available:
 
 Reference: https://github.com/unitreerobotics/unitree_ros
 """
+"""单元三号机器人配置。
+
+下列配置可用:
+
+* :obj:`UNITREE_A1_CFG`:A1机器人，脚部机器人型号DC
+* :obj:`UNITREE_GO1_CFG`:单元木 Go1机器人，脚部驱动器网模型
+* :obj:`UNITREE_GO2_CFG`:单元木 Go2机器人，用DC车型用于腿部
+* :obj:`H1_CFG`:H1人形机器人
+* :obj:`H1_MINIMAL_CFG`:H1人形机器人，最小碰撞体
+* :obj:`G1_CFG`:G1人形机器人
+* :obj:`G1_MINIMAL_CFG`: G1 人类型机器人，最小碰撞体
+* :obj:`G1_29DOF_CFG`:G1的人类型机器人配置为位置操作任务
+* :obj:`G1_INSPIRE_FTP_CFG`:G1 29DOF人形机器人，具有5指手
+
+Reference: https://github.com/unitreerobotics/unitree_ros
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ActuatorNetMLPCfg, DCMotorCfg, ImplicitActuatorCfg
@@ -46,6 +62,12 @@ GO1_ACTUATOR_CFG = ActuatorNetMLPCfg(
 Actuator specifications: https://shop.unitree.com/products/go1-motor
 
 This model is taken from: https://github.com/Improbable-AI/walk-these-ways
+"""
+"""使用MLP模型的Go1执行器配置。
+
+动机规格:https://shop.unitree.com/products/go1-motor
+
+这个模型是从:https://github.com/Improbable-AI/walk-these-ways
 """
 
 
@@ -99,6 +121,10 @@ UNITREE_A1_CFG = ArticulationCfg(
 
 Note: Specifications taken from: https://www.trossenrobotics.com/a1-quadruped#specifications
 """
+"""使用DC发动机配置A1单元。
+
+Note: 从:https://www.trossenrobotics.com/a1-quadruped#specifications获取的规格
+"""
 
 
 UNITREE_GO1_CFG = ArticulationCfg(
@@ -135,6 +161,7 @@ UNITREE_GO1_CFG = ArticulationCfg(
     },
 )
 """Configuration of Unitree Go1 using MLP-based actuator model."""
+"""使用MLP型驱动器模型的Unitree Go1配置。"""
 
 
 UNITREE_GO2_CFG = ArticulationCfg(
@@ -179,6 +206,7 @@ UNITREE_GO2_CFG = ArticulationCfg(
     },
 )
 """Configuration of Unitree Go2 using DC-Motor actuator model."""
+"""使用DC-Motor动力机模型的Unitree Go2配置。"""
 
 
 H1_CFG = ArticulationCfg(
@@ -259,6 +287,7 @@ H1_CFG = ArticulationCfg(
     },
 )
 """Configuration for the Unitree H1 Humanoid robot."""
+"""机器人的配置。"""
 
 
 H1_MINIMAL_CFG = H1_CFG.copy()
@@ -266,6 +295,10 @@ H1_MINIMAL_CFG.spawn.usd_path = f"{ISAACLAB_NUCLEUS_DIR}/Robots/Unitree/H1/h1_mi
 """Configuration for the Unitree H1 Humanoid robot with fewer collision meshes.
 
 This configuration removes most collision meshes to speed up simulation.
+"""
+"""机器人H1Humanoid机器人配置，
+
+这种配置可以移除大多数碰撞网，以加速仿真。
 """
 
 
@@ -375,6 +408,7 @@ G1_CFG = ArticulationCfg(
     },
 )
 """Configuration for the Unitree G1 Humanoid robot."""
+"""机器人机器人G1的配置。"""
 
 
 G1_MINIMAL_CFG = G1_CFG.copy()
@@ -382,6 +416,10 @@ G1_MINIMAL_CFG.spawn.usd_path = f"{ISAACLAB_NUCLEUS_DIR}/Robots/Unitree/G1/g1_mi
 """Configuration for the Unitree G1 Humanoid robot with fewer collision meshes.
 
 This configuration removes most collision meshes to speed up simulation.
+"""
+"""机器人机器人G1机器人机器人配置，
+
+这种配置可以移除大多数碰撞网，以加速仿真。
 """
 
 
@@ -554,6 +592,25 @@ Usage examples:
     mobile_cfg = G1_29DOF_CFG.copy()
     mobile_cfg.spawn.articulation_props.fix_root_link = False
 """
+"""对于机器人G1人形机器人进行位置操纵任务的配置。
+
+这种配置设置了G1的人类型机器人进行位置操作任务，允许移动和操纵能力。
+机器人可以配置
+for either fixed base or mobile scenarios by modifying the fix_root_link parameter.
+
+主要特征:
+- 通过fix_root_link参数可配置的基础 (固定或移动)
+- 优化执行器参数用于位置操作任务
+- 改进手臂配置，用于操纵
+
+使用例:# 固定基层场景 (仅操纵上部)
+    fixed_base_cfg = G1_29DOF_CFG.copy()
+    fixed_base_cfg.spawn.articulation_props.fix_root_link = True
+
+    # 移动场景 (机动运输+操纵)
+    mobile_cfg = G1_29DOF_CFG.copy()
+    mobile_cfg.spawn.articulation_props.fix_root_link = False
+"""
 
 """
 Configuration for the Unitree G1 Humanoid robot with Inspire 5fingers hand.
@@ -561,6 +618,13 @@ The Unitree G1 URDF can be found here: https://github.com/unitreerobotics/unitre
 The Inspire hand URDF is available at: https://github.com/unitreerobotics/xr_teleoperate/tree/main/assets/inspire_hand
 The merging code for the hand and robot can be found here: https://github.com/unitreerobotics/unitree_ros/blob/master/robots/g1_description/merge_g1_29dof_and_inspire_hand.ipynb,
 Necessary modifications should be made to ensure the correct parent–child relationship.
+"""
+"""机器人机器人机器人机器人机器人机器人，
+单元树G1 URDF可以在这里找到: https://github.com/unitreerobotics/unitree_ros/tree/master/robots/g1_description/
+g1_29dof_with_hand_rev_1_0.urdf Inspire手 URDF可在:
+https://github.com/unitreerobotics/xr_teleoperate/tree/main/assets/inspire_hand 手和机器人的合并代码可以在这里找到:
+https://github.com/unitreerobotics/unitree_ros/blob/master/robots/g1_description/merge_g1_29dof_and_
+inspire_hand.ipynb， 必须进行必要的修改，以确保正确的父母与孩子关系。
 """
 # Inherit PD settings from G1_29DOF_CFG, with minor adjustments for grasping task
 G1_INSPIRE_FTP_CFG = G1_29DOF_CFG.copy()

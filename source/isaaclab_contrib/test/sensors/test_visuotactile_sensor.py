@@ -7,6 +7,7 @@
 # pyright: reportPrivateUsage=none
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -14,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 
@@ -53,6 +55,18 @@ def get_sensor_cfg_by_type(sensor_type: str) -> VisuoTactileSensorCfg:
 
     Raises:
         ValueError: If the sensor_type is not supported.
+    """
+    """返回基于输入类型的传感器配置。
+
+    参数：
+        sensor_type: 传感器配置类型
+                     选项:minimum_config，tactile_cam，nut_rgb_ff
+
+    返回：
+        对指定类型的传感器配置。
+
+    异常：
+        ValueError: 如果没有支持sensor_type。
     """
 
     if sensor_type == "minimum_config":
@@ -116,6 +130,15 @@ def setup(sensor_type: str = "cube"):
 
     Returns:
         Tuple containing simulation context, sensor config, timestep, robot config, cube config, and nut config.
+    """
+    """创建一个新的舞台和设置仿真环境与机器人，物体和传感器。
+
+    参数：
+        sensor_type: 传感器配置类型
+                     选项:minimum_config，tactile_cam，nut_rgb_ff
+
+    返回：
+        含有仿真环境，传感器配置，时间步骤，机器人配置，立方配置和核子配置。
     """
     # Create a new stage
     sim_utils.create_new_stage()
@@ -186,6 +209,7 @@ def setup(sensor_type: str = "cube"):
 
 def teardown(sim):
     """Teardown simulation environment."""
+    """拆除仿真环境。"""
     # close all the opened viewport from before.
     rep.vp_manager.destroy_hydra_textures("Replicator")
     # stop simulation
@@ -199,6 +223,7 @@ def teardown(sim):
 @pytest.fixture
 def setup_minimum_config():
     """Create simulation context with minimum config sensor."""
+    """创建仿真环境，使用最小配置传感器。"""
     sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg = setup("minimum_config")
     yield sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg
     teardown(sim)
@@ -207,6 +232,7 @@ def setup_minimum_config():
 @pytest.fixture
 def setup_tactile_cam():
     """Create simulation context with tactile camera sensor."""
+    """用触觉摄像头传感器创建仿真环境。"""
     sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg = setup("tactile_cam")
     yield sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg
     teardown(sim)
@@ -215,6 +241,7 @@ def setup_tactile_cam():
 @pytest.fixture
 def setup_nut_rgb_ff():
     """Create simulation context with nut RGB force field sensor."""
+    """用 nut RGB 强力场传感器创建仿真环境。"""
     sim, sensor_cfg, dt, robot_cfg, cube_cfg, nut_cfg = setup("nut_rgb_ff")
     yield sim, sensor_cfg, dt, robot_cfg, cube_cfg, nut_cfg
     teardown(sim)
@@ -223,6 +250,7 @@ def setup_nut_rgb_ff():
 @pytest.mark.isaacsim_ci
 def test_sensor_minimum_config(setup_minimum_config):
     """Test sensor with minimal configuration (no camera, no force field)."""
+    """具有最小配置的测试传感器 (没有摄像头，没有力场)。"""
     sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg = setup_minimum_config
     _ = Articulation(cfg=robot_cfg)
     sensor_minimum = VisuoTactileSensor(cfg=sensor_cfg)
@@ -253,6 +281,7 @@ def test_sensor_minimum_config(setup_minimum_config):
 @pytest.mark.isaacsim_ci
 def test_sensor_cam_size_false(setup_tactile_cam):
     """Test sensor initialization fails with incorrect camera image size."""
+    """测试传感器初始化失败了，"""
     sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg = setup_tactile_cam
     sensor_cfg.camera_cfg.height = 80
     _ = VisuoTactileSensor(cfg=sensor_cfg)
@@ -264,6 +293,7 @@ def test_sensor_cam_size_false(setup_tactile_cam):
 @pytest.mark.isaacsim_ci
 def test_sensor_cam_type_false(setup_tactile_cam):
     """Test sensor initialization fails with unsupported camera data types."""
+    """测试传感器初始化失败了未支持的相机数据类型。"""
     sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg = setup_tactile_cam
     sensor_cfg.camera_cfg.data_types = ["rgb"]
     _ = VisuoTactileSensor(cfg=sensor_cfg)
@@ -275,6 +305,7 @@ def test_sensor_cam_type_false(setup_tactile_cam):
 @pytest.mark.isaacsim_ci
 def test_sensor_cam_set(setup_tactile_cam):
     """Test sensor with camera configuration using existing camera prim."""
+    """使用现有相机prim的相机配置的测试传感器。"""
     sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg = setup_tactile_cam
     robot = Articulation(cfg=robot_cfg)
     sensor = VisuoTactileSensor(cfg=sensor_cfg)
@@ -300,6 +331,7 @@ def test_sensor_cam_set(setup_tactile_cam):
 @pytest.mark.isaacsim_ci
 def test_sensor_cam_set_wrong_prim(setup_tactile_cam):
     """Test sensor initialization fails with invalid camera prim path."""
+    """试验传感器启动失败了， 无效的相机prim路径。"""
     sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg = setup_tactile_cam
     sensor_cfg.camera_cfg.prim_path = "/World/Robot/elastomer_tip/cam_wrong"
     robot = Articulation(cfg=robot_cfg)
@@ -314,6 +346,7 @@ def test_sensor_cam_set_wrong_prim(setup_tactile_cam):
 @pytest.mark.isaacsim_ci
 def test_sensor_cam_new_spawn(setup_tactile_cam):
     """Test sensor with camera configuration that spawns a new camera."""
+    """测试传感器与摄像头配置，产生新的摄像头。"""
     sim, sensor_cfg, dt, robot_cfg, object_cfg, nut_cfg = setup_tactile_cam
     sensor_cfg.camera_cfg.prim_path = "/World/Robot/elastomer_tip/cam_new"
     sensor_cfg.camera_cfg.spawn = sim_utils.PinholeCameraCfg(
@@ -340,6 +373,7 @@ def test_sensor_cam_new_spawn(setup_tactile_cam):
 @pytest.mark.isaacsim_ci
 def test_sensor_rgb_forcefield(setup_nut_rgb_ff):
     """Test sensor with both camera and force field enabled, detecting contact forces."""
+    """测试传感器，有摄像头和力场启动，检测接触力。"""
     sim, sensor_cfg, dt, robot_cfg, cube_cfg, nut_cfg = setup_nut_rgb_ff
     robot = Articulation(cfg=robot_cfg)
     sensor = VisuoTactileSensor(cfg=sensor_cfg)
@@ -371,6 +405,7 @@ def test_sensor_rgb_forcefield(setup_nut_rgb_ff):
 @pytest.mark.isaacsim_ci
 def test_sensor_no_contact_object(setup_nut_rgb_ff):
     """Test sensor with force field but no contact object specified."""
+    """具有力场的测试传感器，但没有指定接触物体。"""
     sim, sensor_cfg, dt, robot_cfg, cube_cfg, nut_cfg = setup_nut_rgb_ff
     sensor_cfg.contact_object_prim_path_expr = None
     robot = Articulation(cfg=robot_cfg)
@@ -397,6 +432,7 @@ def test_sensor_no_contact_object(setup_nut_rgb_ff):
 @pytest.mark.isaacsim_ci
 def test_sensor_force_field_contact_object_not_found(setup_nut_rgb_ff):
     """Test sensor initialization fails when contact object prim path is not found."""
+    """当接触对象prim路径不找到时，测试传感器初始化失败。"""
     sim, sensor_cfg, dt, robot_cfg, cube_cfg, NutCfg = setup_nut_rgb_ff
 
     sensor_cfg.enable_camera_tactile = False
@@ -413,6 +449,7 @@ def test_sensor_force_field_contact_object_not_found(setup_nut_rgb_ff):
 @pytest.mark.isaacsim_ci
 def test_sensor_force_field_contact_object_no_sdf(setup_nut_rgb_ff):
     """Test sensor initialization fails when contact object has no SDF mesh."""
+    """当接触对象没有SDF网格时，测试传感器启动失败。"""
     sim, sensor_cfg, dt, robot_cfg, cube_cfg, NutCfg = setup_nut_rgb_ff
     sensor_cfg.enable_camera_tactile = False
     sensor_cfg.contact_object_prim_path_expr = "/World/Cube"
@@ -430,6 +467,7 @@ def test_sensor_force_field_contact_object_no_sdf(setup_nut_rgb_ff):
 @pytest.mark.isaacsim_ci
 def test_sensor_update_period_mismatch(setup_nut_rgb_ff):
     """Test sensor with both camera and force field enabled, detecting contact forces."""
+    """测试传感器，有摄像头和力场启动，检测接触力。"""
     sim, sensor_cfg, dt, robot_cfg, cube_cfg, nut_cfg = setup_nut_rgb_ff
     sensor_cfg.update_period = dt
     sensor_cfg.camera_cfg.update_period = dt * 2

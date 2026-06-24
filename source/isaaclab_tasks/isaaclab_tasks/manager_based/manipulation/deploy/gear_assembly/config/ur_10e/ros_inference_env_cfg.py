@@ -19,6 +19,12 @@ class UR10e2F140GearAssemblyROSInferenceEnvCfg(UR10e2F140GearAssemblyEnvCfg):
     - Exposes variables needed for ROS inference
     - Overrides robot and gear initial poses for fixed/deterministic setup
     """
+    """用UR10e和Robotiq 2F-140抓住器进行ROS推断配置。
+
+    这种配置:
+    - 暴露ROS推理所需的变量
+    - 对固定/确定性设置的机器人和设备初始姿势进行过失
+    """
 
     def __post_init__(self):
         # post init of parent
@@ -111,6 +117,12 @@ class UR10e2F85GearAssemblyROSInferenceEnvCfg(UR10e2F85GearAssemblyEnvCfg):
     This configuration:
     - Exposes variables needed for ROS inference
     - Overrides robot and gear initial poses for fixed/deterministic setup
+    """
+    """用UR10e和Robotiq 2F-85抓住器进行ROS推断配置。
+
+    这种配置:
+    - 暴露ROS推理所需的变量
+    - 对固定/确定性设置的机器人和设备初始姿势进行过失
     """
 
     def __post_init__(self):

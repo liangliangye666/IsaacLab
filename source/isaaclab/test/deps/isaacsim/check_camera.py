@@ -16,8 +16,21 @@ _isaac_sim/python.sh source/isaaclab/test/deps/isaacsim/check_camera.py --scenar
 _isaac_sim/python.sh source/isaaclab/test/deps/isaacsim/check_camera.py --scenario anymal
 ```
 """
+"""这本脚本显示了Isaac Sim中的 issue渲染器问题，
+
+每个新集的前几张图片都没有更新。
+他们采取了多步骤更新，
+
+```
+# run with cube
+_isaac_sim/python.sh source/isaaclab/test/deps/isaacsim/check_camera.py --scenario cube
+# run with anymal
+_isaac_sim/python.sh source/isaaclab/test/deps/isaacsim/check_camera.py --scenario anymal
+```
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -40,6 +53,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 import random
@@ -65,10 +79,12 @@ if nucleus_utils.get_assets_root_path() is None:
 
 ISAAC_NUCLEUS_DIR = f"{nucleus_utils.get_assets_root_path()}/Isaac"
 """Path to the `Isaac` directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的`Isaac`目录。"""
 
 
 def main():
     """Runs a camera sensor from isaaclab."""
+    """运行了Iisaclab的摄像头传感器。"""
 
     # Load kit helper
     world = World(physics_dt=0.005, rendering_dt=0.005, backend="torch", device="cpu")

@@ -8,8 +8,13 @@ This script demonstrates how to use the cloner API from Isaac Sim.
 
 Reference: https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/tutorial_gym_cloner.html
 """
+"""这本脚本展示了如何使用Isaac Sim的克隆器API。
+
+Reference: https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/tutorial_gym_cloner.html
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -39,6 +44,7 @@ args_cli = parser.parse_args()
 simulation_app = SimulationApp({"headless": args_cli.headless})
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import logging
 import os
@@ -67,18 +73,23 @@ if nucleus_utils.get_assets_root_path() is None:
 
 ISAAC_NUCLEUS_DIR = f"{nucleus_utils.get_assets_root_path()}/Isaac"
 """Path to the `Isaac` directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的`Isaac`目录。"""
 
 ISAACLAB_NUCLEUS_DIR = f"{ISAAC_NUCLEUS_DIR}/IsaacLab"
 """Path to the `Isaac/IsaacLab` directory on the NVIDIA Nucleus Server."""
+"""在NVIDIA核服务器上的`Isaac/IsaacLab`目录。"""
 
 
 """
 Main
 """
+"""主要
+"""
 
 
 def main():
     """Spawns the ANYmal robot and clones it using Isaac Sim Cloner API."""
+    """发育的ANYmal机器人使用Isaac Sim Cloner进行克隆API。"""
 
     # Load kit helper
     world = World(physics_dt=0.005, rendering_dt=0.005, backend="torch", device="cuda:0")

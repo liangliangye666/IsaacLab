@@ -6,6 +6,7 @@
 """Observation manager for computing observation signals for a given world."""
 
 from __future__ import annotations
+"""计算一个特定世界的观测信号的观测管理器。"""
 
 import inspect
 from collections.abc import Sequence
@@ -62,6 +63,42 @@ class ObservationManager(ManagerBase):
     the observation. The corruption function is expected to return a tensor with the same shape as the observation.
     The observations are clipped and scaled as per the configuration settings.
     """
+    """对于一个特定的世界来说，计算观测信号的管理器。
+
+    观测根据其预期使用进行组合。
+    这使得不同类型的学习，如不对称的演员-批评者和学生-教师培训，具有不同的观测群体。
+    每个组包含关于调用的观测函数，使用的噪声损坏模型和检测器的数据信息的观测项。
+
+    每个观测组应继承:class:`ObservationGroupCfg`类。
+    在每个组内，每个观测项都应该表示:class:`ObservationTermCfg`类。
+    根据配置，一个组中的观测可以连接到单个子中，或者作为一个字典返回，按项名称的键。
+
+    如果组中的观测是连锁的，则根据单个观测项的形状计算连锁子的形状。
+    这些信息存储在:attr:`group_obs_dim`字典中
+    with keys as the group names and values as the shape of the observation tensor. When the terms in a group are not
+    连接，属性存储了组中每个项的形状列表。
+
+    .. 说明::
+        当一个组中的观测项没有相同的形状时，观测项不能连接。
+        在此情况下，请设置组配置中的:attr:`ObservationGroupCfg.concatenate_terms`属性为False。
+
+    观测也可以有历史。
+    这意味着运行历史每sim步骤更新。
+    历史可以控制
+    per :类:`ObservationTermCfg` (见:attr:`ObservationTermCfg.history_length`和
+    :attr:`ObservationTermCfg.flatten_history_dim`)。
+    历史也可以通过:class:`ObservationGroupCfg`来控制，如果设置，则组配置按项配置覆盖。
+    历史从最古老到最新的秩序。
+
+    观测管理器可用于计算对所有组或特定组的观测。
+    通过调用该组中每个项的注册函数来计算观测。
+    函数以组中的项顺序调用。
+    函数预计将返回一个形状的子 (num_envs， ...)。
+
+    如果一个噪音模型或定制修改器被注册为一段时间，该函数被要求破坏观测。
+    预计腐败函数将返回与观测相同的形状的子。
+    根据配置设置，观测被裁剪和扩展。
+    """
 
     def __init__(self, cfg: object, env: ManagerBasedEnv):
         """Initialize observation manager.
@@ -74,6 +111,16 @@ class ObservationManager(ManagerBase):
             ValueError: If the configuration is None.
             RuntimeError: If the shapes of the observation terms in a group are not compatible for concatenation
                 and the :attr:`~ObservationGroupCfg.concatenate_terms` attribute is set to True.
+        """
+        """启动观测管理器。
+
+        参数：
+            cfg: 配置对象或字典 (``dict[str， ObservationGroupCfg]``)。
+            env: 环境情况。
+
+        异常：
+            ValueError: 如果配置是None。
+            RuntimeError: 如果一个组中的观测项的形状不适合连锁，并且:attr:`~ObservationGroupCfg.concatenate_terms`属性设置为True。
         """
         # check that cfg is not None
         if cfg is None:
@@ -116,6 +163,7 @@ class ObservationManager(ManagerBase):
 
     def __str__(self) -> str:
         """Returns: A string representation for the observation manager."""
+        """Returns: 对观测管理器的字符串表示。"""
         msg = f"<ObservationManager> contains {len(self._group_obs_term_names)} groups.\n"
 
         # add info for each group
@@ -155,6 +203,16 @@ class ObservationManager(ManagerBase):
         Returns:
             The active terms.
         """
+        """返回活跃的项作为可反复的双数序列。
+
+        元组的第一个元素是项的名称，第二个元素是项的原始值。
+
+        参数：
+            env_idx: 具体的环境，可以从中提取活跃项。
+
+        返回：
+            积极的项。
+        """
         terms = []
 
         if self._obs_buffer is None:
@@ -188,12 +246,18 @@ class ObservationManager(ManagerBase):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def active_terms(self) -> dict[str, list[str]]:
         """Name of active observation terms in each group.
 
         The keys are the group names and the values are the list of observation term names in the group.
+        """
+        """每组的活跃观测项名称。
+
+        关键是组名，值是组中的观测项名单。
         """
         return self._group_obs_term_names
 
@@ -206,6 +270,12 @@ class ObservationManager(ManagerBase):
         shape of the concatenated observation tensor. Otherwise, the value is a list of tuples,
         where each tuple represents the shape of the observation tensor for a term in the group.
         """
+        """在每个组中计算观测的形状。
+
+        关键是组名，值是观测张量的形状。
+        如果组中的项是连环的，则值是单一的元组，代表了连环的观测张量的形状。
+        否则，值是 tuples 的列表，其中每个 tuple 代表了对组中的一个项的观测张量的形状。
+        """
         return self._group_obs_dim
 
     @property
@@ -215,6 +285,12 @@ class ObservationManager(ManagerBase):
         The key is the group name and the value is a list of tuples representing the shape of the observation terms
         in the group. The order of the tuples corresponds to the order of the terms in the group.
         This matches the order of the terms in the :attr:`active_terms`.
+        """
+        """每组的个别观测项的形状。
+
+        关键是组名，值是表达组中的观测项的形状的体列表。
+        双数的顺序与组中的项的顺序相符。
+        这符合:attr:`active_terms`中的项顺序。
         """
         return self._group_obs_term_dim
 
@@ -228,6 +304,13 @@ class ObservationManager(ManagerBase):
         The values are set based on the :attr:`~ObservationGroupCfg.concatenate_terms` attribute in the group
         configuration.
         """
+        """观测项是否在每个组中连锁。
+
+        关键是组名，值是布尔式，指定该组中的观测项是否被连接到单个子中。
+        如果是True，则观测在最后一个维度上连接。
+
+        根据组配置中的:attr:`~ObservationGroupCfg.concatenate_terms`属性设置值。
+        """
         return self._group_obs_concatenate
 
     @property
@@ -236,6 +319,11 @@ class ObservationManager(ManagerBase):
 
         Returns:
             A dictionary with keys as the group names and values as the IO descriptors.
+        """
+        """给观测管理器提供IO描述器。
+
+        返回：
+            一个字典，键为组名、值为 IO 描述符。
         """
 
         group_data = {}
@@ -297,6 +385,8 @@ class ObservationManager(ManagerBase):
     """
     Operations.
     """
+    """操作。
+    """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
         # call all terms that are classes
@@ -328,6 +418,22 @@ class ObservationManager(ManagerBase):
         Returns:
             A dictionary with keys as the group names and values as the computed observations.
             The observations are either concatenated into a single tensor or returned as a dictionary
+            with keys corresponding to the term's name.
+        """
+        """计算每个组的观测结果。
+
+        该方法计算了观测管理器处理的所有组的观测。
+        请检查对每个组的观测处理的:meth:`compute_group`。
+
+        参数：
+            update_history: 没有返回obs的布尔指标应添加到观测历史。
+                            默认为False，在这种情况下调用compute_group不会改变历史记录。
+                            这个输入是无运行
+                if the group's history_length == 0.
+
+        返回：
+            一个字典，按组名字和计算观测值的关键。
+            这些观测要么被连接到单个子中，要么作为字典返回。
             with keys corresponding to the term's name.
         """
         # create a buffer for storing obs from all the groups
@@ -375,6 +481,38 @@ class ObservationManager(ManagerBase):
 
         Raises:
             ValueError: If input ``group_name`` is not a valid group handled by the manager.
+        """
+        """计算给定组的观测。
+
+        对给定的组的观测是通过调用该组中每个项的注册函数来计算的。
+        函数以组中的项顺序调用。
+        函数预计将返回一个形状的子 (num_envs， ...)。
+
+        每个观测项都执行以下步骤:
+
+        1. 通过调用函数来计算观测项
+        2. 在:attr:`ObservationTermCfg.modifiers`中指定的顺序中应用定制修改器
+        3. 基于:attr:`ObservationTermCfg.noise`的腐败/噪声模型
+        4. 基于:attr:`ObservationTermCfg.clip`的裁剪
+        5. 基于:attr:`ObservationTermCfg.scale`的扩展应用
+
+        我们首先将噪音应用于计算项，以保持噪音如何影响数据的完整性，
+        如果在裁剪或扩展后应用噪音，噪音可能会被人工限制或放大，这可能会错误地描述数据中自然发生的噪音。
+
+        参数：
+            group_name: 对观测计算的组名称。
+                        在 None 中，默认情况下计算并返回所有组的观测。
+            update_history: 没有返回obs的布鲁尔指标应添加到观测组的历史。
+                            默认为False，在这种情况下调用compute_group不会改变历史记录。
+                            这个输入是无运行
+                if the group's history_length == 0.
+
+        返回：
+            根据组的配置，单个观测项的子沿着最后一个维度连接成一个 single子。
+            否则，它们将作为一个字典返回，
+
+        异常：
+            ValueError: 如果输入``group_name``不是管理器处理的有效组。
         """
         # check ig group name is valid
         if group_name not in self._group_obs_term_names:
@@ -440,6 +578,11 @@ class ObservationManager(ManagerBase):
         Returns:
             A dictionary where each group name maps to its serialized observation term configurations.
         """
+        """为所有活跃组进行观测项配置的序列化。
+
+        返回：
+            一个字典，其中每个组名单将其序列化观测项配置映射。
+        """
         output = {
             group_name: {
                 term_name: (
@@ -460,9 +603,12 @@ class ObservationManager(ManagerBase):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _prepare_terms(self):
         """Prepares a list of observation terms functions."""
+        """编制观测项功能列表。"""
         # create buffers to store information for each observation group
         # TODO: Make this more convenient by using data structures.
         self._group_obs_term_names: dict[str, list[str]] = dict()

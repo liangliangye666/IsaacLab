@@ -6,6 +6,8 @@
 """
 Humanoid locomotion environment (similar to OpenAI Gym Humanoid-v2).
 """
+"""人类运动环境 (类似于OpenAIGym人类运动-v2)。
+"""
 
 import gymnasium as gym
 

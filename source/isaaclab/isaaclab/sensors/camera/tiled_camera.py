@@ -69,9 +69,50 @@ class TiledCamera(Camera):
         were not available.
 
     """
+    """基于 camera板渲染的摄像头传感器，以获得与相机类相同的数据。
+
+    这个类继承了:class:`Camera`类，但使用 X渲染API获取视觉数据。
+    T式渲染将来自多个摄像头的渲染图像连接成一个图像。
+    这使得多部摄像头可以并行呈现，并且很有用以多部摄像头有效地呈现大型场景。
+
+    支持以下传感器类型:
+
+    - ``"rgb"``:一个3通道的彩色图像。
+    - ``"rgba"``:有4通道的色彩图像与阿尔法通道。
+    - ``"distance_to_camera"``:包含到相机光学中心的距离的图像。
+    - ``"distance_to_image_plane"``:包含3D点距离相机平面的图像，沿着相机的z轴。
+    - ``"depth"``:``"distance_to_image_plane"``的别名。
+    - ``"normals"``:包含每个像素的本地表面正常向量的图像。
+    - ``"motion_vectors"``:包含每个像素的运动向量数据的图像。
+    - ``"semantic_segmentation"``:语义细分数据。
+    - ``"instance_segmentation_fast"``:实例细分数据。
+    - ``"instance_id_segmentation_fast"``:实例 id 分类数据。
+
+    .. 说明::
+        目前，以下传感器类型不支持"视频"格式:
+
+        - ``"instance_segmentation"``:实例细分数据。 请使用快速对应。
+        - ``"instance_id_segmentation"``:实例 id 分类数据.请使用快速对应。
+        - ``"bounding_box_2d_tight"``:紧密的2D边界框数据 (仅包含非封闭区域)。
+        - ``"bounding_box_2d_tight_fast"``:紧密的2D边界框数据 (仅包含非封闭区域)。
+        - ``"bounding_box_2d_loose"``:宽松的2D边界框数据 (包含封闭区域)。
+        - ``"bounding_box_2d_loose_fast"``:宽松的2D边界框数据 (包含封闭区域)。
+        - ``"bounding_box_3d"``: 3D显示空间界限框数据。
+        - ``"bounding_box_3d_fast"``: 3D显示空间界限框数据。
+
+    .. _replicator extension: https://docs.omniverse.nvidia.com/extensions/latest/ext_replicator/annotators_details.html#annotator-output
+    .. _USDGeom Camera: https://graphics.pixar.com/usd/docs/api/class_usd_geom_camera.html
+
+    ..
+    版本添加:: v1.0.0
+
+        该函数可从Isaac Sim 4.2开始。
+        在此版本之前，APIs的版还不出现在。
+    """
 
     cfg: TiledCameraCfg
     """The configuration parameters."""
+    """配置参数。"""
 
     def __init__(self, cfg: TiledCameraCfg):
         """Initializes the tiled camera sensor.
@@ -83,10 +124,20 @@ class TiledCamera(Camera):
             RuntimeError: If no camera prim is found at the given path.
             ValueError: If the provided data types are not supported by the camera.
         """
+        """启动了拍摄机传感器。
+
+        参数：
+            cfg: 配置参数。
+
+        异常：
+            RuntimeError: 如果在给定的路径上没有发现prim相机。
+            ValueError: 如果提供的数据类型不支持相机。
+        """
         super().__init__(cfg)
 
     def __del__(self):
         """Unsubscribes from callbacks and detach from the replicator registry."""
+        """退出回调和脱离复制器注册表。"""
         # unsubscribe from callbacks
         SensorBase.__del__(self)
         # detach from the replicator registry
@@ -95,6 +146,7 @@ class TiledCamera(Camera):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
         # message for class
         return (
             f"Tiled Camera @ '{self.cfg.prim_path}': \n"
@@ -110,6 +162,8 @@ class TiledCamera(Camera):
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -128,6 +182,8 @@ class TiledCamera(Camera):
     """
     Implementation.
     """
+    """执行。
+    """
 
     def _initialize_impl(self):
         """Initializes the sensor handles and internal buffers.
@@ -138,6 +194,15 @@ class TiledCamera(Camera):
         Raises:
             RuntimeError: If the number of camera prims in the view does not match the number of environments.
             RuntimeError: If replicator was not found.
+        """
+        """启动传感器句柄和内部缓冲器。
+
+        这种功能创建了处理器，并将提供的数据类型与复制器登记器进行注册，以便能够从传感器访问数据。
+        它还启动内部缓冲器来存储数据。
+
+        异常：
+            RuntimeError: 如果视图中的prims摄像头数不匹配环境数。
+            RuntimeError: 如果没有找到复制器。
         """
         carb_settings_iface = carb.settings.get_settings()
         if not carb_settings_iface.get("/isaaclab/cameras_enabled"):
@@ -302,9 +367,12 @@ class TiledCamera(Camera):
     """
     Private Helpers
     """
+    """个人助手
+    """
 
     def _check_supported_data_types(self, cfg: TiledCameraCfg):
         """Checks if the data types are supported by the ray-caster camera."""
+        """检查数据类型是否支持射线摄像机。"""
         # check if there is any intersection in unsupported types
         # reason: these use np structured data types which we can't yet convert to torch tensor
         common_elements = set(cfg.data_types) & Camera.UNSUPPORTED_TYPES
@@ -325,6 +393,7 @@ class TiledCamera(Camera):
 
     def _create_buffers(self):
         """Create buffers for storing data."""
+        """创建存储数据的缓冲器。"""
         # create the data object
         # -- pose of the cameras
         self._data.pos_w = torch.zeros((self._view.count, 3), device=self._device)
@@ -396,11 +465,13 @@ class TiledCamera(Camera):
 
     def _tiled_image_shape(self) -> tuple[int, int]:
         """Returns a tuple containing the dimension of the tiled image."""
+        """返回包含板图像的尺寸的图布。"""
         cols, rows = self._tiling_grid_shape()
         return (self.cfg.width * cols, self.cfg.height * rows)
 
     def _tiling_grid_shape(self) -> tuple[int, int]:
         """Returns a tuple containing the tiling grid dimension."""
+        """返回包含格尺寸的图布。"""
         cols = math.ceil(math.sqrt(self._view.count))
         rows = math.ceil(self._view.count / cols)
         return (cols, rows)
@@ -416,9 +487,12 @@ class TiledCamera(Camera):
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         # call parent
         super()._invalidate_initialize_callback(event)
         # set all existing views to None to invalidate them

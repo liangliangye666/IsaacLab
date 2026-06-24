@@ -12,6 +12,14 @@ Currently, the following spawners are supported:
 * :class:`GroundPlaneCfg`: Spawn a ground plane using the grid-world USD file.
 
 """
+"""对于从文件中产生的产物产物器的子模块。
+
+目前，以下产品支持:
+
+* :class:`UsdFileCfg`:从一个USD文件。
+* :class:`UrdfFileCfg`:从一个URDF文件。
+* :class:`GroundPlaneCfg`通过网格世界来生成地面飞机USD文件。
+"""
 
 from .from_files import (
     spawn_from_mjcf,

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -12,6 +13,7 @@ app_launcher = AppLauncher(headless=True, enable_cameras=True)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 
@@ -42,6 +44,7 @@ def setup_video_params():
 @pytest.mark.parametrize("task_name", setup_environment(include_play=True))
 def test_record_video(task_name, setup_video_params):
     """Run random actions agent with recording of videos."""
+    """运行随机动作代理记录视频。"""
     num_envs, device, step_trigger, video_length = setup_video_params
     videos_dir = os.path.join(os.path.dirname(__file__), "output", "videos", "train")
     # create a new stage

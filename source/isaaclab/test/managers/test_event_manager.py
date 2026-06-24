@@ -7,6 +7,7 @@
 # pyright: reportPrivateUsage=none
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from collections.abc import Sequence
 
@@ -16,6 +17,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 from collections import namedtuple
@@ -30,6 +32,7 @@ from isaaclab.utils import configclass
 
 DummyEnv = namedtuple("ManagerBasedRLEnv", ["num_envs", "dt", "device", "sim", "dummy1", "dummy2"])
 """Dummy environment for testing."""
+"""试验的假环境。"""
 
 
 def reset_dummy1_to_zero(env, env_ids: torch.Tensor):
@@ -97,6 +100,7 @@ def env():
 
 def test_str(env):
     """Test the string representation of the event manager."""
+    """测试事件管理器的字符串表示。"""
     cfg = {
         "term_1": EventTermCfg(func=increment_dummy1_by_one, mode="interval", interval_range_s=(0.1, 0.1)),
         "term_2": EventTermCfg(func=reset_dummy1_to_zero, mode="reset"),
@@ -112,6 +116,7 @@ def test_str(env):
 
 def test_config_equivalence(env):
     """Test the equivalence of event manager created from different config types."""
+    """测试由不同配置类型创建的事件管理器的等效性。"""
     # create from dictionary
     cfg = {
         "term_1": EventTermCfg(func=increment_dummy1_by_one, mode="interval", interval_range_s=(0.1, 0.1)),
@@ -124,6 +129,7 @@ def test_config_equivalence(env):
     @configclass
     class MyEventManagerCfg:
         """Event manager config with no type annotations."""
+        """事件管理器配置没有类型注释。"""
 
         term_1 = EventTermCfg(func=increment_dummy1_by_one, mode="interval", interval_range_s=(0.1, 0.1))
         term_2 = EventTermCfg(func=reset_dummy1_to_zero, mode="reset")
@@ -136,6 +142,7 @@ def test_config_equivalence(env):
     @configclass
     class MyEventManagerAnnotatedCfg:
         """Event manager config with type annotations."""
+        """事件管理器配置类型注释。"""
 
         term_1: EventTermCfg = EventTermCfg(func=increment_dummy1_by_one, mode="interval", interval_range_s=(0.1, 0.1))
         term_2: EventTermCfg = EventTermCfg(func=reset_dummy1_to_zero, mode="reset")
@@ -157,6 +164,7 @@ def test_config_equivalence(env):
 
 def test_active_terms(env):
     """Test the correct reading of active terms."""
+    """检查有效项的正确阅读。"""
     cfg = {
         "term_1": EventTermCfg(func=increment_dummy1_by_one, mode="interval", interval_range_s=(0.1, 0.1)),
         "term_2": EventTermCfg(func=reset_dummy1_to_zero, mode="reset"),
@@ -173,6 +181,7 @@ def test_active_terms(env):
 
 def test_class_terms(env):
     """Test the correct preparation of function and class event terms."""
+    """测试函数和类事件项的正确准备。"""
     cfg = {
         "term_1": EventTermCfg(func=reset_dummy2_to_zero, mode="reset"),
         "term_2": EventTermCfg(func=increment_dummy2_by_one_class, mode="interval", interval_range_s=(0.1, 0.1)),
@@ -189,6 +198,7 @@ def test_class_terms(env):
 
 def test_config_empty(env):
     """Test the creation of reward manager with empty config."""
+    """试试创建奖励管理器，用空置配置。"""
     event_man = EventManager(None, env)
     assert len(event_man.active_terms) == 0
 
@@ -199,6 +209,7 @@ def test_config_empty(env):
 
 def test_invalid_event_func_module(env):
     """Test the handling of invalid event function's module in string representation."""
+    """测试无效事件函数的模块在字符串表示中处理。"""
     cfg = {
         "term_1": EventTermCfg(func=increment_dummy1_by_one, mode="interval", interval_range_s=(0.1, 0.1)),
         "term_2": EventTermCfg(func="a:reset_dummy1_to_zero", mode="reset"),
@@ -209,6 +220,7 @@ def test_invalid_event_func_module(env):
 
 def test_invalid_event_config(env):
     """Test the handling of invalid event function's config parameters."""
+    """测试无效事件函数配置参数的处理。"""
     cfg = {
         "term_1": EventTermCfg(func=increment_dummy1_by_one, mode="interval", interval_range_s=(0.1, 0.1)),
         "term_2": EventTermCfg(func=reset_dummy1_to_zero, mode="reset"),
@@ -222,6 +234,10 @@ def test_apply_interval_mode_without_global_time(env):
     """Test the application of event terms that are in interval mode without global time.
 
     During local time, each environment instance has its own time for the interval term.
+    """
+    """测试在间隔模式中没有全球时间的事件项的应用。
+
+    在本地时间中，每个环境实例都有其间隔时间。
     """
     # make two intervals -- one is fixed and the other is random
     term_1_interval_range_s = (10 * env.dt, 10 * env.dt)
@@ -279,6 +295,10 @@ def test_apply_interval_mode_with_global_time(env):
 
     During global time, all the environment instances share the same time for the interval term.
     """
+    """测试与全球时间处于间隔模式的事件项的应用。
+
+    在全球时间中，所有环境实例都在间隔期内共享相同的时间。
+    """
     # make two intervals -- one is fixed and the other is random
     term_1_interval_range_s = (10 * env.dt, 10 * env.dt)
     term_2_interval_range_s = (2 * env.dt, 10 * env.dt)
@@ -331,6 +351,7 @@ def test_apply_interval_mode_with_global_time(env):
 
 def test_apply_reset_mode(env):
     """Test the application of event terms that are in reset mode."""
+    """测试在重置模式中的事件项的应用。"""
     cfg = {
         "term_1": EventTermCfg(func=increment_dummy1_by_one, mode="reset"),
         "term_2": EventTermCfg(func=reset_dummy1_to_zero, mode="reset", min_step_count_between_reset=10),
@@ -367,6 +388,7 @@ def test_apply_reset_mode(env):
 
 def test_apply_reset_mode_subset_env_ids(env):
     """Test the application of event terms that are in reset mode over a subset of environment ids."""
+    """测试在环境ID的子组上应用在重置模式中的事件项。"""
     cfg = {
         "term_1": EventTermCfg(func=increment_dummy1_by_one, mode="reset"),
         "term_2": EventTermCfg(func=reset_dummy1_to_zero, mode="reset", min_step_count_between_reset=10),

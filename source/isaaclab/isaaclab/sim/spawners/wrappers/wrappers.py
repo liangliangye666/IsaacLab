@@ -44,6 +44,27 @@ def spawn_multi_asset(
     Returns:
         The created prim at the first prim path.
     """
+    """根据提供的配置生成多个资产。
+
+    这种函数基于提供的配置产生多个资产。
+    资产以列表中的顺序产生。
+    如果 :attr:`~MultiAssetSpawnerCfg.random_choice` 参数设置为 True，则为每个产物选择一个随机的资产配置。
+
+    参数：
+        prim_path: 通过prim的路径来产生资产。
+        cfg: 产品产生的配置。
+        translation: 产生的资产的翻译。
+                     默认是None。
+        orientation: 产生的资产以 (w， x， y， z) 顺序的方向。
+                     默认是None。
+        clone_in_fabric: 在布料中是否可以克隆。
+                         默认是False。
+        replicate_physics: 不管是复制物理。
+                           默认是False。
+
+    返回：
+        在第一个prim路径上创建了prim。
+    """
     # get stage handle
     stage = sim_utils.get_current_stage()
 
@@ -151,6 +172,25 @@ def spawn_multi_usd_file(
 
     Returns:
         The created prim at the first prim path.
+    """
+    """根据提供的配置生成多个USD文件。
+
+    这种函数创建了对个别USD文件的配置实例，并调用:meth:`spawn_multi_asset`方法将它们产生到场景。
+
+    参数：
+        prim_path: 通过prim的路径来产生资产。
+        cfg: 产品产生的配置。
+        translation: 产生的资产的翻译。
+                     默认是None。
+        orientation: 产生的资产以 (w， x， y， z) 顺序的方向。
+                     默认是None。
+        clone_in_fabric: 在布料中是否可以克隆。
+                         默认是False。
+        replicate_physics: 不管是复制物理。
+                           默认是False。
+
+    返回：
+        在第一个prim路径上创建了prim。
     """
     # needed here to avoid circular imports
     from .wrappers_cfg import MultiAssetSpawnerCfg

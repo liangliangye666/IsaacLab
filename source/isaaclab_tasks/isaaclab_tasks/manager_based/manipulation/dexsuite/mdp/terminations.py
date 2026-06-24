@@ -10,6 +10,10 @@ the termination introduced by the function.
 """
 
 from __future__ import annotations
+"""可用于激活 dexsuite 任务的某些终止。
+
+函数可以传递到:class:`isaaclab.managers.TerminationTermCfg`对象，以实现函数引入的终止。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -34,6 +38,14 @@ def out_of_bound(
         asset_cfg: The object configuration. Defaults to SceneEntityCfg("object").
         in_bound_range: The range in x, y, z such that the object is considered in range
     """
+    """终止条件对物体是错误的。
+
+    参数：
+        env: 环境。
+        asset_cfg: 对象配置。
+                   默认的SceneEntityCfg"对象"
+        in_bound_range: 在 x， y， z 中的范围，以至于对象被视为范围
+    """
     object: RigidObject = env.scene[asset_cfg.name]
     range_list = [in_bound_range.get(key, (0.0, 0.0)) for key in ["x", "y", "z"]]
     ranges = torch.tensor(range_list, device=env.device)
@@ -46,5 +58,7 @@ def out_of_bound(
 def abnormal_robot_state(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Terminating environment when violation of velocity limits detects, this usually indicates unstable physics caused
     by very bad, or aggressive action"""
+    """当发现违反速度限制时，这通常表明由于非常糟糕或积极的动作导致的不稳定的物理
+    """
     robot: Articulation = env.scene[asset_cfg.name]
     return (robot.data.joint_vel.abs() > (robot.data.joint_vel_limits * 2)).any(dim=1)

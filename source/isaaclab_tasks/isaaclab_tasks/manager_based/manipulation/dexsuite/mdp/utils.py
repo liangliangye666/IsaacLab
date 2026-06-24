@@ -38,6 +38,17 @@ def sample_object_point_cloud(num_envs: int, num_points: int, prim_path: str, de
     Returns:
         torch.Tensor: Shape (num_envs, num_points, 3) on `device`.
     """
+    """通过收集点，对每个环境实例进行点云样本
+    from all matching USD prims under `prim_path`, then downsamples to
+    正确的`num_points`每个env使用最远点采样。
+
+    在本模块内存存存:
+      - 每prim原始样本: _PRIM_SAMPLE_CACHE[(prim_hash， num_points) ]
+      - 最后下样品 env: _FINAL_SAMPLE_CACHE[env_hash]
+
+    返回：
+        torch.Tensor: 在 `device` 上的形状 (num_envs，num_points，3)。
+    """
     points = torch.zeros((num_envs, num_points, 3), dtype=torch.float32, device=device)
     xform_cache = UsdGeom.XformCache()
     # Obtain stage handle
@@ -171,6 +182,7 @@ def sample_object_point_cloud(num_envs: int, num_points: int, prim_path: str, de
 
 def _triangulate_faces(prim) -> np.ndarray:
     """Convert a USD Mesh prim into triangulated face indices (N, 3)."""
+    """将USD Mesh prim转换为三角形面孔索引 (N， 3)。"""
     mesh = UsdGeom.Mesh(prim)
     counts = mesh.GetFaceVertexCountsAttr().Get()
     indices = mesh.GetFaceVertexIndicesAttr().Get()
@@ -185,6 +197,7 @@ def _triangulate_faces(prim) -> np.ndarray:
 
 def create_primitive_mesh(prim) -> trimesh.Trimesh:
     """Create a trimesh mesh from a USD primitive (Cube, Sphere, Cylinder, etc.)."""
+    """从USD原始 (立方体，球体，圆柱体等) 创建一个三网。"""
     prim_type = prim.GetTypeName()
     if prim_type == "Cube":
         size = UsdGeom.Cube(prim).GetSizeAttr().Get()
@@ -222,6 +235,20 @@ def farthest_point_sampling(
 
     Returns:
         torch.Tensor: Indices of sampled points (n_samples,).
+    """
+    """对点集进行最远点采样 (FPS)。
+
+    选择`n_samples`点，使每一个新点都与已经选择的点最远。
+    如果内存允许，则使用完整的双向距离矩阵，否则会回到反复版本。
+
+    参数：
+        points (torch.Tensor): 形状的输入点 (N，D)。
+        n_samples (int): 选择的样本数量。
+        memory_threashold (int): 对于距离矩阵，Max允许字节。
+                                 默认2GiB。
+
+    返回：
+        torch.Tensor: 采样点索引 (n_samples，)。
     """
     device = points.device
     N = points.shape[0]

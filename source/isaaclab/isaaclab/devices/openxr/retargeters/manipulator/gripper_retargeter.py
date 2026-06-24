@@ -26,6 +26,16 @@ class GripperRetargeter(RetargeterBase):
     - Implements hysteresis for stable gripper control
     - Outputs boolean command (True = close gripper, False = open gripper)
     """
+    """基于手动追踪数据的控制抓住器。
+
+    这种重定向仪分析了指公和指公尖之间的距离，以确定该抓头是否应该开放或关闭。
+    它包括歇斯底里症，以防止指距离接近门时，状态之间迅速转换。
+
+    Features:
+    - 指和指南指距离
+    - 实现歇斯底里，以稳定控制抓地
+    - 输出 boolean 命令 (True = 关闭抓，False = 开放抓)
+    """
 
     GRIPPER_CLOSE_METERS: Final[float] = 0.03
     GRIPPER_OPEN_METERS: Final[float] = 0.05
@@ -36,6 +46,7 @@ class GripperRetargeter(RetargeterBase):
     ):
         super().__init__(cfg)
         """Initialize the gripper retargeter."""
+        """启动抓住器重定向器。"""
         # Store the hand to track
         if cfg.bound_hand not in [DeviceBase.TrackingTarget.HAND_LEFT, DeviceBase.TrackingTarget.HAND_RIGHT]:
             raise ValueError(
@@ -54,6 +65,15 @@ class GripperRetargeter(RetargeterBase):
 
         Returns:
             torch.Tensor: Tensor containing a single bool value where True = close gripper, False = open gripper
+        """
+        """转换手关姿势为抓住器命令。
+
+        参数：
+            data: 根据"数据字典"的定义，
+                  联合名称在isaaclab.devices.openxr.common.HAND_JOINT_NAMES中定义
+
+        返回：
+            torch.Tensor: 具有单个 bool值的紧张器，其中True = 紧握器，False = 开放的紧握器
         """
         # Extract key joint poses
         hand_data = data[self.bound_hand]
@@ -79,6 +99,15 @@ class GripperRetargeter(RetargeterBase):
         Returns:
             bool: Gripper command (True = close, False = open)
         """
+        """通过歇斯底里的指部位置计算抓住器命令。
+
+        参数：
+            thumb_pos: 指尖的3D位置
+            index_pos: 索引尖的3D位置
+
+        返回：
+            bool: 抓住器命令 (True = 关闭，False = 开放)
+        """
         distance = np.linalg.norm(thumb_pos - index_pos)
 
         # Apply hysteresis to prevent rapid switching
@@ -93,6 +122,7 @@ class GripperRetargeter(RetargeterBase):
 @dataclass
 class GripperRetargeterCfg(RetargeterCfg):
     """Configuration for gripper retargeter."""
+    """控制器的配置。"""
 
     bound_hand: DeviceBase.TrackingTarget = DeviceBase.TrackingTarget.HAND_RIGHT
     retargeter_type: type[RetargeterBase] = GripperRetargeter

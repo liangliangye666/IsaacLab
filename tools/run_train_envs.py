@@ -17,6 +17,17 @@ Example usage:
     python run_train_envs.py --lib-name rsl_rl
 
 """
+"""这种脚本在环境的子集中与不同的RL库进行培训。
+
+它用适当的参数来调用脚本``scripts/reinforcement_learning/${args.lib_name}/train.py``。
+每次训练运行都附加了相应的"承诺标签"，这使得可以比较相同环境的不同训练日志。
+
+例如使用:
+
+.. code-block:: bash
+    # for rsl-rl
+    python run_train_envs.py --lib-name rsl_rl
+"""
 
 import argparse
 import subprocess
@@ -26,6 +37,7 @@ from test_settings import ISAACLAB_PATH, TEST_RL_ENVS
 
 def parse_args() -> argparse.Namespace:
     """Parse the command line arguments."""
+    """分析命令行参数。"""
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--lib-name",
@@ -39,6 +51,7 @@ def parse_args() -> argparse.Namespace:
 
 def main(args: argparse.Namespace):
     """The main function."""
+    """它们的主要功能。"""
     # get the git commit hash
     git_commit_hash = subprocess.check_output(["git", "rev-parse", "HEAD"]).decode("utf-8").strip()
 

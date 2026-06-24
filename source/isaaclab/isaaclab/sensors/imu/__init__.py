@@ -6,6 +6,8 @@
 """
 Imu Sensor
 """
+"""仪表传感器
+"""
 
 from .imu import Imu
 from .imu_cfg import ImuCfg

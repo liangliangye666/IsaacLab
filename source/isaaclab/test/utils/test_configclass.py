@@ -8,6 +8,7 @@ from __future__ import annotations
 # NOTE: While we don't actually use the simulation app in this test, we still need to launch it
 #       because warp is only available in the context of a running simulation
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -15,6 +16,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import copy
 import os
@@ -33,20 +35,25 @@ from isaaclab.utils.io import dump_yaml, load_yaml
 """
 Mock classes and functions.
 """
+"""假装课程和功能。
+"""
 
 
 def dummy_function1() -> int:
     """Dummy function 1."""
+    """假的函数1。"""
     return 1
 
 
 def dummy_function2() -> int:
     """Dummy function 2."""
+    """假的函数2。"""
     return 2
 
 
 def dummy_wrapper(func):
     """Decorator for wrapping function."""
+    """装饰器用于包装功能。"""
 
     @wraps(func)
     def wrapper():
@@ -58,20 +65,24 @@ def dummy_wrapper(func):
 @dummy_wrapper
 def wrapped_dummy_function3():
     """Dummy function 3."""
+    """假的函数3。"""
     return 3
 
 
 @dummy_wrapper
 def wrapped_dummy_function4():
     """Dummy function 4."""
+    """假的函数4。"""
     return 4
 
 
 class DummyClass:
     """Dummy class."""
+    """愚蠢课。"""
 
     def __init__(self):
         """Initialize dummy class."""
+        """启动模特课程。"""
         self.a = 1
         self.b = 2
 
@@ -79,10 +90,13 @@ class DummyClass:
 """
 Dummy configuration: Basic
 """
+"""假设配置:基本
+"""
 
 
 def double(x):
     """Dummy function."""
+    """的功能。"""
     return 2 * x
 
 
@@ -115,6 +129,7 @@ class RobotDefaultStateCfg:
 @configclass
 class BasicDemoCfg:
     """Dummy configuration class."""
+    """假设配置类。"""
 
     device_id: int = 0
     env: EnvCfg = EnvCfg()
@@ -125,6 +140,7 @@ class BasicDemoCfg:
 @configclass
 class BasicDemoPostInitCfg:
     """Dummy configuration class."""
+    """假设配置类。"""
 
     device_id: int = 0
     env: EnvCfg = EnvCfg()
@@ -138,6 +154,7 @@ class BasicDemoPostInitCfg:
 @configclass
 class BasicDemoTorchCfg:
     """Dummy configuration class with a torch tensor ."""
+    """有火器的假设配置类 。"""
 
     some_number: int = 0
     some_tensor: torch.Tensor = torch.Tensor([1, 2, 3])
@@ -146,6 +163,7 @@ class BasicDemoTorchCfg:
 @configclass
 class BasicActuatorCfg:
     """Dummy configuration class for ActuatorBase config."""
+    """对于ActuatorBase配置的假设配置类"""
 
     joint_names_expr: list[str] = ["some_string"]
     joint_parameter_lookup: list[list[float]] = [[1, 2, 3], [4, 5, 6]]
@@ -156,11 +174,14 @@ class BasicActuatorCfg:
 """
 Dummy configuration to check type annotations ordering.
 """
+"""仿真配置来检查类型注释排序。
+"""
 
 
 @configclass
 class TypeAnnotationOrderingDemoCfg:
     """Config class with type annotations."""
+    """设置类型注释。"""
 
     anymal: RobotDefaultStateCfg = RobotDefaultStateCfg()
     unitree: RobotDefaultStateCfg = RobotDefaultStateCfg()
@@ -170,6 +191,7 @@ class TypeAnnotationOrderingDemoCfg:
 @configclass
 class NonTypeAnnotationOrderingDemoCfg:
     """Config class without type annotations."""
+    """设置类，没有类型注释。"""
 
     anymal = RobotDefaultStateCfg()
     unitree = RobotDefaultStateCfg()
@@ -179,6 +201,7 @@ class NonTypeAnnotationOrderingDemoCfg:
 @configclass
 class InheritedNonTypeAnnotationOrderingDemoCfg(NonTypeAnnotationOrderingDemoCfg):
     """Inherited config class without type annotations."""
+    """继承的配置类，没有类型注释。"""
 
     pass
 
@@ -186,11 +209,14 @@ class InheritedNonTypeAnnotationOrderingDemoCfg(NonTypeAnnotationOrderingDemoCfg
 """
 Dummy configuration: Inheritance
 """
+"""假设配置:继承
+"""
 
 
 @configclass
 class ParentDemoCfg:
     """Dummy parent configuration with missing fields."""
+    """没有字段的仿真组件。"""
 
     a: int = MISSING  # add new missing field
     b = 2  # type annotation missing on purpose
@@ -204,6 +230,7 @@ class ParentDemoCfg:
 @configclass
 class ChildADemoCfg(ParentDemoCfg):
     """Dummy child configuration with missing fields."""
+    """错误的儿童配置，没有字段。"""
 
     func = dummy_function1  # set default value for missing field
     c = RobotDefaultStateCfg()  # set default value for missing field
@@ -224,6 +251,7 @@ class ChildADemoCfg(ParentDemoCfg):
 @configclass
 class ChildBDemoCfg(ParentDemoCfg):
     """Dummy child configuration to test inheritance across instances."""
+    """仿真儿童配置，以测试不同实例的继承。"""
 
     a = 100  # set default value for missing field
     j = ["3", "4"]  # set default value for missing field
@@ -236,12 +264,14 @@ class ChildBDemoCfg(ParentDemoCfg):
 @configclass
 class ChildChildDemoCfg(ChildADemoCfg):
     """Dummy child configuration with missing fields."""
+    """错误的儿童配置，没有字段。"""
 
     func_2 = dummy_function2
     d = 2  # set default value for missing field
 
     def __post_init__(self):
         """Post initialization function."""
+        """在启动后的函数。"""
         super().__post_init__()
         self.b = 4  # set default value for missing field
         self.f = "new"  # add new missing field
@@ -250,11 +280,14 @@ class ChildChildDemoCfg(ChildADemoCfg):
 """
 Configuration with class inside.
 """
+"""在里面有课堂。
+"""
 
 
 @configclass
 class DummyClassCfg:
     """Dummy class configuration with class type."""
+    """仿真类型配置与类型。"""
 
     class_name_1: type = DummyClass
     class_name_2: type[DummyClass] = DummyClass
@@ -267,19 +300,24 @@ class DummyClassCfg:
 """
 Configuration with nested classes.
 """
+"""设置与嵌套类。
+"""
 
 
 @configclass
 class OutsideClassCfg:
     """Outermost dummy configuration."""
+    """最外的模特配置。"""
 
     @configclass
     class InsideClassCfg:
         """Inner dummy configuration."""
+        """内部模具配置。"""
 
         @configclass
         class InsideInsideClassCfg:
             """Dummy configuration with class type."""
+            """类型的仿真配置。"""
 
             u: list[int] = [1, 2, 3]
 
@@ -296,11 +334,14 @@ class OutsideClassCfg:
 """
 Dummy configuration: Functions
 """
+"""假设配置:函数
+"""
 
 
 @configclass
 class FunctionsDemoCfg:
     """Dummy configuration class with functions as attributes."""
+    """具有属性函数的假设配置类。"""
 
     func = dummy_function1
     wrapped_func = wrapped_dummy_function3
@@ -310,6 +351,7 @@ class FunctionsDemoCfg:
 @configclass
 class FunctionImplementedDemoCfg:
     """Dummy configuration class with functions as attributes."""
+    """具有属性函数的假设配置类。"""
 
     func = dummy_function1
     a: int = 5
@@ -322,6 +364,7 @@ class FunctionImplementedDemoCfg:
 @configclass
 class ClassFunctionImplementedDemoCfg:
     """Dummy configuration class with function members defined in the class."""
+    """仿真配置类，其中定义的函数成员。"""
 
     a: int = 5
 
@@ -344,11 +387,14 @@ class ClassFunctionImplementedDemoCfg:
 """
 Dummy configuration: Nested dictionaries
 """
+"""假设配置:嵌入式字典
+"""
 
 
 @configclass
 class NestedDictAndListCfg:
     """Dummy configuration class with nested dictionaries and lists."""
+    """有嵌入式字典和列表的假设配置类。"""
 
     dict_1: dict = {"dict_2": {"func": dummy_function1}}
     list_1: list[EnvCfg] = [EnvCfg(), EnvCfg()]
@@ -357,21 +403,26 @@ class NestedDictAndListCfg:
 """
 Dummy configuration: Missing attributes
 """
+"""错误配置:缺失属性
+"""
 
 
 @configclass
 class MissingParentDemoCfg:
     """Dummy parent configuration with missing fields."""
+    """没有字段的仿真组件。"""
 
     a: int = MISSING
 
     @configclass
     class InsideClassCfg:
         """Inner dummy configuration."""
+        """内部模具配置。"""
 
         @configclass
         class InsideInsideClassCfg:
             """Inner inner dummy configuration."""
+            """内部内部模具配置。"""
 
             a: str = MISSING
 
@@ -387,6 +438,7 @@ class MissingParentDemoCfg:
 @configclass
 class MissingChildDemoCfg(MissingParentDemoCfg):
     """Dummy child configuration with missing fields."""
+    """错误的儿童配置，没有字段。"""
 
     c: Callable = MISSING
     d: int | None = None
@@ -395,6 +447,8 @@ class MissingChildDemoCfg(MissingParentDemoCfg):
 
 """
 Test solutions: Basic
+"""
+"""测试解决方案:基本
 """
 
 basic_demo_cfg_correct = {
@@ -470,6 +524,8 @@ basic_demo_post_init_cfg_correct = {
 """
 Test solutions: Functions
 """
+"""测试解决方案:功能
+"""
 
 functions_demo_cfg_correct = {
     "func": "test_configclass:dummy_function1",
@@ -485,6 +541,8 @@ functions_demo_cfg_for_updating = {
 
 """
 Test solutions: Missing attributes
+"""
+"""测试解决方案:缺失属性
 """
 
 validity_expected_fields = [
@@ -502,10 +560,13 @@ validity_expected_fields = [
 """
 Test fixtures.
 """
+"""测试装置。
+"""
 
 
 def test_str():
     """Test printing the configuration."""
+    """测试打印配置。"""
     cfg = BasicDemoCfg()
     print()
     print(cfg)
@@ -513,6 +574,7 @@ def test_str():
 
 def test_str_dict():
     """Test printing the configuration using dataclass utility."""
+    """测试使用数据类工具打印配置。"""
     cfg = BasicDemoCfg()
     print()
     print("Using dataclass function: ", asdict(cfg))
@@ -522,6 +584,7 @@ def test_str_dict():
 
 def test_dict_conversion():
     """Test dictionary conversion of configclass instance."""
+    """测试字典转换配置类实例。"""
     cfg = BasicDemoCfg()
     # dataclass function
     assert asdict(cfg) == basic_demo_cfg_correct
@@ -542,6 +605,7 @@ def test_dict_conversion():
 
 def test_actuator_cfg_dict_conversion():
     """Test dict conversion of ActuatorConfig."""
+    """测试对ActuatorConfig的定位转换。"""
     # create a basic RemotizedPDActuator config
     actuator_cfg = BasicActuatorCfg()
     # return writable attributes of config object
@@ -555,6 +619,7 @@ def test_actuator_cfg_dict_conversion():
 
 def test_dict_conversion_order():
     """Tests that order is conserved when converting to dictionary."""
+    """在转换为字典时，测试保存的顺序。"""
     true_outer_order = ["device_id", "env", "robot_default_state", "list_config"]
     true_env_order = ["num_envs", "episode_length", "viewer"]
     # create config
@@ -583,12 +648,14 @@ def test_dict_conversion_order():
 
 def test_config_update_via_constructor():
     """Test updating configclass through initialization."""
+    """通过初始化测试更新配置类。"""
     cfg = BasicDemoCfg(env=EnvCfg(num_envs=22, viewer=ViewerCfg(eye=(2.0, 2.0, 2.0))))
     assert asdict(cfg) == basic_demo_cfg_change_correct
 
 
 def test_config_update_after_init():
     """Test updating configclass using instance members."""
+    """使用实例成员测试更新配置类。"""
     cfg = BasicDemoCfg()
     cfg.env.num_envs = 22
     cfg.env.viewer.eye = (2.0, 2.0, 2.0)  # note: changes from list to tuple
@@ -597,6 +664,7 @@ def test_config_update_after_init():
 
 def test_config_update_dict():
     """Test updating configclass using dictionary."""
+    """测试使用字典更新配置类。"""
     cfg = BasicDemoCfg()
     cfg_dict = {"env": {"num_envs": 22, "viewer": {"eye": (2.0, 2.0, 2.0)}}}
     update_class_from_dict(cfg, cfg_dict)
@@ -609,6 +677,7 @@ def test_config_update_dict():
 
 def test_config_update_dict_with_none():
     """Test updating configclass using a dictionary that contains None."""
+    """使用包含None的字典测试更新配置类。"""
     cfg = BasicDemoCfg()
     cfg_dict = {"env": {"num_envs": 22, "viewer": None}}
     update_class_from_dict(cfg, cfg_dict)
@@ -617,6 +686,7 @@ def test_config_update_dict_with_none():
 
 def test_config_update_dict_tuple():
     """Test updating configclass using a dictionary that modifies a tuple."""
+    """使用修改元组的字典来测试更新配置类。"""
     cfg = BasicDemoCfg()
     cfg_dict = {"list_config": [{"params": {"A": -1, "B": -2}}, {"params": {"A": -3, "B": -4}}]}
     update_class_from_dict(cfg, cfg_dict)
@@ -625,6 +695,7 @@ def test_config_update_dict_tuple():
 
 def test_config_update_nested_dict():
     """Test updating configclass with sub-dictionaries."""
+    """测试使用子字典更新配置类。"""
     cfg = NestedDictAndListCfg()
     cfg_dict = {
         "dict_1": {"dict_2": {"func": "test_configclass:dummy_function2"}},
@@ -645,6 +716,7 @@ def test_config_update_nested_dict():
 
 def test_config_update_different_iterable_lengths():
     """Iterables are whole replaced, even if their lengths are different."""
+    """即使它们的长度不同，"""
 
     # original cfg has length-6 tuple and list
     cfg = RobotDefaultStateCfg()
@@ -667,6 +739,7 @@ def test_config_update_different_iterable_lengths():
 
 def test_config_update_dict_using_internal():
     """Test updating configclass from a dictionary using configclass method."""
+    """测试从字典中更新configclass使用configclass方法。"""
     cfg = BasicDemoCfg()
     cfg_dict = {"env": {"num_envs": 22, "viewer": {"eye": (2.0, 2.0, 2.0)}}}
     cfg.from_dict(cfg_dict)
@@ -680,6 +753,7 @@ def test_config_update_dict_using_post_init():
 
 def test_invalid_update_key():
     """Test invalid key update."""
+    """测试无效关键更新。"""
     cfg = BasicDemoCfg()
     cfg_dict = {"env": {"num_envs": 22, "viewer": {"pos": (2.0, 2.0, 2.0)}}}
     with pytest.raises(KeyError):
@@ -688,6 +762,7 @@ def test_invalid_update_key():
 
 def test_multiple_instances():
     """Test multiple instances with twice instantiation."""
+    """测试多次实例，使用两次实例。"""
     # create two config instances
     cfg1 = BasicDemoCfg()
     cfg2 = BasicDemoCfg()
@@ -709,6 +784,7 @@ def test_multiple_instances():
 
 def test_alter_values_multiple_instances():
     """Test alterations in multiple instances of the same configclass."""
+    """在同一配置类的多个实例中进行测试变化。"""
     # create two config instances
     cfg1 = BasicDemoCfg()
     cfg2 = BasicDemoCfg()
@@ -732,6 +808,7 @@ def test_alter_values_multiple_instances():
 
 def test_multiple_instances_with_replace():
     """Test multiple instances with creation through replace function."""
+    """通过替换函数来测试多个实例。"""
     # create two config instances
     cfg1 = BasicDemoCfg()
     cfg2 = cfg1.replace()
@@ -752,6 +829,7 @@ def test_multiple_instances_with_replace():
 
 def test_alter_values_multiple_instances_wth_replace():
     """Test alterations in multiple instances through replace function."""
+    """通过替换函数进行多次测试变化。"""
     # create two config instances
     cfg1 = BasicDemoCfg()
     cfg2 = cfg1.replace(device_id=1)
@@ -776,6 +854,7 @@ def test_alter_values_multiple_instances_wth_replace():
 
 def test_configclass_type_ordering():
     """Checks ordering of config objects when no type annotation is provided."""
+    """在没有提供类型注释时，检查配置对象的排序。"""
 
     cfg_1 = TypeAnnotationOrderingDemoCfg()
     cfg_2 = NonTypeAnnotationOrderingDemoCfg()
@@ -789,6 +868,7 @@ def test_configclass_type_ordering():
 
 def test_functions_config():
     """Tests having functions as values in the configuration instance."""
+    """在配置实例中具有值函数的测试。"""
     cfg = FunctionsDemoCfg()
     # check types
     assert cfg.__annotations__["func"] is type(dummy_function1)
@@ -802,6 +882,7 @@ def test_functions_config():
 
 def test_function_impl_config():
     """Tests having function defined in the class instance."""
+    """在类实例中定义的函数的测试。"""
     cfg = FunctionImplementedDemoCfg()
     # change value
     assert cfg.a == 5
@@ -811,6 +892,7 @@ def test_function_impl_config():
 
 def test_class_function_impl_config():
     """Tests having class function defined in the class instance."""
+    """在类实例中定义的类函数的测试。"""
     cfg = ClassFunctionImplementedDemoCfg()
 
     # check that the annotations are correct
@@ -830,6 +912,7 @@ def test_class_function_impl_config():
 
 def test_class_property_impl_config():
     """Tests having class property defined in the class instance."""
+    """在类实例中定义的类属性的测试。"""
     cfg = ClassFunctionImplementedDemoCfg()
 
     # check that the annotations are correct
@@ -850,6 +933,7 @@ def test_class_property_impl_config():
 
 def test_dict_conversion_functions_config():
     """Tests conversion of config with functions into dictionary."""
+    """测试将配置函数转换为字典。"""
     cfg = FunctionsDemoCfg()
     cfg_dict = class_to_dict(cfg)
     assert cfg_dict["func"] == functions_demo_cfg_correct["func"]
@@ -859,6 +943,7 @@ def test_dict_conversion_functions_config():
 
 def test_update_functions_config_with_functions():
     """Tests updating config with functions."""
+    """测试更新配置与函数。"""
     cfg = FunctionsDemoCfg()
     # update config
     update_class_from_dict(cfg, functions_demo_cfg_for_updating)
@@ -872,6 +957,11 @@ def test_missing_type_in_config():
     """Tests missing type annotation in config.
 
     Should complain that 'c' is missing type annotation since it cannot be inferred
+    from 'MISSING' value.
+    """
+    """在配置中测试缺失类型注释。
+
+    应该抱怨"c"缺乏类型注释，因为不能推断
     from 'MISSING' value.
     """
     with pytest.raises(TypeError):
@@ -889,6 +979,11 @@ def test_missing_default_value_in_config():
     Should complain that 'a' is missing default value since it cannot be inferred
     from type annotation.
     """
+    """在配置中缺失默认值的测试。
+
+    应该抱怨"a"缺失默认值，因为不能推断
+    from type annotation.
+    """
     with pytest.raises(ValueError):
 
         @configclass
@@ -899,6 +994,7 @@ def test_missing_default_value_in_config():
 
 def test_required_argument_for_missing_type_in_config():
     """Tests required positional argument for missing type annotation in config creation."""
+    """测试要求在配置创建中缺失类型注释的位置参数。"""
 
     @configclass
     class MissingTypeDemoCfg:
@@ -919,6 +1015,7 @@ def test_required_argument_for_missing_type_in_config():
 
 def test_config_inheritance():
     """Tests that inheritance works properly."""
+    """测试遗产是否正常工作。"""
     # check variables
     cfg_a = ChildADemoCfg(a=20, d=3, e=ViewerCfg(), j=["c", "d"])
 
@@ -936,6 +1033,8 @@ def test_config_inheritance():
 def test_config_inheritance_independence():
     """Tests that subclass instantions have fully unique members,
     rather than references to members of the parent class"""
+    """试验中，子类实例具有完全独特的成员，而不是指母类成员
+    """
     # instantiate two classes which inherit from a shared parent,
     # but which will differently modify their members in their
     # __init__ and  __post_init__
@@ -970,6 +1069,7 @@ def test_config_inheritance_independence():
 
 def test_config_double_inheritance():
     """Tests that inheritance works properly when inheriting twice."""
+    """在继承两次时，测试遗产是否正常工作。"""
     # check variables
     cfg = ChildChildDemoCfg(a=20, d=3, e=ViewerCfg(), j=["c", "d"])
 
@@ -987,6 +1087,7 @@ def test_config_double_inheritance():
 
 def test_config_with_class_type():
     """Tests that configclass works properly with class type."""
+    """测试 configclass与类型正常运行。"""
 
     cfg = DummyClassCfg()
 
@@ -1007,6 +1108,7 @@ def test_config_with_class_type():
 
 def test_nested_config_class_declarations():
     """Tests that configclass works properly with nested class class declarations."""
+    """测试使configclass与嵌套类类声明正常运行。"""
 
     cfg = OutsideClassCfg()
 
@@ -1023,6 +1125,7 @@ def test_nested_config_class_declarations():
 
 def test_config_dumping():
     """Check that config dumping works properly."""
+    """检查布是否正常工作。"""
 
     # file for dumping
     dirname = os.path.dirname(os.path.abspath(__file__))
@@ -1051,6 +1154,7 @@ def test_config_dumping():
 
 def test_config_md5_hash():
     """Check that config md5 hash generation works properly."""
+    """检查md5哈希生成是否正常运行。"""
 
     # create config
     cfg = ChildADemoCfg(a=20, d=3, e=ViewerCfg(), j=["c", "d"])
@@ -1064,6 +1168,7 @@ def test_config_md5_hash():
 
 def test_validity():
     """Check that invalid configurations raise errors."""
+    """检查不有效的配置是否会导致错误。"""
 
     cfg = MissingChildDemoCfg()
 

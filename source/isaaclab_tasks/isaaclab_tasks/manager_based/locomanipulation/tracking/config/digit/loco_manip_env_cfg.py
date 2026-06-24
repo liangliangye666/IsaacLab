@@ -90,6 +90,7 @@ class DigitLocoManipRewards(DigitRewards):
 @configclass
 class DigitLocoManipObservations:
     """Configuration for the Digit Locomanipulation environment."""
+    """对数字位置操作环境的配置。"""
 
     @configclass
     class PolicyCfg(ObsGroup):

@@ -25,6 +25,7 @@ from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG  # isort: skip
 @configclass
 class EventCfg:
     """Configuration for randomization."""
+    """配置为随机化。"""
 
     physics_material = EventTerm(
         func=mdp.randomize_rigid_body_material,

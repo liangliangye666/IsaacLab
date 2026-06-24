@@ -93,6 +93,7 @@ class CartpoleDepthCameraEnvCfg(CartpoleRGBCameraEnvCfg):
 
 class CartpoleCameraEnv(DirectRLEnv):
     """Cartpole Camera Environment."""
+    """卡特波尔摄像机环境。"""
 
     cfg: CartpoleRGBCameraEnvCfg | CartpoleDepthCameraEnvCfg
 
@@ -116,10 +117,12 @@ class CartpoleCameraEnv(DirectRLEnv):
 
     def close(self):
         """Cleanup for the environment."""
+        """清理环境。"""
         super().close()
 
     def _setup_scene(self):
         """Setup the scene with the cartpole and camera."""
+        """用车杆和相机设置场景。"""
         self._cartpole = Articulation(self.cfg.robot_cfg)
         self._tiled_camera = TiledCamera(self.cfg.tiled_camera)
 

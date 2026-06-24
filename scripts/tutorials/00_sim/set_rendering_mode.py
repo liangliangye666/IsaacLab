@@ -11,8 +11,16 @@
     ./isaaclab.sh -p scripts/tutorials/00_sim/set_rendering_mode.py
 
 """
+"""这本脚本展示了如何将prims引入场景。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/00_sim/set_rendering_mode.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -32,6 +40,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
@@ -39,6 +48,7 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # rendering modes include performance, balanced, and quality
     # note, the rendering_mode specified in the CLI argument (--rendering_mode) takes precedence over

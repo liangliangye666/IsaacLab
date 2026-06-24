@@ -32,6 +32,15 @@ def load_tensorboard_logs(directory: str) -> dict:
     Returns:
         The latest available scalar values.
     """
+    """从一个board度板目录，获取最新的尺度值。
+    如果无法找到日志，请检查总结次级。
+
+    参数：
+        directory: 这里是电压板记录的目录。
+
+    返回：
+        最新可用的尺度值。
+    """
 
     # replace any non-alnum/underscore/dot with "_", then collapse runs of "_"
     def replace_invalid_chars(t):
@@ -63,6 +72,7 @@ def get_invocation_command_from_cfg(
     workflow: str = "scripts/reinforcement_learning/rl_games/train.py",
 ) -> str:
     """Generate command with proper Hydra arguments"""
+    """用适当的Hydra参数生成命令"""
     runner_args = []
     hydra_args = []
 
@@ -106,6 +116,7 @@ def remote_execute_job(
     job_cmd: str, identifier_string: str, test_mode: bool = False, extract_experiment: bool = False
 ) -> str | dict:
     """This method has an identical signature to :meth:`execute_job`, with the ray remote decorator"""
+    """这种方法与:meth:`execute_job`相同的签名，带着射线远程装饰器"""
     return execute_job(
         job_cmd=job_cmd, identifier_string=identifier_string, test_mode=test_mode, extract_experiment=extract_experiment
     )
@@ -113,6 +124,7 @@ def remote_execute_job(
 
 class LogExtractionError(Exception):
     """Raised when we cannot extract experiment_name/logdir from the trainer output."""
+    """在我们无法从训练器输出中提取experiment_name/logdir时提升。"""
 
     pass
 
@@ -146,6 +158,32 @@ def execute_job(
 
     Returns:
         Relevant information from the job
+    """
+    """发出一个任务 (炮弹命令)。
+
+    参数：
+        job_cmd: 弹命令要运行。
+        identifier_string: 为了使日志更容易区分集群或工作。
+                           在"工作0"上默认设置。
+        test_mode: 如果是真的，只运行nvidia-smi。
+                   默认为 False。
+        extract_experiment: 如果是真的，请从训练中寻找实验细节。
+                            默认为 False。
+        persistent_dir: 在提供时，更改以在持久目录中运行目录。
+                        可用于避免在 /tmp目录中丢失日志。
+                        默认为 None。
+        log_all_output: 如果是真的，将所有输出打印到控制台上。
+                        默认为 False。
+        max_lines_to_search_logs: 试验信息搜索的最多行数。
+                                  默认到1000。
+        max_time_to_search_logs: 在放弃之前，最长时间等待实验信息。
+                                 默认时间为200.0秒。
+    异常：
+        ValueError: 如果工作无法开始，或者出现错误。
+                    最有可能是因为记忆力耗尽了。
+
+    返回：
+        相关工作信息
     """
     start_time = datetime.now().strftime("%H:%M:%S.%f")
     result_details = [f"{identifier_string}: ---------------------------------\n"]
@@ -314,6 +352,7 @@ def execute_job(
 
 def ray_init(ray_address: str = "auto", runtime_env: dict[str, Any] | None = None, log_to_driver: bool = False):
     """Initialize Ray with the given address and runtime environment."""
+    """启动Ray，使用给定的地址和运行时间环境。"""
     if not ray.is_initialized():
         print(
             f"[INFO] Initializing Ray with address {ray_address}, log_to_driver={log_to_driver},"
@@ -343,6 +382,20 @@ def get_gpu_node_resources(
         Resource information for all nodes, sorted by descending GPU count, then descending CPU
         count, then descending RAM capacity, and finally by node ID in ascending order if available,
         or simply the resource for a single node if requested.
+    """
+    """获取可用的GPU节点资源的信息。
+
+    参数：
+        total_resources: 如果是真的，请返回可用的全部资源。
+                         默认为 False。
+        one_node_only: 如果是真的，返回一个节点的资源。
+                       默认为 False。
+        include_gb_ram: 设置为 true，以将MB转换为GB
+        include_id: 设置为 true 包含节点 ID
+        ray_address: 连接的射线地址。
+
+    返回：
+        所有节点的资源信息，由下降的GPU数量进行排序，然后下降的CPU数量，然后下降的RAM容量，最后由节点ID以上升顺序进行排序，如果有，或者简单地是单个节点的资源，如果要求。
     """
     if not ray.is_initialized():
         raise RuntimeError("Ray must be initialized before calling get_gpu_node_resources().")
@@ -396,6 +449,16 @@ def add_resource_arguments(
     Returns:
         The argparser with the standard resource arguments.
     """
+    """将资源参数添加到集群中；这在包装资源和启动集群中都被分享。
+
+    参数：
+        arg_parser: 参数组的参数组
+                    这种阿尔巴巴塞尔是突变的。
+        defaults: 对于GPUs，CPUs，RAM和Num Workers的默认值
+        cluster_create_defaults: 设置为真实，以填充创建集群的合理默认。
+    返回：
+        标准资源参数。
+    """
     if defaults is None:
         if cluster_create_defaults:
             defaults = [[1], [8], [16], [1]]
@@ -436,6 +499,7 @@ def fill_in_missing_resources(
     args: argparse.Namespace, resources: dict | None = None, cluster_creation_flag: bool = False, policy: callable = max
 ):
     """Normalize the lengths of resource lists based on the longest list provided."""
+    """根据提供的最长清单来规范资源列表的长度。"""
     print("[INFO]: Filling in missing command line arguments with best guess...")
     if resources is None:
         resources = {
@@ -478,6 +542,7 @@ def fill_in_missing_resources(
 
 def populate_isaac_ray_cfg_args(cfg: dict = {}) -> dict:
     """Small utility method to create empty fields if needed for a configuration."""
+    """如果需要配置，创建空格字段的小实用方法。"""
     if "runner_args" not in cfg:
         cfg["runner_args"] = {}
     if "hydra_args" not in cfg:
@@ -487,6 +552,7 @@ def populate_isaac_ray_cfg_args(cfg: dict = {}) -> dict:
 
 def _dicts_equal(d1: dict, d2: dict, tol=1e-9) -> bool:
     """Check if two dicts are equal; helps ensure only new logs are returned."""
+    """检查两条日记是否相同； 帮助确保只有新的日记返回。"""
     if d1.keys() != d2.keys():
         return False
     for key in d1:
@@ -501,6 +567,7 @@ def _dicts_equal(d1: dict, d2: dict, tol=1e-9) -> bool:
 @dataclass
 class JobResource:
     """A dataclass to represent a resource request for a job."""
+    """一个数据类，代表一个工作资源请求。"""
 
     num_gpus: float | None = None
     num_cpus: float | None = None
@@ -508,6 +575,7 @@ class JobResource:
 
     def to_opt(self) -> dict[str, Any]:
         """Convert the resource request to a dictionary."""
+        """将资源请求转换为字典。"""
         opt = {}
         if self.num_gpus is not None:
             opt["num_gpus"] = self.num_gpus
@@ -519,6 +587,7 @@ class JobResource:
 
     def to_pg_resources(self) -> dict[str, Any]:
         """Convert the resource request to a dictionary suitable for placement groups."""
+        """将资源请求转换为适合定位组的字典。"""
         res = {}
         if self.num_gpus is not None:
             res["GPU"] = self.num_gpus
@@ -532,6 +601,7 @@ class JobResource:
 @dataclass
 class JobNode:
     """A dataclass to represent a node for job affinity."""
+    """一个数据类来代表一个节点的工作亲密性。"""
 
     specific: str | None = None
     hostname: str | None = None
@@ -582,6 +652,28 @@ class JobNode:
             ValueError: If hostname/node_id is specified but not found in the cluster
                         or the node is not alive.
         """
+        """将节点亲密性设置转换为Ray演员安排选项的字典。
+
+        参数：
+            nodes (list[dict[str, Any]]): 从`ray.nodes()`的节点元数据列表，看起来像这样:
+            [{ "NodeID": "xxx"， "Alive": True， "NodeManagerAddress": "x.x.x.x"， "NodeManagerHostname":
+            "ray-head-mjzzf"， "NodeManagerPort": 44039， "ObjectManagerPort": 35689， "ObjectStoreSocketName":
+            "/tmp/ray/session_xxx/sockets/plasma_store"， "RayletSocketName":
+            "/tmp/ray/session_xxx/sockets/raylet"， "MetricsExportPort": 8080， "NodeName":
+            "x.x.x.x"， "RuntimeEnvAgentPort": 63725， "DeathReason": 0， "DeathReasonMessage": ""， "活": True，
+            "资源": { 'node:__internal_head__': 1.0， 'object_store_memory': 422449279795.0， 'memory':
+            1099511627776.0， 'GPU': 8.0， 'node:x.x.x.x': 1.0， 'CPU': 192.0， 'accelerator_type:H20': 1.0 }，
+            "标签": { 'ray.io/node_id': 'xxx' } }，...]
+
+        返回：
+            dict[str， Any]:一个有可能安排选项的字典:
+                - 如果没有具体的定位要求，则空。
+                - "scheduling_strategy"键设置为`NodeAffinitySchedulingStrategy`
+                  if hostname or node_id placement is specified.
+
+        异常：
+            ValueError: 如果指定了主机名/node_id，但在集群中没有找到，或者节点不活跃。
+        """
         opt = {}
         if self.specific is None or self.specific == "any":
             return opt
@@ -612,6 +704,7 @@ class JobNode:
 @dataclass
 class Job:
     """A dataclass to represent a job to be submitted to Ray."""
+    """一个数据类，代表一个工作，提交给Ray。"""
 
     # job command
     cmd: str | None = None
@@ -635,6 +728,16 @@ class Job:
                 - `JobResource.to_opt()` for resource requirements
                 - `JobNode.to_opt()` for node placement constraints
         """
+        """转换工作定义为雷安排选项的字典。
+
+        参数：
+            nodes (list[dict[str, Any]]): 从`ray.nodes()`的节点信息。
+
+        返回：
+            dict[str， Any]:由:
+                - 资源需求的`JobResource.to_opt()`
+                - `JobNode.to_opt()`对于节点放置限制
+        """
         opt = {}
         if self.resources is not None:
             opt.update(self.resources.to_opt())
@@ -646,6 +749,7 @@ class Job:
 @ray.remote
 class JobActor:
     """Actor to run job in Ray cluster."""
+    """演员在雷集团工作。"""
 
     def __init__(self, job: Job, test_mode: bool, log_all_output: bool, extract_experiment: bool = False):
         self.job = job
@@ -656,10 +760,12 @@ class JobActor:
 
     def ready(self) -> bool:
         """Check if the job is ready to run."""
+        """检查工作是否准备好进行。"""
         return self.done
 
     def run(self):
         """Run the job."""
+        """执行工作。"""
         cmd = self.job.cmd if self.job.cmd else " ".join([sys.executable, *self.job.py_args.split()])
         return execute_job(
             job_cmd=cmd,
@@ -687,6 +793,20 @@ def submit_wrapped_jobs(
                            or independently as resources become available. Defaults to False.
 
     Returns:
+        None
+    """
+    """提交一个工作名单给雷集团，管理执行。
+
+    参数：
+        jobs (Sequence[Job]): 一系列的约伯反对执行Ray。
+        log_realtime (bool): 在实时记录stdout/stderr。
+                             默认为 True。
+        test_mode (bool): 如果是True，则运行在GPU智能检查模式，而不是实际工作。
+                          默认为 False。
+        concurrent (bool): 无论是同时作为一批任务，还是随着资源的开放而独立地启动任务。
+                           默认为 False。
+
+    返回：
         None
     """
     if jobs is None or len(jobs) == 0:

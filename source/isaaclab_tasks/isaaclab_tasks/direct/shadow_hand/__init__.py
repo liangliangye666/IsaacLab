@@ -6,6 +6,8 @@
 """
 Shadow Hand environment.
 """
+"""影子手环境。
+"""
 
 import gymnasium as gym
 

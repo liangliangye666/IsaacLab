@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Test cases for HDF5 to MP4 conversion script."""
+"""对HDF5到MP4转换脚本的测试案例。"""
 
 import os
 import tempfile
@@ -18,6 +19,7 @@ from scripts.tools.hdf5_to_mp4 import get_num_demos, main, write_demo_to_mp4
 @pytest.fixture(scope="class")
 def temp_hdf5_file():
     """Create temporary HDF5 file with test data."""
+    """创建一个临时的HDF5文件。"""
     temp_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=False)  # noqa: SIM115
     with h5py.File(temp_file.name, "w") as h5f:
         # Create test data structure
@@ -48,6 +50,7 @@ def temp_hdf5_file():
 @pytest.fixture
 def temp_output_dir():
     """Create temporary output directory."""
+    """创建临时输出目录。"""
     temp_dir = tempfile.mkdtemp()  # noqa: SIM115
     yield temp_dir
     # Cleanup
@@ -58,14 +61,17 @@ def temp_output_dir():
 
 class TestHDF5ToMP4:
     """Test cases for HDF5 to MP4 conversion functionality."""
+    """对HDF5到MP4转换功能的测试案例。"""
 
     def test_get_num_demos(self, temp_hdf5_file):
         """Test the get_num_demos function."""
+        """测试get_num_demos函数。"""
         num_demos = get_num_demos(temp_hdf5_file)
         assert num_demos == 2
 
     def test_write_demo_to_mp4_rgb(self, temp_hdf5_file, temp_output_dir):
         """Test writing RGB frames to MP4."""
+        """试写RGB框架到MP4。"""
         write_demo_to_mp4(temp_hdf5_file, 0, "data/demo_0/obs", "table_cam", temp_output_dir, 704, 1280)
 
         output_file = os.path.join(temp_output_dir, "demo_0_table_cam.mp4")
@@ -74,6 +80,7 @@ class TestHDF5ToMP4:
 
     def test_write_demo_to_mp4_segmentation(self, temp_hdf5_file, temp_output_dir):
         """Test writing segmentation frames to MP4."""
+        """测试写成MP4的细分框架。"""
         write_demo_to_mp4(temp_hdf5_file, 0, "data/demo_0/obs", "table_cam_segmentation", temp_output_dir, 704, 1280)
 
         output_file = os.path.join(temp_output_dir, "demo_0_table_cam_segmentation.mp4")
@@ -82,6 +89,7 @@ class TestHDF5ToMP4:
 
     def test_write_demo_to_mp4_normals(self, temp_hdf5_file, temp_output_dir):
         """Test writing normal maps to MP4."""
+        """测试写正常地图到MP4。"""
         write_demo_to_mp4(temp_hdf5_file, 0, "data/demo_0/obs", "table_cam_normals", temp_output_dir, 704, 1280)
 
         output_file = os.path.join(temp_output_dir, "demo_0_table_cam_normals.mp4")
@@ -90,6 +98,7 @@ class TestHDF5ToMP4:
 
     def test_write_demo_to_mp4_shaded_segmentation(self, temp_hdf5_file, temp_output_dir):
         """Test writing shaded_segmentation frames to MP4."""
+        """测试写shaded_segmentation框架到MP4。"""
         write_demo_to_mp4(
             temp_hdf5_file,
             0,
@@ -106,6 +115,7 @@ class TestHDF5ToMP4:
 
     def test_write_demo_to_mp4_depth(self, temp_hdf5_file, temp_output_dir):
         """Test writing depth maps to MP4."""
+        """测试写到MP4的深度地图。"""
         write_demo_to_mp4(temp_hdf5_file, 0, "data/demo_0/obs", "table_cam_depth", temp_output_dir, 704, 1280)
 
         output_file = os.path.join(temp_output_dir, "demo_0_table_cam_depth.mp4")
@@ -114,6 +124,7 @@ class TestHDF5ToMP4:
 
     def test_write_demo_to_mp4_invalid_demo(self, temp_hdf5_file, temp_output_dir):
         """Test writing with invalid demo ID."""
+        """用无效的Demo ID进行测试。"""
         with pytest.raises(KeyError):
             write_demo_to_mp4(
                 temp_hdf5_file,
@@ -127,11 +138,13 @@ class TestHDF5ToMP4:
 
     def test_write_demo_to_mp4_invalid_key(self, temp_hdf5_file, temp_output_dir):
         """Test writing with invalid input key."""
+        """用无效输入键进行测试。"""
         with pytest.raises(KeyError):
             write_demo_to_mp4(temp_hdf5_file, 0, "data/demo_0/obs", "invalid_key", temp_output_dir, 704, 1280)
 
     def test_main_function(self, temp_hdf5_file, temp_output_dir):
         """Test the main function."""
+        """测试主要功能。"""
         # Mock command line arguments
         import sys
 

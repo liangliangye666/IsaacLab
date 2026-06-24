@@ -13,6 +13,16 @@ The following configuration parameters are available:
 
 Reference: https://github.com/Kinovarobotics/kinova-ros
 """
+"""基诺瓦机器人手臂的配置。
+
+下列配置参数可用:
+
+* :obj:`KINOVA_JACO2_N7S300_CFG`:Kinova JACO2 (7-Dof) 手臂，具有3指抓住器。
+* :obj:`KINOVA_JACO2_N6S300_CFG`:Kinova JACO2 (6-Dof) 臂，具有3指抓住器。
+* :obj:`KINOVA_GEN3_N7_CFG`: 没有抓住的Kinova Gen3 (7-Dof) 臂。
+
+Reference: https://github.com/Kinovarobotics/kinova-ros
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -74,6 +84,7 @@ KINOVA_JACO2_N7S300_CFG = ArticulationCfg(
     },
 )
 """Configuration of Kinova JACO2 (7-Dof) arm with 3-finger gripper."""
+"""基诺瓦JACO2 (7-Dof) 臂的配置，具有3指抓紧器。"""
 
 
 KINOVA_JACO2_N6S300_CFG = ArticulationCfg(
@@ -126,6 +137,7 @@ KINOVA_JACO2_N6S300_CFG = ArticulationCfg(
     },
 )
 """Configuration of Kinova JACO2 (6-Dof) arm with 3-finger gripper."""
+"""基诺瓦JACO2 (6Dof) 臂的配置，具有3指。"""
 
 
 KINOVA_GEN3_N7_CFG = ArticulationCfg(
@@ -170,3 +182,7 @@ KINOVA_GEN3_N7_CFG = ArticulationCfg(
     },
 )
 """Configuration of Kinova Gen3 (7-Dof) arm with no gripper."""
+"""基诺瓦基诺瓦基诺瓦基诺瓦基诺瓦基诺瓦基诺瓦基诺瓦基诺瓦基诺瓦基诺瓦基诺瓦基诺亚基诺瓦基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基
+诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺
+亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺亚基诺
+"""

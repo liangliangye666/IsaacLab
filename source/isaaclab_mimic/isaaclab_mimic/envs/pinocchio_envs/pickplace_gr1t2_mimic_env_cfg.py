@@ -12,6 +12,7 @@ from isaaclab_tasks.manager_based.manipulation.pick_place.pickplace_gr1t2_env_cf
 @configclass
 class PickPlaceGR1T2MimicEnvCfg(PickPlaceGR1T2EnvCfg, MimicEnvCfg):
     """Configuration for GR1T2 Pick Place Mimic environment."""
+    """设置GR1T2选择位置仿真环境。"""
 
     def __post_init__(self):
         # Calling post init of parents

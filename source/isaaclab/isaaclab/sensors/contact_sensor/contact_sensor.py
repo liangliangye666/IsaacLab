@@ -61,15 +61,47 @@ class ContactSensor(SensorBase):
     .. _PhysX ContactReporter: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_contact_report_a_p_i.html
     .. _RigidContact: https://docs.isaacsim.omniverse.nvidia.com/latest/py/source/extensions/isaacsim.core.api/docs/index.html#isaacsim.core.api.sensors.RigidContactView
     """
+    """一个传感器。
+
+    接触传感器报告了世界框架中的硬体上的正常接触力。
+    它依赖于`PhysX ContactReporter`_API在硬体上激活。
+
+    为了在硬体上启用联系记者，请确保在您的资产产产子器配置上启用:attr:`isaaclab.sim.spawner.RigidObjectSpawnerCfg.activate_contact_sen
+    sors`。
+    这将使记者能够接触资产中的所有硬体。
+
+    传感器可以配置以使用:attr:`ContactSensorCfg.filter_prim_paths_expr`来报告特定的过器模式的集体上的接触力。
+    这对于要报告传感器体与场景特定的体体之间的接触力时是有用的。
+    通过:attr:`ContactSensorData.force_matrix_w`可以访问数据。
+    请查看有关`RigidContact`_的文档。
+
+    过的接触力只能以一个对许多的形式报告。
+    这意味着只能在环境中过一个传感器体对该环境中的多个体。
+    如果您需要过多个传感器体对多个传感器体，
+
+    举个例子，假设你想将机器人所有脚的接触力报告到一个物体。
+    在这种情况下，将:attr:`ContactSensorCfg.prim_path`和:attr:`ContactSensorCfg.filter_prim_paths_expr`分别设置为``{EN
+    V_REGEX_NS}/Robot/.*_FOOT``和``{ENV_REGEX_NS}/Object``将不会工作。
+    而是，你需要为每条脚创建一个独立的传感器，
+
+    .. _PhysX ContactReporter: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_contact_report_a_p_i.html
+    .. _RigidContact: https://docs.isaacsim.omniverse.nvidia.com/latest/py/source/extensions/isaacsim.core.api/docs/index.html#isaacsim.core.api.sensors.RigidContactView
+    """
 
     cfg: ContactSensorCfg
     """The configuration parameters."""
+    """配置参数。"""
 
     def __init__(self, cfg: ContactSensorCfg):
         """Initializes the contact sensor object.
 
         Args:
             cfg: The configuration parameters.
+        """
+        """启动接触传感器对象。
+
+        参数：
+            cfg: 配置参数。
         """
         # initialize base class
         super().__init__(cfg)
@@ -85,6 +117,7 @@ class ContactSensor(SensorBase):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
         return (
             f"Contact sensor @ '{self.cfg.prim_path}': \n"
             f"\tview type         : {self.body_physx_view.__class__}\n"
@@ -95,6 +128,8 @@ class ContactSensor(SensorBase):
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -111,11 +146,13 @@ class ContactSensor(SensorBase):
     @property
     def num_bodies(self) -> int:
         """Number of bodies with contact sensors attached."""
+        """连接传感器的身体数量"""
         return self._num_bodies
 
     @property
     def body_names(self) -> list[str]:
         """Ordered names of bodies with contact sensors attached."""
+        """配列的接触传感器的尸体名称。"""
         prim_paths = self.body_physx_view.prim_paths[: self.num_bodies]
         return [path.split("/")[-1] for path in prim_paths]
 
@@ -126,6 +163,12 @@ class ContactSensor(SensorBase):
         Note:
             Use this view with caution. It requires handling of tensors in a specific way.
         """
+        """捕获的硬体的视图 (PhysX)。
+
+        说明：
+            用这种观点谨慎。
+            它需要以特定的方式处理子。
+        """
         return self._body_physx_view
 
     @property
@@ -135,10 +178,18 @@ class ContactSensor(SensorBase):
         Note:
             Use this view with caution. It requires handling of tensors in a specific way.
         """
+        """联系记者查看尸体 (PhysX)。
+
+        说明：
+            用这种观点谨慎。
+            它需要以特定的方式处理子。
+        """
         return self._contact_physx_view
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -177,6 +228,16 @@ class ContactSensor(SensorBase):
         Returns:
             A tuple of lists containing the body indices and names.
         """
+        """根据名字键，在关节中找到尸体。
+
+        参数：
+            name_keys: 一个正则表达式或一个与体名相匹配的正则表达式列表。
+            preserve_order: 在输出中是否保留名称键的顺序。
+                            默认为 False。
+
+        返回：
+            一个包含身体指标和名称的列表。
+        """
         return string_utils.resolve_matching_names(name_keys, self.body_names, preserve_order)
 
     def compute_first_contact(self, dt: float, abs_tol: float = 1.0e-8) -> torch.Tensor:
@@ -203,6 +264,30 @@ class ContactSensor(SensorBase):
 
         Raises:
             RuntimeError: If the sensor is not configured to track contact time.
+        """
+        """检查在过去的:attr:`dt`秒内建立接触的物体。
+
+        该函数通过比较当前接触时间与所给定的时间段来检查物体在过去的:attr:`dt`秒内是否取得接触。
+        如果接触时间低于所述时间段，则将被视为接触物体。
+
+        说明：
+            函数假设:attr:`dt`是传感器更新时间步骤的因素。
+            在其他
+            words :数学:`dt / dt_sensor = n`，其中:数学:`n`是自然数。
+                   这总是真的。
+            if the sensor is updated by the physics or the environment stepping time-step and the sensor
+            环境会逐步阅读。
+
+        参数：
+            dt: 自接触建立以来的时间。
+            abs_tol: 对于比较的绝对宽容。
+
+        返回：
+            在过去的:attr:`dt`秒内建立接触的体体的布尔式子。
+            形状是 (N，B)，其中N是传感器的数量，B是每个传感器的体体数量。
+
+        异常：
+            RuntimeError: 如果传感器不配置以追踪接触时间。
         """
         # check if the sensor is configured to track contact time
         if not self.cfg.track_air_time:
@@ -239,6 +324,28 @@ class ContactSensor(SensorBase):
         Raises:
             RuntimeError: If the sensor is not configured to track contact time.
         """
+        """检查是否在最后一次接触中断了身体:attr:`dt`几秒钟。
+
+        该函数通过比较当前空气时间与所给定的时间段来检查物体在过去的:attr:`dt`秒内是否断裂接触。
+        如果空气时间低于所给定的时间段，则认为尸体没有接触。
+
+        说明：
+            它假设:attr:`dt`是传感器更新时间步骤的因素。
+            换句话说，
+            :math:`dt / dt_sensor = n`，其中:数学:`n`是一个自然数。
+            传感器由物理或环境步骤时间更新，传感器由环境步骤时间读取。
+
+        参数：
+            dt: 自合同破产以来的时间。
+            abs_tol: 对于比较的绝对宽容。
+
+        返回：
+            在最后的:attr:`dt`秒内断交的体体表示的布尔式子。
+            形状是 (N，B)，其中N是传感器的数量，B是每个传感器的体体数量。
+
+        异常：
+            RuntimeError: 如果传感器不配置以追踪接触时间。
+        """
         # check if the sensor is configured to track contact time
         if not self.cfg.track_air_time:
             raise RuntimeError(
@@ -252,6 +359,8 @@ class ContactSensor(SensorBase):
 
     """
     Implementation.
+    """
+    """执行。
     """
 
     def _initialize_impl(self):
@@ -363,6 +472,7 @@ class ContactSensor(SensorBase):
 
     def _update_buffers_impl(self, env_ids: Sequence[int]):
         """Fills the buffers of the sensor data."""
+        """填充传感器数据的缓冲器。"""
         # default to all sensors
         if len(env_ids) == self._num_envs:
             env_ids = slice(None)
@@ -476,6 +586,33 @@ class ContactSensor(SensorBase):
         Returns:
             Aggregated contact data, shape (N_envs, N_bodies, N_filters, 3).
         """
+        """解包和汇集每个 (env，车身，过器) 组的联系数据。
+
+        这个函数向量化了以下嵌套循环:
+
+        for i in range(self._num_bodies * self._num_envs):
+            for j in range(self.contact_physx_view.filter_count):
+                start_index_ij = buffer_start_indices[i, j]
+                count_ij = buffer_count[i, j]
+                self._contact_position_aggregate_buffer[i， j， :] = torch.mean(contact_data[start_index_ij :
+                (start_index_ij + count_ij)， :]，dim=0)
+
+        更多详情请参见`RigidContactView.get_contact_data() documentation <https://docs.omniverse.nvidia.com/kit/doc
+        s/omni_physics/107.3/extensions/runtime/source/omni.physics.tensors/docs/api/python.html#omni.physic
+        s.tensors.impl.api.RigidContactView.get_contact_data>`_。
+
+        参数：
+            contact_data: 接触数据的平坦数，形状 (N_envs * N_body， 3)。
+            buffer_count: 每个接触点的数量 (env，体，过器)，形状 (N_envs * N_body， N_filters)。
+            buffer_start_indices: 每个 (env，机体，过器)，形状 (N_envs * N_body， N_filters) 的启动索引。
+            avg: 如果True，平均每个组的联系数据；如果False，总结数据。
+                 默认为 True。
+            default: 默认值用于零接触组。
+                     在NaN上默认。
+
+        返回：
+            总结的联系数据，形状 (N_envs，N_body，N_filters， 3)。
+        """
         counts, starts = buffer_count.view(-1), buffer_start_indices.view(-1)
         n_rows, total = counts.numel(), int(counts.sum())
         agg = torch.full((n_rows, 3), default, device=self._device, dtype=contact_data.dtype)
@@ -529,9 +666,12 @@ class ContactSensor(SensorBase):
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         # call parent
         super()._invalidate_initialize_callback(event)
         # set all existing views to None to invalidate them

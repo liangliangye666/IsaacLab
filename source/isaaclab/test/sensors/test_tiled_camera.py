@@ -7,6 +7,7 @@
 # pyright: reportPrivateUsage=none
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -14,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import copy
 import random
@@ -35,6 +37,7 @@ from isaaclab.utils.timer import Timer
 @pytest.fixture(scope="function")
 def setup_camera(device) -> tuple[sim_utils.SimulationContext, TiledCameraCfg, float]:
     """Fixture to set up and tear down the camera simulation environment."""
+    """设置和拆除摄像头仿真环境的固定装置。"""
     camera_cfg = TiledCameraCfg(
         height=128,
         width=256,
@@ -69,6 +72,7 @@ def setup_camera(device) -> tuple[sim_utils.SimulationContext, TiledCameraCfg, f
 @pytest.mark.isaacsim_ci
 def test_single_camera_init(setup_camera, device):
     """Test single camera initialization."""
+    """测试单摄像头启动。"""
     sim, camera_cfg, dt = setup_camera
     # Create camera
     camera = TiledCamera(camera_cfg)
@@ -117,6 +121,7 @@ def test_single_camera_init(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_depth_clipping_max(setup_camera, device):
     """Test depth max clipping."""
+    """测试深度最大裁剪。"""
     sim, _, dt = setup_camera
     # get camera cfgs
     camera_cfg = TiledCameraCfg(
@@ -157,6 +162,7 @@ def test_depth_clipping_max(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_depth_clipping_none(setup_camera, device):
     """Test depth none clipping."""
+    """测试深度，没有裁剪。"""
     sim, _, dt = setup_camera
     # get camera cfgs
     camera_cfg = TiledCameraCfg(
@@ -201,6 +207,7 @@ def test_depth_clipping_none(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_depth_clipping_zero(setup_camera, device):
     """Test depth zero clipping."""
+    """测试深度零裁剪。"""
     sim, _, dt = setup_camera
     # get camera cfgs
     camera_cfg = TiledCameraCfg(
@@ -241,6 +248,7 @@ def test_depth_clipping_zero(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_multi_camera_init(setup_camera, device):
     """Test multi-camera initialization."""
+    """测试多摄像头启动。"""
     sim, camera_cfg, dt = setup_camera
 
     num_cameras = 9
@@ -298,6 +306,7 @@ def test_multi_camera_init(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_rgb_only_camera(setup_camera, device):
     """Test initialization with only RGB data type."""
+    """测试初始化只使用RGB数据类型。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -352,6 +361,7 @@ def test_rgb_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_data_types(setup_camera, device):
     """Test different data types for camera initialization."""
+    """测试不同的数据类型，以启动相机。"""
     sim, camera_cfg, dt = setup_camera
     # Create camera
     camera_cfg_distance = copy.deepcopy(camera_cfg)
@@ -400,6 +410,7 @@ def test_data_types(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_depth_only_camera(setup_camera, device):
     """Test initialization with only depth."""
+    """测试初始化只有深度。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -454,6 +465,7 @@ def test_depth_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_rgba_only_camera(setup_camera, device):
     """Test initialization with only RGBA."""
+    """测试初始化只使用RGBA。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -508,6 +520,7 @@ def test_rgba_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_distance_to_camera_only_camera(setup_camera, device):
     """Test initialization with only distance_to_camera."""
+    """测试初始化只使用distance_to_camera。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -562,6 +575,7 @@ def test_distance_to_camera_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_distance_to_image_plane_only_camera(setup_camera, device):
     """Test initialization with only distance_to_image_plane."""
+    """测试初始化只使用distance_to_image_plane。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -616,6 +630,7 @@ def test_distance_to_image_plane_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_normals_only_camera(setup_camera, device):
     """Test initialization with only normals."""
+    """测试初始化只有正常的。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -673,6 +688,7 @@ def test_normals_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_motion_vectors_only_camera(setup_camera, device):
     """Test initialization with only motion_vectors."""
+    """测试初始化只使用motion_vectors。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -727,6 +743,7 @@ def test_motion_vectors_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_semantic_segmentation_colorize_only_camera(setup_camera, device):
     """Test initialization with only semantic_segmentation."""
+    """测试初始化只使用semantic_segmentation。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -782,6 +799,7 @@ def test_semantic_segmentation_colorize_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_instance_segmentation_fast_colorize_only_camera(setup_camera, device):
     """Test initialization with only instance_segmentation_fast."""
+    """测试初始化只使用instance_segmentation_fast。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -837,6 +855,7 @@ def test_instance_segmentation_fast_colorize_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_instance_id_segmentation_fast_colorize_only_camera(setup_camera, device):
     """Test initialization with only instance_id_segmentation_fast."""
+    """测试初始化只使用instance_id_segmentation_fast。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -892,6 +911,7 @@ def test_instance_id_segmentation_fast_colorize_only_camera(setup_camera, device
 @pytest.mark.isaacsim_ci
 def test_semantic_segmentation_non_colorize_only_camera(setup_camera, device):
     """Test initialization with only semantic_segmentation."""
+    """测试初始化只使用semantic_segmentation。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -949,6 +969,7 @@ def test_semantic_segmentation_non_colorize_only_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_instance_segmentation_fast_non_colorize_only_camera(setup_camera, device):
     """Test initialization with only instance_segmentation_fast."""
+    """测试初始化只使用instance_segmentation_fast。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -1004,6 +1025,7 @@ def test_instance_segmentation_fast_non_colorize_only_camera(setup_camera, devic
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_instance_id_segmentation_fast_non_colorize_only_camera(setup_camera, device):
     """Test initialization with only instance_id_segmentation_fast."""
+    """测试初始化只使用instance_id_segmentation_fast。"""
     sim, camera_cfg, dt = setup_camera
     num_cameras = 9
     for i in range(num_cameras):
@@ -1060,6 +1082,7 @@ def test_instance_id_segmentation_fast_non_colorize_only_camera(setup_camera, de
 @pytest.mark.isaacsim_ci
 def test_all_annotators_camera(setup_camera, device):
     """Test initialization with all supported annotators."""
+    """使用所有支持的注释符进行测试初始化。"""
     sim, camera_cfg, dt = setup_camera
     all_annotator_types = [
         "rgb",
@@ -1160,6 +1183,7 @@ def test_all_annotators_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_all_annotators_low_resolution_camera(setup_camera, device):
     """Test initialization with all supported annotators."""
+    """使用所有支持的注释符进行测试初始化。"""
     sim, camera_cfg, dt = setup_camera
     all_annotator_types = [
         "rgb",
@@ -1262,6 +1286,7 @@ def test_all_annotators_low_resolution_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_all_annotators_non_perfect_square_number_camera(setup_camera, device):
     """Test initialization with all supported annotators."""
+    """使用所有支持的注释符进行测试初始化。"""
     sim, camera_cfg, dt = setup_camera
     all_annotator_types = [
         "rgb",
@@ -1362,6 +1387,7 @@ def test_all_annotators_non_perfect_square_number_camera(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_all_annotators_instanceable(setup_camera, device):
     """Test initialization with all supported annotators on instanceable assets."""
+    """在可实例的资产上使用所有支持的注释符进行测试初始化。"""
     sim, camera_cfg, dt = setup_camera
     all_annotator_types = [
         "rgb",
@@ -1489,6 +1515,7 @@ def test_all_annotators_instanceable(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_throughput(setup_camera, device):
     """Test tiled camera throughput."""
+    """测试 camera片摄像头吞吐量。"""
     sim, camera_cfg, dt = setup_camera
     # create camera
     camera_cfg = copy.deepcopy(camera_cfg)
@@ -1529,6 +1556,8 @@ def test_output_equal_to_usd_camera_intrinsics(setup_camera, device):
     """
     Test that the output of the ray caster camera and the usd camera are the same when both are
     initialized with the same intrinsic matrix.
+    """
+    """测试射线投射摄像头和USD摄像头的输出是相同的，当两者都使用相同的内在矩阵初始化时。
     """
     sim, _, dt = setup_camera
     # create cameras
@@ -1620,6 +1649,7 @@ def test_output_equal_to_usd_camera_intrinsics(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_sensor_print(setup_camera, device):
     """Test sensor print is working correctly."""
+    """测试传感器打印正确工作。"""
     sim, camera_cfg, _ = setup_camera
     # Create sensor
     sensor = TiledCamera(cfg=camera_cfg)
@@ -1633,6 +1663,7 @@ def test_sensor_print(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_frame_offset_small_resolution(setup_camera, device):
     """Test frame offset issue with small resolution camera."""
+    """测试框架偏移问题，"""
     sim, camera_cfg, dt = setup_camera
     # Create sensor
     camera_cfg = copy.deepcopy(camera_cfg)
@@ -1677,6 +1708,7 @@ def test_frame_offset_small_resolution(setup_camera, device):
 @pytest.mark.isaacsim_ci
 def test_frame_offset_large_resolution(setup_camera, device):
     """Test frame offset issue with large resolution camera."""
+    """测试框架抵消问题，"""
     sim, camera_cfg, dt = setup_camera
     # Create sensor
     camera_cfg = copy.deepcopy(camera_cfg)
@@ -1723,11 +1755,14 @@ def test_frame_offset_large_resolution(setup_camera, device):
 """
 Helper functions.
 """
+"""辅助函数。
+"""
 
 
 @staticmethod
 def _populate_scene():
     """Add prims to the scene."""
+    """添加prims到场景。"""
     # Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
     cfg.func("/World/defaultGroundPlane", cfg)

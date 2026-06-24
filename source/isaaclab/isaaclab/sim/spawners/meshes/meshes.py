@@ -53,6 +53,31 @@ def spawn_mesh_sphere(
     Raises:
         ValueError: If a prim already exists at the given path.
     """
+    """创建一个USD-Mesh球 prim与给出的属性。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
+    """
     # create a trimesh sphere
     sphere = trimesh.creation.uv_sphere(radius=cfg.radius)
 
@@ -95,6 +120,31 @@ def spawn_mesh_cuboid(
     Raises:
         ValueError: If a prim already exists at the given path.
     """
+    """创建一个USD-Mesh立方体prim，
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
+    """
     # create a trimesh box
     box = trimesh.creation.box(cfg.size)
 
@@ -136,6 +186,31 @@ def spawn_mesh_cylinder(
 
     Raises:
         ValueError: If a prim already exists at the given path.
+    """
+    """创建一个USD-Mesh prim，
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
     """
     # align axis from "Z" to input by rotating the cylinder
     axis = cfg.axis.upper()
@@ -187,6 +262,31 @@ def spawn_mesh_capsule(
     Raises:
         ValueError: If a prim already exists at the given path.
     """
+    """创建一个USD-Mesh囊prim，
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
+    """
     # align axis from "Z" to input by rotating the cylinder
     axis = cfg.axis.upper()
     if axis == "X":
@@ -237,6 +337,31 @@ def spawn_mesh_cone(
     Raises:
         ValueError: If a prim already exists at the given path.
     """
+    """创建一个USD-Mesh角形prim与给出的属性。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
+    """
     # align axis from "Z" to input by rotating the cylinder
     axis = cfg.axis.upper()
     if axis == "X":
@@ -258,6 +383,8 @@ def spawn_mesh_cone(
 
 """
 Helper functions.
+"""
+"""辅助函数。
 """
 
 
@@ -300,6 +427,42 @@ def _spawn_mesh_geom_from_mesh(
         ValueError: If both deformable and collision properties are used.
         ValueError: If the physics material is not of the correct type. Deformable properties require a deformable
             physics material, and rigid properties require a rigid physics material.
+
+    .. _USDGeomMesh: https://openusd.org/dev/api/class_usd_geom_mesh.html
+    """
+    """从给定的网格中创建一个`USDGeomMesh`_prim。
+
+    这个函数与:func:`shapes._spawn_geom_from_prim_type`类似，但从给定的网格中产生prim。
+    在网格的情况下，它以给定的顶点和面孔为USDGeomMesh prim。
+
+    根据对象类型，对prim的性能是不同的:
+
+    - 可变形的车身特性:这些特性应应用于网格prim:``{prim_path}/geometry/mesh``。
+    - 碰撞性质:这些特性应用于网格prim:``{prim_path}/geometry/mesh``。
+    - 固体特性:这些特性应用于母体prim:``{prim_path}``。
+
+    参数：
+        prim_path: 在prim的路径中产生资产。
+        cfg: 包含适用属性的配置。
+        mesh: 让prim产生网格。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        scale: 适用于prim的尺度。
+               默认设置为None，在这种情况下，设置为身份。
+        stage: 在这个阶段，我们可以产生资产。
+               在 None 上默认设置，此时使用当前阶段。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
+        ValueError: 如果使用可变化和刚性特性。
+        ValueError: 如果使用可变性和碰撞性质。
+        ValueError: 如果物理材料不是正确的类型。
+                    变形性质需要变形性物理材料，而刚性质需要刚性物理材料。
 
     .. _USDGeomMesh: https://openusd.org/dev/api/class_usd_geom_mesh.html
     """

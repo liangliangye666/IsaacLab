@@ -7,6 +7,10 @@
 
 This module provides utility functions to help with controller implementations.
 """
+"""艾萨克实验室控制器的辅助功能。
+
+该模块提供帮助控制器实现的实用功能。
+"""
 
 import logging
 import os
@@ -31,6 +35,15 @@ def convert_usd_to_urdf(usd_path: str, output_path: str, force_conversion: bool 
         force_conversion: Whether to force the conversion even if the URDF and mesh files already exist.
     Returns:
         A tuple containing the paths to the URDF file and the mesh directory.
+    """
+    """将USD文件转换为URDF格式。
+
+    参数：
+        usd_path: 转换USD文件的路径。
+        output_path: 保存转换的URDF和网格文件的目录。
+        force_conversion: 如果已经存在URDF和网格文件，
+    返回：
+        包含URDF文件和网格目录的路径。
     """
     usd_to_urdf_kwargs = {
         "node_names_to_remove": None,
@@ -85,6 +98,16 @@ def change_revolute_to_fixed(urdf_path: str, fixed_joints: list[str], verbose: b
         fixed_joints: List of joint names to convert from revolute to fixed.
         verbose: Whether to print information about the changes being made.
     """
+    """在 URDF 文件中将Revolution 关节转换为固定关节。
+
+    这种函数通过将指定的转换关节转换为固定关节来修改URDF文件。
+    这在机器人模型中是有用的，
+
+    参数：
+        urdf_path: 修改URDF文件的路径。
+        fixed_joints: 转换从革命到固定的联合名称列表。
+        verbose: 是否打印有关正在进行的变化信息。
+    """
     with open(urdf_path) as file:
         content = file.read()
 
@@ -113,6 +136,16 @@ def change_revolute_to_fixed_regex(urdf_path: str, fixed_joints: list[str], verb
         urdf_path: Path to the URDF file to modify.
         fixed_joints: List of regular expressions matching joint names to convert from revolute to fixed.
         verbose: Whether to print information about the changes being made.
+    """
+    """在 URDF 文件中将Revolution 关节转换为固定关节。
+
+    这种函数通过将指定的转换关节转换为固定关节来修改URDF文件。
+    这在机器人模型中是有用的，
+
+    参数：
+        urdf_path: 修改URDF文件的路径。
+        fixed_joints: 常用表达式的列表，与共同名称相匹配，可从革命转换为固定。
+        verbose: 是否打印有关正在进行的变化信息。
     """
 
     with open(urdf_path) as file:

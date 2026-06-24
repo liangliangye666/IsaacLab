@@ -57,6 +57,30 @@ def image(
     Returns:
         The images produced at the last time-step
     """
+    """摄像头传感器的特定数据类型的图像。
+
+    如果标志:attr:`normalize`是True，则根据图像的
+    data-types:
+
+    - "rgb":将图像缩小到 (0， 1) 并以当前图像批量的平均值减去。
+    - "深度"或"distance_to_camera"或"distance_to_plane":以零取代无限值。
+
+    参数：
+        env: 摄像机的环境。
+        sensor_cfg: 需要的传感器。
+                    默认的SceneEntityCfg("tiled_camera")。
+        data_type: 从所需的相机中抽取的数据类型。
+                   默认的"rgb"。
+        convert_perspective_to_orthogonal: 是否直角化视角深度图像。
+                                           只有数据类型是"distance_to_camera"时才使用。
+                                           默认为 False。
+        normalize: 是否将图像正常化。
+                   这取决于选择的数据类型。
+                   默认为 True。
+
+    返回：
+        在最后一步制作的图像
+    """
     # extract the used quantities (to enable type-hinting)
     sensor: TiledCamera | Camera | RayCasterCamera = env.scene.sensors[sensor_cfg.name]
 
@@ -102,10 +126,12 @@ def image(
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group with state values."""
+        """对国家价值观的策略组的观测。"""
 
         actions = ObsTerm(func=mdp.last_action)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
@@ -124,6 +150,7 @@ class ObservationsCfg:
     @configclass
     class RGBCameraPolicyCfg(ObsGroup):
         """Observations for policy group with RGB images."""
+        """策略群体的观测以RGB图像。"""
 
         table_cam_normals = ObsTerm(
             func=image,
@@ -173,6 +200,7 @@ class ObservationsCfg:
     @configclass
     class SubtaskCfg(ObsGroup):
         """Observations for subtask group."""
+        """部分任务组的观测。"""
 
         grasp_1 = ObsTerm(
             func=mdp.object_grasped,

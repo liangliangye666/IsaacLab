@@ -4,5 +4,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Views for manipulating USD prims."""
+"""操作USDprims的视图。"""
 
 from .xform_prim_view import XformPrimView

@@ -12,5 +12,6 @@ from .drone_pose_command import DroneUniformPoseCommand
 @configclass
 class DroneUniformPoseCommandCfg(UniformPoseCommandCfg):
     """Configuration for uniform drone pose command generator."""
+    """机器人统一姿势命令生成器的配置。"""
 
     class_type: type = DroneUniformPoseCommand

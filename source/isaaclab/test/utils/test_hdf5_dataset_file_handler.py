@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -10,6 +11,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows from here."""
+"""休息，从这里开始。"""
 
 import os
 import shutil
@@ -24,6 +26,7 @@ from isaaclab.utils.datasets import EpisodeData, HDF5DatasetFileHandler
 
 def create_test_episode(device):
     """create a test episode with dummy data."""
+    """用假数据创建一个测试集。"""
     test_episode = EpisodeData()
 
     test_episode.seed = 0
@@ -45,6 +48,7 @@ def create_test_episode(device):
 @pytest.fixture
 def temp_dir():
     """Create a temporary directory for test datasets."""
+    """为测试数据集创建临时目录。"""
     temp_dir = tempfile.mkdtemp()
     yield temp_dir
     # cleanup after tests
@@ -53,6 +57,7 @@ def temp_dir():
 
 def test_create_dataset_file(temp_dir):
     """Test creating a new dataset file."""
+    """测试创建一个新的数据集文件。"""
     # create a dataset file given a file name with extension
     dataset_file_path = os.path.join(temp_dir, f"{uuid.uuid4()}.hdf5")
     dataset_file_handler = HDF5DatasetFileHandler()
@@ -75,6 +80,7 @@ def test_create_dataset_file(temp_dir):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_write_and_load_episode(temp_dir, device):
     """Test writing and loading an episode to and from the dataset file."""
+    """测试编写和从数据集文件中传输一个集。"""
     dataset_file_path = os.path.join(temp_dir, f"{uuid.uuid4()}.hdf5")
     dataset_file_handler = HDF5DatasetFileHandler()
     dataset_file_handler.create(dataset_file_path, "test_env_name")

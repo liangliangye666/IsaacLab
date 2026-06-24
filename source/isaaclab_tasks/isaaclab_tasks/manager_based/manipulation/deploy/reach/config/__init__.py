@@ -4,3 +4,4 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Configuration package for manipulation tasks that have been deployed on a real robot."""
+"""配置包用于实际机器人部署的操纵任务。"""

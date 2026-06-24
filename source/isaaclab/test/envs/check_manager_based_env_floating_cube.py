@@ -7,8 +7,11 @@
 This script demonstrates the base environment concept that combines a scene with an action,
 observation and event manager for a floating cube.
 """
+"""这本脚本展示了基础环境概念，它将一个场景与一个浮动立方体的动作，观测和事件管理器结合在一起。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -29,6 +32,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -53,6 +57,7 @@ from isaaclab.utils import configclass
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
     """Example scene configuration."""
+    """例如场景配置。"""
 
     # add terrain
     terrain = TerrainImporterCfg(prim_path="/World/ground", terrain_type="plane", debug_vis=False)
@@ -84,9 +89,11 @@ class MySceneCfg(InteractiveSceneCfg):
 
 class CubeActionTerm(ActionTerm):
     """Simple action term that implements a PD controller to track a target position."""
+    """简单的操作项，实现PD控制器来跟踪目标位置。"""
 
     _asset: RigidObject
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
 
     def __init__(self, cfg: ActionTermCfg, env: ManagerBasedEnv):
         # call super constructor
@@ -101,6 +108,8 @@ class CubeActionTerm(ActionTerm):
 
     """
     Properties.
+    """
+    """属性。
     """
 
     @property
@@ -118,6 +127,8 @@ class CubeActionTerm(ActionTerm):
 
     """
     Operations
+    """
+    """运营
     """
 
     def process_actions(self, actions: torch.Tensor):
@@ -138,6 +149,7 @@ class CubeActionTerm(ActionTerm):
 @configclass
 class CubeActionTermCfg(ActionTermCfg):
     """Configuration for the cube action term."""
+    """立方形动作项的配置。"""
 
     class_type: type = CubeActionTerm
 
@@ -149,6 +161,7 @@ class CubeActionTermCfg(ActionTermCfg):
 
 def base_position(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
     """Root linear velocity in the asset's root frame."""
+    """在资产的根框架中的根线性速度。"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_pos_w - env.scene.env_origins
@@ -162,6 +175,7 @@ def base_position(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg) -> torch.Tens
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     joint_pos = CubeActionTermCfg(asset_name="cube")
 
@@ -169,10 +183,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # cube velocity
         position = ObsTerm(func=base_position, params={"asset_cfg": SceneEntityCfg("cube")})
@@ -188,6 +204,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_base = EventTerm(
         func=mdp.reset_root_state_uniform,
@@ -212,6 +229,7 @@ class EventCfg:
 @configclass
 class CubeEnvCfg(ManagerBasedEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
+    """机动速度跟踪环境的配置。"""
 
     # Scene settings
     scene: MySceneCfg = MySceneCfg(num_envs=args_cli.num_envs, env_spacing=2.5, replicate_physics=True)
@@ -222,6 +240,7 @@ class CubeEnvCfg(ManagerBasedEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 2
         # simulation settings
@@ -231,6 +250,7 @@ class CubeEnvCfg(ManagerBasedEnvCfg):
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # setup base environment
     env = ManagerBasedEnv(cfg=CubeEnvCfg())

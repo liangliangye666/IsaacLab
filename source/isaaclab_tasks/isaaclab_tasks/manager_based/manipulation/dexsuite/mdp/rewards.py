@@ -21,11 +21,13 @@ if TYPE_CHECKING:
 
 def action_rate_l2_clamped(env: ManagerBasedRLEnv) -> torch.Tensor:
     """Penalize the rate of change of the actions using L2 squared kernel."""
+    """使用L2平方内核来惩罚操作的变化速度。"""
     return torch.sum(torch.square(env.action_manager.action - env.action_manager.prev_action), dim=1).clamp(-1000, 1000)
 
 
 def action_l2_clamped(env: ManagerBasedRLEnv) -> torch.Tensor:
     """Penalize the actions using L2 squared kernel."""
+    """使用L2平方内核进行惩罚。"""
     return torch.sum(torch.square(env.action_manager.action), dim=1).clamp(-1000, 1000)
 
 
@@ -39,6 +41,10 @@ def object_ee_distance(
 
     The reward is close to 1 when the maximum distance between the object and any end-effector body is small.
     """
+    """奖励使用端效应器距离的 tan核达到对象。
+
+    如果对象和任何最终效应体之间的最大距离很小，则奖励接近1。
+    """
     asset: RigidObject = env.scene[asset_cfg.name]
     object: RigidObject = env.scene[object_cfg.name]
     asset_pos = asset.data.body_pos_w[:, asset_cfg.body_ids]
@@ -49,6 +55,7 @@ def object_ee_distance(
 
 def contacts(env: ManagerBasedRLEnv, threshold: float) -> torch.Tensor:
     """Penalize undesired contacts as the number of violations that are above a threshold."""
+    """处罚不必要的联系人，因为违规行为超过门。"""
 
     thumb_contact_sensor: ContactSensor = env.scene.sensors["thumb_link_3_object_s"]
     index_contact_sensor: ContactSensor = env.scene.sensors["index_link_3_object_s"]
@@ -80,6 +87,7 @@ def success_reward(
     rot_std: float | None = None,
 ) -> torch.Tensor:
     """Reward success by comparing commanded pose to the object pose using tanh kernels on error."""
+    """通过使用tanh内核对错误进行命令姿势与对象姿势进行比较来奖励成功。"""
 
     asset: RigidObject = env.scene[asset_cfg.name]
     object: RigidObject = env.scene[align_asset_cfg.name]
@@ -100,6 +108,7 @@ def position_command_error_tanh(
     env: ManagerBasedRLEnv, std: float, command_name: str, asset_cfg: SceneEntityCfg, align_asset_cfg: SceneEntityCfg
 ) -> torch.Tensor:
     """Reward tracking of commanded position using tanh kernel, gated by contact presence."""
+    """奖励跟踪命令位置使用tanh核，通过接触存在。"""
 
     asset: RigidObject = env.scene[asset_cfg.name]
     object: RigidObject = env.scene[align_asset_cfg.name]
@@ -115,6 +124,7 @@ def orientation_command_error_tanh(
     env: ManagerBasedRLEnv, std: float, command_name: str, asset_cfg: SceneEntityCfg, align_asset_cfg: SceneEntityCfg
 ) -> torch.Tensor:
     """Reward tracking of commanded orientation using tanh kernel, gated by contact presence."""
+    """通过TANH内核进行命令导向的奖励跟踪，通过接触存在被关闭。"""
 
     asset: RigidObject = env.scene[asset_cfg.name]
     object: RigidObject = env.scene[align_asset_cfg.name]

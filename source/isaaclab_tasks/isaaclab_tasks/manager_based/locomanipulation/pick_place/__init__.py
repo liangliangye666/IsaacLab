@@ -5,6 +5,7 @@
 
 
 """This sub-module contains the functions that are specific to the locomanipulation environments."""
+"""该子模块包含特定于位置操纵环境的函数。"""
 
 import gymnasium as gym
 import os

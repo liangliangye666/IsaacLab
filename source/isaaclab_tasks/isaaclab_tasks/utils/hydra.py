@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module with utilities for the hydra configuration system."""
+"""配备水电配置系统的配件子模块。"""
 
 import functools
 from collections.abc import Callable
@@ -36,6 +37,18 @@ def register_task_to_hydra(
 
     Returns:
         A tuple containing the parsed environment and agent configuration objects.
+    """
+    """在Hydra配置存储器中注册任务配置。
+
+    这个函数根据任务名称解决了环境和代理的配置文件。
+    然后将配置记录在Hydra配置存储器中。
+
+    参数：
+        task_name: 任务的名称。
+        agent_cfg_entry_point: 解决代理配置文件的输入点键。
+
+    返回：
+        包含解析环境和代理配置对象的元组。
     """
     # load the configurations
     env_cfg = load_cfg_from_registry(task_name, "env_cfg_entry_point")
@@ -71,6 +84,17 @@ def hydra_task_config(task_name: str, agent_cfg_entry_point: str) -> Callable:
 
     Returns:
         The decorated function with the envrionment's and agent's configurations updated from command line arguments.
+    """
+    """装饰器来处理一个任务的Hydra配置。
+
+    这个装饰器将任务注册到Hydra，并从Hydra分析的命令行参数中更新环境和代理配置。
+
+    参数：
+        task_name: 任务的名称。
+        agent_cfg_entry_point: 解决代理配置文件的输入点键。
+
+    返回：
+        由命令行参数更新的装饰函数，包含环境和代理配置。
     """
 
     def decorator(func):

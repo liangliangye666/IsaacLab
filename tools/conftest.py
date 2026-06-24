@@ -25,6 +25,7 @@ def pytest_ignore_collect(collection_path, config):
 
 def capture_test_output_with_timeout(cmd, timeout, env):
     """Run a command with timeout and capture all output while streaming in real-time."""
+    """在实时播放时，运行一个命令。"""
     stdout_data = b""
     stderr_data = b""
 
@@ -104,6 +105,7 @@ def capture_test_output_with_timeout(cmd, timeout, env):
 
 def create_timeout_test_case(test_file, timeout, stdout_data, stderr_data):
     """Create a test case entry for a timeout test with captured logs."""
+    """创建一个试验案例，以捕获日志进行时间休止测试。"""
     test_suite = TestSuite(name=f"timeout_{os.path.splitext(os.path.basename(test_file))[0]}")
     test_case = TestCase(name="test_execution", classname=os.path.splitext(os.path.basename(test_file))[0])
 
@@ -131,6 +133,7 @@ def create_timeout_test_case(test_file, timeout, stdout_data, stderr_data):
 
 def run_individual_tests(test_files, workspace_root, isaacsim_ci):
     """Run each test file separately, ensuring one finishes before starting the next."""
+    """运行每个测试文件单独，确保一个在开始下一个之前完成。"""
     failed_tests = []
     test_status = {}
 
@@ -258,6 +261,7 @@ def run_individual_tests(test_files, workspace_root, isaacsim_ci):
 
 def pytest_sessionstart(session):
     """Intercept pytest startup to execute tests in the correct order."""
+    """拦截 pytest启动，以执行正确的测试。"""
     # Get the workspace root directory (one level up from tools)
     workspace_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     source_dirs = [

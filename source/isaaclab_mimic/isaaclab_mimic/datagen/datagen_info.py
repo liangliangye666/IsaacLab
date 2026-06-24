@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Defines the structure of information required from an environment for data generation processes."""
+"""定义数据生成过程中环境所需的信息结构。"""
 
 from copy import deepcopy
 
@@ -26,6 +27,22 @@ class DatagenInfo:
     - **subtask_term_signals**: Captures subtask completions signals.
     - **target_eef_pose**: Captures the target 6 dimensional poses for robot's end effector at each time step.
     - **gripper_action**:  Captures the gripper's state.
+    """
+    """定义数据生成过程中环境所需的信息结构。
+
+    The :类:`DatagenInfo`类将所有数据生成所需的基本数据元素集中在一个地方，
+    减少每当需要这些信息时，不断查询环境的总费用和复杂性。
+
+    为了实现灵活性，并非所有信息都必须存在。
+
+    核心元素:
+
+    - **eef_pose**:捕捉机器人的末端执行器的当前六维姿势。
+    - **object_poses**:捕捉场景中相关物体的六维姿势。
+    - **subtask_start_signals**:捕获子任务启动信号。 用于识别从演示中确切地启动子任务。
+    - **subtask_term_signals**:捕获子任务完成信号。
+    - **target_eef_pose**:每个时间步骤都捕捉到机器人的最终效应器的目标六维姿势。
+    - **gripper_action**: 捕获抓住器的状态。
     """
 
     def __init__(
@@ -52,6 +69,19 @@ class DatagenInfo:
             target_eef_pose (torch.Tensor or None): target end effector poses of shape [..., 4, 4]
             gripper_action (torch.Tensor or None): gripper actions of shape [..., D] where D
                 is the dimension of the gripper actuation action for the robot arm
+        """
+        """启动DatagenInfo对象。
+
+        参数：
+            eef_pose (torch.Tensor or None): 机器人末端执行器姿势的形状 [...， 4， 4]
+            object_poses (dict or None): 字典映射对象名称对象姿态的形状 [...， 4， 4]
+            subtask_start_signals (dict or None): 字典映射子任务名称向二进制指标 (0或 1) 确定子任务是否启动。
+                                                  在使用skillgen时需要这样做。
+                                                  字典中的每个值可以是 int， float，或 torch.Tensor的形状 [...， 1]。
+            subtask_term_signals (dict or None): 字典映射子任务名称向二进制指标 (0或 1) 确定子任务是否完成。
+                                                 字典中的每个值可以是 int， float，或 torch.Tensor的形状 [...， 1]。
+            target_eef_pose (torch.Tensor or None): 形状的目标末端执行器姿势 [...， 4， 4]
+            gripper_action (torch.Tensor or None): [...， D]形状的抓紧机动，其中D是机器人臂的抓紧机动动的尺寸
         """
         self.eef_pose = None
         if eef_pose is not None:
@@ -95,6 +125,11 @@ class DatagenInfo:
 
         Returns:
             A dictionary containing the same information as this instance.
+        """
+        """将此例转换为包含相同信息的字典。
+
+        返回：
+            一个包含与本案相同的信息的字典。
         """
         ret = dict()
         if self.eef_pose is not None:

@@ -53,15 +53,37 @@ class RigidObjectCollection(AssetBase):
 
     .. _`USD RigidBodyAPI`: https://openusd.org/dev/api/class_usd_physics_rigid_body_a_p_i.html
     """
+    """一个严格的物体收集类。
+
+    这一类代表了仿真中的刚性对象集合，使用批量``(env_ids， object_ids)`` API可访问和修改刚性对象的状态。
+
+    对于收藏中的每个硬体，资产的prim根必须有`USD RigidBodyAPI`_应用到它。
+    这种API用于定义硬体仿真性能。
+    在播放仿真时，物理引擎将自动登记硬体并创建相应的硬体句柄。
+    使用:attr:`root_physx_view`属性访问此句柄。
+
+    收藏中的固体对象通过:class:`~isaaclab.assets.RigidObjectCollectionCfg`配置类字典:attr:`~isaaclab.assets.RigidObject
+    CollectionCfg.rigid_objects`的键进行独特识别。
+    这与:class:`~isaaclab.assets.RigidObject`类不同，其中一个硬物体被Xform的名称标识，其中应用`USD RigidBodyAPI`_。
+    这对于硬体集合是不可能的，因为:attr:`~isaaclab.assets.RigidObjectCollectionCfg.rigid_objects`字典可以多次包含相同的硬体，导致模糊性。
+
+    .. _`USD RigidBodyAPI`: https://openusd.org/dev/api/class_usd_physics_rigid_body_a_p_i.html
+    """
 
     cfg: RigidObjectCollectionCfg
     """Configuration instance for the rigid object collection."""
+    """硬体集合的配置实例。"""
 
     def __init__(self, cfg: RigidObjectCollectionCfg):
         """Initialize the rigid object collection.
 
         Args:
             cfg: A configuration instance.
+        """
+        """启动硬体收集。
+
+        参数：
+            cfg: 一个配置实例。
         """
         # Note: We never call the parent constructor as it tries to call its own spawning which we don't want.
         # check that the config is valid
@@ -102,6 +124,8 @@ class RigidObjectCollection(AssetBase):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def data(self) -> RigidObjectCollectionData:
@@ -110,6 +134,7 @@ class RigidObjectCollection(AssetBase):
     @property
     def num_instances(self) -> int:
         """Number of instances of the collection."""
+        """收藏的实例数。"""
         return self.root_physx_view.count // self.num_objects
 
     @property
@@ -118,11 +143,16 @@ class RigidObjectCollection(AssetBase):
 
         This corresponds to the distinct number of rigid bodies in the collection.
         """
+        """收藏中的物品数量
+
+        这相当于集中的 distin体数量。
+        """
         return len(self.object_names)
 
     @property
     def object_names(self) -> list[str]:
         """Ordered names of objects in the rigid object collection."""
+        """在固体物体集合中排列的物体名称。"""
         return self._object_names_list
 
     @property
@@ -131,6 +161,12 @@ class RigidObjectCollection(AssetBase):
 
         Note:
             Use this view with caution. It requires handling of tensors in a specific way.
+        """
+        """硬体集合的硬体视图 (PhysX)。
+
+        说明：
+            用这种观点谨慎。
+            它需要以特定的方式处理子。
         """
         return self._root_physx_view  # type: ignore
 
@@ -143,6 +179,14 @@ class RigidObjectCollection(AssetBase):
         to this object are discarded. This is useful to apply forces that change all the time, things like drag forces
         for instance.
         """
+        """立刻的 w钥匙作曲家。
+
+        返回一个:class:`~isaaclab.utils.wrench_composer.WrenchComposer`实例。
+        添加或设置到此钥匙组件的关键仅适用于当前仿真步骤。
+        在仿真步骤结束时，将对此物体设置的 w钥匙丢弃。
+        这对于不断变化的力量来说是有用的。
+        for instance.
+        """
         return self._instantaneous_wrench_composer
 
     @property
@@ -153,10 +197,18 @@ class RigidObjectCollection(AssetBase):
         composer are persistent and are applied to the simulation at every step. This is useful to apply forces that
         are constant over a period of time, things like the thrust of a motor for instance.
         """
+        """一个永久的 w钥匙作曲家。
+
+        返回一个:class:`~isaaclab.utils.wrench_composer.WrenchComposer`实例。
+        加入或设置到这个匙组件的关键是持久的，并且在每一步都应用于仿真。
+        这对于在时间段内恒定的力量来说是有用的，例如电机的推力。
+        """
         return self._permanent_wrench_composer
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: torch.Tensor | None = None, object_ids: slice | torch.Tensor | None = None):
@@ -165,6 +217,14 @@ class RigidObjectCollection(AssetBase):
         Args:
             env_ids: The indices of the object to reset. Defaults to None (all instances).
             object_ids: The indices of the object to reset. Defaults to None (all objects).
+        """
+        """重置选定的环境和对象的所有内部缓冲器。
+
+        参数：
+            env_ids: 将重置的对象的索引。
+                     在 None 中默认设置 (所有实例)。
+            object_ids: 将重置的对象的索引。
+                        在 None (所有对象) 上默认设置。
         """
         # resolve all indices
         if env_ids is None:
@@ -181,6 +241,12 @@ class RigidObjectCollection(AssetBase):
         Note:
             We write external wrench to the simulation here since this function is called before the simulation step.
             This ensures that the external wrench is applied at every simulation step.
+        """
+        """在仿真中写出外部钥匙。
+
+        说明：
+            我们写出仿真的外部关键，因为这个函数在仿真步骤之前被调用。
+            这确保在每个仿真步骤上使用外部钥匙。
         """
         # write external wrench
         if self._instantaneous_wrench_composer.active or self._permanent_wrench_composer.active:
@@ -217,6 +283,8 @@ class RigidObjectCollection(AssetBase):
     """
     Operations - Finders.
     """
+    """搜索器
+    """
 
     def find_objects(
         self, name_keys: str | Sequence[str], preserve_order: bool = False
@@ -233,11 +301,25 @@ class RigidObjectCollection(AssetBase):
         Returns:
             A tuple containing the object indices and names.
         """
+        """根据名称键找到集合中的物体。
+
+        请查看:meth:`isaaclab.utils.string_utils.resolve_matching_names`函数，了解更多关于名称匹配的信息。
+
+        参数：
+            name_keys: 一个正则表达式或一个与物体名称相匹配的正则表达式列表。
+            preserve_order: 在输出中是否保留名称键的顺序。
+                            默认为 False。
+
+        返回：
+            包含物体索引和名称的元组。
+        """
         obj_ids, obj_names = string_utils.resolve_matching_names(name_keys, self.object_names, preserve_order)
         return torch.tensor(obj_ids, device=self.device), obj_names
 
     """
     Operations - Write to simulation.
+    """
+    """操作 - 写入仿真。
     """
 
     def write_object_state_to_sim(
@@ -255,6 +337,19 @@ class RigidObjectCollection(AssetBase):
             object_state: Object state in simulation frame. Shape is (len(env_ids), len(object_ids), 13).
             env_ids: Environment indices. If None, then all indices are used.
             object_ids: Object indices. If None, then all indices are used.
+        """
+        """设置对象状态在选定的环境和对象索引上。
+
+        对象状态包括卡特西亚位置，在 (w，x，y，z) 中的四元数定向以及线性和角的速度。
+        所有数量都在仿真框架中。
+
+        参数：
+            object_state: 在仿真框架中对象状态。
+                          形状是 (len(env_ids)，len(object_ids)，13。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+            object_ids: 目标索引。
+                        如果 None，则使用所有索引。
         """
         self.write_object_link_pose_to_sim(object_state[..., :7], env_ids=env_ids, object_ids=object_ids)
         self.write_object_com_velocity_to_sim(object_state[..., 7:], env_ids=env_ids, object_ids=object_ids)
@@ -275,6 +370,19 @@ class RigidObjectCollection(AssetBase):
             env_ids: Environment indices. If None, then all indices are used.
             object_ids: Object indices. If None, then all indices are used.
         """
+        """在仿真中设置对象质量状态中心，
+
+        对象状态包括卡特西亚位置，在 (w，x，y，z) 中的四元数定向以及线性和角的速度。
+        所有数量都在仿真框架中。
+
+        参数：
+            object_state: 在仿真框架中对象状态。
+                          形状是 (len(env_ids)，len(object_ids)，13。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+            object_ids: 目标索引。
+                        如果 None，则使用所有索引。
+        """
         self.write_object_com_pose_to_sim(object_state[..., :7], env_ids=env_ids, object_ids=object_ids)
         self.write_object_com_velocity_to_sim(object_state[..., 7:], env_ids=env_ids, object_ids=object_ids)
 
@@ -294,6 +402,19 @@ class RigidObjectCollection(AssetBase):
             env_ids: Environment indices. If None, then all indices are used.
             object_ids: Object indices. If None, then all indices are used.
         """
+        """在仿真中设置对象链接状态在选定的环境索引上。
+
+        对象状态包括卡特西亚位置，在 (w，x，y，z) 中的四元数定向以及线性和角的速度。
+        所有数量都在仿真框架中。
+
+        参数：
+            object_state: 在仿真框架中对象状态。
+                          形状是 (len(env_ids)，len(object_ids)，13。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+            object_ids: 目标索引。
+                        如果 None，则使用所有索引。
+        """
         self.write_object_link_pose_to_sim(object_state[..., :7], env_ids=env_ids, object_ids=object_ids)
         self.write_object_link_velocity_to_sim(object_state[..., 7:], env_ids=env_ids, object_ids=object_ids)
 
@@ -312,6 +433,18 @@ class RigidObjectCollection(AssetBase):
             env_ids: Environment indices. If None, then all indices are used.
             object_ids: Object indices. If None, then all indices are used.
         """
+        """在仿真中设置对象姿势在选定的环境和对象索引上。
+
+        对象姿势包括在 (w，x，y，z) 中的卡特西亚位置和四元数方向。
+
+        参数：
+            object_pose: 在仿真框架中设置物体。
+                         形状是 (len(env_ids)，len(object_ids)，7)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+            object_ids: 目标索引。
+                        如果 None，则使用所有索引。
+        """
         self.write_object_link_pose_to_sim(object_pose, env_ids=env_ids, object_ids=object_ids)
 
     def write_object_link_pose_to_sim(
@@ -328,6 +461,18 @@ class RigidObjectCollection(AssetBase):
             object_pose: Object poses in simulation frame. Shape is (len(env_ids), len(object_ids), 7).
             env_ids: Environment indices. If None, then all indices are used.
             object_ids: Object indices. If None, then all indices are used.
+        """
+        """在仿真中设置对象姿势在选定的环境和对象索引上。
+
+        对象姿势包括在 (w，x，y，z) 中的卡特西亚位置和四元数方向。
+
+        参数：
+            object_pose: 在仿真框架中设置物体。
+                         形状是 (len(env_ids)，len(object_ids)，7)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+            object_ids: 目标索引。
+                        如果 None，则使用所有索引。
         """
         # resolve all indices
         # -- env_ids
@@ -382,6 +527,19 @@ class RigidObjectCollection(AssetBase):
             env_ids: Environment indices. If None, then all indices are used.
             object_ids: Object indices. If None, then all indices are used.
         """
+        """在仿真中设置选择的环境索引上按质量姿势的对象中心。
+
+        对象姿势包括在 (w，x，y，z) 中的卡特西亚位置和四元数方向。
+        导向是惯性的主要轴的导向。
+
+        参数：
+            object_pose: 在仿真框架中设置物体。
+                         形状是 (len(env_ids)，len(object_ids)，7)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+            object_ids: 目标索引。
+                        如果 None，则使用所有索引。
+        """
         # resolve all indices
         # -- env_ids
         if env_ids is None:
@@ -424,6 +582,16 @@ class RigidObjectCollection(AssetBase):
             env_ids: Environment indices. If None, then all indices are used.
             object_ids: Object indices. If None, then all indices are used.
         """
+        """在仿真中设置对象速度在选定的环境和对象索引上。
+
+        参数：
+            object_velocity: 在仿真框架中的物体速度。
+                             形状是 (len(env_ids)，len(object_ids)，6)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+            object_ids: 目标索引。
+                        如果 None，则使用所有索引。
+        """
         self.write_object_com_velocity_to_sim(object_velocity, env_ids=env_ids, object_ids=object_ids)
 
     def write_object_com_velocity_to_sim(
@@ -438,6 +606,16 @@ class RigidObjectCollection(AssetBase):
             object_velocity: Object velocities in simulation frame. Shape is (len(env_ids), len(object_ids), 6).
             env_ids: Environment indices. If None, then all indices are used.
             object_ids: Object indices. If None, then all indices are used.
+        """
+        """在仿真中设置选择的环境和对象索引上的质量速度对象中心。
+
+        参数：
+            object_velocity: 在仿真框架中的物体速度。
+                             形状是 (len(env_ids)，len(object_ids)，6)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+            object_ids: 目标索引。
+                        如果 None，则使用所有索引。
         """
         # resolve all indices
         # -- env_ids
@@ -480,6 +658,19 @@ class RigidObjectCollection(AssetBase):
             env_ids: Environment indices. If None, then all indices are used.
             object_ids: Object indices. If None, then all indices are used.
         """
+        """在仿真中设置对象链接速度在选定的环境索引上。
+
+        速度包括线性速度 (x，y，z) 和角速度 (x，y，z) 在这个顺序中。
+        NOTE: 这设定了对象的框架的速度，而不是对象的质量中心。
+
+        参数：
+            object_velocity: 在仿真框架中的物体速度。
+                             形状是 (len(env_ids)，len(object_ids)，6)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+            object_ids: 目标索引。
+                        如果 None，则使用所有索引。
+        """
         # resolve all indices
         # -- env_ids
         if env_ids is None:
@@ -508,6 +699,8 @@ class RigidObjectCollection(AssetBase):
 
     """
     Operations - Setters.
+    """
+    """运营 - 设置器。
     """
 
     def set_external_force_and_torque(
@@ -547,6 +740,39 @@ class RigidObjectCollection(AssetBase):
             env_ids: Environment indices to apply external wrench to. Defaults to None (all instances).
             is_global: Whether to apply the external wrench in the global frame. Defaults to False. If set to False,
                 the external wrench is applied in the link frame of the bodies.
+        """
+        """设置外部力和扭矩应在物体的本地框架中应用。
+
+        在许多应用中，我们希望在一段时间内 (例如，在策略控制期间) 保持对硬体的外力稳定。
+        这种功能使我们能够将外部力和扭矩存储在缓冲器中，然后在每一步都应用于仿真。
+
+        .. 谨慎::
+            如果函数被用空力和扭矩调用，则该函数将外部钥匙被禁用在仿真中。
+
+            .. code-block:: python
+
+                # example of disabling external wrench
+                asset.set_external_force_and_torque(forces=torch.zeros(0, 0, 3), torques=torch.zeros(0, 0, 3))
+
+        .. 说明::
+            这项函数不适用于仿真的外部关键。
+            它只用所需的值填充缓冲器。
+            在仿真步骤之前，请调用:meth:`write_data_to_sim`函数。
+
+        参数：
+            forces: 在身体的局部框架中，
+                    形状是 (len(env_ids)，len(object_ids)，3)。
+            torques: 身体的局部体内外部扭矩。
+                     形状是 (len(env_ids)，len(object_ids)，3)。
+            positions: 在尸体的局部框架中，外部钥匙的位置。
+                       形状是 (len(env_ids)，len(object_ids)，3)。
+            object_ids: 对象指标将外部钥匙应用于。
+                        在 None (所有对象) 上默认设置。
+            env_ids: 环境索引应使用外部匙。
+                     在 None 中默认设置 (所有实例)。
+            is_global: 在全球框架中是否应使用外部 w钥匙。
+                       默认为 False。
+                       如果设置为False，则将外部钥匙应用在车身的链框中。
         """
         logger.warning(
             "The function 'set_external_force_and_torque' will be deprecated in a future release. Please"
@@ -589,6 +815,8 @@ class RigidObjectCollection(AssetBase):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def reshape_view_to_data(self, data: torch.Tensor) -> torch.Tensor:
         """Reshapes and arranges the data coming from the :attr:`root_physx_view` to
@@ -599,6 +827,16 @@ class RigidObjectCollection(AssetBase):
 
         Returns:
             The reshaped data. Shape is (num_instances, num_objects, data_dim).
+        """
+        """从:attr:`root_physx_view`到 (num_instances，num_objects，data_dim) 的数据进行重塑和排列。
+
+        参数：
+            data: 这些数据来自:attr:`root_physx_view`。
+                  形状是 (num_instances * num_objects， data_dim)。
+
+        返回：
+            改造的数据。
+            形状是 (num_instances，num_objects，data_dim)。
         """
         return torch.einsum("ijk -> jik", data.reshape(self.num_objects, self.num_instances, -1))
 
@@ -611,10 +849,22 @@ class RigidObjectCollection(AssetBase):
         Returns:
             The reshaped data. Shape is (num_instances * num_objects, data_dim).
         """
+        """调整和调整数据，使其与:attr:`root_physx_view`的数据一致。
+
+        参数：
+            data: 这些数据要重新塑造。
+                  形状是 (num_instances，num_objects，data_dim)。
+
+        返回：
+            改造的数据。
+            形状是 (num_instances * num_objects， data_dim)。
+        """
         return torch.einsum("ijk -> jik", data).reshape(self.num_objects * self.num_instances, *data.shape[2:])
 
     """
     Internal helper.
+    """
+    """内部助理。
     """
 
     def _initialize_impl(self):
@@ -694,6 +944,7 @@ class RigidObjectCollection(AssetBase):
 
     def _create_buffers(self):
         """Create buffers for storing data."""
+        """创建存储数据的缓冲器。"""
         # constants
         self._ALL_ENV_INDICES = torch.arange(self.num_instances, dtype=torch.long, device=self.device)
         self._ALL_OBJ_INDICES = torch.arange(self.num_objects, dtype=torch.long, device=self.device)
@@ -711,6 +962,7 @@ class RigidObjectCollection(AssetBase):
 
     def _process_cfg(self):
         """Post processing of configuration parameters."""
+        """配置参数后处理。"""
         # default state
         # -- object state
         default_object_states = []
@@ -743,6 +995,15 @@ class RigidObjectCollection(AssetBase):
         Returns:
             The view indices.
         """
+        """将环境和对象索引转换为与:attr:`root_physx_view`数据一致的索引。
+
+        参数：
+            env_ids: 环境索引
+            object_ids: 目标索引。
+
+        返回：
+            视图索引。
+        """
         # the order is env_0/object_0, env_0/object_1, env_0/object_..., env_1/object_0, env_1/object_1, ...
         # return a flat tensor of indices
         if isinstance(object_ids, slice):
@@ -754,9 +1015,12 @@ class RigidObjectCollection(AssetBase):
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         # call parent
         super()._invalidate_initialize_callback(event)
         # set all existing views to None to invalidate them
@@ -770,6 +1034,14 @@ class RigidObjectCollection(AssetBase):
 
         Note:
             This function is called when the prim is deleted.
+        """
+        """在删除prim时，将反调无效和删除。
+
+        参数：
+            prim_path: 删除的prim的路径。
+
+        说明：
+            当删除prim时，这个函数会被调用。
         """
         if prim_path == "/":
             self._clear_callbacks()

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -21,6 +23,7 @@ from isaaclab.sim import SimulationContext
 
 class DummyEnv:
     """Minimal mutable env stub for the termination manager tests."""
+    """终止管理器测试的最小可变env。"""
 
     def __init__(self, num_envs: int, device: str, sim: SimulationContext):
         self.num_envs = num_envs
@@ -31,18 +34,21 @@ class DummyEnv:
 
 def fail_every_5_steps(env) -> torch.Tensor:
     """Returns True for all envs when counter is a positive multiple of 5."""
+    """返回所有envs的True，当计数是5的正倍数。"""
     cond = env.counter > 0 and (env.counter % 5 == 0)
     return torch.full((env.num_envs,), cond, dtype=torch.bool, device=env.device)
 
 
 def fail_every_10_steps(env) -> torch.Tensor:
     """Returns True for all envs when counter is a positive multiple of 10."""
+    """返回所有envs的True，当计数是10的正倍数。"""
     cond = env.counter > 0 and (env.counter % 10 == 0)
     return torch.full((env.num_envs,), cond, dtype=torch.bool, device=env.device)
 
 
 def fail_every_3_steps(env) -> torch.Tensor:
     """Returns True for all envs when counter is a positive multiple of 3."""
+    """返回所有envs的True，当计数是正倍数为3。"""
     cond = env.counter > 0 and (env.counter % 3 == 0)
     return torch.full((env.num_envs,), cond, dtype=torch.bool, device=env.device)
 
@@ -76,6 +82,10 @@ def test_term_transitions_and_persistence(env):
     """Concise transitions: single fire, persist, switch, both, persist.
 
     Uses 3-step and 5-step terms and verifies current-step values and last-episode persistence.
+    """
+    """简短的过渡:单次火，持续，切换，两者，持续。
+
+    使用3步和5步项，验证当前步骤值和最后一集的持久性。
     """
     cfg = {
         "term_3": TerminationTermCfg(func=fail_every_3_steps, time_out=False),

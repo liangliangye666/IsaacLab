@@ -16,6 +16,7 @@ from .state_file import StateFile
 
 class ContainerInterface:
     """A helper class for managing Isaac Lab containers."""
+    """帮助管理艾萨克实验室的集装箱。"""
 
     def __init__(
         self,
@@ -48,6 +49,25 @@ class ContainerInterface:
                 suffix is set to the empty string. A hyphen is inserted in between the profile and the suffix if
                 the suffix is a nonempty string.  For example, if "base" is passed to profile, and "custom" is
                 passed to suffix, then the produced docker image and container will be named ``isaac-lab-base-custom``.
+        """
+        """启动容器界面与给出的参数。
+
+        参数：
+            context_dir: 对于Docker操作的文本目录。
+            profile: 容器的个人资料名称。
+                     默认的"基础"。
+            yamls: 扩展``docker-compose.yaml``设置的 yaml 文件列表。
+                   这些项按照所提供的顺序进行扩展。
+                   在 None 中默认设置，在这种情况下，没有添加其他 yaml 文件。
+            envs: 扩展``.env.base``文件的环境变量文件列表。
+                  这些项按照所提供的顺序进行扩展。
+                  在 None 中默认设置，此时没有添加任何额外的环境变量文件。
+            statefile: 管理状态变量的:class:`Statefile`类的一个实例。
+                       在 None 中默认设置，在这种情况下，通过在 ``context_dir/.container.cfg`` 路径上阅读配置文件创建一个新的配置对象。
+            suffix: 可选的码头图像和容器名称后。
+                    设置为None，在这种情况下，Docker名称后尾设置为空串。
+                    如果后音是不空字符串，则将字符串插入配置文件和后音之间。
+                    例如，如果将"base"转移到配置文件，并将"custom"转移到后音，则生成的码头图像和容器将被命名为``isaac-lab-base-custom``。
         """
         # set the context directory
         self.context_dir = context_dir
@@ -92,6 +112,7 @@ class ContainerInterface:
 
     def print_info(self):
         """Print the container interface information."""
+        """打印容器接口信息。"""
         print("=" * 60)
         print(f"{'DOCKER CONTAINER INFO':^60}")  # Centered title
         print("=" * 60)
@@ -113,12 +134,19 @@ class ContainerInterface:
     """
     Operations.
     """
+    """操作。
+    """
 
     def is_container_running(self) -> bool:
         """Check if the container is running.
 
         Returns:
             True if the container is running, otherwise False.
+        """
+        """检查容器是否运行。
+
+        返回：
+            True如果容器运行，否则False。
         """
         status = subprocess.run(
             ["docker", "container", "inspect", "-f", "{{.State.Status}}", self.container_name],
@@ -134,11 +162,17 @@ class ContainerInterface:
         Returns:
             True if the image exists, otherwise False.
         """
+        """检查是否存在Docker图像。
+
+        返回：
+            True如果图像存在，否则False。
+        """
         result = subprocess.run(["docker", "image", "inspect", self.image_name], capture_output=True, text=True)
         return result.returncode == 0
 
     def build(self):
         """Build the Docker image."""
+        """建立一个Docker形象。"""
         print("[INFO] Building the docker image for the profile 'base'...\n")
         # build the image for the base profile
         cmd = (
@@ -166,6 +200,7 @@ class ContainerInterface:
 
     def start(self):
         """Build and start the Docker container using the Docker compose command."""
+        """使用Docker编写命令构建和启动Docker容器。"""
         print(
             f"[INFO] Building the docker image and starting the container '{self.container_name}' in the"
             " background...\n"
@@ -203,6 +238,11 @@ class ContainerInterface:
         Raises:
             RuntimeError: If the container is not running.
         """
+        """通过执行一个 bash弹进入运行容器。
+
+        异常：
+            RuntimeError: 如果容器不运行。
+        """
         if self.is_container_running():
             print(f"[INFO] Entering the existing '{self.container_name}' container in a bash session...\n")
             cmd = (
@@ -216,6 +256,7 @@ class ContainerInterface:
 
     def stop(self):
         """Stop the running container using the Docker compose command."""
+        """使用Docker编写命令停止运行容器。"""
         if self.is_container_running():
             print(f"[INFO] Stopping the launched docker container '{self.container_name}'...\n")
             # stop running services
@@ -238,6 +279,15 @@ class ContainerInterface:
 
         Raises:
             RuntimeError: If the container is not running.
+        """
+        """复制从运行容器到主机。
+
+        参数：
+            output_dir: 复制这些文物的目录。
+                        在 None 中默认设置，在这种情况下使用文本目录。
+
+        异常：
+            RuntimeError: 如果容器不运行。
         """
         if self.is_container_running():
             print(f"[INFO] Copying artifacts from the '{self.container_name}' container...\n")
@@ -281,6 +331,15 @@ class ContainerInterface:
             output_yaml: The path to the yaml file where the configuration is written to. Defaults
                 to None, in which case the configuration is printed to the terminal.
         """
+        """根据通过的 yamls 和环境文件编写配置。
+
+        如果:attr:`output_yaml`不是None，则配置将写入文件中。
+        否则，将其打印到终端。
+
+        参数：
+            output_yaml: 设置的 yaml 文件的路径。
+                         在 None 中，默认设置，在这种情况下，配置将打印到终端。
+        """
         print("[INFO] Configuring the passed options into a yaml...\n")
 
         # resolve the output argument
@@ -296,6 +355,8 @@ class ContainerInterface:
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _resolve_image_extension(self, yamls: list[str] | None = None, envs: list[str] | None = None):
         """Resolve the image extension by setting up YAML files, profiles, and environment files for the
@@ -306,6 +367,14 @@ class ContainerInterface:
                 they are provided.
             envs: A list of environment variable files to extend the ``.env.base`` file. These are extended in the order
                 they are provided.
+        """
+        """通过为Docker编写命令设置YAML文件，个人资料和环境文件来解决图像扩展。
+
+        参数：
+            yamls: 扩展``docker-compose.yaml``设置的 yaml 文件列表。
+                   这些项按照所提供的顺序进行扩展。
+            envs: 扩展``.env.base``文件的环境变量文件列表。
+                  这些项按照所提供的顺序进行扩展。
         """
         self.add_yamls = ["--file", "docker-compose.yaml"]
         self.add_profiles = ["--profile", f"{self.profile}"]
@@ -331,6 +400,11 @@ class ContainerInterface:
         Based on the passed ".env" files, this function reads the environment variables and stores them in a dictionary.
         The environment variables are read in order and overwritten if there are name conflicts, mimicking the behavior
         of Docker compose.
+        """
+        """从 .env文件中解析环境变量。
+
+        基于传递的 ".env"文件，该函数会读取环境变量并存储它们在字典中。
+        如果有名称冲突，则环境变量会按顺序读取并重写，模仿Docker构成的行为。
         """
         self.dot_vars: dict[str, Any] = {}
 

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 import pytest
@@ -25,6 +27,7 @@ from isaaclab.utils.string import to_camel_case
 @pytest.fixture(autouse=True)
 def sim():
     """Setup and teardown for each test."""
+    """每次测试的设置和拆除。"""
     # Setup: Create a new stage
     sim_utils.create_new_stage()
     # Simulation time-step
@@ -46,6 +49,7 @@ def sim():
 
 def test_spawn_disk_light(sim):
     """Test spawning a disk light source."""
+    """测试产生磁盘光源。"""
     cfg = sim_utils.DiskLightCfg(
         color=(0.1, 0.1, 0.1), enable_color_temperature=True, color_temperature=5500, intensity=100, radius=20.0
     )
@@ -61,6 +65,7 @@ def test_spawn_disk_light(sim):
 
 def test_spawn_distant_light(sim):
     """Test spawning a distant light."""
+    """测试产生远光。"""
     cfg = sim_utils.DistantLightCfg(
         color=(0.1, 0.1, 0.1), enable_color_temperature=True, color_temperature=5500, intensity=100, angle=20
     )
@@ -76,6 +81,7 @@ def test_spawn_distant_light(sim):
 
 def test_spawn_dome_light(sim):
     """Test spawning a dome light source."""
+    """测试产生圆顶光源。"""
     cfg = sim_utils.DomeLightCfg(
         color=(0.1, 0.1, 0.1), enable_color_temperature=True, color_temperature=5500, intensity=100
     )
@@ -91,6 +97,7 @@ def test_spawn_dome_light(sim):
 
 def test_spawn_cylinder_light(sim):
     """Test spawning a cylinder light source."""
+    """测试产出 light光源。"""
     cfg = sim_utils.CylinderLightCfg(
         color=(0.1, 0.1, 0.1), enable_color_temperature=True, color_temperature=5500, intensity=100, radius=20.0
     )
@@ -106,6 +113,7 @@ def test_spawn_cylinder_light(sim):
 
 def test_spawn_sphere_light(sim):
     """Test spawning a sphere light source."""
+    """测试产生球体光源。"""
     cfg = sim_utils.SphereLightCfg(
         color=(0.1, 0.1, 0.1), enable_color_temperature=True, color_temperature=5500, intensity=100, radius=20.0
     )
@@ -122,6 +130,8 @@ def test_spawn_sphere_light(sim):
 """
 Helper functions.
 """
+"""辅助函数。
+"""
 
 
 def _validate_properties_on_prim(prim: Usd.Prim, cfg: sim_utils.LightCfg):
@@ -130,6 +140,12 @@ def _validate_properties_on_prim(prim: Usd.Prim, cfg: sim_utils.LightCfg):
     Args:
         prim: The prim.
         cfg: The configuration for the light source.
+    """
+    """验证prim的特性。
+
+    参数：
+        prim: 这是一辆prim。
+        cfg: 光源的配置。
     """
     # default list of params to skip
     non_usd_params = ["func", "prim_type", "visible", "semantic_tags", "copy_from_source"]

@@ -50,6 +50,32 @@ def spawn_preview_surface(prim_path: str, cfg: visual_materials_cfg.PreviewSurfa
     Raises:
         ValueError: If a prim already exists at the given path.
     """
+    """创建预览表面prim，并将设置覆盖给定的配置。
+
+    一个预览表面是一个基于物理的表面，同时支持 * 镜像 * 和 * 金属 * 工作流。
+    所有颜色输入都在线性颜色空间 (RGB)。
+    更多信息请参见`documentation <https://openusd.org/release/spec_usdpreviewsurface.html>`__。
+
+    函数调用USD命令`CreateShaderPrimFromSdrCommand`_来创建prim。
+
+    .. _CreateShaderPrimFromSdrCommand: https://docs.omniverse.nvidia.com/kit/docs/omni.usd/latest/omni.usd.commands/omni.usd.commands.CreateShaderPrimFromSdrCommand.html
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
+    """
     # get stage handle
     stage = get_current_stage()
 
@@ -125,6 +151,34 @@ def spawn_from_mdl_file(
 
     Raises:
         ValueError: If a prim already exists at the given path.
+    """
+    """在 MDL 文件中加载一个材料，并将设置覆盖给定的配置。
+
+    NVIDIA现在`Material Definition Language (MDL) <https://www.nvidia.com/en-us/design-visualization/techn
+    ologies/material-definition-language/>`物理基础材料的定义语言。
+    MDL文件格式是一个二进制格式，可以通过Omniverse和其他应用程序，如Adobe Substance Designer来加载。
+    了解更多关于MDL看到`documentation
+    <https://docs.omniverse.nvidia.com/materials-and-rendering/latest/materials.html>`_。
+
+    函数调用USD命令`CreateMdlMaterialPrim`_来创建prim。
+
+    .. _CreateMdlMaterialPrim: https://docs.omniverse.nvidia.com/kit/docs/omni.usd/latest/omni.usd.commands/omni.usd.commands.CreateMdlMaterialPrimCommand.html
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
     """
     # get stage handle
     stage = get_current_stage()

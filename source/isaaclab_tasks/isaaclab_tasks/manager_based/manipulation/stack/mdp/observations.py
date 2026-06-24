@@ -25,6 +25,7 @@ def cube_positions_in_world_frame(
     cube_3_cfg: SceneEntityCfg = SceneEntityCfg("cube_3"),
 ) -> torch.Tensor:
     """The position of the cubes in the world frame."""
+    """在世界框架中立方体的位置。"""
     cube_1: RigidObject = env.scene[cube_1_cfg.name]
     cube_2: RigidObject = env.scene[cube_2_cfg.name]
     cube_3: RigidObject = env.scene[cube_3_cfg.name]
@@ -39,6 +40,7 @@ def instance_randomize_cube_positions_in_world_frame(
     cube_3_cfg: SceneEntityCfg = SceneEntityCfg("cube_3"),
 ) -> torch.Tensor:
     """The position of the cubes in the world frame."""
+    """在世界框架中立方体的位置。"""
     if not hasattr(env, "rigid_objects_in_focus"):
         return torch.full((env.num_envs, 9), fill_value=-1)
 
@@ -67,6 +69,7 @@ def cube_orientations_in_world_frame(
     cube_3_cfg: SceneEntityCfg = SceneEntityCfg("cube_3"),
 ):
     """The orientation of the cubes in the world frame."""
+    """世界框架中的立方体的方向。"""
     cube_1: RigidObject = env.scene[cube_1_cfg.name]
     cube_2: RigidObject = env.scene[cube_2_cfg.name]
     cube_3: RigidObject = env.scene[cube_3_cfg.name]
@@ -81,6 +84,7 @@ def instance_randomize_cube_orientations_in_world_frame(
     cube_3_cfg: SceneEntityCfg = SceneEntityCfg("cube_3"),
 ) -> torch.Tensor:
     """The orientation of the cubes in the world frame."""
+    """世界框架中的立方体的方向。"""
     if not hasattr(env, "rigid_objects_in_focus"):
         return torch.full((env.num_envs, 9), fill_value=-1)
 
@@ -123,6 +127,9 @@ def object_obs(
         cube_1 to cube_2,
         cube_2 to cube_3,
         cube_1 to cube_3,
+    """
+    """对象观测 (世界框架):cube_1 pos，cube_1 quat，cube_2 pos，cube_2 quat，cube_3 pos，cube_3
+    quat，抓到cube_1，抓到cube_2，抓到cube_3，cube_1到cube_2，cube_2到cube_3，cube_1到cube_3，
     """
     cube_1: RigidObject = env.scene[cube_1_cfg.name]
     cube_2: RigidObject = env.scene[cube_2_cfg.name]
@@ -187,6 +194,9 @@ def instance_randomize_object_obs(
         cube_1 to cube_2,
         cube_2 to cube_3,
         cube_1 to cube_3,
+    """
+    """对象观测 (世界框架):cube_1 pos，cube_1 quat，cube_2 pos，cube_2 quat，cube_3 pos，cube_3
+    quat，抓到cube_1，抓到cube_2，抓到cube_3，cube_1到cube_2，cube_2到cube_3，cube_1到cube_3，
     """
     if not hasattr(env, "rigid_objects_in_focus"):
         return torch.full((env.num_envs, 9), fill_value=-1)
@@ -265,6 +275,8 @@ def gripper_pos(
     """
     Obtain the versatile gripper position of both Gripper and Suction Cup.
     """
+    """获得Gripper和Suction Cup的多功能抓住位置。
+    """
     robot: Articulation = env.scene[robot_cfg.name]
 
     if hasattr(env.scene, "surface_grippers") and len(env.scene.surface_grippers) > 0:
@@ -297,6 +309,7 @@ def object_grasped(
     diff_threshold: float = 0.06,
 ) -> torch.Tensor:
     """Check if an object is grasped by the specified robot."""
+    """检查指定的机器人是否抓住物体。"""
 
     robot: Articulation = env.scene[robot_cfg.name]
     ee_frame: FrameTransformer = env.scene[ee_frame_cfg.name]
@@ -347,6 +360,7 @@ def object_stacked(
     height_diff: float = 0.0468,
 ) -> torch.Tensor:
     """Check if an object is stacked by the specified robot."""
+    """检查一个对象是否被指定机器人堆叠。"""
 
     robot: Articulation = env.scene[robot_cfg.name]
     upper_object: RigidObject = env.scene[upper_object_cfg.name]
@@ -401,6 +415,7 @@ def cube_poses_in_base_frame(
     return_key: Literal["pos", "quat", None] = None,
 ) -> torch.Tensor:
     """The position and orientation of the cubes in the robot base frame."""
+    """机器人基架中的立方体的位置和方向"""
 
     cube_1: RigidObject = env.scene[cube_1_cfg.name]
     cube_2: RigidObject = env.scene[cube_2_cfg.name]
@@ -459,6 +474,11 @@ def object_abs_obs_in_base_frame(
         gripper pos,
         gripper quat,
     """
+    """对象ABS观测 (在基架中):删除相对观测，并将ABS抓紧机器人基架中加入cube_1抓紧机器人，cube_1抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_3抓紧机器人，cub
+    e_3抓紧机器人，cube_3抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_2抓
+    紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_3抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器人，cube_3抓紧机器人
+    ，cube_3抓紧机器人，cube_2抓紧机器人，cube_2抓紧机器
+    """
     cube_1: RigidObject = env.scene[cube_1_cfg.name]
     cube_2: RigidObject = env.scene[cube_2_cfg.name]
     cube_3: RigidObject = env.scene[cube_3_cfg.name]
@@ -514,6 +534,8 @@ def ee_frame_pose_in_base_frame(
 ) -> torch.Tensor:
     """
     The end effector pose in the robot base frame.
+    """
+    """在机器人基架中，最终效应器姿势。
     """
     ee_frame: FrameTransformer = env.scene[ee_frame_cfg.name]
     ee_frame_pos_w = ee_frame.data.target_pos_w[:, 0, :]

@@ -42,8 +42,24 @@ Args:
 
 This file has been modified from the original robomimic version to integrate with IsaacLab.
 """
+"""从事收集的数据中获取培训策略的主要入口点。
+
+这个脚本加载数据集 (s)，根据指定算法创建模型，并训练模型。
+它支持对各种环境的训练，
+
+参数：
+    algo: 运行的算法名称。
+    task: 环境名称。
+    name: 如果提供，请在配置中定义的实验名称。
+    dataset: 如果提供，请在配置中定义的数据集路径。
+    log_dir: 保存日志的目录。
+    normalize_training_actions: 在培训数据中是否将动作正常化。
+
+这份文件已从原始的Robomimic版本修改，以集成到IsaacLab。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -52,6 +68,7 @@ app_launcher = AppLauncher(headless=True)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import argparse
 import importlib
@@ -92,6 +109,15 @@ def normalize_hdf5_actions(config: Config, log_dir: str) -> str:
 
     Returns:
         Path to the normalized dataset.
+    """
+    """在hdf5数据集中的操作将正常化到 [-1， 1] 范围。
+
+    参数：
+        config: 包含数据集路径的配置对象。
+        log_dir: 保存正常化参数的目录。
+
+    返回：
+        进入正常数据集的路径。
     """
     base, ext = os.path.splitext(config.train.data)
     normalized_path = base + "_normalized" + ext
@@ -138,6 +164,15 @@ def train(config: Config, device: str, log_dir: str, ckpt_dir: str, video_dir: s
         log_dir: Directory to save logs.
         ckpt_dir: Directory to save checkpoints.
         video_dir: Directory to save videos.
+    """
+    """训练模型使用配置中指定的算法。
+
+    参数：
+        config: 配置对象。
+        device: PyTorch设备用于训练。
+        log_dir: 保存日志的目录。
+        ckpt_dir: 保存检查点的目录。
+        video_dir: 保存视频的目录。
     """
     # first set seeds
     np.random.seed(config.train.seed)
@@ -346,6 +381,11 @@ def main(args: argparse.Namespace):
 
     Args:
         args: Command line arguments.
+    """
+    """使用特定算法训练模型完成任务。
+
+    参数：
+        args: 命令行争论。
     """
     # load config
     if args.task is not None:

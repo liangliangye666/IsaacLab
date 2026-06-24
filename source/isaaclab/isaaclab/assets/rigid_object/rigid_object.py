@@ -51,9 +51,30 @@ class RigidObject(AssetBase):
 
     .. _`USD RigidBodyAPI`: https://openusd.org/dev/api/class_usd_physics_rigid_body_a_p_i.html
     """
+    """一个固体物体资产类。
+
+    硬物体是由硬体组成的资产。
+    它们可以用来表示动态物体，如盒子，球体等。
+    一个硬体以其姿势，速度和质量分布来描述。
+
+    为了使资产被视为刚性对象，资产的根prim必须有`USD RigidBodyAPI`_应用于它。
+    这种API用于定义硬体的仿真性能。
+    在播放仿真时，物理引擎将自动登记硬体并创建相应的硬体句柄。
+    使用:attr:`root_physx_view`属性访问此句柄。
+
+    .. 说明::
+
+        对于熟悉Isaac Sim的用户来说，PhysX视觉类API不完全与Isaac Sim视觉相同
+        class API. Similar to Isaac Lab, Isaac Sim wraps around the PhysX view API. However, as of now (2023.1 release),
+        我们在Isaac Sim中初始化视频类中看到很大的区别。
+        这是因为Isaac Sim中的视图类执行额外的USD相关操作，这些操作是缓慢的，也不需要。
+
+    .. _`USD RigidBodyAPI`: https://openusd.org/dev/api/class_usd_physics_rigid_body_a_p_i.html
+    """
 
     cfg: RigidObjectCfg
     """Configuration instance for the rigid object."""
+    """对硬体的配置实例。"""
 
     def __init__(self, cfg: RigidObjectCfg):
         """Initialize the rigid object.
@@ -61,10 +82,17 @@ class RigidObject(AssetBase):
         Args:
             cfg: A configuration instance.
         """
+        """启动硬体。
+
+        参数：
+            cfg: 一个配置实例。
+        """
         super().__init__(cfg)
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -81,11 +109,16 @@ class RigidObject(AssetBase):
 
         This is always 1 since each object is a single rigid body.
         """
+        """资产中的尸体数量。
+
+        这总是1因为每个对象都是一个固体。
+        """
         return 1
 
     @property
     def body_names(self) -> list[str]:
         """Ordered names of bodies in the rigid object."""
+        """在固体物体中排列的尸体名称。"""
         prim_paths = self.root_physx_view.prim_paths[: self.num_bodies]
         return [path.split("/")[-1] for path in prim_paths]
 
@@ -95,6 +128,12 @@ class RigidObject(AssetBase):
 
         Note:
             Use this view with caution. It requires handling of tensors in a specific way.
+        """
+        """对资产的硬体视图 (PhysX)。
+
+        说明：
+            用这种观点谨慎。
+            它需要以特定的方式处理子。
         """
         return self._root_physx_view
 
@@ -107,6 +146,14 @@ class RigidObject(AssetBase):
         to this object are discarded. This is useful to apply forces that change all the time, things like drag forces
         for instance.
         """
+        """立刻的 w钥匙作曲家。
+
+        返回一个:class:`~isaaclab.utils.wrench_composer.WrenchComposer`实例。
+        添加或设置到此钥匙组件的关键仅适用于当前仿真步骤。
+        在仿真步骤结束时，将对此物体设置的 w钥匙丢弃。
+        这对于不断变化的力量来说是有用的。
+        for instance.
+        """
         return self._instantaneous_wrench_composer
 
     @property
@@ -117,10 +164,18 @@ class RigidObject(AssetBase):
         composer are persistent and are applied to the simulation at every step. This is useful to apply forces that
         are constant over a period of time, things like the thrust of a motor for instance.
         """
+        """一个永久的 w钥匙作曲家。
+
+        返回一个:class:`~isaaclab.utils.wrench_composer.WrenchComposer`实例。
+        加入或设置到这个匙组件的关键是持久的，并且在每一步都应用于仿真。
+        这对于在时间段内恒定的力量来说是有用的，例如电机的推力。
+        """
         return self._permanent_wrench_composer
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -137,6 +192,12 @@ class RigidObject(AssetBase):
         Note:
             We write external wrench to the simulation here since this function is called before the simulation step.
             This ensures that the external wrench is applied at every simulation step.
+        """
+        """在仿真中写出外部钥匙。
+
+        说明：
+            我们写出仿真的外部关键，因为这个函数在仿真步骤之前被调用。
+            这确保在每个仿真步骤上使用外部钥匙。
         """
         # write external wrench
         if self._instantaneous_wrench_composer.active or self._permanent_wrench_composer.active:
@@ -173,6 +234,8 @@ class RigidObject(AssetBase):
     """
     Operations - Finders.
     """
+    """搜索器
+    """
 
     def find_bodies(self, name_keys: str | Sequence[str], preserve_order: bool = False) -> tuple[list[int], list[str]]:
         """Find bodies in the rigid body based on the name keys.
@@ -187,10 +250,24 @@ class RigidObject(AssetBase):
         Returns:
             A tuple of lists containing the body indices and names.
         """
+        """根据名称键，找到身体在硬体中。
+
+        请查看:meth:`isaaclab.utils.string_utils.resolve_matching_names`函数，了解更多关于名称匹配的信息。
+
+        参数：
+            name_keys: 一个正则表达式或一个与体名相匹配的正则表达式列表。
+            preserve_order: 在输出中是否保留名称键的顺序。
+                            默认为 False。
+
+        返回：
+            一个包含身体指标和名称的列表。
+        """
         return string_utils.resolve_matching_names(name_keys, self.body_names, preserve_order)
 
     """
     Operations - Write to simulation.
+    """
+    """操作 - 写入仿真。
     """
 
     def write_root_state_to_sim(self, root_state: torch.Tensor, env_ids: Sequence[int] | None = None):
@@ -202,6 +279,17 @@ class RigidObject(AssetBase):
         Args:
             root_state: Root state in simulation frame. Shape is (len(env_ids), 13).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置选定的环境索引上的根状态。
+
+        根状态包括卡特西亚位置，在 (w，x，y，z) 中的四元数方向以及线性和角的速度。
+        所有数量都在仿真框架中。
+
+        参数：
+            root_state: 在仿真框架中的根状态。
+                        形状是 (len(env_ids)，13。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         self.write_root_link_pose_to_sim(root_state[:, :7], env_ids=env_ids)
         self.write_root_com_velocity_to_sim(root_state[:, 7:], env_ids=env_ids)
@@ -216,6 +304,17 @@ class RigidObject(AssetBase):
             root_state: Root state in simulation frame. Shape is (len(env_ids), 13).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置了选择的环境索引上质量状态的根中心。
+
+        根状态包括卡特西亚位置，在 (w，x，y，z) 中的四元数方向以及线性和角的速度。
+        所有数量都在仿真框架中。
+
+        参数：
+            root_state: 在仿真框架中的根状态。
+                        形状是 (len(env_ids)，13。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         self.write_root_com_pose_to_sim(root_state[:, :7], env_ids=env_ids)
         self.write_root_com_velocity_to_sim(root_state[:, 7:], env_ids=env_ids)
 
@@ -229,6 +328,17 @@ class RigidObject(AssetBase):
             root_state: Root state in simulation frame. Shape is (len(env_ids), 13).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置选定的环境索引上根链状态。
+
+        根状态包括卡特西亚位置，在 (w，x，y，z) 中的四元数方向以及线性和角的速度。
+        所有数量都在仿真框架中。
+
+        参数：
+            root_state: 在仿真框架中的根状态。
+                        形状是 (len(env_ids)，13。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         self.write_root_link_pose_to_sim(root_state[:, :7], env_ids=env_ids)
         self.write_root_link_velocity_to_sim(root_state[:, 7:], env_ids=env_ids)
 
@@ -241,6 +351,16 @@ class RigidObject(AssetBase):
             root_pose: Root link poses in simulation frame. Shape is (len(env_ids), 7).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置选定的环境索引上的根姿势。
+
+        根姿势包括在 (w，x，y，z) 中的卡特西亚位置和四元数方向。
+
+        参数：
+            root_pose: 根链在仿真框架中呈现。
+                       形状是 (len(env_ids)， 7)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         self.write_root_link_pose_to_sim(root_pose, env_ids=env_ids)
 
     def write_root_link_pose_to_sim(self, root_pose: torch.Tensor, env_ids: Sequence[int] | None = None):
@@ -251,6 +371,16 @@ class RigidObject(AssetBase):
         Args:
             root_pose: Root link poses in simulation frame. Shape is (len(env_ids), 7).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置选定的环境索引上根链接姿势。
+
+        根姿势包括在 (w，x，y，z) 中的卡特西亚位置和四元数方向。
+
+        参数：
+            root_pose: 根链在仿真框架中呈现。
+                       形状是 (len(env_ids)， 7)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         # resolve all indices
         physx_env_ids = env_ids
@@ -291,6 +421,17 @@ class RigidObject(AssetBase):
             root_pose: Root center of mass poses in simulation frame. Shape is (len(env_ids), 7).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置选择的环境索引上，
+
+        根姿势包括在 (w，x，y，z) 中的卡特西亚位置和四元数方向。
+        导向是惯性的主要轴的导向。
+
+        参数：
+            root_pose: 在仿真框架中，质量的根中心姿势。
+                       形状是 (len(env_ids)， 7)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         # resolve all indices
         if env_ids is None:
             local_env_ids = slice(env_ids)
@@ -328,6 +469,17 @@ class RigidObject(AssetBase):
             root_velocity: Root center of mass velocities in simulation world frame. Shape is (len(env_ids), 6).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置质量速度的根中心，
+
+        速度包括线性速度 (x，y，z) 和角速度 (x，y，z) 在这个顺序中。
+        NOTE: 这设定了根的质量中心的速度，而不是根框架。
+
+        参数：
+            root_velocity: 在仿真世界框架中，
+                           形状是 (len(env_ids)， 6。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         self.write_root_com_velocity_to_sim(root_velocity=root_velocity, env_ids=env_ids)
 
     def write_root_com_velocity_to_sim(self, root_velocity: torch.Tensor, env_ids: Sequence[int] | None = None):
@@ -339,6 +491,17 @@ class RigidObject(AssetBase):
         Args:
             root_velocity: Root center of mass velocities in simulation world frame. Shape is (len(env_ids), 6).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置质量速度的根中心，
+
+        速度包括线性速度 (x，y，z) 和角速度 (x，y，z) 在这个顺序中。
+        NOTE: 这设定了根的质量中心的速度，而不是根框架。
+
+        参数：
+            root_velocity: 在仿真世界框架中，
+                           形状是 (len(env_ids)， 6。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         # resolve all indices
         physx_env_ids = env_ids
@@ -371,6 +534,17 @@ class RigidObject(AssetBase):
             root_velocity: Root frame velocities in simulation world frame. Shape is (len(env_ids), 6).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置选定的环境索引上根链速度。
+
+        速度包括线性速度 (x，y，z) 和角速度 (x，y，z) 在这个顺序中。
+        NOTE: 这设定了根框架的速度而不是根质中心。
+
+        参数：
+            root_velocity: 在仿真世界框架中的根框架速度。
+                           形状是 (len(env_ids)， 6。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         # resolve all indices
         if env_ids is None:
             local_env_ids = slice(env_ids)
@@ -397,6 +571,8 @@ class RigidObject(AssetBase):
 
     """
     Operations - Setters.
+    """
+    """运营 - 设置器。
     """
 
     def set_external_force_and_torque(
@@ -439,6 +615,41 @@ class RigidObject(AssetBase):
             is_global: Whether to apply the external wrench in the global frame. Defaults to False. If set to False,
                 the external wrench is applied in the link frame of the bodies.
         """
+        """设置外部力和扭矩应在本地框架中的资产体上应用。
+
+        在许多应用中，我们希望在一段时间内 (例如，在策略控制期间) 保持对硬体的外力稳定。
+        这种功能使我们能够将外部力和扭矩存储在缓冲器中，然后在每一步都应用于仿真。
+        选择地设置将外部钥匙应用到 (在机器的本地链接框中)。
+
+        .. 谨慎::
+            如果函数被用空力和扭矩调用，则该函数将外部钥匙被禁用在仿真中。
+
+            .. code-block:: python
+
+                # example of disabling external wrench
+                asset.set_external_force_and_torque(forces=torch.zeros(0, 3), torques=torch.zeros(0, 3))
+
+        .. 说明::
+            这项函数不适用于仿真的外部关键。
+            它只用所需的值填充缓冲器。
+            在仿真步骤之前，请调用:meth:`write_data_to_sim`函数。
+
+        参数：
+            forces: 在身体的局部框架中，
+                    形状是 (len(env_ids)，len(body_ids)，3)。
+            torques: 身体的局部体内外部扭矩。
+                     形状是 (len(env_ids)，len(body_ids)，3)。
+            positions: 在尸体的局部框架中，外部钥匙的位置。
+                       形状是 (len(env_ids)，len(body_ids)，3)。
+                       默认为 None。
+            body_ids: 机体指标应用外部钥匙。
+                      在None (所有机体) 上默认设置。
+            env_ids: 环境索引应使用外部匙。
+                     在 None 中默认设置 (所有实例)。
+            is_global: 在全球框架中是否应使用外部 w钥匙。
+                       默认为 False。
+                       如果设置为False，则将外部钥匙应用在车身的链框中。
+        """
         logger.warning(
             "The function 'set_external_force_and_torque' will be deprecated in a future release. Please"
             " use 'permanent_wrench_composer.set_forces_and_torques' instead."
@@ -469,6 +680,8 @@ class RigidObject(AssetBase):
 
     """
     Internal helper.
+    """
+    """内部助理。
     """
 
     def _initialize_impl(self):
@@ -540,6 +753,7 @@ class RigidObject(AssetBase):
 
     def _create_buffers(self):
         """Create buffers for storing data."""
+        """创建存储数据的缓冲器。"""
         # constants
         self._ALL_INDICES = torch.arange(self.num_instances, dtype=torch.long, device=self.device)
         self._ALL_INDICES_WP = wp.from_torch(self._ALL_INDICES.to(torch.int32), dtype=wp.int32)
@@ -558,6 +772,7 @@ class RigidObject(AssetBase):
 
     def _process_cfg(self):
         """Post processing of configuration parameters."""
+        """配置参数后处理。"""
         # default state
         # -- root state
         # note: we cast to tuple to avoid torch/numpy type mismatch.
@@ -573,9 +788,12 @@ class RigidObject(AssetBase):
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         # call parent
         super()._invalidate_initialize_callback(event)
         # set all existing views to None to invalidate them

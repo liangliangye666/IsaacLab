@@ -10,6 +10,10 @@ the termination introduced by the function.
 """
 
 from __future__ import annotations
+"""常见的函数可以用来激活某些终止位置任务。
+
+函数可以传递到:class:`isaaclab.managers.TerminationTermCfg`对象，以实现函数引入的终止。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -31,6 +35,7 @@ def object_placed_upright(
     euler_xy_threshold: float = 0.10,
 ):
     """Check if an object placed upright by the specified robot."""
+    """检查指定的机器人是否将物体置于垂直位置。"""
 
     robot: Articulation = env.scene[robot_cfg.name]
     object: RigidObject = env.scene[object_cfg.name]
@@ -83,6 +88,7 @@ def object_a_is_into_b(
     height_diff: float = 0.0,  # expected height_diff
 ) -> torch.Tensor:
     """Check if an object a is put into another object b by the specified robot."""
+    """检查指定的机器人是否将对象a放入另一个对象b。"""
 
     robot: Articulation = env.scene[robot_cfg.name]
     object_a: RigidObject = env.scene[object_a_cfg.name]

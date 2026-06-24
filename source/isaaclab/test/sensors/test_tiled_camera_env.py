@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import sys
@@ -28,6 +29,7 @@ sys.argv[1:] = args_cli.unittest_args
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import sys
 
@@ -46,6 +48,7 @@ from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 @pytest.mark.skip(reason="Currently takes too long to run")
 def test_tiled_resolutions_tiny():
     """Define settings for resolution and number of environments"""
+    """定义分辨率和环境数量的设置"""
     num_envs = 1024
     tile_widths = range(32, 48)
     tile_heights = range(32, 48)
@@ -55,6 +58,7 @@ def test_tiled_resolutions_tiny():
 @pytest.mark.skip(reason="Currently takes too long to run")
 def test_tiled_resolutions_small():
     """Define settings for resolution and number of environments"""
+    """定义分辨率和环境数量的设置"""
     num_envs = 300
     tile_widths = range(128, 156)
     tile_heights = range(128, 156)
@@ -64,6 +68,7 @@ def test_tiled_resolutions_small():
 @pytest.mark.skip(reason="Currently takes too long to run")
 def test_tiled_resolutions_medium():
     """Define settings for resolution and number of environments"""
+    """定义分辨率和环境数量的设置"""
     num_envs = 64
     tile_widths = range(320, 400, 20)
     tile_heights = range(320, 400, 20)
@@ -73,6 +78,7 @@ def test_tiled_resolutions_medium():
 @pytest.mark.skip(reason="Currently takes too long to run")
 def test_tiled_resolutions_large():
     """Define settings for resolution and number of environments"""
+    """定义分辨率和环境数量的设置"""
     num_envs = 4
     tile_widths = range(480, 640, 40)
     tile_heights = range(480, 640, 40)
@@ -82,6 +88,7 @@ def test_tiled_resolutions_large():
 @pytest.mark.skip(reason="Currently takes too long to run")
 def test_tiled_resolutions_edge_cases():
     """Define settings for resolution and number of environments"""
+    """定义分辨率和环境数量的设置"""
     num_envs = 1000
     tile_widths = [12, 67, 93, 147]
     tile_heights = [12, 67, 93, 147]
@@ -91,6 +98,7 @@ def test_tiled_resolutions_edge_cases():
 @pytest.mark.skip(reason="Currently takes too long to run")
 def test_tiled_num_envs_edge_cases():
     """Define settings for resolution and number of environments"""
+    """定义分辨率和环境数量的设置"""
     num_envs = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 53, 359, 733, 927]
     tile_widths = [67, 93, 147]
     tile_heights = [67, 93, 147]
@@ -103,6 +111,7 @@ def test_tiled_num_envs_edge_cases():
 
 def _launch_tests(tile_widths: range, tile_heights: range, num_envs: int):
     """Run through different resolutions for tiled rendering"""
+    """运行不同分辨率的板渲染"""
     device = "cuda:0"
     task_name = "Isaac-Cartpole-RGB-Camera-Direct-v0"
     # iterate over all registered environments
@@ -124,6 +133,7 @@ def _launch_tests(tile_widths: range, tile_heights: range, num_envs: int):
 
 def _run_environment(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg):
     """Run environment and capture a rendered image."""
+    """运行环境并捕获 image渲染图像。"""
     # create environment
     env: ManagerBasedRLEnv | DirectRLEnv = gym.make("Isaac-Cartpole-RGB-Camera-Direct-v0", cfg=env_cfg)
     # this flag is necessary to prevent a bug where the simulation gets stuck randomly when running the

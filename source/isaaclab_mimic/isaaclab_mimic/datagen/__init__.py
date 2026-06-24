@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Sub-package with core implementation logic for Isaac Lab Mimic."""
+"""亚萨克实验室仿真器的核心实现逻辑的子包。"""
 
 from .data_generator import *
 from .datagen_info import *

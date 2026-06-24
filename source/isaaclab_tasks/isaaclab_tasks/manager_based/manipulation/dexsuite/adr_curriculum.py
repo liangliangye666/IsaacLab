@@ -12,6 +12,7 @@ from . import mdp
 @configclass
 class CurriculumCfg:
     """Curriculum terms for the MDP."""
+    """对于MDP的课程项。"""
 
     # adr stands for automatic/adaptive domain randomization
     adr = CurrTerm(

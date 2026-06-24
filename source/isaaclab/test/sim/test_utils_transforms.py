@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 
@@ -27,6 +29,7 @@ import isaaclab.utils.math as math_utils
 @pytest.fixture(autouse=True)
 def test_setup_teardown():
     """Create a blank new stage for each test."""
+    """创建一个空白的新阶段。"""
     # Setup: Create a new stage
     sim_utils.create_new_stage()
     sim_utils.update_stage()
@@ -40,6 +43,7 @@ def test_setup_teardown():
 
 def assert_vec3_close(v1: Gf.Vec3d | Gf.Vec3f, v2: tuple | Gf.Vec3d | Gf.Vec3f, eps: float = 1e-6):
     """Assert two 3D vectors are close."""
+    """确定两个3D向量接近。"""
     if isinstance(v2, tuple):
         v2 = Gf.Vec3d(*v2)
     for i in range(3):
@@ -48,6 +52,7 @@ def assert_vec3_close(v1: Gf.Vec3d | Gf.Vec3f, v2: tuple | Gf.Vec3d | Gf.Vec3f, 
 
 def assert_quat_close(q1: Gf.Quatf | Gf.Quatd, q2: Gf.Quatf | Gf.Quatd | tuple, eps: float = 1e-6):
     """Assert two quaternions are close, accounting for double-cover (q and -q represent same rotation)."""
+    """断言两个四元数是接近的，占双层 (q和 -q代表相同的旋转)。"""
     if isinstance(q2, tuple):
         q2 = Gf.Quatd(*q2)
     # Check if quaternions are close (either q1 ≈ q2 or q1 ≈ -q2)
@@ -64,6 +69,7 @@ def assert_quat_close(q1: Gf.Quatf | Gf.Quatd, q2: Gf.Quatf | Gf.Quatd | tuple, 
 
 def get_xform_ops(prim: Usd.Prim) -> list[str]:
     """Get the ordered list of xform operation names for a prim."""
+    """得到一个prim的xform操作名称的顺序列表。"""
     xformable = UsdGeom.Xformable(prim)
     return [op.GetOpName() for op in xformable.GetOrderedXformOps()]
 
@@ -71,10 +77,13 @@ def get_xform_ops(prim: Usd.Prim) -> list[str]:
 """
 Test standardize_xform_ops() function.
 """
+"""测试standardize_xform_ops() 函数。
+"""
 
 
 def test_standardize_xform_ops_basic():
     """Test basic functionality of standardize_xform_ops on a simple prim."""
+    """在简单的prim上测试standardize_xform_ops的基本功能。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -111,6 +120,7 @@ def test_standardize_xform_ops_basic():
 
 def test_standardize_xform_ops_with_rotation_xyz():
     """Test standardize_xform_ops removes deprecated rotateXYZ operations."""
+    """测试standardize_xform_ops消除了过时的旋转XYZ操作。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -154,6 +164,7 @@ def test_standardize_xform_ops_with_rotation_xyz():
 
 def test_standardize_xform_ops_with_transform_matrix():
     """Test standardize_xform_ops removes transform matrix operations."""
+    """测试standardize_xform_ops删除转换矩阵操作。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -194,6 +205,7 @@ def test_standardize_xform_ops_with_transform_matrix():
 
 def test_standardize_xform_ops_preserves_world_pose():
     """Test that standardize_xform_ops preserves the world-space pose of the prim."""
+    """测试standardize_xform_ops能保持prim的世界空间姿势。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -228,6 +240,7 @@ def test_standardize_xform_ops_preserves_world_pose():
 
 def test_standardize_xform_ops_with_units_resolve():
     """Test standardize_xform_ops handles scale:unitsResolve attribute."""
+    """测试standardize_xform_ops处理规模:单位解决属性。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -271,6 +284,7 @@ def test_standardize_xform_ops_with_units_resolve():
 
 def test_standardize_xform_ops_with_hierarchy():
     """Test standardize_xform_ops works correctly with prim hierarchies."""
+    """测试standardize_xform_ops在prim等级上运行正确。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -315,6 +329,7 @@ def test_standardize_xform_ops_with_hierarchy():
 
 def test_standardize_xform_ops_multiple_deprecated_ops():
     """Test standardize_xform_ops removes multiple deprecated operations."""
+    """测试standardize_xform_ops消除了多次过时操作。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -359,6 +374,7 @@ def test_standardize_xform_ops_multiple_deprecated_ops():
 
 def test_standardize_xform_ops_with_existing_standard_ops():
     """Test standardize_xform_ops when prim already has standard operations."""
+    """在prim已经有标准操作时，测试standardize_xform_ops。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -406,6 +422,7 @@ def test_standardize_xform_ops_with_existing_standard_ops():
 
 def test_standardize_xform_ops_invalid_prim():
     """Test standardize_xform_ops raises error for invalid prim."""
+    """测试standardize_xform_ops显示了无效prim的错误。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -422,6 +439,7 @@ def test_standardize_xform_ops_invalid_prim():
 
 def test_standardize_xform_ops_on_geometry_prim():
     """Test standardize_xform_ops on a geometry prim (Cube, Sphere, etc.)."""
+    """在几何 prim (立方体，球体等) 上测试standardize_xform_ops。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -455,6 +473,7 @@ def test_standardize_xform_ops_on_geometry_prim():
 
 def test_standardize_xform_ops_with_non_uniform_scale():
     """Test standardize_xform_ops with non-uniform scale."""
+    """用非均的尺度测试standardize_xform_ops。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -490,6 +509,7 @@ def test_standardize_xform_ops_with_non_uniform_scale():
 
 def test_standardize_xform_ops_identity_transform():
     """Test standardize_xform_ops with identity transform (no translation, rotation, or scale)."""
+    """测试standardize_xform_ops与身份转换 (没有翻译，旋转或规模)。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -518,6 +538,7 @@ def test_standardize_xform_ops_identity_transform():
 
 def test_standardize_xform_ops_with_explicit_values():
     """Test standardize_xform_ops with explicit translation, orientation, and scale values."""
+    """用明确的翻译，导向和尺度值测试standardize_xform_ops。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -558,6 +579,7 @@ def test_standardize_xform_ops_with_explicit_values():
 
 def test_standardize_xform_ops_with_partial_values():
     """Test standardize_xform_ops with only some values specified."""
+    """测试standardize_xform_ops只使用某些指定的值。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -596,6 +618,7 @@ def test_standardize_xform_ops_with_partial_values():
 
 def test_standardize_xform_ops_non_xformable_prim(caplog):
     """Test standardize_xform_ops returns False for non-Xformable prims and logs error."""
+    """测试standardize_xform_ops将False返回非Xformableprims，并记录错误。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -626,6 +649,7 @@ def test_standardize_xform_ops_non_xformable_prim(caplog):
 
 def test_standardize_xform_ops_preserves_reset_xform_stack():
     """Test that standardize_xform_ops preserves the resetXformStack attribute."""
+    """测试standardize_xform_ops保留了重置XformStack属性。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -647,6 +671,7 @@ def test_standardize_xform_ops_preserves_reset_xform_stack():
 
 def test_standardize_xform_ops_with_complex_hierarchy():
     """Test standardize_xform_ops on deeply nested hierarchy."""
+    """测试standardize_xform_ops在深度嵌套的层次上。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -682,6 +707,7 @@ def test_standardize_xform_ops_with_complex_hierarchy():
 
 def test_standardize_xform_ops_preserves_float_precision():
     """Test that standardize_xform_ops preserves float precision when it already exists."""
+    """测试standardize_xform_ops在已经存在时保持漂浮精度。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -746,10 +772,13 @@ def test_standardize_xform_ops_preserves_float_precision():
 """
 Test validate_standard_xform_ops() function.
 """
+"""测试validate_standard_xform_ops() 函数。
+"""
 
 
 def test_validate_standard_xform_ops_valid():
     """Test validate_standard_xform_ops returns True for standardized prims."""
+    """测试validate_standard_xform_ops返回标准 prims 的True。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -772,6 +801,7 @@ def test_validate_standard_xform_ops_valid():
 
 def test_validate_standard_xform_ops_invalid_order():
     """Test validate_standard_xform_ops returns False for non-standard operation order."""
+    """测试 validate_standard_xform_ops 返回 False 不符合标准操作命令。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -796,6 +826,7 @@ def test_validate_standard_xform_ops_invalid_order():
 
 def test_validate_standard_xform_ops_with_deprecated_ops():
     """Test validate_standard_xform_ops returns False when deprecated operations exist."""
+    """测试validate_standard_xform_ops在存在过时操作时返回False。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -814,6 +845,7 @@ def test_validate_standard_xform_ops_with_deprecated_ops():
 
 def test_validate_standard_xform_ops_missing_operations():
     """Test validate_standard_xform_ops returns False when standard operations are missing."""
+    """测试validate_standard_xform_ops在缺失标准操作时返回False。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -831,6 +863,7 @@ def test_validate_standard_xform_ops_missing_operations():
 
 def test_validate_standard_xform_ops_invalid_prim():
     """Test validate_standard_xform_ops returns False for invalid prim."""
+    """测试 validate_standard_xform_ops 返回不有效的 prim 的 False。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -843,6 +876,7 @@ def test_validate_standard_xform_ops_invalid_prim():
 
 def test_validate_standard_xform_ops_non_xformable():
     """Test validate_standard_xform_ops returns False for non-Xformable prims."""
+    """测试 validate_standard_xform_ops 返回 False 对于非 Xformable prims。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -857,6 +891,7 @@ def test_validate_standard_xform_ops_non_xformable():
 
 def test_validate_standard_xform_ops_with_transform_matrix():
     """Test validate_standard_xform_ops returns False when transform matrix operation exists."""
+    """在转换矩阵操作存在时，测试validate_standard_xform_ops返回False。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -876,6 +911,7 @@ def test_validate_standard_xform_ops_with_transform_matrix():
 
 def test_validate_standard_xform_ops_extra_operations():
     """Test validate_standard_xform_ops returns False when extra operations exist."""
+    """测试validate_standard_xform_ops在存在额外操作时返回False。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -903,6 +939,7 @@ def test_validate_standard_xform_ops_extra_operations():
 
 def test_validate_standard_xform_ops_after_standardization():
     """Test validate_standard_xform_ops returns True after standardization of non-standard prim."""
+    """测试validate_standard_xform_ops返回True在非标准标准标准化后prim。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -929,6 +966,7 @@ def test_validate_standard_xform_ops_after_standardization():
 
 def test_validate_standard_xform_ops_on_geometry():
     """Test validate_standard_xform_ops works correctly on geometry prims."""
+    """测试validate_standard_xform_ops在prims几何上正常运行。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -951,6 +989,7 @@ def test_validate_standard_xform_ops_on_geometry():
 
 def test_validate_standard_xform_ops_empty_prim():
     """Test validate_standard_xform_ops on prim with no xform operations."""
+    """测试validate_standard_xform_ops在prim上，没有x形式操作。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -965,10 +1004,13 @@ def test_validate_standard_xform_ops_empty_prim():
 """
 Test resolve_prim_pose() function.
 """
+"""测试resolve_prim_pose() 函数。
+"""
 
 
 def test_resolve_prim_pose():
     """Test resolve_prim_pose() function."""
+    """测试resolve_prim_pose() 函数。"""
     # number of objects
     num_objects = 20
     # sample random scales for x, y, z
@@ -1065,6 +1107,8 @@ def test_resolve_prim_pose():
 """
 Test resolve_prim_scale() function.
 """
+"""测试resolve_prim_scale() 函数。
+"""
 
 
 def test_resolve_prim_scale():
@@ -1078,6 +1122,15 @@ def test_resolve_prim_scale():
     This is only true when rotations are identity or the transforms are
     orthogonal and uniformly scaled. Otherwise, scale is not composable
     like that in local component-wise fashion.
+    """
+    """测试resolve_prim_scale() 函数。
+
+    为了简化测试，我们假设在prim的有效尺度是层次中的prims的尺度的产量:
+
+        scale = scale_of_xform * scale_of_geometry_prim
+
+    转换的变化是直角的，均的。
+    否则，规模不会以本地成分方式构成。
     """
     # number of objects
     num_objects = 20
@@ -1137,10 +1190,13 @@ def test_resolve_prim_scale():
 """
 Test convert_world_pose_to_local() function.
 """
+"""测试convert_world_pose_to_local() 函数。
+"""
 
 
 def test_convert_world_pose_to_local_basic():
     """Test basic world-to-local pose conversion."""
+    """测试基本的世界到本地姿势转换。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -1172,6 +1228,7 @@ def test_convert_world_pose_to_local_basic():
 
 def test_convert_world_pose_to_local_with_rotation():
     """Test world-to-local conversion with parent rotation."""
+    """测试世界到本地转换，使用父母转换。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -1213,6 +1270,7 @@ def test_convert_world_pose_to_local_with_rotation():
 
 def test_convert_world_pose_to_local_with_scale():
     """Test world-to-local conversion with parent scale."""
+    """测试世界到本地转换，"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -1254,6 +1312,7 @@ def test_convert_world_pose_to_local_with_scale():
 
 def test_convert_world_pose_to_local_invalid_parent():
     """Test world-to-local conversion with invalid parent returns world pose unchanged."""
+    """测试世界到本地转换与无效的父母返回世界姿势不变。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -1271,6 +1330,7 @@ def test_convert_world_pose_to_local_invalid_parent():
 
 def test_convert_world_pose_to_local_root_parent():
     """Test world-to-local conversion with root as parent returns world pose unchanged."""
+    """测试世界到本地转换， 根源作为父母返回世界姿势不变。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -1294,6 +1354,7 @@ def test_convert_world_pose_to_local_root_parent():
 
 def test_convert_world_pose_to_local_none_orientation():
     """Test world-to-local conversion with None orientation."""
+    """用None定向测试世界到本地转换。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -1319,6 +1380,7 @@ def test_convert_world_pose_to_local_none_orientation():
 
 def test_convert_world_pose_to_local_complex_hierarchy():
     """Test world-to-local conversion in a complex hierarchy."""
+    """在一个复杂的层次结构中测试世界到本地转换。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -1369,6 +1431,7 @@ def test_convert_world_pose_to_local_complex_hierarchy():
 
 def test_convert_world_pose_to_local_with_mixed_prim_types():
     """Test world-to-local conversion with mixed prim types (Xform, Scope, Mesh)."""
+    """用混合prim类型 (Xform， Scope， Mesh) 测试世界到本地转换。"""
     # obtain stage handle
     stage = sim_utils.get_current_stage()
 

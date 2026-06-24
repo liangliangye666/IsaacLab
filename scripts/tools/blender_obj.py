@@ -16,6 +16,18 @@ For more information: https://docs.blender.org/api/current/index.html
 
 The script was tested on Blender 3.2 on Ubuntu 20.04LTS.
 """
+"""使用混合器将网格文件转换为`.obj`。
+
+这一文件处理给定的 dae 网格文件，并将结果的网格文件保存在obj格式中。
+
+需要用混合器包装的python来调用，i.e.:
+
+    混合剂--background --python blender_obj.py -- -in_file FILE -out_file FILE
+
+更多信息:https://docs.blender.org/api/current/index.html
+
+该脚本在Ubuntu 20.04LTS上在Blender 3.2上测试。
+"""
 
 import os
 import sys
@@ -25,6 +37,7 @@ import bpy
 
 def parse_cli_args():
     """Parse the input command line arguments."""
+    """分析输入命令行参数。"""
     import argparse
 
     # get the args passed to blender after "--", all of which are ignored by
@@ -59,6 +72,12 @@ def convert_to_obj(in_file: str, out_file: str, save_usd: bool = False):
     Args:
         in_file: Input mesh file to process.
         out_file: Path to store output obj file.
+    """
+    """使用混合器将网格文件转换为`.obj`。
+
+    参数：
+        in_file: 输入网格文件进行处理。
+        out_file: 输出Obj文件的路径。
     """
     # check valid input file
     if not os.path.exists(in_file):

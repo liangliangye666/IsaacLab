@@ -19,6 +19,21 @@
     ./isaaclab.sh -p tools/run_all_tests.py --timeout 1000
 
 """
+"""一个运行脚本，用于源目录中的所有测试。
+
+.. code-block:: bash
+
+    ./isaaclab.sh -p tools/run_all_tests.py
+
+    # for dry run
+    ./isaaclab.sh -p tools/run_all_tests.py --discover_only
+
+    # for quiet run
+    ./isaaclab.sh -p tools/run_all_tests.py --quiet
+
+    # for increasing timeout (default is 600 seconds)
+    ./isaaclab.sh -p tools/run_all_tests.py --timeout 1000
+"""
 
 import argparse
 import logging
@@ -38,6 +53,7 @@ from test_settings import DEFAULT_TIMEOUT, ISAACLAB_PATH, PER_TEST_TIMEOUTS, TES
 
 def parse_args() -> argparse.Namespace:
     """Parse command line arguments."""
+    """分析命令行参数。"""
     parser = argparse.ArgumentParser(description="Run all tests under current directory.")
     # add arguments
     parser.add_argument(
@@ -101,6 +117,30 @@ def test_all(
     Raises:
         ValueError: If any test to skip is not found under the given `test_dir`.
 
+    """
+    """在给定的目录下执行所有测试。
+
+    参数：
+        test_dir: 进入包含测试的目录。
+        tests_to_skip: 试验列表。
+        log_path: 在日志文件中存储结果。
+        timeout: 每次测试的截止时间在几秒钟内。
+                 在DEFAULT_TIMEOUT中默认设置。
+        per_test_timeouts: 一个测试的字典，
+                           没有列出的任何测试将使用`timeout`所规定的时间。
+                           默认的空白字典。
+        discover_only: 如果 True，只能在不运行的情况下发现和打印测试。
+                       默认为 False。
+        quiet: 如果是False，将测试输出输入到终端控制台 (除了日志文件外)。
+               默认为 False。
+        extension: 只有给定的延长。
+                   默认为 None，这意味着所有扩展的测试将运行。
+    返回：
+        如果所有未跳过的测试都通过 True，或者`discover_only`是True。
+        否则，False。
+
+    异常：
+        ValueError: 如果没有任何跳转测试在给出的`test_dir`下找到。
     """
     # Create the log directory if it doesn't exist
     os.makedirs(os.path.dirname(log_path), exist_ok=True)
@@ -273,6 +313,25 @@ def extract_tests_and_timeouts(
     Raises:
         ValueError: If any test to skip is not found under the given `test_dir`.
     """
+    """在给定的目录或扩展中提取所有测试及其时间表。
+
+    参数：
+        test_dir: 进入包含测试的目录。
+        extension: 只有给定的延长。
+                   默认为 None，这意味着所有扩展的测试将运行。
+        tests_to_skip: 试验列表。
+        timeout: 每次测试的截止时间在几秒钟内。
+                 在DEFAULT_TIMEOUT中默认设置。
+        per_test_timeouts: 一个测试的字典，
+                           没有列出的任何测试将使用`timeout`所规定的时间。
+                           默认的空白字典。
+
+    返回：
+        一个包含所有测试的路径，运行测试，跳转测试和各自的时间表。
+
+    异常：
+        ValueError: 如果没有任何跳转测试在给出的`test_dir`下找到。
+    """
 
     # Discover all tests under current directory
     all_test_paths = [str(path) for path in Path(test_dir).resolve().rglob("*test_*.py")]
@@ -331,6 +390,7 @@ def extract_tests_and_timeouts(
 
 def warm_start_app():
     """Warm start the app to compile shaders before running the tests."""
+    """在运行测试之前，热启动应用程序编译Shader。"""
 
     print("[INFO] Warm starting the simulation app before running tests.")
     before = time.time()

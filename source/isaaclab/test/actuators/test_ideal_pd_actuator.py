@@ -11,6 +11,7 @@ HEADLESS = True
 simulation_app = AppLauncher(headless=HEADLESS).app
 
 """Rest of imports follows"""
+"""剩下的进口"""
 
 import pytest
 import torch
@@ -25,6 +26,7 @@ from isaaclab.utils.types import ArticulationActions
 @pytest.mark.parametrize("usd_default", [False, True])
 def test_ideal_pd_actuator_init_minimum(num_envs, num_joints, device, usd_default):
     """Test initialization of ideal pd actuator with minimum configuration."""
+    """试验初始化理想的 pd执行器，最小配置。"""
 
     joint_names = [f"joint_{d}" for d in range(num_joints)]
     joint_ids = [d for d in range(num_joints)]
@@ -99,6 +101,7 @@ def test_ideal_pd_actuator_init_minimum(num_envs, num_joints, device, usd_defaul
 @pytest.mark.parametrize("effort_lim_sim", [None, 400])
 def test_ideal_pd_actuator_init_effort_limits(num_envs, num_joints, device, effort_lim, effort_lim_sim):
     """Test initialization of ideal pd actuator with effort limits."""
+    """测试理想的 pd 动机的启动，具有功耗限制。"""
     # used as a standin for the usd default value read in by articulation.
     # This value should not be propagated for ideal pd actuators
     effort_lim_default = 5000
@@ -159,6 +162,10 @@ def test_ideal_pd_actuator_init_velocity_limits(num_envs, num_joints, device, ve
 
     Note Ideal PD actuator does not use velocity limits in computation, they are passed to physics via articulations.
     """
+    """测试以速度限制的理想 pd 动机初始化。
+
+    注:理想PD动机在计算中不使用速度限制，它们通过关节传递到物理中。
+    """
     velocity_limit_default = 1000
     joint_names = [f"joint_{d}" for d in range(num_joints)]
     joint_ids = [d for d in range(num_joints)]
@@ -208,6 +215,7 @@ def test_ideal_pd_actuator_init_velocity_limits(num_envs, num_joints, device, ve
 @pytest.mark.parametrize("effort_lim", [None, 300])
 def test_ideal_pd_compute(num_envs, num_joints, device, effort_lim):
     """Test the computation of the ideal pd actuator."""
+    """测试理想的PD动机的计算。"""
 
     joint_names = [f"joint_{d}" for d in range(num_joints)]
     joint_ids = [d for d in range(num_joints)]

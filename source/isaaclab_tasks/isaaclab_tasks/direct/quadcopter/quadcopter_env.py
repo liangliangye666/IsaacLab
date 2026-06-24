@@ -28,6 +28,7 @@ from isaaclab.markers import CUBOID_MARKER_CFG  # isort: skip
 
 class QuadcopterEnvWindow(BaseEnvWindow):
     """Window manager for the Quadcopter environment."""
+    """对于四旋翼环境的窗口管理器。"""
 
     def __init__(self, env: QuadcopterEnv, window_name: str = "IsaacLab"):
         """Initialize the window.
@@ -35,6 +36,13 @@ class QuadcopterEnvWindow(BaseEnvWindow):
         Args:
             env: The environment object.
             window_name: The name of the window. Defaults to "IsaacLab".
+        """
+        """启动窗口。
+
+        参数：
+            env: 环境对象。
+            window_name: 窗户的名字。
+                         在"IsaacLab"上默认。
         """
         # initialize base window
         super().__init__(env, window_name)

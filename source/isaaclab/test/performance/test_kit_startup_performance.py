@@ -15,6 +15,7 @@ from isaaclab.app import AppLauncher
 
 def test_kit_start_up_time():
     """Test kit start-up time."""
+    """测试工具开始时间。"""
     start_time = time.time()
     app_launcher = AppLauncher(headless=True).app  # noqa: F841
     end_time = time.time()

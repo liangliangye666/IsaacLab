@@ -16,9 +16,11 @@ from isaaclab.sim import SimulationContext
 
 class G1LowerBodyStandingMotionControllerRetargeter(RetargeterBase):
     """Provides lower body standing commands for the G1 robot."""
+    """为G1机器人提供底部站立指令。"""
 
     def __init__(self, cfg: G1LowerBodyStandingMotionControllerRetargeterCfg):
         """Initialize the retargeter."""
+        """启动重定位器。"""
         super().__init__(cfg)
         self.cfg = cfg
         self._hip_height = cfg.hip_height
@@ -75,13 +77,19 @@ class G1LowerBodyStandingMotionControllerRetargeter(RetargeterBase):
 @dataclass
 class G1LowerBodyStandingMotionControllerRetargeterCfg(RetargeterCfg):
     """Configuration for the G1 lower body standing retargeter."""
+    """设置G1底部站立回器。"""
 
     hip_height: float = 0.72
     """Height of the G1 robot hip in meters. The value is a fixed height suitable for G1 to do tabletop manipulation."""
+    """机器人G1的部的高度在米。
+    值为G1进行桌面操作的固定高度。
+    """
 
     movement_scale: float = 0.5
     """Scale the movement of the robot to the range of [-movement_scale, movement_scale]."""
+    """测量机器人的运动到 [-movement_scale，movement_scale]范围内。"""
 
     rotation_scale: float = 0.35
     """Scale the rotation of the robot to the range of [-rotation_scale, rotation_scale]."""
+    """测量机器人的旋转到 [-rotation_scale，rotation_scale]范围。"""
     retargeter_type: type[RetargeterBase] = G1LowerBodyStandingMotionControllerRetargeter

@@ -6,11 +6,13 @@
 from isaaclab.app import AppLauncher
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 # launch omniverse app
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 from packaging.version import Version
@@ -26,6 +28,7 @@ from isaaclab.utils.version import get_isaac_sim_version
 @pytest.fixture
 def sim():
     """Create a blank new stage for each test."""
+    """创建一个空白的新阶段。"""
     # Create a new stage
     sim_utils.create_new_stage()
     # Simulation time-step
@@ -47,6 +50,7 @@ def sim():
 @pytest.mark.isaacsim_ci
 def test_spawn_usd(sim):
     """Test loading prim from Usd file."""
+    """测试从USD文件中加载prim。"""
     # Spawn cone
     cfg = sim_utils.UsdFileCfg(usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Robots/FrankaEmika/panda_instanceable.usd")
     prim = cfg.func("/World/Franka", cfg)
@@ -59,6 +63,7 @@ def test_spawn_usd(sim):
 @pytest.mark.isaacsim_ci
 def test_spawn_usd_fails(sim):
     """Test loading prim from Usd file fails when asset usd path is invalid."""
+    """当资产usd路径无效时，从USd文件中测试加载prim失败。"""
     # Spawn cone
     cfg = sim_utils.UsdFileCfg(usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Robots/FrankaEmika/panda2_instanceable.usd")
 
@@ -69,6 +74,7 @@ def test_spawn_usd_fails(sim):
 @pytest.mark.isaacsim_ci
 def test_spawn_urdf(sim):
     """Test loading prim from URDF file."""
+    """测试从URDF文件中加载prim。"""
     # pin the urdf importer extension to the older version
     manager = omni.kit.app.get_app().get_extension_manager()
     if get_isaac_sim_version() >= Version("5.1"):
@@ -97,6 +103,7 @@ def test_spawn_urdf(sim):
 @pytest.mark.isaacsim_ci
 def test_spawn_ground_plane(sim):
     """Test loading prim for the ground plane from grid world USD."""
+    """测试载荷prim从网格世界USD的地面平面。"""
     # Spawn ground plane
     cfg = sim_utils.GroundPlaneCfg(color=(0.1, 0.1, 0.1), size=(10.0, 10.0))
     prim = cfg.func("/World/ground_plane", cfg)
@@ -109,6 +116,7 @@ def test_spawn_ground_plane(sim):
 @pytest.mark.isaacsim_ci
 def test_spawn_usd_with_compliant_contact_material(sim):
     """Test loading prim from USD file with physics material applied to specific prim."""
+    """测试从USD文件中运载prim，用物理材料应用于特定prim。"""
     # Spawn gelsight finger with physics material on specific prim
     usd_file_path = f"{ISAACLAB_NUCLEUS_DIR}/TacSL/gelsight_r15_finger/gelsight_r15_finger.usd"
 
@@ -143,6 +151,7 @@ def test_spawn_usd_with_compliant_contact_material(sim):
 @pytest.mark.isaacsim_ci
 def test_spawn_usd_with_compliant_contact_material_on_multiple_prims(sim):
     """Test loading prim from USD file with physics material applied to multiple prims."""
+    """测试将prim从USD文件中运载到多个prims的物理材料。"""
     # Spawn Panda robot with physics material on specific prims
     usd_file_path = f"{ISAACLAB_NUCLEUS_DIR}/TacSL/gelsight_r15_finger/gelsight_r15_finger.usd"
 
@@ -179,6 +188,7 @@ def test_spawn_usd_with_compliant_contact_material_on_multiple_prims(sim):
 @pytest.mark.isaacsim_ci
 def test_spawn_usd_with_compliant_contact_material_no_prim_path(sim):
     """Test loading prim from USD file with physics material but no prim path specified."""
+    """测试从USD文件中运载prim 物理材料，但没有指定prim路径。"""
     # Spawn gelsight finger without specifying prim path for physics material
     usd_file_path = f"{ISAACLAB_NUCLEUS_DIR}/TacSL/gelsight_r15_finger/gelsight_r15_finger.usd"
 

@@ -6,6 +6,7 @@
 """Class-based observation terms for the gear assembly manipulation environment."""
 
 from __future__ import annotations
+"""对于轮组装操纵环境的类别观测项。"""
 
 from typing import TYPE_CHECKING
 
@@ -43,6 +44,27 @@ class gear_shaft_pos_w(ManagerTermBase):
         ValueError: If any of the required gear type keys are missing from 'gear_offsets'.
         RuntimeError: If the gear type manager is not initialized in the environment.
     """
+    """world轮轴在世界框架中的位置，使用偏移。
+
+    这种基于类的缓存项对所有环境进行高效计算的 gear位器和身份四元数进行了抵消。
+    根据每个环境中的活跃轮型，它通过适当的偏移来转换轮胎基位置。
+
+    参数：
+        asset_cfg: 变速基的资产配置。
+                   默认的SceneEntityCfg("factory_gear_base")。
+        gear_offsets: 一个字典绘制仪器类型名称在仪器基架中的轴对比。
+                      需要的键是"gear_small"，"gear_medium"和"gear_large"，每个键都将其映射到3D偏移列表 [x，y，z]。
+                      该参数是必需的，必须在配置中提供。
+
+    返回：
+        environment轮轴在环境框架中定位紧张器 (num_envs， 3)。
+
+    异常：
+        ValueError: 如果配置中未提供"gear_offsets"参数。
+        TypeError: 如果"gear_offsets"参数不是字典。
+        ValueError: 如果在"gear_offsets"中缺少任何所需的变速类型键。
+        RuntimeError: 如果设备类型管理器未在环境中初始化。
+    """
 
     def __init__(self, cfg: ObservationTermCfg, env: ManagerBasedRLEnv):
         """Initialize the gear shaft position observation term.
@@ -50,6 +72,12 @@ class gear_shaft_pos_w(ManagerTermBase):
         Args:
             cfg: Observation term configuration
             env: Environment instance
+        """
+        """启动变速轴位置观测项。
+
+        参数：
+            cfg: 观测项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -116,6 +144,15 @@ class gear_shaft_pos_w(ManagerTermBase):
         Returns:
             Gear shaft position tensor of shape (num_envs, 3)
         """
+        """计算在世界框架中的轴位置。
+
+        参数：
+            env: 环境实例
+            asset_cfg: 设备基资产的配置 (未使用，保证兼容性)
+
+        返回：
+            变速轴定位压力 (num_envs，3)
+        """
         # Check if gear type manager exists
         if not hasattr(env, "_gear_type_manager"):
             raise RuntimeError(
@@ -153,6 +190,18 @@ class gear_shaft_quat_w(ManagerTermBase):
     Returns:
         Gear shaft orientation tensor as a quaternion (w, x, y, z) with shape (num_envs, 4).
     """
+    """world轮轴向在世界框架中。
+
+    这种基于类型的项返回轮基的方向 (与轮轴的方向相同)。
+    这种四元数是加нони化的，以确保w组件是正面的，从而减少了策略的观测变化。
+
+    参数：
+        asset_cfg: 变速基的资产配置。
+                   默认的SceneEntityCfg("factory_gear_base")。
+
+    返回：
+        变速轴导向子作为一个形状的四元数 (w， x， y， z) (num_envs， 4)。
+    """
 
     def __init__(self, cfg: ObservationTermCfg, env: ManagerBasedRLEnv):
         """Initialize the gear shaft orientation observation term.
@@ -160,6 +209,12 @@ class gear_shaft_quat_w(ManagerTermBase):
         Args:
             cfg: Observation term configuration
             env: Environment instance
+        """
+        """启动变速轴定向观测项。
+
+        参数：
+            cfg: 观测项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -180,6 +235,15 @@ class gear_shaft_quat_w(ManagerTermBase):
 
         Returns:
             Gear shaft orientation tensor of shape (num_envs, 4)
+        """
+        """计算在世界框架中的轮方向。
+
+        参数：
+            env: 环境实例
+            asset_cfg: 设备基资产的配置 (未使用，保证兼容性)
+
+        返回：
+            变速轴方向形状张量 (num_envs， 4)
         """
         # Get base quaternion
         base_quat = self.asset.data.root_quat_w
@@ -206,6 +270,17 @@ class gear_pos_w(ManagerTermBase):
     Raises:
         RuntimeError: If the gear type manager is not initialized in the environment.
     """
+    """在世界框架中的 position轮位置。
+
+    这种基于类的项返回每个环境中的活跃轮的位置。
+    它使用向量化索引以有效地根据每个环境中活跃的轮胎类型 (小，中型或大) 选择正确的轮胎位置。
+
+    返回：
+        在环境框架中设置 position轮定位器 (num_envs， 3)。
+
+    异常：
+        RuntimeError: 如果设备类型管理器未在环境中初始化。
+    """
 
     def __init__(self, cfg: ObservationTermCfg, env: ManagerBasedRLEnv):
         """Initialize the gear position observation term.
@@ -213,6 +288,12 @@ class gear_pos_w(ManagerTermBase):
         Args:
             cfg: Observation term configuration
             env: Environment instance
+        """
+        """启动轮位置观测时间。
+
+        参数：
+            cfg: 观测项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -236,6 +317,14 @@ class gear_pos_w(ManagerTermBase):
 
         Returns:
             Gear position tensor of shape (num_envs, 3)
+        """
+        """在世界框架中计算设备位置。
+
+        参数：
+            env: 环境实例
+
+        返回：
+            变速定位形状紧张器 (num_envs， 3)
         """
         # Check if gear type manager exists
         if not hasattr(env, "_gear_type_manager"):
@@ -278,6 +367,18 @@ class gear_quat_w(ManagerTermBase):
     Raises:
         RuntimeError: If the gear type manager is not initialized in the environment.
     """
+    """在世界框架中的 orient轮导向。
+
+    这一基于类的项返回每个环境中的活跃轮的方向。
+    它使用向量化索引，以有效地根据每个环境中活跃的变速类型 (小，中型或大) 选择正确的变速方向。
+    这种四元数是加нони化的，以确保w组件是正面的，从而减少了策略的观测变化。
+
+    返回：
+        变速定向子作为一个四元数 (w， x， y， z) 有形状 (num_envs， 4)。
+
+    异常：
+        RuntimeError: 如果设备类型管理器未在环境中初始化。
+    """
 
     def __init__(self, cfg: ObservationTermCfg, env: ManagerBasedRLEnv):
         """Initialize the gear orientation observation term.
@@ -285,6 +386,12 @@ class gear_quat_w(ManagerTermBase):
         Args:
             cfg: Observation term configuration
             env: Environment instance
+        """
+        """启动变速定向观测项。
+
+        参数：
+            cfg: 观测项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -308,6 +415,14 @@ class gear_quat_w(ManagerTermBase):
 
         Returns:
             Gear orientation tensor of shape (num_envs, 4)
+        """
+        """在世界框架中计算设备的导向。
+
+        参数：
+            env: 环境实例
+
+        返回：
+            变速方向形状张量 (num_envs， 4)
         """
         # Check if gear type manager exists
         if not hasattr(env, "_gear_type_manager"):

@@ -30,6 +30,11 @@ class G1TriHandUpperBodyRetargeter(RetargeterBase):
     It handles both left and right hands, converting poses of the hands in OpenXR format to appropriate wrist poses
     and joint angles for the G1 robot's upper body.
     """
+    """返回OpenXR数据到G1上部命令。
+
+    这种重定位器将OpenXR的手跟踪数据映射到G1机器人的手腕和手关节命令。
+    它处理左手和右手，将OpenXR格式的手臂姿势转换为G1机器人上部部的适当手腕姿势和关节角。
+    """
 
     def __init__(
         self,
@@ -39,6 +44,11 @@ class G1TriHandUpperBodyRetargeter(RetargeterBase):
 
         Args:
             cfg: Configuration for the retargeter.
+        """
+        """启动G1上部重定位器。
+
+        参数：
+            cfg: 预定重定目标。
         """
         super().__init__(cfg)
 
@@ -78,6 +88,17 @@ class G1TriHandUpperBodyRetargeter(RetargeterBase):
                 - Left wrist pose (7)
                 - Right wrist pose (7)
                 - Hand joint angles (len(hand_joint_names))
+        """
+        """转换手关姿势为机器人末端执行器命令。
+
+        参数：
+            data: 根据"数据字典"的定义，
+
+        返回：
+            包含重定向命令的子:
+                - 左手腕姿势 (7)
+                - 右手腕姿势 (7)
+                - 双手关节角 (len(hand_joint_names))
         """
 
         # Access the left and right hand data using the enum key
@@ -143,6 +164,15 @@ class G1TriHandUpperBodyRetargeter(RetargeterBase):
         Returns:
             Retargeted wrist pose in USD control frame.
         """
+        """处理绝对的姿势重定向。
+
+        参数：
+            wrist: 从OpenXR的手腕姿势数据。
+            is_left: 给左手True，给右手False
+
+        返回：
+            在USD控制框架中重定位手腕姿势。
+        """
         wrist_pos = torch.tensor(wrist[:3], dtype=torch.float32)
         wrist_quat = torch.tensor(wrist[3:], dtype=torch.float32)
 
@@ -166,6 +196,7 @@ class G1TriHandUpperBodyRetargeter(RetargeterBase):
 @dataclass
 class G1TriHandUpperBodyRetargeterCfg(RetargeterCfg):
     """Configuration for the G1 Controller Upper Body retargeter."""
+    """控制器G1上部重定位器的配置。"""
 
     enable_visualization: bool = False
     num_open_xr_hand_joints: int = 100

@@ -27,6 +27,7 @@ from .adr_curriculum import CurriculumCfg
 @configclass
 class SceneCfg(InteractiveSceneCfg):
     """Dexsuite Scene for multi-objects Lifting"""
+    """举起多个物体的Dexsuite场景"""
 
     # robot
     robot: ArticulationCfg = MISSING
@@ -98,6 +99,7 @@ class SceneCfg(InteractiveSceneCfg):
 @configclass
 class CommandsCfg:
     """Command terms for the MDP."""
+    """对MDP的命令条件。"""
 
     object_pose = mdp.ObjectUniformPoseCommandCfg(
         asset_name="robot",
@@ -119,10 +121,12 @@ class CommandsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         object_quat_b = ObsTerm(func=mdp.object_quat_b, noise=Unoise(n_min=-0.0, n_max=0.0))
         target_object_pose_b = ObsTerm(func=mdp.generated_commands, params={"command_name": "object_pose"})
@@ -136,6 +140,7 @@ class ObservationsCfg:
     @configclass
     class ProprioObsCfg(ObsGroup):
         """Observations for proprioception group."""
+        """对于自体接受组的观测。"""
 
         joint_pos = ObsTerm(func=mdp.joint_pos, noise=Unoise(n_min=-0.0, n_max=0.0))
         joint_vel = ObsTerm(func=mdp.joint_vel, noise=Unoise(n_min=-0.0, n_max=0.0))
@@ -160,6 +165,7 @@ class ObservationsCfg:
     @configclass
     class PerceptionObsCfg(ObsGroup):
         """Observations for perception group."""
+        """感知组的观测。"""
 
         object_point_cloud = ObsTerm(
             func=mdp.object_point_cloud_b,
@@ -184,6 +190,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for randomization."""
+    """配置为随机化。"""
 
     # -- pre-startup
     randomize_object_scale = EventTerm(
@@ -326,6 +333,7 @@ class ActionsCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     action_l2 = RewTerm(func=mdp.action_l2_clamped, weight=-0.005)
 
@@ -373,6 +381,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -390,6 +399,7 @@ class TerminationsCfg:
 @configclass
 class DexsuiteReorientEnvCfg(ManagerBasedEnvCfg):
     """Dexsuite reorientation task definition, also the base definition for derivative Lift task and evaluation task"""
+    """Dexsuite重定向任务定义，也为衍生品的基础定义"""
 
     # Scene settings
     viewer: ViewerCfg = ViewerCfg(eye=(-2.25, 0.0, 0.75), lookat=(0.0, 0.0, 0.45), origin_type="env")
@@ -406,6 +416,7 @@ class DexsuiteReorientEnvCfg(ManagerBasedEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 2  # 50 Hz
 
@@ -436,6 +447,7 @@ class DexsuiteReorientEnvCfg(ManagerBasedEnvCfg):
 
 class DexsuiteLiftEnvCfg(DexsuiteReorientEnvCfg):
     """Dexsuite lift task definition"""
+    """德克苏伊特升降任务定义"""
 
     def __post_init__(self):
         super().__post_init__()
@@ -448,6 +460,7 @@ class DexsuiteLiftEnvCfg(DexsuiteReorientEnvCfg):
 
 class DexsuiteReorientEnvCfg_PLAY(DexsuiteReorientEnvCfg):
     """Dexsuite reorientation task evaluation environment definition"""
+    """Dexsuite重定向任务评估环境定义"""
 
     def __post_init__(self):
         super().__post_init__()
@@ -458,6 +471,7 @@ class DexsuiteReorientEnvCfg_PLAY(DexsuiteReorientEnvCfg):
 
 class DexsuiteLiftEnvCfg_PLAY(DexsuiteLiftEnvCfg):
     """Dexsuite lift task evaluation environment definition"""
+    """德克苏伊特升降任务评估环境定义"""
 
     def __post_init__(self):
         super().__post_init__()

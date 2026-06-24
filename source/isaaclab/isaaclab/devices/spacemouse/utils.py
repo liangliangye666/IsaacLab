@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Helper functions for SpaceMouse."""
+"""对于SpaceMouse来说，辅助功能。"""
 
 # MIT License
 #
@@ -38,11 +39,22 @@ def convert_buffer(b1, b2):
     Returns:
         Scaled value from Space-mouse message
     """
+    """将原始SpaceMouse读数转换为命令。
+
+    参数：
+        b1: 8位字节
+        b2: 8位字节
+
+    返回：
+        从太空鼠标消息中获取规模值
+    """
     return _scale_to_control(_to_int16(b1, b2))
 
 
 """
 Private methods.
+"""
+"""个人方法。
 """
 
 
@@ -55,6 +67,15 @@ def _to_int16(y1, y2):
 
     Returns:
         16-bit integer
+    """
+    """转换两个8位字节为签署的16位整数。
+
+    参数：
+        y1: 8位字节
+        y2: 8位字节
+
+    返回：
+        16位整数
     """
     x = (y1) | (y2 << 8)
     if x >= 32768:
@@ -73,6 +94,17 @@ def _scale_to_control(x, axis_scale=350.0, min_v=-1.0, max_v=1.0):
 
     Returns:
         Clipped, scaled input from HID
+    """
+    """调整原始HID读数到目标范围。
+
+    参数：
+        x: 从HID的原始读数
+        axis_scale: 对原始输入值进行映射的 (反转) 扩展因素
+        min_v: 扩展后的最低限度
+        max_v: 扩展后最大限度
+
+    返回：
+        从HID中切断，缩小输入
     """
     x = x / axis_scale
     return min(max(x, min_v), max_v)

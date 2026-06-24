@@ -11,5 +11,12 @@ These include:
 * Run tests with the simulation app
 
 """
+"""包含特定应用程序功能的子包。
+
+这些包括:
+
+* 启动不同配置的仿真应用的能力
+* 使用仿真应用运行测试
+"""
 
 from .app_launcher import AppLauncher  # noqa: F401, F403

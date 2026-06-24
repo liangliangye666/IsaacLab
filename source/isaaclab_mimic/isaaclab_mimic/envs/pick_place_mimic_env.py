@@ -19,6 +19,10 @@ class PickPlaceRelMimicEnv(FrankaCubeStackIKRelMimicEnv):
 
     This MimicEnv is used when all observations are in the robot base frame.
     """
+    """艾萨克实验室仿真环境包装类 DiffIK / RmpFlow 相对姿势控制 env。
+
+    在所有观测都在机器人基础框架中使用 MimicEnv。
+    """
 
     def get_object_poses(self, env_ids: Sequence[int] | None = None):
         """
@@ -29,6 +33,15 @@ class PickPlaceRelMimicEnv(FrankaCubeStackIKRelMimicEnv):
 
         Returns:
             A dictionary that maps object names to object pose matrix in robot base frame (4x4 torch.Tensor)
+        """
+        """在机器人基架中得到每个对象的姿势 (包括刚性对象和关节对象)。
+
+        参数：
+            env_ids: 环境索引，让你做好姿势。
+                     如果是None，则考虑所有envs。
+
+        返回：
+            在机器人基础框架中映射对象名称到对象姿势矩阵的字典 (4x4 torch.Tensor)
         """
         if env_ids is None:
             env_ids = slice(None)
@@ -77,6 +90,18 @@ class PickPlaceRelMimicEnv(FrankaCubeStackIKRelMimicEnv):
 
         Returns:
             A dictionary termination signal flags (False or True) for each subtask.
+        """
+        """在任务中的每个子任务中，得到终止信号标志的字典。
+        在完成子任务时，标志是1和否则是0。
+        如果打算在运行数据集注释工具时启用自动子任务项信号注释，则需要实施这种方法。
+        如果要使用手动的子任务项信号注释，则可以保持这种方法未实施。
+
+        参数：
+            env_ids: 环境索引，以获得终止信号。
+                     如果是None，则考虑所有envs。
+
+        返回：
+            字典终止信号标志 (False或True) 对于每个子任务。
         """
         if env_ids is None:
             env_ids = slice(None)
@@ -102,6 +127,10 @@ class PickPlaceAbsMimicEnv(FrankaCubeStackIKAbsMimicEnv):
 
     This MimicEnv is used when all observations are in the robot base frame.
     """
+    """艾萨克实验室仿真环境包装类 DiffIK / RmpFlow 绝对姿势控制 env。
+
+    在所有观测都在机器人基础框架中使用 MimicEnv。
+    """
 
     def get_object_poses(self, env_ids: Sequence[int] | None = None):
         """
@@ -112,6 +141,15 @@ class PickPlaceAbsMimicEnv(FrankaCubeStackIKAbsMimicEnv):
 
         Returns:
             A dictionary that maps object names to object pose matrix in robot base frame (4x4 torch.Tensor)
+        """
+        """在机器人基架中得到每个对象的姿势 (包括刚性对象和关节对象)。
+
+        参数：
+            env_ids: 环境索引，让你做好姿势。
+                     如果是None，则考虑所有envs。
+
+        返回：
+            在机器人基础框架中映射对象名称到对象姿势矩阵的字典 (4x4 torch.Tensor)
         """
         if env_ids is None:
             env_ids = slice(None)
@@ -160,6 +198,18 @@ class PickPlaceAbsMimicEnv(FrankaCubeStackIKAbsMimicEnv):
 
         Returns:
             A dictionary termination signal flags (False or True) for each subtask.
+        """
+        """在任务中的每个子任务中，得到终止信号标志的字典。
+        在完成子任务时，标志是1和否则是0。
+        如果打算在运行数据集注释工具时启用自动子任务项信号注释，则需要实施这种方法。
+        如果要使用手动的子任务项信号注释，则可以保持这种方法未实施。
+
+        参数：
+            env_ids: 环境索引，以获得终止信号。
+                     如果是None，则考虑所有envs。
+
+        返回：
+            字典终止信号标志 (False或True) 对于每个子任务。
         """
         if env_ids is None:
             env_ids = slice(None)

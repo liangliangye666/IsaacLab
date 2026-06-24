@@ -4,5 +4,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Locomotion environments for legged robots."""
+"""机器人运动环境"""
 
 from .velocity import *  # noqa

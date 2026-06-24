@@ -12,5 +12,6 @@ from .tiled_camera import TiledCamera
 @configclass
 class TiledCameraCfg(CameraCfg):
     """Configuration for a tiled rendering-based camera sensor."""
+    """基于 camera造的摄像头传感器的配置。"""
 
     class_type: type = TiledCamera

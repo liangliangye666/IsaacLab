@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 """Retargeters for mapping input device data to robot commands."""
+"""用于将输入设备数据映射到机器人的命令。"""
 
 from .humanoid.fourier.gr1t2_retargeter import GR1T2Retargeter, GR1T2RetargeterCfg
 from .humanoid.unitree.g1_lower_body_standing import G1LowerBodyStandingRetargeter, G1LowerBodyStandingRetargeterCfg

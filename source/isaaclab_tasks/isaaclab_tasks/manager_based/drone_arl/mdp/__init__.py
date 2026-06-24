@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """This sub-module contains the functions that are specific to the drone ARL environments."""
+"""本子模块包含用于ARL无人机环境的功能。"""
 
 from isaaclab.envs.mdp import *  # noqa: F401, F403
 

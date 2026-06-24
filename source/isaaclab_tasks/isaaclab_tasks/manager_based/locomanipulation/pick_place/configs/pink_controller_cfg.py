@@ -8,6 +8,10 @@
 This module provides configurations for humanoid robot pink IK controllers,
 including both fixed base and mobile configurations for upper body manipulation.
 """
+"""色控制器的配置。
+
+该模块为人形机器人粉红色IK控制器提供配置，包括固定基和移动配置，用于操纵上部。
+"""
 
 from isaaclab.controllers.pink_ik.local_frame_task import LocalFrameTask
 from isaaclab.controllers.pink_ik.null_space_posture_task import NullSpacePostureTask
@@ -70,6 +74,11 @@ This configuration sets up the pink IK controller for the G1 humanoid robot with
 left and right wrist control tasks. The controller is designed for upper body
 manipulation tasks.
 """
+"""基配置G1粉红色IK控制器。
+
+这种配置为G1人形机器人设置了粉红色IK控制器，
+控制器用于操纵身体上部。
+"""
 
 
 ##
@@ -123,4 +132,13 @@ The configuration includes:
 - Fixed joints (pelvis, legs, hands)
 - Hand joint names for additional control
 - Reference to the pink IK controller configuration
+"""
+"""为G1粉红色IK动作的基础配置。
+
+这种配置为G1人形机器人设置了粉红色IK动作，定义了哪些关节由IK解决器控制，哪些是固定的。
+配置包括:
+- 由IK控制的身体上部关节 (肩膀，肘部，手腕)
+- 固定关节 (骨架，腿，手)
+- 额外控制的手联名
+- 参考粉红色IK控制器配置
 """

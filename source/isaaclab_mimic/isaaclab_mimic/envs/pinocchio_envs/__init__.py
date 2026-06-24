@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Sub-package with environment wrappers for Isaac Lab Mimic."""
+"""附带环境包装的亚萨克实验室模仿器。"""
 
 import gymnasium as gym
 

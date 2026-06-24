@@ -10,6 +10,10 @@ the curriculum introduced by the function.
 """
 
 from __future__ import annotations
+"""可用于为学习环境创建课程的共同功能。
+
+函数可以传递到:class:`isaaclab.managers.CurriculumTermCfg`对象，使函数引入的课程能够实现。
+"""
 
 import re
 from collections.abc import Sequence
@@ -23,6 +27,7 @@ if TYPE_CHECKING:
 
 class modify_reward_weight(ManagerTermBase):
     """Curriculum that modifies the reward weight based on a step-wise schedule."""
+    """课程，根据步骤的时间表修改奖励权重。"""
 
     def __init__(self, cfg: CurriculumTermCfg, env: ManagerBasedRLEnv):
         super().__init__(cfg, env)
@@ -118,12 +123,80 @@ class modify_env_param(ManagerTermBase):
                 },
             )
     """
+    """在运行时间修改环境参数的课程项。
+
+    这个项有助于在运行时修改环境参数 (或属性)。
+    这个参数可以是环境的任何属性，例如物理材料属性，观测范围或可以通过点路径访问的任何其他可配置参数。
+
+    该项使用``address``参数来指定目标属性为点路线字符串。
+    例如"，event_manager.cfg.object_physics_material.func.material_buckets"在事件管理器的事件项"object_physics_mater
+    ial"中的``material_buckets``属性，这是样本物理材料属性的数。
+
+    该项使用``modify_fn``参数来指定修改目标属性的值函数。
+    函数应具有以下签名:
+
+    .. code-block:: python
+
+        def modify_fn(env, env_ids, old_value, **modify_params) -> new_value | modify_env_param.NO_CHANGE:
+            # modify the value based on the old value and the modify parameters
+            new_value = old_value + modify_params["value"]
+            return new_value
+
+    在 ``env`` 是学习环境， ``env_ids`` 是子环境索引， ``old_value`` 是目标属性的当前值， ``modify_params`` 是可传递到函数的额外参数。
+    函数应返回对目标属性设置的新值，或表示值不应改变的特殊代币``modify_env_param.NO_CHANGE``。
+
+    在初始化后，它编译了getter和setter函数
+    for the target attribute specified by the ``address`` parameter. The getter retrieves the
+    设置器将新值返回属性。
+
+    这一项处理一个目标属性的getter/setter accessors 在一个 ((指定为一个"地址"在项配置:attr:`cfg.params["address"]`)
+    上第一次调用它，然后在每个调用时读取当前值，应用用户提供的:attr:`modify_fn`，并写回结果。
+    由于:obj:`None`在这种情况下有时可以是值值值，我们使用代币，:attr:`NO_CHANGE`，作为这个类的非修改信号。
+
+    Usage:
+        .. code-block:: python
+
+            def resample_bucket_range(
+                env, env_id, data, static_friction_range, dynamic_friction_range, restitution_range, num_steps
+            ):
+                if env.common_step_counter > num_steps:
+                    range_list = [static_friction_range, dynamic_friction_range, restitution_range]
+                    ranges = torch.tensor(range_list, device="cpu")
+                    new_buckets = math_utils.sample_uniform(ranges[:, 0], ranges[:, 1], (len(data), 3), device="cpu")
+                    return new_buckets
+
+                # if the step counter is not reached, return NO_CHANGE to indicate no modification.
+                # we do this instead of returning None, since None is a valid value to set.
+                # additionally, returning the input data would not change the value but still lead
+                # to the setter being called, which may add overhead.
+                return mdp.modify_env_param.NO_CHANGE
+
+
+            object_physics_material_curriculum = CurrTerm(
+                func=mdp.modify_env_param,
+                params={
+                    "address": "event_manager.cfg.object_physics_material.func.material_buckets",
+                    "modify_fn": resample_bucket_range,
+                    "modify_params": {
+                        "static_friction_range": [0.5, 1.0],
+                        "dynamic_friction_range": [0.3, 1.0],
+                        "restitution_range": [0.0, 0.5],
+                        "num_step": 120000,
+                    },
+                },
+            )
+    """
 
     NO_CHANGE: ClassVar = object()
     """Special token to indicate no change in the value to be set.
 
     This token is used to signal that the `modify_fn` did not produce a new value. It can
     be returned by the `modify_fn` to indicate that the current value should remain unchanged.
+    """
+    """标志着未需设置的值的变化。
+
+    这种代币用于表示`modify_fn`没有产生新的值。
+    `modify_fn`可以返回它，表示当前值不变。
     """
 
     def __init__(self, cfg: CurriculumTermCfg, env: ManagerBasedRLEnv):
@@ -140,6 +213,7 @@ class modify_env_param(ManagerTermBase):
 
     def __del__(self):
         """Destructor to clean up the compiled functions."""
+        """为了清理编译的功能。"""
         # clear the getter and setter functions
         self._get_fn = None
         self._set_fn = None
@@ -148,6 +222,8 @@ class modify_env_param(ManagerTermBase):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def __call__(
@@ -177,6 +253,8 @@ class modify_env_param(ManagerTermBase):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _process_accessors(self, root: ManagerBasedRLEnv, path: str) -> tuple[callable, callable]:
         """Process and return the (getter, setter) functions for a dotted attribute path.
@@ -195,6 +273,22 @@ class modify_env_param(ManagerTermBase):
             A tuple of two functions (getter, setter), where:
             the getter retrieves the current value of the attribute, and
             the setter writes a new value back to the attribute.
+        """
+        """处理和返回点点属性路径的 (getter， setter) 函数。
+
+        这个函数解决了给定的根对象中的属性。
+        点的路径可能包括嵌套的属性，字典键和序列索引。
+
+        例如，路径"foo.bar[2].baz"将解决为`root.foo.bar[2].baz`。
+        这允许访问嵌入式结构中的属性，例如字典或列表。
+
+        参数：
+            root: 解决属性的主要对象。
+            path: 给属性变量带点路径。
+                  对于e.g."，foo.bar[2].baz"。
+
+        返回：
+            两个函数 (getter， setter) 的元组，其中:getter 检索属性的当前值，而 setter 返回属性的新值。
         """
         # Turn "a.b[2].c" into ["a", ("b", 2), "c"] and store in parts
         path_parts: list[str | tuple[str, int]] = []
@@ -269,6 +363,35 @@ class modify_term_cfg(modify_env_param):
 
     Internally, it replaces the first occurrence of "s." in the address with "_manager.cfg.",
     thus transforming the simplified address into a full manager path.
+
+    Usage:
+        .. code-block:: python
+
+            def override_value(env, env_ids, data, value, num_steps):
+                if env.common_step_counter > num_steps:
+                    return value
+                return mdp.modify_term_cfg.NO_CHANGE
+
+
+            command_object_pose_xrange_adr = CurrTerm(
+                func=mdp.modify_term_cfg,
+                params={
+                    "address": "commands.object_pose.ranges.pos_x",  # note: `_manager.cfg` is omitted
+                    "modify_fn": override_value,
+                    "modify_params": {"value": (-0.75, -0.25), "num_steps": 12000},
+                },
+            )
+    """
+    """在运行时修改管理器项配置的课程。
+
+    这个类继承了:class:`modify_env_param`，并且专门旨在在环境中修改管理器项的配置。
+    它主要增加了使用简单的地址风格的便利性，使用"s"作为指向管理器的配置的前置。
+
+    例如，在写"event_manager.cfg.object_physics_material.func.material_buckets"的位置，你可以写"events.object_physics
+    _material.func.material_buckets"来指同一个项配置。
+    同样适用于其他管理器，例如"观测"，"命令"，"奖励"和"终结"。
+
+    内部，它将"s"在地址中的第一个出现取代为"_manager.cfg"。
 
     Usage:
         .. code-block:: python

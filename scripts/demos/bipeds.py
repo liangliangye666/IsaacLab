@@ -12,8 +12,16 @@ This script demonstrates how to simulate bipedal robots.
     ./isaaclab.sh -p scripts/demos/bipeds.py
 
 """
+"""这本脚本展示了如何仿真双脚机器人。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/demos/bipeds.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -31,6 +39,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -48,6 +57,7 @@ from isaaclab_assets import G1_CFG  # isort:skip
 
 def design_scene(sim: sim_utils.SimulationContext) -> tuple[list, torch.Tensor]:
     """Designs the scene."""
+    """他设计了场景。"""
     # Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
     cfg.func("/World/defaultGroundPlane", cfg)
@@ -75,6 +85,7 @@ def design_scene(sim: sim_utils.SimulationContext) -> tuple[list, torch.Tensor]:
 
 def run_simulator(sim: sim_utils.SimulationContext, robots: list[Articulation], origins: torch.Tensor):
     """Runs the simulation loop."""
+    """运行仿真循环。"""
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()
     sim_time = 0.0
@@ -113,6 +124,7 @@ def run_simulator(sim: sim_utils.SimulationContext, robots: list[Articulation], 
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(dt=0.005, device=args_cli.device)
     sim = SimulationContext(sim_cfg)

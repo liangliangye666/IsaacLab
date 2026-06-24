@@ -13,8 +13,16 @@
 """
 
 from __future__ import annotations
+"""这本脚本展示了如何在多个环境中产生多个对象。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/demos/multi_asset.py --num_envs 2048
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -34,6 +42,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import random
 
@@ -69,6 +78,7 @@ from isaaclab_assets.robots.anymal import ANYDRIVE_3_LSTM_ACTUATOR_CFG  # isort:
 
 def randomize_shape_color(prim_path_expr: str):
     """Randomize the color of the geometry."""
+    """随机定制几何的颜色。"""
     # get stage handle
     stage = get_current_stage()
     # resolve prim paths for spawning and cloning
@@ -94,6 +104,7 @@ def randomize_shape_color(prim_path_expr: str):
 @configclass
 class MultiObjectSceneCfg(InteractiveSceneCfg):
     """Configuration for a multi-object scene."""
+    """为多个物体场景的配置。"""
 
     # ground plane
     ground = AssetBaseCfg(prim_path="/World/defaultGroundPlane", spawn=sim_utils.GroundPlaneCfg())
@@ -222,6 +233,7 @@ class MultiObjectSceneCfg(InteractiveSceneCfg):
 
 def run_simulator(sim: SimulationContext, scene: InteractiveScene):
     """Runs the simulation loop."""
+    """运行仿真循环。"""
     # Extract scene entities
     # note: we only do this here for readability.
     rigid_object: RigidObject = scene["object"]
@@ -274,6 +286,7 @@ def run_simulator(sim: SimulationContext, scene: InteractiveScene):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(dt=0.005, device=args_cli.device)
     sim = SimulationContext(sim_cfg)

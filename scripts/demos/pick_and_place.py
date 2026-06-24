@@ -22,6 +22,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 from collections.abc import Sequence
 
@@ -55,6 +56,10 @@ class PickAndPlaceEnvCfg(DirectRLEnvCfg):
     """Example configuration for a PickAndPlace robot using suction-cups.
 
     This example follows what would be typically done in a DirectRL pipeline.
+    """
+    """采用吸杯的PickAndPlace机器人的示例配置。
+
+    这种例子遵循DirectRL管道中通常会做的事情。
     """
 
     # env
@@ -129,6 +134,11 @@ class PickAndPlaceEnv(DirectRLEnv):
     This example follows what would be typically done in a DirectRL pipeline.
     Here we substitute the policy by keyboard inputs.
     """
+    """采用吸杯的PickAndPlace机器人环境示例。
+
+    这种例子遵循DirectRL管道中通常会做的事情。
+    在这里，我们用键盘输入取代该策略。
+    """
 
     cfg: PickAndPlaceEnvCfg
 
@@ -159,6 +169,7 @@ class PickAndPlaceEnv(DirectRLEnv):
 
     def set_up_keyboard(self):
         """Sets up interface for keyboard input and registers the desired keys for control."""
+        """设置键盘输入接口，并记录控制所需的键。"""
         # Acquire keyboard interface
         self._input = carb.input.acquire_input_interface()
         self._keyboard = omni.appwindow.get_default_app_window().get_keyboard()
@@ -191,6 +202,7 @@ class PickAndPlaceEnv(DirectRLEnv):
 
     def _on_keyboard_event(self, event):
         """Checks for a keyboard event and assign the corresponding command control depending on key pressed."""
+        """检查键盘事件并根据键分配相应的命令控制。"""
         if event.type == carb.input.KeyboardEventType.KEY_PRESS:
             # Logic on key press - apply to ALL environments
             if event.input.name == self._auto_aim_target:
@@ -409,6 +421,7 @@ class PickAndPlaceEnv(DirectRLEnv):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # create environment configuration
     env_cfg = PickAndPlaceEnvCfg()
     env_cfg.scene.num_envs = args_cli.num_envs

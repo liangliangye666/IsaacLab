@@ -6,5 +6,7 @@
 """
 Config-based workflow environments.
 """
+"""基于配置的工作流环境。
+"""
 
 import gymnasium as gym

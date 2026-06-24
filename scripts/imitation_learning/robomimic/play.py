@@ -16,8 +16,22 @@ Args:
     norm_factor_min: If provided, minimum value of the action space normalization factor.
     norm_factor_max: If provided, maximum value of the action space normalization factor.
 """
+"""剧本将播放和评估来自Robomimic的训练有素策略。
+
+这部剧本载入了机器人模型，
+
+参数：
+    task: 环境名称。
+    checkpoint: 路径到机器人导航检查站。
+    horizon: 如果提供，请将每个部署的步骤视界推翻。
+    num_rollouts: 如果提供，请取代部署次数。
+    seed: 如果提供，将默认的随机种子上传。
+    norm_factor_min: 如果提供，操作空间正常化因子的最小值。
+    norm_factor_max: 如果提供，操作空间正常化因子的最大值。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -59,6 +73,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import copy
 import random
@@ -88,6 +103,18 @@ def rollout(policy, env, success_term, horizon, device):
     Returns:
         terminated: Whether the rollout terminated.
         traj: The trajectory of the rollout.
+    """
+    """执行环境策略的单一推广。
+
+    参数：
+        policy: 现在我们要做什么?
+        env: 玩的环境。
+        horizon: 每个部署的步骤水平。
+        device: 这种设备可以运行保险。
+
+    返回：
+        terminated: 部署是否结束。
+        traj: 部署的轨迹。
     """
     policy.start_episode()
     obs_dict, _ = env.reset()
@@ -143,6 +170,7 @@ def rollout(policy, env, success_term, horizon, device):
 
 def main():
     """Run a trained policy from robomimic with Isaac Lab environment."""
+    """运行一个训练有素的规则从机器人与艾萨克实验室环境。"""
     # parse configuration
     env_cfg = parse_env_cfg(args_cli.task, device=args_cli.device, num_envs=1, use_fabric=not args_cli.disable_fabric)
 

@@ -8,6 +8,8 @@ Manus and Vive for teleoperation and interaction.
 """
 
 from __future__ import annotations
+"""马努斯和Vive用于远程操作和交互。
+"""
 
 import contextlib
 from collections.abc import Callable
@@ -60,6 +62,28 @@ class ManusVive(DeviceBase):
     based on the TrackingTarget enum values. When retargeters are provided, the raw tracking
     data is transformed into robot control commands suitable for teleoperation.
     """
+    """为了远程操作和交互。
+
+    该设备使用Manus手套和Vive追踪器跟踪手关并提供以下形式:
+
+    1. 追踪数据的字典 (如果没有追踪器使用)
+    2. 对机器人控制的重定向命令 (当提供重定向器时)
+
+    用户需要安装Manus SDK并将`{path_to_manus_sdk}/manus_sdk/lib`添加到`LD_LIBRARY_PATH`。
+    `ManusViveIntegration`从`isaaclab.devices.openxr.manus_vive_utils`获取数据，包括
+
+    * 视频追踪器在场景框架中姿势，从AVP手腕姿势中校准。
+    * 从Vive手腕关节和Manus手腕关节 (相对于手腕) 来计算的手腕关节。
+    * 视频追踪器自动映射到左手腕和右手腕关节。
+
+    原数据格式 (_get_raw_data输出):与:class:`OpenXRDevice`一致。
+    共同名称在`HAND_JOINT_MAP`中定义为`isaaclab.devices.openxr.manus_vive_utils`。
+
+    电话指令:与:class:`OpenXRDevice`一致。
+
+    该装置根据TrackingTarget enum值追踪左手，右手，头部位置或任何这些组合。
+    当提供回器时，原始跟踪数据将转化为适合远程操作的机器人控制命令。
+    """
 
     TELEOP_COMMAND_EVENT_TYPE = "teleop_command"
 
@@ -69,6 +93,12 @@ class ManusVive(DeviceBase):
         Args:
             cfg: Configuration object for Manus+Vive settings.
             retargeters: List of retargeter instances to use for transforming raw tracking data.
+        """
+        """启动Manus+Vive设备。
+
+        参数：
+            cfg: 配置对象为Manus+Vive设置。
+            retargeters: 用于转换原始跟踪数据的重定位实例列表。
         """
         super().__init__(retargeters)
         # Enforce minimum Isaac Sim version (>= 5.1)
@@ -102,6 +132,9 @@ class ManusVive(DeviceBase):
         Properly unsubscribes from the XR message bus to prevent memory leaks
         and resource issues when the device is no longer needed.
         """
+        """当物体被破坏时，清理资源。
+        在设备不再需要时，正确取消XR消息公交器的订阅，以防止存储漏洞和资源问题。
+        """
         if hasattr(self, "_vc_subscription") and self._vc_subscription is not None:
             self._vc_subscription = None
 
@@ -113,6 +146,11 @@ class ManusVive(DeviceBase):
 
         Returns:
             Formatted string with device information.
+        """
+        """提供设备配置，跟踪设置和可用的手势命令的详细信息。
+
+        返回：
+            有设备信息的格式链。
         """
 
         msg = f"Manus+Vive Hand Tracking Device: {self.__class__.__name__}\n"
@@ -151,6 +189,7 @@ class ManusVive(DeviceBase):
 
     def reset(self):
         """Reset cached joint and head poses."""
+        """恢复缓存关节和头部姿势。"""
         default_pose = np.array([0, 0, 0, 1, 0, 0, 0], dtype=np.float32)
         self._previous_joint_poses_left = {name: default_pose.copy() for name in HAND_JOINT_NAMES}
         self._previous_joint_poses_right = {name: default_pose.copy() for name in HAND_JOINT_NAMES}
@@ -162,6 +201,12 @@ class ManusVive(DeviceBase):
         Args:
             key: The message key to bind ('START', 'STOP', 'RESET').
             func: The function to invoke when the message key is received.
+        """
+        """记录回调给定的钥匙。
+
+        参数：
+            key: 关联的消息键 ("START"， "STOP"， "RESET")。
+            func: 在收到消息键时调用的函数。
         """
         self._additional_callbacks[key] = func
 
@@ -176,6 +221,16 @@ class ManusVive(DeviceBase):
 
         Each pose is represented as a 7-element array: [x, y, z, qw, qx, qy, qz]
         where the first 3 elements are position and the last 4 are quaternion orientation.
+        """
+        """查看Manus和Vive的最新跟踪数据。
+
+        返回：
+            有TrackingTarget enum键 (HAND_LEFT，HAND_RIGHT，HEAD) 的字典，包含:
+                - 左手关节姿势: 26个关节的字典，位置和方向
+                - 右手关节姿势: 26个关节的字典，位置和方向
+                - 头部姿势:单个7个元素阵列，位置和方向
+
+        每个姿势都以7个元素阵列表示: [x， y， z， qw， qx， qy， qz] 首先3个元素是位置，最后4个元素是四元数方向。
         """
         hand_tracking_data = self._manus_vive.get_all_device_data()["manus_gloves"]
         result = {"left": self._previous_joint_poses_left, "right": self._previous_joint_poses_right}
@@ -194,6 +249,11 @@ class ManusVive(DeviceBase):
 
         Returns:
             7-element numpy.ndarray [x, y, z, qw, qx, qy, qz].
+        """
+        """从OpenXR计算头部姿势。
+
+        返回：
+            7个元素 numpy.ndarray [x， y， z， qw， qx， qy， qz]。
         """
         head_device = XRCore.get_singleton().get_input_device("/user/head")
         if head_device:
@@ -224,6 +284,11 @@ class ManusVive(DeviceBase):
         Args:
             event: The XR message-bus event containing a 'message' payload.
         """
+        """处理远程操作命令事件。
+
+        参数：
+            event: 包含"信息"有效载荷的XR消息公交事件。
+        """
         msg = event.payload["message"]
 
         if "start" in msg:
@@ -240,6 +305,7 @@ class ManusVive(DeviceBase):
 @dataclass
 class ManusViveCfg(DeviceCfg):
     """Configuration for Manus and Vive."""
+    """曼努斯和维夫的配置。"""
 
     xr_cfg: XrCfg | None = None
     class_type: type[DeviceBase] = ManusVive

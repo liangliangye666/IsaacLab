@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module for rigid contact sensor."""
+"""固体接触传感器子模块"""
 
 from .contact_sensor import ContactSensor
 from .contact_sensor_cfg import ContactSensorCfg

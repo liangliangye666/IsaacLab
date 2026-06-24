@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Installation script for the '{{ name }}' python package."""
+"""为{{ name }}'字符串包的安装脚本。"""
 
 import os
 

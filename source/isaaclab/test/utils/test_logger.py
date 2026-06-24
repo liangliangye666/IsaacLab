@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Tests for logging utilities."""
+"""检测记录公用事项。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import logging
 import os
@@ -29,28 +32,34 @@ from isaaclab.utils.logger import ColoredFormatter, RateLimitFilter, configure_l
 @pytest.fixture
 def formatter():
     """Fixture providing a ColoredFormatter instance."""
+    """提供ColoredFormatter实例的固定。"""
     return ColoredFormatter("%(levelname)s: %(message)s")
 
 
 @pytest.fixture
 def test_message():
     """Fixture providing a test message string."""
+    """固定器提供测试消息字符串。"""
     return "Test message"
 
 
 @pytest.fixture
 def rate_limit_filter():
     """Fixture providing a RateLimitFilter instance with 2 second interval."""
+    """设置提供2秒间隔的RateLimitFilter实例。"""
     return RateLimitFilter(interval_seconds=2)
 
 
 """
 Tests for the ColoredFormatter class.
 """
+"""测试ColoredFormatter类。
+"""
 
 
 def test_info_formatting(formatter, test_message):
     """Test INFO level message formatting."""
+    """测试INFO级信息格式化。"""
     record = logging.LogRecord(
         name="test",
         level=logging.INFO,
@@ -70,6 +79,7 @@ def test_info_formatting(formatter, test_message):
 
 def test_debug_formatting(formatter, test_message):
     """Test DEBUG level message formatting."""
+    """测试DEBUG级信息格式化。"""
     record = logging.LogRecord(
         name="test",
         level=logging.DEBUG,
@@ -89,6 +99,7 @@ def test_debug_formatting(formatter, test_message):
 
 def test_warning_formatting(formatter, test_message):
     """Test WARNING level message formatting."""
+    """测试WARNING级信息格式化。"""
     record = logging.LogRecord(
         name="test",
         level=logging.WARNING,
@@ -110,6 +121,7 @@ def test_warning_formatting(formatter, test_message):
 
 def test_error_formatting(formatter, test_message):
     """Test ERROR level message formatting."""
+    """测试ERROR级信息格式化。"""
     record = logging.LogRecord(
         name="test",
         level=logging.ERROR,
@@ -131,6 +143,7 @@ def test_error_formatting(formatter, test_message):
 
 def test_critical_formatting(formatter, test_message):
     """Test CRITICAL level message formatting."""
+    """测试CRITICAL级信息格式化。"""
     record = logging.LogRecord(
         name="test",
         level=logging.CRITICAL,
@@ -152,6 +165,7 @@ def test_critical_formatting(formatter, test_message):
 
 def test_color_codes_are_ansi():
     """Test that color codes are valid ANSI escape sequences."""
+    """测试颜色代码是否是有效的ANSI逃跑序列。"""
     # Test all defined colors
     for level_name, color_code in ColoredFormatter.COLORS.items():
         # ANSI color codes should match pattern \033[<number>m or \033[<number>;<number>m (for bold, etc.)
@@ -163,6 +177,7 @@ def test_color_codes_are_ansi():
 
 def test_custom_format_string(test_message):
     """Test that custom format strings work correctly."""
+    """测试定制格式字符串是否正常工作。"""
     custom_formatter = ColoredFormatter("%(name)s - %(levelname)s - %(message)s")
     record = logging.LogRecord(
         name="custom.logger",
@@ -184,10 +199,13 @@ def test_custom_format_string(test_message):
 """
 Tests for the RateLimitFilter class.
 """
+"""测试RateLimitFilter类。
+"""
 
 
 def test_non_warning_messages_pass_through(rate_limit_filter):
     """Test that non-WARNING messages always pass through the filter."""
+    """测试是否非WARNING消息总是通过过器。"""
     # Test INFO
     info_record = logging.LogRecord(
         name="test",
@@ -227,6 +245,7 @@ def test_non_warning_messages_pass_through(rate_limit_filter):
 
 def test_first_warning_passes(rate_limit_filter):
     """Test that the first WARNING message passes through."""
+    """测试第一个WARNING消息通过。"""
     record = logging.LogRecord(
         name="test",
         level=logging.WARNING,
@@ -241,6 +260,7 @@ def test_first_warning_passes(rate_limit_filter):
 
 def test_duplicate_warning_within_interval_blocked(rate_limit_filter):
     """Test that duplicate WARNING messages within interval are blocked."""
+    """测试间隔中被阻止的WARNING重复消息。"""
     message = "Duplicate warning"
 
     # First warning should pass
@@ -270,6 +290,7 @@ def test_duplicate_warning_within_interval_blocked(rate_limit_filter):
 
 def test_warning_after_interval_passes():
     """Test that WARNING messages pass after the rate limit interval."""
+    """测试在速度限制间隔之后 WARNING消息传递。"""
     message = "Rate limited warning"
     filter_short = RateLimitFilter(interval_seconds=1)
 
@@ -315,6 +336,7 @@ def test_warning_after_interval_passes():
 
 def test_different_warnings_not_rate_limited(rate_limit_filter):
     """Test that different WARNING messages are not rate limited together."""
+    """测试是否不同WARNING消息的速率并没有被限制在一起。"""
     # First warning
     record1 = logging.LogRecord(
         name="test",
@@ -342,6 +364,7 @@ def test_different_warnings_not_rate_limited(rate_limit_filter):
 
 def test_custom_interval():
     """Test that custom interval seconds work correctly."""
+    """测试定制间隔秒的正常运行。"""
     custom_filter = RateLimitFilter(interval_seconds=1)
     assert custom_filter.interval == 1
 
@@ -351,6 +374,7 @@ def test_custom_interval():
 
 def test_last_emitted_tracking(rate_limit_filter):
     """Test that the filter correctly tracks last emission times."""
+    """检测过器是否正确追踪最后的排放时间。"""
     message1 = "Message 1"
     message2 = "Message 2"
 
@@ -391,6 +415,7 @@ def test_last_emitted_tracking(rate_limit_filter):
 
 def test_formatted_message_warnings(rate_limit_filter):
     """Test rate limiting with formatted WARNING messages."""
+    """测试速率限制以格式化WARNING消息。"""
     # Test with string formatting
     record1 = logging.LogRecord(
         name="test",
@@ -433,10 +458,15 @@ Integration Tests.
 
 Tests that the filter and formatter work together in a logger.
 """
+"""整合测试。
+
+测试过器和格式器在记录器中一起工作。
+"""
 
 
 def test_filter_and_formatter_together():
     """Test that filter and formatter work together in a logger."""
+    """测试过器和格式器在记录器中一起工作。"""
     # Create a logger with both filter and formatter
     test_logger = logging.getLogger("test_integration")
     test_logger.setLevel(logging.DEBUG)
@@ -464,6 +494,7 @@ def test_filter_and_formatter_together():
 
 def test_default_initialization():
     """Test that classes can be initialized with default parameters."""
+    """测试可以使用默认参数启动类。"""
     # ColoredFormatter with default format
     formatter = ColoredFormatter()
     assert formatter is not None
@@ -476,10 +507,13 @@ def test_default_initialization():
 """
 Tests for the configure_logging function.
 """
+"""对configure_logging函数的测试。
+"""
 
 
 def test_configure_logging_basic():
     """Test basic configure_logging functionality without file logging."""
+    """测试基本的configure_logging功能，而不需要记录文件。"""
     # Setup logger without file logging
     logger = configure_logging(logging_level="INFO", save_logs_to_file=False)
 
@@ -507,6 +541,7 @@ def test_configure_logging_basic():
 
 def test_configure_logging_with_file():
     """Test configure_logging with file logging enabled."""
+    """测试configure_logging，并启用文件记录。"""
     # Setup logger with file logging
     with tempfile.TemporaryDirectory() as temp_dir:
         logger = configure_logging(logging_level="DEBUG", save_logs_to_file=True, log_dir=temp_dir)
@@ -537,6 +572,7 @@ def test_configure_logging_with_file():
 
 def test_configure_logging_levels():
     """Test configure_logging with different logging levels."""
+    """测试configure_logging用不同的记录水平。"""
     from typing import Literal
 
     levels: list[Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]] = [
@@ -564,6 +600,7 @@ def test_configure_logging_levels():
 
 def test_configure_logging_removes_existing_handlers():
     """Test that configure_logging removes existing handlers."""
+    """测试configure_logging是否删除现有处理器。"""
     # Get root logger and add a dummy handler
     root_logger = logging.getLogger()
     dummy_handler = logging.StreamHandler()
@@ -582,6 +619,7 @@ def test_configure_logging_removes_existing_handlers():
 
 def test_configure_logging_default_log_dir():
     """Test configure_logging uses temp directory when log_dir is None."""
+    """测试configure_logging使用 Temp目录，当log_dir是None。"""
 
     logger = configure_logging(logging_level="INFO", save_logs_to_file=True, log_dir=None)
 
@@ -605,6 +643,7 @@ def test_configure_logging_default_log_dir():
 
 def test_configure_logging_custom_log_dir():
     """Test configure_logging with custom log directory."""
+    """通过自定义日志目录测试configure_logging。"""
     with tempfile.TemporaryDirectory() as temp_dir:
         custom_log_dir = os.path.join(temp_dir, "custom_logs")
 
@@ -626,6 +665,7 @@ def test_configure_logging_custom_log_dir():
 
 def test_configure_logging_log_file_format():
     """Test that log file has correct timestamp format."""
+    """检测日志文件是否有正确的时刻标志格式。"""
     with tempfile.TemporaryDirectory() as temp_dir:
         logger = configure_logging(logging_level="INFO", save_logs_to_file=True, log_dir=temp_dir)
 
@@ -645,6 +685,7 @@ def test_configure_logging_log_file_format():
 
 def test_configure_logging_file_formatter():
     """Test that file handler has more detailed formatter than stream handler."""
+    """测试文件处理器比流处理器具有更详细的格式化器。"""
     with tempfile.TemporaryDirectory() as temp_dir:
         logger = configure_logging(logging_level="INFO", save_logs_to_file=True, log_dir=temp_dir)
 
@@ -676,6 +717,7 @@ def test_configure_logging_file_formatter():
 
 def test_configure_logging_multiple_calls():
     """Test that multiple configure_logging calls properly cleanup."""
+    """测试多个configure_logging调用正确的清洁。"""
     # First setup
     logger1 = configure_logging(logging_level="INFO", save_logs_to_file=False)
     handler_count_1 = len(logger1.handlers)
@@ -693,6 +735,7 @@ def test_configure_logging_multiple_calls():
 
 def test_configure_logging_actual_logging():
     """Test that logger actually logs messages correctly."""
+    """测试记录器实际上正确记录消息。"""
     import io
 
     # Capture stdout

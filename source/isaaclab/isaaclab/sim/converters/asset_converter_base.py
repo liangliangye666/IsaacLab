@@ -44,6 +44,28 @@ class AssetConverterBase(abc.ABC):
         that trigger the USD file re-generation.
 
     """
+    """从不同格式转换资产文件到USD格式的基类。
+
+    该类提供了将资产文件转换为USD的共同界面。
+    它没有提供任何实现转换的办法。
+    衍生类必须实施:meth:`_convert_asset`方法，以提供实际转换。
+
+    如果提供输出目录 (:obj:`AssetConverterBaseCfg.usd_dir`)，文件转换是惰的。
+    在惰的转变中，USD文件只有在:
+
+    * 资产文件已修改。
+    * 配置参数已修改。
+    * 没有USD文件。
+
+    为了覆盖这种行为以强制转换，旗:obj:`AssetConverterBaseCfg.force_usd_conversion`可以设置为True。
+
+    当没有定义输出目录时，zy惰转换被禁用，生成的USD文件被存储在``/tmp/IsaacLab/usd_{date}_{time}_{random}``文件中，在运行时生成支架中的参数。
+    随机识别器有助于避免两个同时触发的转换试图使用相同的目录来阅读/写生成的文件的比赛条件。
+
+    .. 说明::
+        参数 :obj:`AssetConverterBaseCfg.asset_path`，:obj:`AssetConverterBaseCfg.usd_dir`和:obj:`AssetConve
+        rterBaseCfg.usd_file_name`的变化不被视为启动USD文件再生的配置实例中的修改。
+    """
 
     def __init__(self, cfg: AssetConverterBaseCfg):
         """Initializes the class.
@@ -53,6 +75,14 @@ class AssetConverterBase(abc.ABC):
 
         Raises:
             ValueError: When provided asset file does not exist.
+        """
+        """开始课程。
+
+        参数：
+            cfg: 配置实例将资产文件转换为USD格式。
+
+        异常：
+            ValueError: 如果提供资产文件不存在。
         """
         # check that the config is valid
         cfg.validate()
@@ -118,20 +148,25 @@ class AssetConverterBase(abc.ABC):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def usd_dir(self) -> str:
         """The absolute path to the directory where the generated USD files are stored."""
+        """绝对通路到生成的USD文件存储的目录。"""
         return self._usd_dir
 
     @property
     def usd_file_name(self) -> str:
         """The file name of the generated USD file."""
+        """生成的USD文件的文件名称。"""
         return self._usd_file_name
 
     @property
     def usd_path(self) -> str:
         """The absolute path to the generated USD file."""
+        """生成的USD文件的绝对路径。"""
         return os.path.join(self.usd_dir, self.usd_file_name)
 
     @property
@@ -142,10 +177,18 @@ class AssetConverterBase(abc.ABC):
         mesh references in the generated USD file are resolved relatively. Otherwise, it becomes
         difficult to move the USD asset to a different location.
         """
+        """关于USD文件的相对路径。
+
+        路径与USD目录:attr:`usd_dir`有关。
+        为了确保生成的USD文件中的网格引用得到相对的解决。
+        否则，将USD资产转移到另一个位置变得困难。
+        """
         return os.path.join(".", "Props", "instanceable_meshes.usd")
 
     """
     Implementation specifics.
+    """
+    """实施具体情况。
     """
 
     @abc.abstractmethod
@@ -155,10 +198,17 @@ class AssetConverterBase(abc.ABC):
         Args:
             cfg: The configuration instance for the input asset to USD conversion.
         """
+        """将资产文件转换为USD。
+
+        参数：
+            cfg: 输入资产为 USD转换的配置实例。
+        """
         raise NotImplementedError()
 
     """
     Private helpers.
+    """
+    """个人助手。
     """
 
     @staticmethod
@@ -173,6 +223,17 @@ class AssetConverterBase(abc.ABC):
 
         Returns:
             An MD5 hash of a string.
+        """
+        """将配置对象和资产文件转换为字符串的MD5哈希。
+
+        .. 警告::
+            它只检查主要资产文件 (:attr:`cfg.asset_path`)。
+
+        参数：
+            config : 资产转换器配置对象
+
+        返回：
+            一个字符串的MD5哈希。
         """
 
         # convert to dict and remove path related info

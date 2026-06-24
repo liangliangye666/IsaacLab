@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Test cases for Isaac Lab controller utilities."""
+"""艾萨克实验室控制器实验盒。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -28,6 +30,7 @@ from isaaclab.utils.io.torchscript import load_torchscript_model
 @pytest.fixture
 def mock_urdf_content():
     """Create mock URDF content for testing."""
+    """为测试创建仿真URDF内容。"""
     return """<?xml version="1.0"?>
 <robot name="test_robot">
     <link name="base_link">
@@ -105,6 +108,7 @@ def mock_urdf_content():
 @pytest.fixture
 def test_urdf_file(mock_urdf_content):
     """Create a temporary URDF file for testing."""
+    """为测试创建一个临时的URDF文件。"""
     # Create a temporary directory for test files
     test_dir = tempfile.mkdtemp()
 
@@ -128,6 +132,7 @@ def test_urdf_file(mock_urdf_content):
 
 def test_single_joint_conversion(test_urdf_file, mock_urdf_content):
     """Test converting a single revolute joint to fixed."""
+    """测试将单个轮关联转换为固定。"""
     # Test converting shoulder_to_elbow joint
     fixed_joints = ["shoulder_to_elbow"]
     change_revolute_to_fixed(test_urdf_file, fixed_joints)
@@ -147,6 +152,7 @@ def test_single_joint_conversion(test_urdf_file, mock_urdf_content):
 
 def test_multiple_joints_conversion(test_urdf_file, mock_urdf_content):
     """Test converting multiple revolute joints to fixed."""
+    """测试将多个轮结转换为固定。"""
     # Test converting multiple joints
     fixed_joints = ["base_to_shoulder", "elbow_to_wrist"]
     change_revolute_to_fixed(test_urdf_file, fixed_joints)
@@ -167,6 +173,7 @@ def test_multiple_joints_conversion(test_urdf_file, mock_urdf_content):
 
 def test_non_existent_joint(test_urdf_file, mock_urdf_content):
     """Test behavior when trying to convert a non-existent joint."""
+    """在试图转换一个不存在的关节时，"""
     # Try to convert a joint that doesn't exist
     fixed_joints = ["non_existent_joint"]
     change_revolute_to_fixed(test_urdf_file, fixed_joints)
@@ -181,6 +188,7 @@ def test_non_existent_joint(test_urdf_file, mock_urdf_content):
 
 def test_mixed_existent_and_non_existent_joints(test_urdf_file, mock_urdf_content):
     """Test converting a mix of existent and non-existent joints."""
+    """测试将现有和不现有关节的混合物转换。"""
     # Try to convert both existent and non-existent joints
     fixed_joints = ["base_to_shoulder", "non_existent_joint", "elbow_to_wrist"]
     change_revolute_to_fixed(test_urdf_file, fixed_joints)
@@ -199,6 +207,7 @@ def test_mixed_existent_and_non_existent_joints(test_urdf_file, mock_urdf_conten
 
 def test_already_fixed_joint(test_urdf_file, mock_urdf_content):
     """Test behavior when trying to convert an already fixed joint."""
+    """在试图转换已经固定的关节时测试行为。"""
     # Try to convert a joint that is already fixed
     fixed_joints = ["wrist_to_gripper"]
     change_revolute_to_fixed(test_urdf_file, fixed_joints)
@@ -213,6 +222,7 @@ def test_already_fixed_joint(test_urdf_file, mock_urdf_content):
 
 def test_empty_joints_list(test_urdf_file, mock_urdf_content):
     """Test behavior when passing an empty list of joints."""
+    """在通过空虚的关节列表时测试行为。"""
     # Try to convert with empty list
     fixed_joints = []
     change_revolute_to_fixed(test_urdf_file, fixed_joints)
@@ -227,6 +237,7 @@ def test_empty_joints_list(test_urdf_file, mock_urdf_content):
 
 def test_file_not_found(test_urdf_file):
     """Test behavior when URDF file doesn't exist."""
+    """在没有URDF文件时测试行为。"""
     non_existent_path = os.path.join(os.path.dirname(test_urdf_file), "non_existent.urdf")
     fixed_joints = ["base_to_shoulder"]
 
@@ -237,6 +248,7 @@ def test_file_not_found(test_urdf_file):
 
 def test_preserve_other_content(test_urdf_file):
     """Test that other content in the URDF file is preserved."""
+    """测试URDF文件中的其他内容是否保存。"""
     fixed_joints = ["shoulder_to_elbow"]
     change_revolute_to_fixed(test_urdf_file, fixed_joints)
 
@@ -258,6 +270,7 @@ def test_preserve_other_content(test_urdf_file):
 
 def test_joint_attributes_preserved(test_urdf_file):
     """Test that joint attributes other than type are preserved."""
+    """测试是否保存了除类型以外的关联属性。"""
     fixed_joints = ["base_to_shoulder"]
     change_revolute_to_fixed(test_urdf_file, fixed_joints)
 
@@ -281,6 +294,7 @@ def test_joint_attributes_preserved(test_urdf_file):
 
 def test_regex_single_joint_conversion(test_urdf_file, mock_urdf_content):
     """Test converting a single revolute joint to fixed using regex pattern."""
+    """测试将单轮结合转换为固定使用regex模式。"""
     # Test converting shoulder_to_elbow joint using exact match
     fixed_joints = ["shoulder_to_elbow"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -300,6 +314,7 @@ def test_regex_single_joint_conversion(test_urdf_file, mock_urdf_content):
 
 def test_regex_pattern_matching(test_urdf_file, mock_urdf_content):
     """Test converting joints using regex patterns."""
+    """使用regex模式测试转换关节。"""
     # Test converting joints that contain "to" in their name
     fixed_joints = [r".*to.*"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -319,6 +334,7 @@ def test_regex_pattern_matching(test_urdf_file, mock_urdf_content):
 
 def test_regex_multiple_patterns(test_urdf_file, mock_urdf_content):
     """Test converting joints using multiple regex patterns."""
+    """使用多个regex模式测试转换关节。"""
     # Test converting joints that start with "base" or end with "wrist"
     fixed_joints = [r"^base.*", r".*wrist$"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -337,6 +353,7 @@ def test_regex_multiple_patterns(test_urdf_file, mock_urdf_content):
 
 def test_regex_case_sensitive_matching(test_urdf_file, mock_urdf_content):
     """Test that regex matching is case sensitive."""
+    """测试是否适应病例。"""
     # Test with uppercase pattern that won't match lowercase joint names
     fixed_joints = [r".*TO.*"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -351,6 +368,7 @@ def test_regex_case_sensitive_matching(test_urdf_file, mock_urdf_content):
 
 def test_regex_partial_word_matching(test_urdf_file, mock_urdf_content):
     """Test converting joints using partial word matching."""
+    """使用部分字符匹配的转换关节测试。"""
     # Test converting joints that contain "shoulder" in their name
     fixed_joints = [r".*shoulder.*"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -369,6 +387,7 @@ def test_regex_partial_word_matching(test_urdf_file, mock_urdf_content):
 
 def test_regex_no_matches(test_urdf_file, mock_urdf_content):
     """Test behavior when regex patterns don't match any joints."""
+    """测试行为，当Regex模式不匹配任何关节时。"""
     # Test with pattern that won't match any joint names
     fixed_joints = [r"^nonexistent.*"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -383,6 +402,7 @@ def test_regex_no_matches(test_urdf_file, mock_urdf_content):
 
 def test_regex_empty_patterns_list(test_urdf_file, mock_urdf_content):
     """Test behavior when passing an empty list of regex patterns."""
+    """在通过 regex 模式的空清单时测试行为。"""
     # Try to convert with empty list
     fixed_joints = []
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -397,6 +417,7 @@ def test_regex_empty_patterns_list(test_urdf_file, mock_urdf_content):
 
 def test_regex_file_not_found(test_urdf_file):
     """Test behavior when URDF file doesn't exist for regex function."""
+    """测试行为，当URDF文件不存在为regex函数。"""
     non_existent_path = os.path.join(os.path.dirname(test_urdf_file), "non_existent.urdf")
     fixed_joints = [r".*to.*"]
 
@@ -407,6 +428,7 @@ def test_regex_file_not_found(test_urdf_file):
 
 def test_regex_preserve_other_content(test_urdf_file):
     """Test that other content in the URDF file is preserved with regex function."""
+    """测试URDF文件中的其他内容是否通过regex函数保存。"""
     fixed_joints = [r".*shoulder.*"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
 
@@ -428,6 +450,7 @@ def test_regex_preserve_other_content(test_urdf_file):
 
 def test_regex_joint_attributes_preserved(test_urdf_file):
     """Test that joint attributes other than type are preserved with regex function."""
+    """测试以检测其他类型的关节属性是否保留在regex函数上。"""
     fixed_joints = [r"^base.*"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
 
@@ -446,6 +469,7 @@ def test_regex_joint_attributes_preserved(test_urdf_file):
 
 def test_regex_complex_pattern(test_urdf_file, mock_urdf_content):
     """Test converting joints using a complex regex pattern."""
+    """使用复杂的regex模式测试转换关节。"""
     # Test converting joints that have "to" and end with a word starting with "w"
     fixed_joints = [r".*to.*w.*"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -464,6 +488,7 @@ def test_regex_complex_pattern(test_urdf_file, mock_urdf_content):
 
 def test_regex_already_fixed_joint(test_urdf_file, mock_urdf_content):
     """Test behavior when regex pattern matches an already fixed joint."""
+    """测试行为，当Regex模式与已固定的关节相匹配时。"""
     # Try to convert joints that contain "gripper" (which is already fixed)
     fixed_joints = [r".*gripper.*"]
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -478,6 +503,7 @@ def test_regex_already_fixed_joint(test_urdf_file, mock_urdf_content):
 
 def test_regex_special_characters(test_urdf_file, mock_urdf_content):
     """Test regex patterns with special characters."""
+    """用特殊字符来测试regex模式。"""
     # Test with pattern that includes special regex characters
     fixed_joints = [r".*to.*"]  # This should match joints with "to"
     change_revolute_to_fixed_regex(test_urdf_file, fixed_joints)
@@ -503,12 +529,14 @@ def test_regex_special_characters(test_urdf_file, mock_urdf_content):
 @pytest.fixture
 def policy_model_path():
     """Path to the test TorchScript model."""
+    """测试模型TorchScript的路径。"""
     _policy_path = f"{ISAACLAB_NUCLEUS_DIR}/Policies/Agile/agile_locomotion.pt"
     return retrieve_file_path(_policy_path)
 
 
 def test_load_torchscript_model_success(policy_model_path):
     """Test successful loading of a TorchScript model."""
+    """测试成功加载TorchScript模型。"""
     model = load_torchscript_model(policy_model_path)
 
     # Check that model was loaded successfully
@@ -521,6 +549,7 @@ def test_load_torchscript_model_success(policy_model_path):
 
 def test_load_torchscript_model_cpu_device(policy_model_path):
     """Test loading TorchScript model on CPU device."""
+    """在CPU设备上测试加载TorchScript模型。"""
     model = load_torchscript_model(policy_model_path, device="cpu")
 
     # Check that model was loaded successfully
@@ -533,6 +562,7 @@ def test_load_torchscript_model_cpu_device(policy_model_path):
 
 def test_load_torchscript_model_cuda_device(policy_model_path):
     """Test loading TorchScript model on CUDA device if available."""
+    """测试装载TorchScript模型在CUDA设备上，如果可用。"""
     if torch.cuda.is_available():
         model = load_torchscript_model(policy_model_path, device="cuda")
 
@@ -549,6 +579,7 @@ def test_load_torchscript_model_cuda_device(policy_model_path):
 
 def test_load_torchscript_model_file_not_found():
     """Test behavior when TorchScript model file doesn't exist."""
+    """在没有TorchScript模型文件时测试行为。"""
     non_existent_path = "non_existent_model.pt"
 
     # Should raise FileNotFoundError
@@ -558,6 +589,7 @@ def test_load_torchscript_model_file_not_found():
 
 def test_load_torchscript_model_invalid_file():
     """Test behavior when trying to load an invalid TorchScript file."""
+    """在试图加载无效的TorchScript文件时测试行为。"""
     # Create a temporary file with invalid content
     import tempfile
 
@@ -576,6 +608,7 @@ def test_load_torchscript_model_invalid_file():
 
 def test_load_torchscript_model_empty_file():
     """Test behavior when trying to load an empty TorchScript file."""
+    """在试图加载空虚TorchScript文件时测试行为。"""
     # Create a temporary empty file
     import tempfile
 
@@ -593,6 +626,7 @@ def test_load_torchscript_model_empty_file():
 
 def test_load_torchscript_model_different_device_mapping(policy_model_path):
     """Test loading model with different device mapping."""
+    """测试装载模型，采用不同的设备映射。"""
     # Test with specific device mapping
     model = load_torchscript_model(policy_model_path, device="cpu")
 
@@ -603,6 +637,7 @@ def test_load_torchscript_model_different_device_mapping(policy_model_path):
 
 def test_load_torchscript_model_evaluation_mode(policy_model_path):
     """Test that loaded model is in evaluation mode."""
+    """测试装载模型处于评估模式。"""
     model = load_torchscript_model(policy_model_path)
 
     # Check that model is in evaluation mode
@@ -617,6 +652,7 @@ def test_load_torchscript_model_evaluation_mode(policy_model_path):
 
 def test_load_torchscript_model_inference_capability(policy_model_path):
     """Test that loaded model can perform inference."""
+    """测试装载模型可以进行推断。"""
     model = load_torchscript_model(policy_model_path)
 
     # Check that model was loaded successfully
@@ -646,6 +682,7 @@ def test_load_torchscript_model_inference_capability(policy_model_path):
 
 def test_load_torchscript_model_error_handling():
     """Test error handling when loading fails."""
+    """在装载失败时测试错误处理。"""
     # Create a temporary file that will cause a loading error
     import tempfile
 

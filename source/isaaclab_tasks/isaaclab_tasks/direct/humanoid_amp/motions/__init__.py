@@ -6,6 +6,8 @@
 """
 AMP Motion Loader and motion files.
 """
+"""AMP动作加载器和动作文件。
+"""
 
 from .motion_loader import MotionLoader
 from .motion_viewer import MotionViewer

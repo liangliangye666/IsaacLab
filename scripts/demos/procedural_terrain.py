@@ -26,8 +26,30 @@ Example usage:
     ./isaaclab.sh -p scripts/demos/procedural_terrain.py --use_curriculum --show_flat_patches
 
 """
+"""这本脚本展示了平坦的程序地形。
+
+例如使用:
+
+.. code-block:: bash
+
+    # Generate terrain with height color scheme
+    ./isaaclab.sh -p scripts/demos/procedural_terrain.py --color_scheme height
+
+    # Generate terrain with random color scheme
+    ./isaaclab.sh -p scripts/demos/procedural_terrain.py --color_scheme random
+
+    # Generate terrain with no color scheme
+    ./isaaclab.sh -p scripts/demos/procedural_terrain.py --color_scheme none
+
+    # Generate terrain with curriculum
+    ./isaaclab.sh -p scripts/demos/procedural_terrain.py --use_curriculum
+
+    # Generate terrain with curriculum along with flat patches
+    ./isaaclab.sh -p scripts/demos/procedural_terrain.py --use_curriculum --show_flat_patches
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -64,6 +86,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import random
 
@@ -82,6 +105,7 @@ from isaaclab.terrains.config.rough import ROUGH_TERRAINS_CFG  # isort:skip
 
 def design_scene() -> tuple[dict, torch.Tensor]:
     """Designs the scene."""
+    """他设计了场景。"""
     # Lights
     cfg = sim_utils.DomeLightCfg(intensity=2000.0, color=(0.75, 0.75, 0.75))
     cfg.func("/World/Light", cfg)
@@ -145,6 +169,7 @@ def design_scene() -> tuple[dict, torch.Tensor]:
 
 def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, AssetBase], origins: torch.Tensor):
     """Runs the simulation loop."""
+    """运行仿真循环。"""
     # Simulate physics
     while simulation_app.is_running():
         # perform step
@@ -153,6 +178,7 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, AssetBas
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.01, device=args_cli.device)
     sim = sim_utils.SimulationContext(sim_cfg)

@@ -27,6 +27,16 @@ class WrenchComposer:
         Args:
             asset: Asset to use. Defaults to None.
         """
+        """关键作曲家。
+
+        这种类型用于组合身体的链接框架中的力量和扭矩。
+        它可以组建全球和本地的关键。
+        结果总是在身体的环节框架中。
+
+        参数：
+            asset: 资产可以使用。
+                   默认为 None。
+        """
         self.num_envs = asset.num_instances
         # Avoid isinstance to prevent circular import issues, use attribute presence instead.
         if hasattr(asset, "num_bodies"):
@@ -70,6 +80,7 @@ class WrenchComposer:
     @property
     def active(self) -> bool:
         """Whether the wrench composer is active."""
+        """钥匙作曲器是否活跃。"""
         return self._active
 
     @property
@@ -81,6 +92,15 @@ class WrenchComposer:
 
         Returns:
             wp.array: Composed force at the body's link frame. (num_envs, num_bodies, 3)
+        """
+        """在身体的环节框架上，
+
+        .. 说明:: 如果在全球框架中应用一些力量，所组成的力量将在链接框架中
+        在身体上。
+
+        返回：
+            wp.array: 在身体的环节框架上，
+                      (num_envs，num_bodies，3)
         """
         return self._composed_force_b
 
@@ -94,6 +114,15 @@ class WrenchComposer:
         Returns:
             wp.array: Composed torque at the body's link frame. (num_envs, num_bodies, 3)
         """
+        """在身体的环节上复合扭矩。
+
+        .. 说明:: 如果一些扭矩在全球中应用，所组合的扭矩将在链接中
+        在身体上。
+
+        返回：
+            wp.array: 在身体的环节上复合扭矩。
+                      (num_envs，num_bodies，3)
+        """
         return self._composed_torque_b
 
     @property
@@ -106,6 +135,15 @@ class WrenchComposer:
         Returns:
             torch.Tensor: Composed force at the body's link frame. (num_envs, num_bodies, 3)
         """
+        """在身体的链接框架上，作为火。
+
+        .. 说明:: 如果在全球框架中应用一些力量，所组成的力量将在链接框架中
+        在身体上。
+
+        返回：
+            torch.Tensor: 在身体的环节框架上，
+                          (num_envs，num_bodies，3)
+        """
         return self._composed_force_b_torch
 
     @property
@@ -117,6 +155,15 @@ class WrenchComposer:
 
         Returns:
             torch.Tensor: Composed torque at the body's link frame. (num_envs, num_bodies, 3)
+        """
+        """在身体的环节上，作为火。
+
+        .. 说明:: 如果一些扭矩在全球中应用，所组合的扭矩将在链接中
+        在身体上。
+
+        返回：
+            torch.Tensor: 在身体的环节上复合扭矩。
+                          (num_envs，num_bodies，3)
         """
         return self._composed_torque_b_torch
 
@@ -151,6 +198,41 @@ class WrenchComposer:
         Raises:
             ValueError: If the type of the input is not supported.
             ValueError: If the input is a slice and it is not None.
+        """
+        """加入强力和扭矩。
+
+        复合力和扭矩是对身体施加的所有力和扭矩的总和。
+        它可以组建全球和本地的关键。
+        结果总是在身体的环节框架中。
+
+        用户可以提供任何力量，扭矩和位置的组合。
+
+        .. 说明:: 用户可能会在每个仿真步骤后调用`reset`函数，以确保没有运输力
+        接下来的步骤。
+        然而，如果用户调用 `set_forces_and_torques` 函数而不是 `add_forces_and_torques`，则可能不必要。
+
+        参数：
+            forces: 部队。
+                    (num_envs，num_bodies，3)
+                    默认为 None。
+            torques: 扭矩。
+                     (num_envs，num_bodies，3)
+                     默认为 None。
+            positions: 位置。
+                       (num_envs，num_bodies，3)
+                       默认为 None。
+            body_ids: 尸体身份证。
+                      (num_envs，num_bodies)
+                      在None (所有机体) 上默认设置。
+            env_ids: 环境 ID。
+                     (num_envs)。
+                     在 None (所有环境) 中默认设置。
+            is_global: 在全球框架中是否应用力量和扭矩。
+                       默认为 False。
+
+        异常：
+            ValueError: 如果输入类型不支持。
+            ValueError: 如果输入是切片，而不是None。
         """
         # Resolve all indices
         # -- env_ids
@@ -246,6 +328,37 @@ class WrenchComposer:
             ValueError: If the type of the input is not supported.
             ValueError: If the input is a slice and it is not None.
         """
+        """设置强力和扭矩为复合力和扭矩。
+
+        复合力和扭矩是对身体施加的所有力和扭矩的总和。
+        它可以组建全球和本地的关键。
+        结果总是在身体的环节框架中。
+
+        用户可以提供任何力量，扭矩和位置的组合。
+
+        参数：
+            forces: 部队。
+                    (num_envs，num_bodies，3)
+                    默认为 None。
+            torques: 扭矩。
+                     (num_envs，num_bodies，3)
+                     默认为 None。
+            positions: 位置。
+                       (num_envs，num_bodies，3)
+                       默认为 None。
+            body_ids: 尸体身份证。
+                      (num_envs，num_bodies)
+                      在None (所有机体) 上默认设置。
+            env_ids: 环境 ID。
+                     (num_envs)。
+                     在 None (所有环境) 中默认设置。
+            is_global: 在全球框架中是否应用力量和扭矩。
+                       默认为 False。
+
+        异常：
+            ValueError: 如果输入类型不支持。
+            ValueError: 如果输入是切片，而不是None。
+        """
         # Resolve all indices
         # -- env_ids
         if env_ids is None:
@@ -326,6 +439,14 @@ class WrenchComposer:
 
         .. note:: This function should be called after every simulation step / reset to ensure no force is carried
         over to the next step.
+        """
+        """调整复合力和扭矩。
+
+        这种函数将复合力和扭矩重置为零。
+        它还会确保在`add_forces_and_torques`或`set_forces_and_torques`函数的下一次调用时更新链接位置和四分钟。
+
+        .. 说明:: 每次仿真步骤/重置后应调用这个函数，以确保没有运输的力。
+        接下来的步骤。
         """
         if env_ids is None:
             self._composed_force_b.zero_()

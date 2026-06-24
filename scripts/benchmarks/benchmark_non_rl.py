@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to benchmark non-RL environment."""
+"""脚本进行非RL环境基准。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import os
@@ -54,6 +56,7 @@ simulation_app = app_launcher.app
 app_start_time_end = time.perf_counter_ns()
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 # enable benchmarking extension
 from isaacsim.core.utils.extensions import enable_extension
@@ -111,6 +114,7 @@ benchmark = BaseIsaacBenchmark(
 @hydra_task_config(args_cli.task, None)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: dict):
     """Benchmark without RL in the loop."""
+    """没有RL在循环中。"""
 
     # override configurations with non-hydra CLI arguments
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs

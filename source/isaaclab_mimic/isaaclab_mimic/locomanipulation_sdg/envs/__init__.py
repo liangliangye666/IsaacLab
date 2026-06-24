@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Sub-package with environment wrappers for Locomanipulation SDG."""
+"""包装含环境包装，用于Locomanipulation SDG。"""
 
 import gymnasium as gym
 

@@ -17,6 +17,8 @@ class RmpFlowAgibotPlaceUprightMugMimicEnvCfg(RmpFlowAgibotPlaceUprightMugEnvCfg
     """
     Isaac Lab Mimic environment config class for Agibot Place Upright Mug env.
     """
+    """艾萨克实验室仿真环境配置类为Agibot Place直立Mugenv。
+    """
 
     def __post_init__(self):
         # post init of parents

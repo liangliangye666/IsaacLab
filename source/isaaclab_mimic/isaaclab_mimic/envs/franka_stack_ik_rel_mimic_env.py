@@ -15,6 +15,8 @@ class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
     """
     Isaac Lab Mimic environment wrapper class for Franka Cube Stack IK Rel env.
     """
+    """艾萨克实验室仿真环境包装类IK铁路env。
+    """
 
     def get_robot_eef_pose(self, eef_name: str, env_ids: Sequence[int] | None = None) -> torch.Tensor:
         """
@@ -26,6 +28,18 @@ class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
 
         Returns:
             A torch.Tensor eef pose matrix. Shape is (len(env_ids), 4, 4)
+        """
+        """现在就把机器人最终效果姿势。
+        机器人终端效应控制器使用的框架应该相同。
+
+        参数：
+            eef_name: 终端有效者的名称。
+            env_ids: 环境索引，让你做好姿势。
+                     如果是None，则考虑所有envs。
+
+        返回：
+            一个torch.Tensoreef姿势矩阵。
+            形状是 (len(env_ids)， 4， 4)
         """
         if env_ids is None:
             env_ids = slice(None)
@@ -56,6 +70,19 @@ class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
 
         Returns:
             An action torch.Tensor that's compatible with env.step().
+        """
+        """执行目标姿势和对最终效果控制器的抓住作用，并返回一个操作 (通常是正常化的三角形姿势) 试图实现目标姿势。
+        如果指定，将噪音添加到目标姿势操作中。
+
+        参数：
+            target_eef_pose_dict: 每个末端执行器的4×4目标效应。
+            gripper_action_dict: 每个末端执行器的抓住器操作字典。
+            noise: 噪音增加了动作。
+                   如果None，则不会增加噪音。
+            env_id: 环境索引，以获得动作。
+
+        返回：
+            一个与env.step兼容的torch.Tensor动作。
         """
         eef_name = list(self.cfg.subtask_configs.keys())[0]
 
@@ -99,6 +126,18 @@ class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
         Returns:
             A dictionary of eef pose torch.Tensor that @action corresponds to
         """
+        """将动作 (与env.step兼容) 转换为最终效应控制器的目标姿势。
+        转换为 @target_eef_pose_to_action。
+        通常用于推断目标控制器姿势的序列
+        from a demonstration trajectory using the recorded actions.
+
+        参数：
+            action: 环境动作
+                    形状是 (num_envs，action_dim)
+
+        返回：
+            一个字典的eef形象torch.Tensor，
+        """
         eef_name = list(self.cfg.subtask_configs.keys())[0]
 
         delta_position = action[:, :3]
@@ -137,6 +176,16 @@ class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
         Returns:
             A dictionary of torch.Tensor gripper actions. Key to each dict is an eef_name.
         """
+        """从一系列env动作中提取抓住器动力部分 (与env.step兼容)。
+
+        参数：
+            actions: 环境动作。
+                     形状是 (num_envs，演示中的步骤数，action_dim)。
+
+        返回：
+            一个torch.Tensor抓住器动作字典。
+            每个句子的关键是eef_name。
+        """
         # last dimension is gripper action
         return {list(self.cfg.subtask_configs.keys())[0]: actions[:, -1:]}
 
@@ -153,6 +202,18 @@ class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
 
         Returns:
             A dictionary termination signal flags (False or True) for each subtask.
+        """
+        """在任务中的每个子任务中，得到终止信号标志的字典。
+        在完成子任务时，标志是1和否则是0。
+        如果打算在运行数据集注释工具时启用自动子任务项信号注释，则需要实施这种方法。
+        如果要使用手动的子任务项信号注释，则可以保持这种方法未实施。
+
+        参数：
+            env_ids: 环境索引，以获得终止信号。
+                     如果是None，则考虑所有envs。
+
+        返回：
+            字典终止信号标志 (False或True) 对于每个子任务。
         """
         if env_ids is None:
             env_ids = slice(None)
@@ -171,6 +232,11 @@ class FrankaCubeStackIKRelMimicEnv(ManagerBasedRLMimicEnv):
 
         Assumes 'stack' subtasks place the object grasped in the preceding 'grasp' subtask.
         Returns None for 'grasp' (or others) at subtask start.
+        """
+        """(SkillGen) 返回给定的EEF/子任务的预期附件对象。
+
+        假设"堆"子任务将被抓到的对象放置在之前的"抓"子任务中。
+        在子任务开始时返回None为"grasp" (或其他)
         """
         if eef_name not in env_cfg.subtask_configs:
             return None

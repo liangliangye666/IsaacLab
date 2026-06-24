@@ -7,6 +7,8 @@
 We modified parts of the environment, such as the target's position and orientation,
 as well as certain object properties, to better suit the smaller robot.
 """
+"""我们改变了环境的部分， 比如目标的位置和方向， 以及某些物体的特性，
+"""
 
 from dataclasses import MISSING
 
@@ -38,6 +40,9 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
     """Configuration for the lift scene with a robot and a object.
     This is the abstract base implementation, the exact scene is defined in the derived classes
     which need to set the target object, robot and end-effector frames
+    """
+    """机器人和物体的电梯场景配置。
+    这是抽象的基础实现，精确的场景是定义在衍生类，需要设置目标对象，机器人和最终效应器框架
     """
 
     # robots: will be populated by agent env cfg
@@ -76,6 +81,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 @configclass
 class CommandsCfg:
     """Command terms for the MDP."""
+    """对MDP的命令条件。"""
 
     object_pose = mdp.UniformPoseCommandCfg(
         asset_name="robot",
@@ -96,6 +102,7 @@ class CommandsCfg:
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     # will be set by agent env cfg
     arm_action: mdp.JointPositionActionCfg | mdp.DifferentialInverseKinematicsActionCfg = MISSING
@@ -105,10 +112,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         joint_pos = ObsTerm(
             func=mdp.joint_pos_rel,
@@ -133,6 +142,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_all = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
 
@@ -150,6 +160,7 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     reaching_object = RewTerm(func=mdp.object_ee_distance, params={"std": 0.1}, weight=1.1)
 
@@ -180,6 +191,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -192,6 +204,7 @@ class TerminationsCfg:
 @configclass
 class CurriculumCfg:
     """Curriculum terms for the MDP."""
+    """对于MDP的课程项。"""
 
     action_rate = CurrTerm(
         func=mdp.modify_reward_weight,
@@ -212,6 +225,7 @@ class CurriculumCfg:
 @configclass
 class LiftEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the lifting environment."""
+    """升降环境的配置"""
 
     # Scene settings
     scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=4096, env_spacing=2.5)
@@ -227,6 +241,7 @@ class LiftEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 2
         self.episode_length_s = 5.0

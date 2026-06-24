@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module for frame transformer sensor."""
+"""框架变压器传感器的子模块"""
 
 from .frame_transformer import FrameTransformer
 from .frame_transformer_cfg import FrameTransformerCfg, OffsetCfg

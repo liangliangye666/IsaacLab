@@ -7,6 +7,8 @@
 Selection strategies used by Isaac Lab Mimic to select subtask segments from
 source human demonstrations.
 """
+"""艾萨克实验室仿真器使用的选择策略，
+"""
 
 import abc  # for abstract base class definitions
 
@@ -23,6 +25,8 @@ def make_selection_strategy(name, *args, **kwargs):
     Creates an instance of a selection strategy class, specified by @name,
     which is used to look it up in the registry.
     """
+    """创建一个选择策略类的实例，由 @name指定，用于在注册表中查找它。
+    """
     assert_selection_strategy_exists(name)
     return REGISTERED_SELECTION_STRATEGIES[name](*args, **kwargs)
 
@@ -30,6 +34,8 @@ def make_selection_strategy(name, *args, **kwargs):
 def register_selection_strategy(cls):
     """
     Register selection strategy class into global registry.
+    """
+    """登记选择策略类在全球登录中。
     """
     ignore_classes = ["SelectionStrategy"]
     if cls.__name__ not in ignore_classes:
@@ -39,6 +45,8 @@ def register_selection_strategy(cls):
 def assert_selection_strategy_exists(name):
     """
     Allow easy way to check if selection strategy exists.
+    """
+    """允许一个简单的方法来检查是否存在选择策略。
     """
     if name not in REGISTERED_SELECTION_STRATEGIES:
         raise Exception(
@@ -51,6 +59,8 @@ class SelectionStrategyMeta(type):
     """
     This metaclass adds selection strategy classes into the global registry.
     """
+    """这种类别将选择策略类加入全球登记册。
+    """
 
     def __new__(meta, name, bases, class_dict):
         cls = super().__new__(meta, name, bases, class_dict)
@@ -62,6 +72,8 @@ class SelectionStrategy(metaclass=SelectionStrategyMeta):
     """
     Defines methods and functions for selection strategies to implement.
     """
+    """定义实施选择策略的方法和功能。
+    """
 
     def __init__(self):
         pass
@@ -72,6 +84,8 @@ class SelectionStrategy(metaclass=SelectionStrategyMeta):
         """
         This name (str) will be used to register the selection strategy class in the global
         registry.
+        """
+        """该名称 (str) 将用于将选择策略类注册到全球登记处。
         """
         raise NotImplementedError
 
@@ -96,12 +110,26 @@ class SelectionStrategy(metaclass=SelectionStrategyMeta):
         Returns:
             source_demo_ind (int): index of source demonstration - indicates which source subtask segment to use
         """
+        """使用当前机器人姿势，相关对象姿势选择源示范索引
+        for the current subtask, and relevant information from the source demonstrations for the
+        现在的子任务。
+
+        参数：
+            eef_pose (torch.Tensor): 目前的4×4eef姿势
+            object_pose (torch.Tensor): 对于本次子任务中的对象，当前4x4对象姿势
+            src_subtask_datagen_infos (list): 在源示范中的相关子任务段的DatagenInfo实例
+
+        返回：
+            source_demo_ind (int): 源示范索引 - 表示使用哪个源子任务段
+        """
         raise NotImplementedError
 
 
 class RandomStrategy(SelectionStrategy):
     """
     Pick source demonstration randomly.
+    """
+    """随机选择一个来源。
     """
 
     # name for registering this class into registry
@@ -127,6 +155,18 @@ class RandomStrategy(SelectionStrategy):
         Returns:
             source_demo_ind (int): index of source demonstration - indicates which source subtask segment to use
         """
+        """使用当前机器人姿势，相关对象姿势选择源示范索引
+        for the current subtask, and relevant information from the source demonstrations for the
+        现在的子任务。
+
+        参数：
+            eef_pose (torch.Tensor): 目前的4×4eef姿势
+            object_pose (torch.Tensor): 对于本次子任务中的对象，当前4x4对象姿势
+            src_subtask_datagen_infos (list): 在源示范中的相关子任务段的DatagenInfo实例
+
+        返回：
+            source_demo_ind (int): 源示范索引 - 表示使用哪个源子任务段
+        """
 
         # random selection
         n_src_demo = len(src_subtask_datagen_infos)
@@ -137,6 +177,8 @@ class NearestNeighborObjectStrategy(SelectionStrategy):
     """
     Pick source demonstration to be the one with the closest object pose to the object
     in the current scene.
+    """
+    """在当前场景中，选择最接近对象的表现。
     """
 
     # name for registering this class into registry
@@ -167,6 +209,21 @@ class NearestNeighborObjectStrategy(SelectionStrategy):
 
         Returns:
             source_demo_ind (int): index of source demonstration - indicates which source subtask segment to use
+        """
+        """使用当前机器人姿势，相关对象姿势选择源示范索引
+        for the current subtask, and relevant information from the source demonstrations for the
+        现在的子任务。
+
+        参数：
+            eef_pose (torch.Tensor): 目前的4×4eef姿势
+            object_pose (torch.Tensor): 对于本次子任务中的对象，当前4x4对象姿势
+            src_subtask_datagen_infos (list): 在源示范中的相关子任务段的DatagenInfo实例
+            pos_weight (float): 在位置上的重量，以尽量减少姿势距离
+            rot_weight (float): 在旋转时的重量，以尽量减少姿势距离
+            nn_k (int): 从顶部以随机选择源演示索引nn_k最接近的邻居
+
+        返回：
+            source_demo_ind (int): 源示范索引 - 表示使用哪个源子任务段
         """
 
         # collect object poses from start of subtask source segments into tensor of shape [N, 4, 4]
@@ -216,6 +273,8 @@ class NearestNeighborRobotDistanceStrategy(SelectionStrategy):
     end effector will need to travel from the current pose to the first pose
     in the transformed segment.
     """
+    """选择源示范，以尽量减少机器人最终效应器从当前姿势到转换段中的第一姿势的距离。
+    """
 
     # name for registering this class into registry
     NAME = "nearest_neighbor_robot_distance"
@@ -245,6 +304,21 @@ class NearestNeighborRobotDistanceStrategy(SelectionStrategy):
 
         Returns:
             source_demo_ind (int): index of source demonstration - indicates which source subtask segment to use
+        """
+        """使用当前机器人姿势，相关对象姿势选择源示范索引
+        for the current subtask, and relevant information from the source demonstrations for the
+        现在的子任务。
+
+        参数：
+            eef_pose (torch.Tensor): 目前的4×4eef姿势
+            object_pose (torch.Tensor): 对于本次子任务中的对象，当前4x4对象姿势
+            src_subtask_datagen_infos (list): 在源示范中的相关子任务段的DatagenInfo实例
+            pos_weight (float): 在位置上的重量，以尽量减少姿势距离
+            rot_weight (float): 在旋转时的重量，以尽量减少姿势距离
+            nn_k (int): 从顶部以随机选择源演示索引nn_k最接近的邻居
+
+        返回：
+            source_demo_ind (int): 源示范索引 - 表示使用哪个源子任务段
         """
 
         # collect eef and object poses from start of subtask source segments into tensors of shape [N, 4, 4]

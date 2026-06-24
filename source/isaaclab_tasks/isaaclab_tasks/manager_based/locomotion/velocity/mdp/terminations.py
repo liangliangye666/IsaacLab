@@ -10,6 +10,10 @@ the termination introduced by the function.
 """
 
 from __future__ import annotations
+"""可用于激活某些终止的共同函数。
+
+函数可以传递到:class:`isaaclab.managers.TerminationTermCfg`对象，以实现函数引入的终止。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -29,6 +33,11 @@ def terrain_out_of_bounds(
 
     If the actor moves too close to the edge of the terrain, the termination is activated. The distance
     to the edge of the terrain is calculated based on the size of the terrain and the distance buffer.
+    """
+    """当演员走得太近地形边缘时，结束。
+
+    如果演员走得太近地形边缘，终止会被激活。
+    根据地形的大小和距离缓冲区计算到地形边缘的距离。
     """
     if env.scene.cfg.terrain.terrain_type == "plane":
         # we have infinite terrain because it is a plane

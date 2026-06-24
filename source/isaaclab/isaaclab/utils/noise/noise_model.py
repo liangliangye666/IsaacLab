@@ -28,6 +28,15 @@ def constant_noise(data: torch.Tensor, cfg: noise_cfg.ConstantNoiseCfg) -> torch
     Returns:
         The data modified by the noise parameters provided.
     """
+    """对给定的数据集应用一个恒定的噪音偏差。
+
+    参数：
+        data: 适用于噪音的未修改数据集。
+        cfg: 常规噪音的配置参数。
+
+    返回：
+        通过提供噪音参数修改的数据。
+    """
 
     # fix tensor device for bias on first call and update config parameters
     if isinstance(cfg.bias, torch.Tensor):
@@ -52,6 +61,15 @@ def uniform_noise(data: torch.Tensor, cfg: noise_cfg.UniformNoiseCfg) -> torch.T
 
     Returns:
         The data modified by the noise parameters provided.
+    """
+    """适用于给定的数据集。
+
+    参数：
+        data: 适用于噪音的未修改数据集。
+        cfg: 均噪音的配置参数。
+
+    返回：
+        通过提供噪音参数修改的数据。
     """
 
     # fix tensor device for n_max on first call and update config parameters
@@ -81,6 +99,15 @@ def gaussian_noise(data: torch.Tensor, cfg: noise_cfg.GaussianNoiseCfg) -> torch
     Returns:
         The data modified by the noise parameters provided.
     """
+    """对给定的数据集应用高斯噪音。
+
+    参数：
+        data: 适用于噪音的未修改数据集。
+        cfg: 对于高斯噪音的配置参数。
+
+    返回：
+        通过提供噪音参数修改的数据。
+    """
 
     # fix tensor device for mean on first call and update config parameters
     if isinstance(cfg.mean, torch.Tensor):
@@ -106,6 +133,7 @@ def gaussian_noise(data: torch.Tensor, cfg: noise_cfg.GaussianNoiseCfg) -> torch
 
 class NoiseModel:
     """Base class for noise models."""
+    """噪音模型的基础类。"""
 
     def __init__(self, noise_model_cfg: noise_cfg.NoiseModelCfg, num_envs: int, device: str):
         """Initialize the noise model.
@@ -114,6 +142,13 @@ class NoiseModel:
             noise_model_cfg: The noise configuration to use.
             num_envs: The number of environments.
             device: The device to use for the noise model.
+        """
+        """启动噪音模型。
+
+        参数：
+            noise_model_cfg: 使用的噪音配置。
+            num_envs: 环境的数量。
+            device: 用于噪音模型的设备。
         """
         self._noise_model_cfg = noise_model_cfg
         self._num_envs = num_envs
@@ -129,6 +164,15 @@ class NoiseModel:
             env_ids: The environment ids to reset the noise model for. Defaults to None,
                 in which case all environments are considered.
         """
+        """调整噪音模型。
+
+        这种方法可以通过衍生类实现，以重置噪音模型。
+        这在实施时代噪音模型时是有用的，例如随机步行。
+
+        参数：
+            env_ids: 环境识别器将噪声模型重置为。
+                     在 None 中，默认情况下考虑所有环境。
+        """
         pass
 
     def __call__(self, data: torch.Tensor) -> torch.Tensor:
@@ -140,6 +184,16 @@ class NoiseModel:
         Returns:
             The data with the noise applied. Shape is the same as the input data.
         """
+        """将噪音应用于数据。
+
+        参数：
+            data: 应对噪音的数据。
+                  形状是 (num_envs， ...)。
+
+        返回：
+            采用噪音的数据。
+            它的形状与输入数据相同。
+        """
         return self._noise_model_cfg.noise_cfg.func(data, self._noise_model_cfg.noise_cfg)
 
 
@@ -147,6 +201,10 @@ class NoiseModelWithAdditiveBias(NoiseModel):
     """Noise model with an additive bias.
 
     The bias term is sampled from a the specified distribution on reset.
+    """
+    """噪音模型具有添加偏见。
+
+    偏差项在重置时从 a 指定分布中取样。
     """
 
     def __init__(self, noise_model_cfg: noise_cfg.NoiseModelWithAdditiveBiasCfg, num_envs: int, device: str):
@@ -167,6 +225,14 @@ class NoiseModelWithAdditiveBias(NoiseModel):
             env_ids: The environment ids to reset the noise model for. Defaults to None,
                 in which case all environments are considered.
         """
+        """调整噪音模型。
+
+        这种方法为指定环境重置偏差项。
+
+        参数：
+            env_ids: 环境识别器将噪声模型重置为。
+                     在 None 中，默认情况下考虑所有环境。
+        """
         # resolve the environment ids
         if env_ids is None:
             env_ids = slice(None)
@@ -181,6 +247,16 @@ class NoiseModelWithAdditiveBias(NoiseModel):
 
         Returns:
             The data with the noise applied. Shape is the same as the input data.
+        """
+        """将偏差噪音应用于数据。
+
+        参数：
+            data: 应对噪音的数据。
+                  形状是 (num_envs， ...)。
+
+        返回：
+            采用噪音的数据。
+            它的形状与输入数据相同。
         """
         # if sample_bias_per_component, on first apply, expand bias to match last dim of data
         if self._sample_bias_per_component and self._num_components is None:

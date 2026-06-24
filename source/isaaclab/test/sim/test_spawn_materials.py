@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 import pytest
@@ -25,6 +27,7 @@ from isaaclab.utils.assets import NVIDIA_NUCLEUS_DIR
 @pytest.fixture
 def sim():
     """Create a simulation context."""
+    """创建一个仿真环境。"""
     sim_utils.create_new_stage()
     dt = 0.1
     sim = SimulationContext(SimulationCfg(dt=dt))
@@ -38,6 +41,7 @@ def sim():
 
 def test_spawn_preview_surface(sim):
     """Test spawning preview surface."""
+    """测试产卵预览表面。"""
     cfg = sim_utils.materials.PreviewSurfaceCfg(diffuse_color=(0.0, 1.0, 0.0))
     prim = cfg.func("/Looks/PreviewSurface", cfg)
     # Check validity
@@ -50,6 +54,7 @@ def test_spawn_preview_surface(sim):
 
 def test_spawn_mdl_material(sim):
     """Test spawning mdl material."""
+    """测试产卵材料。"""
     cfg = sim_utils.materials.MdlFileCfg(
         mdl_path=f"{NVIDIA_NUCLEUS_DIR}/Materials/Base/Metals/Aluminum_Anodized.mdl",
         project_uvw=True,
@@ -67,6 +72,7 @@ def test_spawn_mdl_material(sim):
 
 def test_spawn_glass_mdl_material(sim):
     """Test spawning a glass mdl material."""
+    """试验将玻璃材料产卵。"""
     cfg = sim_utils.materials.GlassMdlCfg(thin_walled=False, glass_ior=1.0, glass_color=(0.0, 1.0, 0.0))
     prim = cfg.func("/Looks/GlassMaterial", cfg)
     # Check validity
@@ -81,6 +87,7 @@ def test_spawn_glass_mdl_material(sim):
 
 def test_spawn_rigid_body_material(sim):
     """Test spawning a rigid body material."""
+    """测试生育硬体材料。"""
     cfg = sim_utils.materials.RigidBodyMaterialCfg(
         dynamic_friction=1.5,
         restitution=1.5,
@@ -102,6 +109,7 @@ def test_spawn_rigid_body_material(sim):
 
 def test_spawn_deformable_body_material(sim):
     """Test spawning a deformable body material."""
+    """测试产出可变体材料。"""
     cfg = sim_utils.materials.DeformableBodyMaterialCfg(
         density=1.0,
         dynamic_friction=0.25,
@@ -127,6 +135,7 @@ def test_spawn_deformable_body_material(sim):
 
 def test_apply_rigid_body_material_on_visual_material(sim):
     """Test applying a rigid body material on a visual material."""
+    """在视觉材料上应用硬体材料的测试。"""
     cfg = sim_utils.materials.GlassMdlCfg(thin_walled=False, glass_ior=1.0, glass_color=(0.0, 1.0, 0.0))
     prim = cfg.func("/Looks/Material", cfg)
     cfg = sim_utils.materials.RigidBodyMaterialCfg(
@@ -150,6 +159,7 @@ def test_apply_rigid_body_material_on_visual_material(sim):
 
 def test_bind_prim_to_material(sim):
     """Test binding a rigid body material on a mesh prim."""
+    """测试在prim网上绑定硬体材料。"""
 
     # create a mesh prim
     object_prim = sim_utils.create_prim("/World/Geometry/box", "Cube")

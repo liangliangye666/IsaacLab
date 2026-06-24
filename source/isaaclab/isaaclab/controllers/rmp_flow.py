@@ -26,25 +26,39 @@ from isaaclab.utils.assets import retrieve_file_path
 @configclass
 class RmpFlowControllerCfg:
     """Configuration for RMP-Flow controller (provided through LULA library)."""
+    """RMP-Flow控制器的配置 (通过LULA库提供)。"""
 
     name: str = "rmp_flow"
     """Name of the controller. Supported: "rmp_flow", "rmp_flow_smoothed". Defaults to "rmp_flow"."""
+    """控制器的名字。
+    支持: "rmp_flow"， "rmp_flow_smoothed"。
+    在"rmp_flow"上默认。
+    """
     config_file: str = MISSING
     """Path to the configuration file for the controller."""
+    """控制器的配置文件的路径。"""
     urdf_file: str = MISSING
     """Path to the URDF model of the robot."""
+    """进入机器人的URDF模型。"""
     collision_file: str = MISSING
     """Path to collision model description of the robot."""
+    """机器人的撞击模式描述。"""
     frame_name: str = MISSING
     """Name of the robot frame for task space (must be present in the URDF)."""
+    """任务空间机器人框架名称 (必须在URDF中存在)。"""
     evaluations_per_frame: float = MISSING
     """Number of substeps during Euler integration inside LULA world model."""
+    """在LULA世界模型中的尤勒集成过程中的子步骤数。"""
     ignore_robot_state_updates: bool = False
     """If true, then state of the world model inside controller is rolled out. Defaults to False."""
+    """如果是真的，那么控制器内部的世界模型的状态将被推出。
+    默认为 False。
+    """
 
 
 class RmpFlowController:
     """Wraps around RMPFlow from IsaacSim for batched environments."""
+    """包裹RMPFlow从IsaacSim到批量环境。"""
 
     def __init__(self, cfg: RmpFlowControllerCfg, device: str):
         """Initialize the controller.
@@ -52,6 +66,12 @@ class RmpFlowController:
         Args:
             cfg: The configuration for the controller.
             device: The device to use for computation.
+        """
+        """启动控制器。
+
+        参数：
+            cfg: 控制器的配置。
+            device: 用于计算的设备。
         """
         # store input
         self.cfg = cfg
@@ -62,14 +82,19 @@ class RmpFlowController:
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def num_actions(self) -> int:
         """Dimension of the action space of controller."""
+        """控制器操作空间的尺寸"""
         return 7
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def initialize(self, prim_paths_expr: str):
@@ -77,6 +102,11 @@ class RmpFlowController:
 
         Args:
             prim_paths_expr: The expression to find the articulation prim paths.
+        """
+        """启动控制器。
+
+        参数：
+            prim_paths_expr: 找到关节 prim 路径的表达式。
         """
         # obtain the simulation time
         physics_dt = sim_utils.SimulationContext.instance().get_physics_dt()
@@ -126,6 +156,7 @@ class RmpFlowController:
 
     def reset_idx(self, robot_ids: torch.Tensor = None):
         """Reset the internals."""
+        """重置内部。"""
         # if no robot ids are provided, then reset all robots
         if robot_ids is None:
             robot_ids = torch.arange(self.num_robots, device=self._device)
@@ -135,6 +166,7 @@ class RmpFlowController:
 
     def set_command(self, command: torch.Tensor):
         """Set target end-effector pose command."""
+        """设置目标末端执行器姿势命令。"""
         # store command
         self._command[:] = command
 
@@ -143,6 +175,11 @@ class RmpFlowController:
 
         Returns:
             The target joint positions and velocity commands.
+        """
+        """通过控制器进行推断。
+
+        返回：
+            目标关节位置和速度指令。
         """
         # convert command to numpy
         command = self._command.cpu().numpy()

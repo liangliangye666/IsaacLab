@@ -18,8 +18,22 @@ the simulator or OpenGL convention for the camera, we use the robotics or ROS co
     ./isaaclab.sh -p scripts/tutorials/04_sensors/run_usd_camera.py --headless --enable_cameras
 
 """
+"""这本脚本显示了如何使用来自Isaac Lab的摄像头传感器。
+
+摄像头传感器是通过全宇宙复制器API创建的。
+但我们没有使用仿真器或OpenGL仪式，而是使用机器人或ROS仪式。
+
+.. code-block:: bash
+
+    # Usage with GUI
+    ./isaaclab.sh -p scripts/tutorials/04_sensors/run_usd_camera.py --enable_cameras
+
+    # Usage with headless
+    ./isaaclab.sh -p scripts/tutorials/04_sensors/run_usd_camera.py --headless --enable_cameras
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -59,6 +73,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 import random
@@ -79,6 +94,7 @@ from isaaclab.utils import convert_dict_to_backend
 
 def define_sensor() -> Camera:
     """Defines the camera sensor to add to the scene."""
+    """定义了摄像头传感器。"""
     # Setup camera sensor
     # In contrast to the ray-cast camera, we spawn the prim at these locations.
     # This means the camera sensor will be attached to these prims.
@@ -112,6 +128,7 @@ def define_sensor() -> Camera:
 
 def design_scene() -> dict:
     """Design the scene."""
+    """设计场景。"""
     # Populate scene
     # -- Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
@@ -165,6 +182,7 @@ def design_scene() -> dict:
 
 def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
     """Run the simulator."""
+    """运行仿真器。"""
     # extract entities for simplified notation
     camera: Camera = scene_entities["camera"]
 
@@ -267,6 +285,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load simulation context
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
     sim = sim_utils.SimulationContext(sim_cfg)

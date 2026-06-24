@@ -10,6 +10,10 @@ specify the reward function and its parameters.
 """
 
 from __future__ import annotations
+"""可以用来定义学习环境的奖励的共同函数。
+
+函数可以传递到:class:`isaaclab.managers.RewardTermCfg`对象，以指定奖励函数及其参数。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -35,6 +39,14 @@ def feet_air_time(
 
     If the commands are small (i.e. the agent is not supposed to take a step), then the reward is zero.
     """
+    """用L2核来奖励脚步。
+
+    这个函数奖励代理人采取超过门的步骤。
+    这样可以确保机器人把脚从地面上抬起，
+    奖励是足在空中的时间总数。
+
+    如果命令很小 (i.e.代理不应该采取一步)，那么奖励是零。
+    """
     # extract the used quantities (to enable type-hinting)
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     # compute the reward
@@ -53,6 +65,12 @@ def feet_air_time_positive_biped(env, command_name: str, threshold: float, senso
     a time in the air.
 
     If the commands are small (i.e. the agent is not supposed to take a step), then the reward is zero.
+    """
+    """双脚的脚步要得到奖励。
+
+    这种功能奖励了代理人走到一个特定的门，同时保持一脚一脚在空中。
+
+    如果命令很小 (i.e.代理不应该采取一步)，那么奖励是零。
     """
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     # compute the reward
@@ -75,6 +93,12 @@ def feet_slide(env, sensor_cfg: SceneEntityCfg, asset_cfg: SceneEntityCfg = Scen
     norm of the linear velocity of the feet multiplied by a binary contact sensor. This ensures that the
     agent is penalized only when the feet are in contact with the ground.
     """
+    """脚的处罚。
+
+    这种功能会惩罚代理人，
+    奖励是脚的线性速度乘以二进制接触传感器的标准。
+    这确保只有脚与地面接触时才会处罚。
+    """
     # Penalize feet sliding
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     contacts = contact_sensor.data.net_forces_w_history[:, :, sensor_cfg.body_ids, :].norm(dim=-1).max(dim=1)[0] > 1.0
@@ -91,6 +115,8 @@ def track_lin_vel_xy_yaw_frame_exp(
     """Reward tracking of linear velocity commands (xy axes) in the gravity aligned
     robot frame using an exponential kernel.
     """
+    """通过指数化内核，在重力对齐机器人框架中进行线性速度命令 (xy轴) 的奖励跟踪。
+    """
     # extract the used quantities (to enable type-hinting)
     asset = env.scene[asset_cfg.name]
     vel_yaw = quat_apply_inverse(yaw_quat(asset.data.root_quat_w), asset.data.root_lin_vel_w[:, :3])
@@ -104,6 +130,7 @@ def track_ang_vel_z_world_exp(
     env, command_name: str, std: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
     """Reward tracking of angular velocity commands (yaw) in world frame using exponential kernel."""
+    """在世界框架中使用指数核的角速度命令 (yaw) 的奖励跟踪。"""
     # extract the used quantities (to enable type-hinting)
     asset = env.scene[asset_cfg.name]
     ang_vel_error = torch.square(env.command_manager.get_command(command_name)[:, 2] - asset.data.root_ang_vel_w[:, 2])
@@ -114,6 +141,7 @@ def stand_still_joint_deviation_l1(
     env, command_name: str, command_threshold: float = 0.06, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
     """Penalize offsets from the default joint positions when the command is very small."""
+    """在命令非常小时，将从默认关联位置进行抵消。"""
     command = env.command_manager.get_command(command_name)
     # Penalize motion when command is nearly zero.
     return mdp.joint_deviation_l1(env, asset_cfg) * (torch.norm(command[:, :2], dim=1) < command_threshold)

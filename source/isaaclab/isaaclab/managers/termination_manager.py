@@ -6,6 +6,7 @@
 """Termination manager for computing done signals for a given world."""
 
 from __future__ import annotations
+"""终止管理器为计算给定世界的信号。"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -43,9 +44,29 @@ class TerminationManager(ManagerBase):
     parameters. Each termination term should instantiate the :class:`TerminationTermCfg` class. The term's
     configuration :attr:`TerminationTermCfg.time_out` decides whether the term is a timeout or a termination term.
     """
+    """对于一个特定的世界进行了信号的计算管理器。
+
+    终止管理器将终止信号 (也称为 dones) 计算为终止项的组合。
+    每个终结项都是一个函数，它将环境作为一个参数，并返回形状的布尔式子 (num_envs，)。
+    终止管理器将终止信号计算为所有终止项的联盟 (逻辑或)。
+
+    根据`Gymnasium API
+    <https://gymnasium.farama.org/tutorials/gymnasium_basics/handling_time_limits/>`终止信号计算为OR在以下信号中:
+
+    * **时间停止**:如果环境在外部定义的条件之后结束了，则该信号设置为 true (即 MDP 范围之外).例如，如果事件已结束 (i.e。 达到最高剧集长度)，则环境可能会结束。
+    * **完成**:如果环境达到环境定义的终端状态，则该信号设置为 true。 这种状态可能与任务成功，任务失败，机器人摔倒等相符。
+
+    这些信号可以使用:attr:`time_outs`和:attr:`terminated`特性单独访问。
+
+    终止项由包含管理器的设置和每个项的参数的配置类进行分析。
+    每个终止项都应标记:class:`TerminationTermCfg`类。
+    这一项是
+    configuration :attr:`TerminationTermCfg.time_out`决定该项是否是截止时间或终止项。
+    """
 
     _env: ManagerBasedRLEnv
     """The environment instance."""
+    """环境情况。"""
 
     def __init__(self, cfg: object, env: ManagerBasedRLEnv):
         """Initializes the termination manager.
@@ -53,6 +74,12 @@ class TerminationManager(ManagerBase):
         Args:
             cfg: The configuration object or dictionary (``dict[str, TerminationTermCfg]``).
             env: An environment object.
+        """
+        """启动终止管理器。
+
+        参数：
+            cfg: 配置对象或字典 (``dict[str， TerminationTermCfg]``)。
+            env: 一个环境对象。
         """
         # create buffers to parse and store terms
         self._term_names: list[str] = list()
@@ -72,6 +99,7 @@ class TerminationManager(ManagerBase):
 
     def __str__(self) -> str:
         """Returns: A string representation for termination manager."""
+        """Returns: 终止管理器的字符串表示。"""
         msg = f"<TerminationManager> contains {len(self._term_names)} active terms.\n"
 
         # create table for term information
@@ -92,15 +120,21 @@ class TerminationManager(ManagerBase):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def active_terms(self) -> list[str]:
         """Name of active termination terms."""
+        """事件终止项的名称"""
         return self._term_names
 
     @property
     def dones(self) -> torch.Tensor:
         """The net termination signal. Shape is (num_envs,)."""
+        """网络终止信号。
+        形状是 (num_envs，)。
+        """
         return self._truncated_buf | self._terminated_buf
 
     @property
@@ -111,6 +145,12 @@ class TerminationManager(ManagerBase):
         (that is outside the scope of a MDP). For example, the environment may be terminated if the episode has
         timed out (i.e. reached max episode length).
         """
+        """截止时间信号 (达到最长的回合长度)。
+        形状是 (num_envs，)。
+
+        如果环境在外部定义的条件后结束，则该信号设置为 true (即在外部定义的条件之外).MDP)。
+        例如，如果事件已结束时，环境可能会被终止 (i.e.达到最高事件长度)。
+        """
         return self._truncated_buf
 
     @property
@@ -120,10 +160,18 @@ class TerminationManager(ManagerBase):
         This signal is set to true if the environment has reached a terminal state defined by the environment.
         This state may correspond to task success, task failure, robot falling, etc.
         """
+        """终止信号 (达到终端状态)。
+        形状是 (num_envs，)。
+
+        如果环境达到环境定义的终端状态，则该信号将设置为真实。
+        这种状态可能与任务成功，任务失败，机器人摔倒等相符。
+        """
         return self._terminated_buf
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, torch.Tensor]:
@@ -135,6 +183,15 @@ class TerminationManager(ManagerBase):
 
         Returns:
             Dictionary of episodic sum of individual reward terms.
+        """
+        """返回个人终止项的次数。
+
+        参数：
+            env_ids: 环境 ID。
+                     在 None 中，默认情况下考虑所有环境。
+
+        返回：
+            单个奖励项的回合总数字典。
         """
         # resolve environment ids
         if env_ids is None:
@@ -159,6 +216,13 @@ class TerminationManager(ManagerBase):
 
         Returns:
             The combined termination signal of shape (num_envs,).
+        """
+        """计算终止信号作为单个项的结合。
+
+        这个函数将由类管理的每个终止项调用，并执行逻辑OR操作来计算净终止信号。
+
+        返回：
+            形状的结合终止信号 (num_envs，)。
         """
         # reset computation
         self._truncated_buf[:] = False
@@ -190,6 +254,15 @@ class TerminationManager(ManagerBase):
         Returns:
             The corresponding termination term value. Shape is (num_envs,).
         """
+        """返回当前步骤的终止期值，使用指定名称。
+
+        参数：
+            name: 终止项的名称
+
+        返回：
+            相关终止期值
+            形状是 (num_envs，)。
+        """
         return self._term_dones[:, self._term_name_to_term_idx[name]]
 
     def get_active_iterable_terms(self, env_idx: int) -> Sequence[tuple[str, Sequence[float]]]:
@@ -204,6 +277,16 @@ class TerminationManager(ManagerBase):
         Returns:
             The active terms.
         """
+        """返回活跃的项作为可反复的双数序列。
+
+        元组的第一个元素是项名称，第二个元素是当前阶段记录的项原始值 (s)。
+
+        参数：
+            env_idx: 具体的环境，可以从中提取活跃项。
+
+        返回：
+            积极的项。
+        """
         terms = []
         for i, key in enumerate(self._term_names):
             terms.append((key, [self._term_dones[env_idx, i].float().cpu().item()]))
@@ -211,6 +294,8 @@ class TerminationManager(ManagerBase):
 
     """
     Operations - Term settings.
+    """
+    """运营 - 项设置
     """
 
     def set_term_cfg(self, term_name: str, cfg: TerminationTermCfg):
@@ -222,6 +307,15 @@ class TerminationManager(ManagerBase):
 
         Raises:
             ValueError: If the term name is not found.
+        """
+        """设置指定项的配置在管理器中。
+
+        参数：
+            term_name: 终止项的名称
+            cfg: 终止项的配置
+
+        异常：
+            ValueError: 如果没有找到项名称。
         """
         if term_name not in self._term_names:
             raise ValueError(f"Termination term '{term_name}' not found.")
@@ -240,6 +334,17 @@ class TerminationManager(ManagerBase):
         Raises:
             ValueError: If the term name is not found.
         """
+        """获得指定项的配置。
+
+        参数：
+            term_name: 终止项的名称
+
+        返回：
+            终止项的配置
+
+        异常：
+            ValueError: 如果没有找到项名称。
+        """
         if term_name not in self._term_names:
             raise ValueError(f"Termination term '{term_name}' not found.")
         # return the configuration
@@ -247,6 +352,8 @@ class TerminationManager(ManagerBase):
 
     """
     Helper functions.
+    """
+    """辅助函数。
     """
 
     def _prepare_terms(self):

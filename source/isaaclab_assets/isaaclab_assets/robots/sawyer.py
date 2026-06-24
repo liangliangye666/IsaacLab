@@ -11,6 +11,14 @@ The following configuration parameters are available:
 
 Reference: https://github.com/RethinkRobotics/sawyer_robot
 """
+"""复习机器人武器的配置。
+
+下列配置参数可用:
+
+* :obj:`SAWYER_CFG`没有任何工具。
+
+Reference: https://github.com/RethinkRobotics/sawyer_robot
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -65,3 +73,4 @@ SAWYER_CFG = ArticulationCfg(
     },
 )
 """Configuration of Rethink Robotics Sawyer arm."""
+"""复习机器人扫码手臂的配置。"""

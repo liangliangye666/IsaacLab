@@ -44,6 +44,28 @@ def spawn_light(
     Raises:
         ValueError:  When a prim already exists at the specified prim path.
     """
+    """在指定prim路径上创建一个光prim，具有指定配置。
+
+    创建者prim根据`USD.LuxLight <https://openusd.org/dev/api/class_usd_lux_light_a_p_i.html>`_ API。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 光源的配置。
+        translation: 这就是prim的翻译。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 作为 (w， x， y， z) 的prim的方向。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    异常：
+        ValueError:  在指定prim路径上已经存在prim。
+    """
     # obtain stage handle
     stage = get_current_stage()
     # check if prim already exists

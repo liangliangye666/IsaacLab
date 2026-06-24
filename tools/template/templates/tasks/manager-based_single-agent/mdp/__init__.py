@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """This sub-module contains the functions that are specific to the environment."""
+"""该子模块包含环境特异性的功能。"""
 
 from isaaclab.envs.mdp import *  # noqa: F401, F403
 

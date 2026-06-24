@@ -20,6 +20,22 @@ Currently, the sub-package provides the following classes:
     .. _isaacsim.util.debug_drawing: https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/ext_omni_isaac_debug_drawing.html
 
 """
+"""在GUI中简化创建UI元素的标记工具子包。
+
+目前，该子包包含以下类别:
+
+* :class:`VisualizationMarkers`用于创建一个标记组`UsdGeom.PointInstancer
+  <https://graphics.pixar.com/usd/dev/api/class_usd_geom_point_instancer.html>`_。
+
+
+.. 说明::
+
+    对于一些简单的使用案例，使用Isaac Sim的调试绘图工具可能足够。
+    在`isaacsim.util.debug_drawing`_模块中可使用API调试图。
+    它允许在UI上有效地绘制点和斜率。
+
+    .. _isaacsim.util.debug_drawing: https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/ext_omni_isaac_debug_drawing.html
+"""
 
 from .config import *  # noqa: F401, F403
 from .visualization_markers import VisualizationMarkers, VisualizationMarkersCfg

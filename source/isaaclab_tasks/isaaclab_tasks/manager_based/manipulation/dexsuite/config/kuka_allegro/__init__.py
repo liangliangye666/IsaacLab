@@ -6,6 +6,8 @@
 """
 Dextra Kuka Allegro environments.
 """
+"""德克斯特拉库卡阿莱格罗环境。
+"""
 
 import gymnasium as gym
 

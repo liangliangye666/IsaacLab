@@ -51,6 +51,16 @@ class BoxBoxEnvCfg(CartpoleCameraEnvCfg):
         0    Cart DOF effort scale: [-1, 1]
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.Box``与形状 (高度，宽度，3)
+
+        现在，我们要做什么?
+        -    RGB图像
+        === ===
+
+    * 动作空间 (``~gymnasium.spaces.Box``形状 (1，))
+
+        === === Idx 动作 === === 0 卡车 DOF 努力规模: [-1， 1] === ===
+    """
 
     # camera
     tiled_camera: TiledCameraCfg = get_tiled_camera_cfg("rgb")
@@ -82,6 +92,16 @@ class BoxDiscreteEnvCfg(CartpoleCameraEnvCfg):
         1    Negative maximum cart DOF effort
         2    Positive maximum cart DOF effort
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Box``与形状 (高度，宽度，3)
+
+        现在，我们要做什么?
+        -    RGB图像
+        === ===
+
+    * 动作空间 (``~gymnasium.spaces.Discrete``有3个元素)
+
+        === === N 动作 === === 0 零行车DOF 努力 1 负最大行车DOF 努力 2 积极最大行车DOF 努力 === ===
     """
 
     # camera
@@ -122,6 +142,18 @@ class BoxMultiDiscreteEnvCfg(CartpoleCameraEnvCfg):
         1    Positive effort (other side)
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.Box``与形状 (高度，宽度，3)
+
+        现在，我们要做什么?
+        -    RGB图像
+        === ===
+
+    * 动作空间 (``~gymnasium.spaces.MultiDiscrete``有2个分离空间)
+
+        === === N 动作 (分别0) === 0 零行车DOF 努力 1 半个最大行车DOF 努力 2 最大行车DOF 努力 === ===
+
+        === === N 动作 (分别1) === === 0 负面努力 (一边) 1 积极努力 (另一边) === ===
+    """
 
     # camera
     tiled_camera: TiledCameraCfg = get_tiled_camera_cfg("rgb")
@@ -157,6 +189,14 @@ class DictBoxEnvCfg(CartpoleCameraEnvCfg):
         ===  ===
         0    Cart DOF effort scale: [-1, 1]
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Dict``有2个组成空间)
+
+        关键观测 关键观测DOF速度摄像头RGB图片 ============
+
+    * 动作空间 (``~gymnasium.spaces.Box``形状 (1，))
+
+        === === Idx 动作 === === 0 卡车 DOF 努力规模: [-1， 1] === ===
     """
 
     # camera
@@ -195,6 +235,14 @@ class DictDiscreteEnvCfg(CartpoleCameraEnvCfg):
         1    Negative maximum cart DOF effort
         2    Positive maximum cart DOF effort
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Dict``有2个组成空间)
+
+        关键观测 关键观测DOF速度摄像头RGB图片 ============
+
+    * 动作空间 (``~gymnasium.spaces.Discrete``有3个元素)
+
+        === === N 动作 === === 0 零行车DOF 努力 1 负最大行车DOF 努力 2 积极最大行车DOF 努力 === ===
     """
 
     # camera
@@ -241,6 +289,16 @@ class DictMultiDiscreteEnvCfg(CartpoleCameraEnvCfg):
         1    Positive effort (other side)
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.Dict``有2个组成空间)
+
+        关键观测 关键观测DOF速度摄像头RGB图片 ============
+
+    * 动作空间 (``~gymnasium.spaces.MultiDiscrete``有2个分离空间)
+
+        === === N 动作 (分别0) === 0 零行车DOF 努力 1 半个最大行车DOF 努力 2 最大行车DOF 努力 === ===
+
+        === === N 动作 (分别1) === === 0 负面努力 (一边) 1 积极努力 (另一边) === ===
+    """
 
     # camera
     tiled_camera: TiledCameraCfg = get_tiled_camera_cfg("rgb")
@@ -282,6 +340,14 @@ class TupleBoxEnvCfg(CartpoleCameraEnvCfg):
         0    Cart DOF effort scale: [-1, 1]
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.Tuple``有2个组成空间)
+
+        现在，我们要做什么?RGB图 1DOF速度
+
+    * 动作空间 (``~gymnasium.spaces.Box``形状 (1，))
+
+        === === Idx 动作 === === 0 卡车 DOF 努力规模: [-1， 1] === ===
+    """
 
     # camera
     tiled_camera: TiledCameraCfg = get_tiled_camera_cfg("rgb")
@@ -317,6 +383,14 @@ class TupleDiscreteEnvCfg(CartpoleCameraEnvCfg):
         1    Negative maximum cart DOF effort
         2    Positive maximum cart DOF effort
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Tuple``有2个组成空间)
+
+        现在，我们要做什么?RGB图 1DOF速度
+
+    * 动作空间 (``~gymnasium.spaces.Discrete``有3个元素)
+
+        === === N 动作 === === 0 零行车DOF 努力 1 负最大行车DOF 努力 2 积极最大行车DOF 努力 === ===
     """
 
     # camera
@@ -360,6 +434,16 @@ class TupleMultiDiscreteEnvCfg(CartpoleCameraEnvCfg):
         0    Negative effort (one side)
         1    Positive effort (other side)
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Tuple``有2个组成空间)
+
+        现在，我们要做什么?RGB图 1DOF速度
+
+    * 动作空间 (``~gymnasium.spaces.MultiDiscrete``有2个分离空间)
+
+        === === N 动作 (分别0) === 0 零行车DOF 努力 1 半个最大行车DOF 努力 2 最大行车DOF 努力 === ===
+
+        === === N 动作 (分别1) === === 0 负面努力 (一边) 1 积极努力 (另一边) === ===
     """
 
     # camera

@@ -6,6 +6,7 @@
 """Event manager for orchestrating operations based on different simulation events."""
 
 from __future__ import annotations
+"""基于不同的仿真事件的操作调整事件管理器。"""
 
 import inspect
 import logging
@@ -57,9 +58,38 @@ class EventManager(ManagerBase):
         directly handled by the manager itself. The other modes are handled by the environment implementation.
 
     """
+    """基于不同的仿真事件的操作调整管理器。
+
+    事件管理器根据不同的仿真事件对环境进行操作。
+    例如，在初始化/重置过程中改变对象的质量或摩擦系数，或在一定步骤间隔下将随机推向机器人。
+    用户可以指定几个事件模式，以根据何时应用事件进行细节调整行为。
+
+    事件项由包含管理器的设置和每个项的参数的配置类进行分析。
+    每个事件项都应该表示:class:`EventTermCfg`类。
+
+    事件项可以根据其模式进行组合。
+    模式是一个用户定义的字符串，该字符串指定该事件项的应用时间。
+    这使用户能够完全控制何时应应用事件项。
+
+    对于典型的培训过程，您可能希望在以下模式下应用事件:
+
+    - "prestartup":在仿真开始之前，在训练开始时一次应用事件.USD-仿真阶段的水平特性。
+    - "启动":在仿真开始后，训练开始时一次应用事件。
+    - "重置":每次重置时都会应用事件。
+    - "间隔":事件应在预先指定的时间间隔上进行。
+
+    但是，您也可以定义您自己的模式，并在训练过程中使用它们。
+    为此，您还需要在环境实施中添加该模式的触发。
+
+    .. 说明::
+
+        操作的启动与``"interval"``模式相符，是唯一直接由管理器自己处理的模式。
+        其他模式由环境实施来处理。
+    """
 
     _env: ManagerBasedEnv
     """The environment instance."""
+    """环境情况。"""
 
     def __init__(self, cfg: object, env: ManagerBasedEnv):
         """Initialize the event manager.
@@ -67,6 +97,12 @@ class EventManager(ManagerBase):
         Args:
             cfg: A configuration object or dictionary (``dict[str, EventTermCfg]``).
             env: An environment object.
+        """
+        """启动事件管理器。
+
+        参数：
+            cfg: 一个配置对象或字典 (``dict[str， EventTermCfg]``)。
+            env: 一个环境对象。
         """
         # create buffers to parse and store terms
         self._mode_term_names: dict[str, list[str]] = dict()
@@ -78,6 +114,7 @@ class EventManager(ManagerBase):
 
     def __str__(self) -> str:
         """Returns: A string representation for event manager."""
+        """Returns: 为事件管理器提供一个字符串表示。"""
         msg = f"<EventManager> contains {len(self._mode_term_names)} active terms.\n"
 
         # add info on each mode
@@ -105,6 +142,8 @@ class EventManager(ManagerBase):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def active_terms(self) -> dict[str, list[str]]:
@@ -112,15 +151,22 @@ class EventManager(ManagerBase):
 
         The keys are the modes of event and the values are the names of the event terms.
         """
+        """事件项名称。
+
+        关键是事件模式，值是事件项的名称。
+        """
         return self._mode_term_names
 
     @property
     def available_modes(self) -> list[str]:
         """Modes of events."""
+        """事件的模式。"""
         return list(self._mode_term_names.keys())
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
@@ -185,6 +231,33 @@ class EventManager(ManagerBase):
                 behavior as the environment indices are computed based on the time left for each environment.
             ValueError: If the mode is ``"reset"`` and the total number of environment steps that have happened
                 is not provided.
+        """
+        """在指定模式中调用每个事件的时间。
+
+        这个函数在指定模式中反复对所有事件项进行反复执行，并调用与该项相应的函数。
+        函数与环境实例和环境指标调用事件。
+
+        在"间隔"模式下，函数在时间间隔过去了时被调用。
+        这需要指定环境的时间步骤。
+
+        对于"重置"模式，当模式"重置"时调用函数，自函数的最后触发事件以来发生的环境步骤总数等于重置之间的环境步骤数量的配置参数。
+
+        参数：
+            mode: 事件的模式。
+            env_ids: 适用于事件的环境索引。
+                     在 None 中，默认情况下，该事件适用于所有环境。
+            dt: 环境的时间步骤。
+                这只用于"间隔"模式。
+                默认对None来简化调用其他模式。
+            global_env_step_count: 发生的环境步骤总数。
+                                   这只用
+                for the "reset" mode. Defaults to None to simplify the call for other modes.
+
+        异常：
+            ValueError: 如果模式是``"interval"``，并且没有提供时间步骤。
+            ValueError: 如果模式是``"interval"``，并提供环境指标。
+                        这是一种未定义的行为，因为环境索引根据每个环境剩下的时间计算。
+            ValueError: 如果模式是``"reset"``，并未提供发生的环境步骤总数。
         """
         # check if mode is valid
         if mode not in self._mode_term_names:
@@ -278,6 +351,8 @@ class EventManager(ManagerBase):
     """
     Operations - Term settings.
     """
+    """运营 - 项设置
+    """
 
     def set_term_cfg(self, term_name: str, cfg: EventTermCfg):
         """Sets the configuration of the specified term into the manager.
@@ -291,6 +366,18 @@ class EventManager(ManagerBase):
 
         Raises:
             ValueError: If the term name is not found.
+        """
+        """设置指定项的配置在管理器中。
+
+        该方法通过搜索所有模式来找到名字。
+        然后它会更新这个项的配置，
+
+        参数：
+            term_name: 事件的名称。
+            cfg: 事件项的配置。
+
+        异常：
+            ValueError: 如果没有找到项名称。
         """
         term_found = False
         for mode, terms in self._mode_term_names.items():
@@ -316,6 +403,20 @@ class EventManager(ManagerBase):
         Raises:
             ValueError: If the term name is not found.
         """
+        """获得指定项的配置。
+
+        该方法通过搜索所有模式来找到名字。
+        然后返回了这个项的配置，
+
+        参数：
+            term_name: 事件的名称。
+
+        返回：
+            事件时间的配置。
+
+        异常：
+            ValueError: 如果没有找到项名称。
+        """
         for mode, terms in self._mode_term_names.items():
             if term_name in terms:
                 return self._mode_term_cfgs[mode][terms.index(term_name)]
@@ -323,6 +424,8 @@ class EventManager(ManagerBase):
 
     """
     Helper functions.
+    """
+    """辅助函数。
     """
 
     def _prepare_terms(self):

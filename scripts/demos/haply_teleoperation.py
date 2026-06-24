@@ -28,8 +28,33 @@ Prerequisites:
     2. Have Haply SDK running and accessible via WebSocket
     3. Connect Inverse3 and VerseGrip devices
 """
+"""通过机器人手臂进行了Haply设备的远程操作。
+
+这本脚本展示了如何使用Haply设备 (Inverse3 + VerseGrip) 在Isaac Lab中远程操作机器人手臂。
+哈普利规定:
+- 从Inverse3设备追踪位置
+- 从VerseGrip设备的导向和按输入
+- 强势反
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/demos/haply_teleoperation.py
+
+    # With custom WebSocket URI
+    ./isaaclab.sh -p scripts/demos/haply_teleoperation.py --websocket_uri ws://localhost:10001
+
+    # With sensitivity adjustment
+    ./isaaclab.sh -p scripts/demos/haply_teleoperation.py --pos_sensitivity 2.0
+
+Prerequisites:
+    1. 安装网关包: pip安装网关
+    2. 让 Haply SDK运行并通过 WebSocket访问
+    3. 连接Inverse3和VerseGrip设备
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -97,6 +122,18 @@ def apply_haply_to_robot_mapping(
         robot_pos: Target position for robot EE in world frame [x, y, z]
 
     """
+    """应用坐标地图从Haply工作空间到Franka Panda末端执行器。
+
+    使用绝对位置控制:机器人位置 = robot_initial_pos + haply_pos (转换)
+
+    参数：
+        haply_pos: 现在的绝对位置 [x， y， z] 在米
+        haply_initial_pos: 哈普利的零参考位置 [x，y，z]
+        robot_initial_pos: 机器人末端执行器的基位抵消
+
+    返回：
+        robot_pos: 世界框架中的机器人EE的目标位置 [x，y，z]
+    """
     # Convert to numpy
     if isinstance(haply_pos, torch.Tensor):
         haply_pos = haply_pos.cpu().numpy()
@@ -120,6 +157,7 @@ def apply_haply_to_robot_mapping(
 @configclass
 class FrankaHaplySceneCfg(InteractiveSceneCfg):
     """Configuration for Franka scene with Haply teleoperation and contact sensors."""
+    """设置弗兰卡场景，使用Haply电话操作和接触传感器。"""
 
     ground = AssetBaseCfg(
         prim_path="/World/defaultGroundPlane",
@@ -180,6 +218,7 @@ def run_simulator(
     haply_device: HaplyDevice,
 ):
     """Runs the simulation loop with Haply teleoperation."""
+    """运行Haply电话操作的仿真循环。"""
     sim_dt = sim.get_physics_dt()
     count = 1
 
@@ -332,6 +371,7 @@ def run_simulator(
 
 def main():
     """Main function to set up and run the Haply teleoperation demo."""
+    """主要功能是设置和运行Haply电话操作演示。"""
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device, dt=1 / 200)
     sim = sim_utils.SimulationContext(sim_cfg)
 

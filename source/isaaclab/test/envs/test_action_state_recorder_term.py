@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ simulation_app = AppLauncher(headless=True).app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import shutil
 import tempfile
@@ -32,6 +34,7 @@ from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 @pytest.fixture(scope="session", autouse=True)
 def setup_carb_settings():
     """Set up carb settings to prevent simulation getting stuck."""
+    """设置碳水化合物设置，以防止仿真卡住。"""
     carb_settings_iface = carb.settings.get_settings()
     carb_settings_iface.set_bool("/physics/cooking/ujitsoCollisionCooking", False)
 
@@ -39,6 +42,7 @@ def setup_carb_settings():
 @pytest.fixture
 def temp_dir():
     """Create a temporary directory for test datasets."""
+    """为测试数据集创建临时目录。"""
     temp_dir = tempfile.mkdtemp()
     yield temp_dir
     shutil.rmtree(temp_dir)
@@ -55,6 +59,17 @@ def compare_states(compared_state, ground_truth_state, ground_truth_env_id) -> t
     Returns:
         bool: True if states match, False otherwise.
         str: Error log if states don't match.
+    """
+    """与给定的ground_truth相比。
+
+    参数：
+        compared_state: 状态进行比较。
+        ground_truth_state: 基本的真理状态。
+        ground_truth_env_id: 在ground_truth状态下进行比较的环境索引。
+
+    返回：
+        bool: 如果状态一致，则True，否则False。
+        str: 如果状态不匹配，错误记录。
     """
     for asset_type in ["articulation", "rigid_object"]:
         for asset_name in ground_truth_state[asset_type].keys():
@@ -78,6 +93,11 @@ def check_initial_state_recorder_term(env):
     Args:
         env: Environment instance.
     """
+    """检查最初的状态记录器项所记录的值。
+
+    参数：
+        env: 环境实例。
+    """
     current_state = env.unwrapped.scene.get_state(is_relative=True)
     for env_id in range(env.unwrapped.num_envs):
         recorded_initial_state = env.unwrapped.recorder_manager.get_episode(env_id).get_initial_state()
@@ -90,6 +110,7 @@ def check_initial_state_recorder_term(env):
 @pytest.mark.parametrize("num_envs", [1, 2])
 def test_action_state_recorder_terms(task_name, device, num_envs, temp_dir):
     """Check action state recorder terms."""
+    """检查动作状态记录器的项。"""
     omni.usd.get_context().new_stage()
 
     dummy_dataset_filename = f"{uuid.uuid4()}.hdf5"

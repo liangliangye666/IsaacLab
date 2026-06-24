@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Factory to create teleoperation devices from configuration."""
+"""从配置中创建远程操作设备的工厂。"""
 
 import inspect
 import logging
@@ -34,6 +35,20 @@ def create_teleop_device(
     Raises:
         ValueError: If the device name is not found in the configuration
         ValueError: If the device configuration type is not supported
+    """
+    """建立一个基于配置的远程操作设备。
+
+    参数：
+        device_name: 要创建的设备名称 (必须在devices_cfg中存在)
+        devices_cfg: 设备配置字典
+        callbacks: 可选的回调字典，用于与设备注册。
+
+    返回：
+        配置的远程操作设备
+
+    异常：
+        ValueError: 如果设备名称不在配置中
+        ValueError: 如果设备配置类型不支持
     """
     if device_name not in devices_cfg:
         raise ValueError(f"Device '{device_name}' not found in teleop device configurations")

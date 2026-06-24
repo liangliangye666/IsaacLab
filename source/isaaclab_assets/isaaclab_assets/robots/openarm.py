@@ -25,6 +25,28 @@ Motor spec sheets:
 * Joint 5–8 (DM-J4310-2EC V1.1):
     https://files.seeedstudio.com/products/Damiao/DM-J4310-en.pdf
 """
+"""OpenArm机器人的配置。
+
+下列配置可用:
+
+* :obj:`OPENARM_BI_CFG`: OpenArm有两臂的机器人。
+* :obj:`OPENARM_BI_HIGH_PD_CFG`:OpenArm机器人，双臂，更硬的PD控制。
+* :obj:`OPENARM_UNI_CFG`: OpenArm一只手臂的机器人。
+* :obj:`OPENARM_UNI_HIGH_PD_CFG`: OpenArm一只手臂的机器人更硬PD控制。
+
+参考：
+OpenArm存储库:
+* https://github.com/enactic/openarm
+* https://github.com/enactic/openarm_isaac_lab
+
+汽车规格表:
+* 关节12 (DM-J8009P-2EC):
+    https://cdn.shopify.com/s/文件/1/0673/6848/5000/文件/DM-J8009P2EC_User_Manual.pdf?v=1755481750
+* 关节34 (DM-J4340P-2EC / DM-J4340-2EC):
+    https://cdn.shopify.com/s/文件/1/0673/6848/5000/文件/DM-J4340-2EC_User_Manual.pdf?v=1756883905
+* 关节 58 (DM-J4310-2EC V1.1):
+    https://files.seeedstudio.com/产品/Damiao/DM-J4310-en.pdf
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -98,6 +120,7 @@ OPENARM_BI_CFG = ArticulationCfg(
     soft_joint_pos_limit_factor=1.0,
 )
 """Configuration of OpenArm Bimanual robot."""
+"""的配置OpenArm双手机机。"""
 
 OPENARM_UNI_CFG = ArticulationCfg(
     spawn=sim_utils.UsdFileCfg(
@@ -151,6 +174,7 @@ OPENARM_UNI_CFG = ArticulationCfg(
     soft_joint_pos_limit_factor=1.0,
 )
 """Configuration of OpenArm Unimanual robot."""
+"""的配置OpenArm无人机。"""
 
 OPENARM_BI_HIGH_PD_CFG = OPENARM_BI_CFG.copy()
 OPENARM_BI_HIGH_PD_CFG.spawn.rigid_props.disable_gravity = True
@@ -162,6 +186,10 @@ OPENARM_BI_HIGH_PD_CFG.actuators["openarm_gripper"].damping = 1e2
 
 This configuration is useful for task-space control using differential IK.
 """
+"""配置OpenArm双手机器人，具有更硬的PD控制。
+
+这种配置对于使用差异 IK 的任务空间控制是有用的。
+"""
 
 OPENARM_UNI_HIGH_PD_CFG = OPENARM_UNI_CFG.copy()
 OPENARM_UNI_HIGH_PD_CFG.spawn.rigid_props.disable_gravity = True
@@ -170,4 +198,8 @@ OPENARM_UNI_HIGH_PD_CFG.actuators["openarm_arm"].damping = 80.0
 """Configuration of OpenArm Unimanual robot with stiffer PD control.
 
 This configuration is useful for task-space control using differential IK.
+"""
+"""配置OpenArm单手机器人，具有更硬的PD控制。
+
+这种配置对于使用差异 IK 的任务空间控制是有用的。
 """

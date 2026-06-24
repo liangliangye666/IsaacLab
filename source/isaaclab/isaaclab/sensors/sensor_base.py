@@ -10,6 +10,11 @@ Each sensor class should inherit from this class and implement the abstract meth
 """
 
 from __future__ import annotations
+"""传感器的基础类。
+
+这类定义了类似于:class:`isaaclab.assets.AssetBase`类的传感器界面。
+每个传感器类应继承这一类，并实施抽象方法。
+"""
 
 import builtins
 import inspect
@@ -43,12 +48,28 @@ class SensorBase(ABC):
     The sensor is updated at the specified update period. If the update period is zero, then the
     sensor is updated at every simulation step.
     """
+    """基于传感器的基础类。
+
+    实施基于惰的评估。
+    传感器数据只有当用户通过:attr:`data`属性访问数据或设置``force_compute=True``时才会更新
+    the :麻:`update`方法。
+         这样才能避免传感器数据在
+    不使用。
+
+    传感器在指定更新期间更新。
+    如果更新时间为零，则传感器每次仿真步骤都会更新。
+    """
 
     def __init__(self, cfg: SensorBaseCfg):
         """Initialize the sensor class.
 
         Args:
             cfg: The configuration parameters for the sensor.
+        """
+        """启动传感器类。
+
+        参数：
+            cfg: 传感器的配置参数
         """
         # check that config is valid
         if cfg.history_length < 0:
@@ -74,11 +95,14 @@ class SensorBase(ABC):
 
     def __del__(self):
         """Unsubscribe from the callbacks."""
+        """取消回电话。"""
         # clear physics events handles
         self._clear_callbacks()
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -86,6 +110,10 @@ class SensorBase(ABC):
         """Whether the sensor is initialized.
 
         Returns True if the sensor is initialized, False otherwise.
+        """
+        """传感器是否启动。
+
+        如果传感器启动，则返回True，否则返回False。
         """
         return self._is_initialized
 
@@ -95,11 +123,16 @@ class SensorBase(ABC):
 
         This is equal to the number of sensors per environment multiplied by the number of environments.
         """
+        """传感器的实例数。
+
+        这等于每个环境的传感器数乘以环境数。
+        """
         return self._num_envs
 
     @property
     def device(self) -> str:
         """Memory device for computation."""
+        """计算的内存设备。"""
         return self._device
 
     @property
@@ -120,17 +153,34 @@ class SensorBase(ABC):
             # return the data (where `_data` is the data for the sensor)
             return self._data
         """
+        """传感器的数据。
+
+        当用户试图访问数据时才会更新此属性。
+        在没有使用传感器数据时，这可以避免不必要的计算。
+
+        在访问此属性时，可在传感器实现中使用以下代码片段更新传感器:
+
+        .. code-block:: python
+
+            # update sensors if needed
+            self._update_outdated_buffers()
+            # return the data (where `_data` is the data for the sensor)
+            return self._data
+        """
         raise NotImplementedError
 
     @property
     def has_debug_vis_implementation(self) -> bool:
         """Whether the sensor has a debug visualization implemented."""
+        """传感器是否实现了调试可视化。"""
         # check if function raises NotImplementedError
         source_code = inspect.getsource(self._set_debug_vis_impl)
         return "NotImplementedError" not in source_code
 
     """
     Operations
+    """
+    """运营
     """
 
     def set_debug_vis(self, debug_vis: bool) -> bool:
@@ -142,6 +192,15 @@ class SensorBase(ABC):
         Returns:
             Whether the debug visualization was successfully set. False if the sensor
             does not support debug visualization.
+        """
+        """设定是否可可视化传感器数据。
+
+        参数：
+            debug_vis: 是否可视化传感器数据。
+
+        返回：
+            设置错误可视化是否成功。
+            False如果传感器不支持调试可视化。
         """
         # check if debug visualization is supported
         if not self.has_debug_vis_implementation:
@@ -172,6 +231,12 @@ class SensorBase(ABC):
         Args:
             env_ids: The sensor ids to reset. Defaults to None.
         """
+        """调整传感器内部。
+
+        参数：
+            env_ids: 传感器的识别要重置。
+                     默认为 None。
+        """
         # Resolve sensor ids
         if env_ids is None:
             env_ids = slice(None)
@@ -194,10 +259,13 @@ class SensorBase(ABC):
     """
     Implementation specific.
     """
+    """具体实施情况
+    """
 
     @abstractmethod
     def _initialize_impl(self):
         """Initializes the sensor-related handles and internal buffers."""
+        """启动与传感器相关的句柄和内部缓冲器。"""
         # Obtain Simulation Context
         sim = sim_utils.SimulationContext.instance()
         if sim is None:
@@ -232,6 +300,13 @@ class SensorBase(ABC):
         Args:
             env_ids: The indices of the sensors that are ready to capture.
         """
+        """填写提供环境身份的传感器数据。
+
+        这种函数不会进行基于时间的检查，而是直接填充数据在数据容器中。
+
+        参数：
+            env_ids: 传感器准备捕获的指标。
+        """
         raise NotImplementedError
 
     def _set_debug_vis_impl(self, debug_vis: bool):
@@ -241,6 +316,11 @@ class SensorBase(ABC):
         and input ``debug_vis`` is True. If the visualization objects exist, the function should
         set their visibility into the stage.
         """
+        """设置调试可视化到可视化对象。
+
+        如果它们不存在，并且输入 ``debug_vis`` 是 True，
+        如果可视化对象存在，函数应该将它们的可视性设置在舞台上。
+        """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
     def _debug_vis_callback(self, event):
@@ -248,18 +328,26 @@ class SensorBase(ABC):
 
         This function calls the visualization objects and sets the data to visualize into them.
         """
+        """检查错误可视化。
+
+        这个函数将可视化对象调用，并设置数据可视化到它们中。
+        """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _register_callbacks(self):
         """Registers the timeline and prim deletion callbacks."""
+        """记录时间表和prim删除回调。"""
 
         # register simulator callbacks (with weakref safety to avoid crashes on deletion)
         def safe_callback(callback_name, event, obj_ref):
             """Safely invoke a callback on a weakly-referenced object, ignoring ReferenceError if deleted."""
+            """安全地调用一个弱引用的对象，如果删除ReferenceError，则忽略。"""
             try:
                 obj = obj_ref
                 getattr(obj, callback_name)(event)
@@ -298,6 +386,12 @@ class SensorBase(ABC):
             PhysX handles are only enabled once the simulator starts playing. Hence, this function needs to be
             called whenever the simulator "plays" from a "stop" state.
         """
+        """启动场景元素。
+
+        说明：
+            在仿真器开始播放后才启用PhysX句柄。
+            因此，每当仿真器从"停止"状态中"播放"时，需要调用此函数。
+        """
         if not self._is_initialized:
             try:
                 self._initialize_impl()
@@ -308,6 +402,7 @@ class SensorBase(ABC):
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         self._is_initialized = False
         if self._debug_vis_handle is not None:
             self._debug_vis_handle.unsubscribe()
@@ -322,6 +417,14 @@ class SensorBase(ABC):
         Note:
             This function is called when the prim is deleted.
         """
+        """在删除prim时，将反调无效和删除。
+
+        参数：
+            prim_path: 删除的prim的路径。
+
+        说明：
+            当删除prim时，这个函数会被调用。
+        """
         if prim_path == "/":
             self._clear_callbacks()
             return
@@ -333,6 +436,7 @@ class SensorBase(ABC):
 
     def _clear_callbacks(self) -> None:
         """Clears the callbacks."""
+        """清除回调。"""
         if self._prim_deletion_callback_id:
             SimulationManager.deregister_callback(self._prim_deletion_callback_id)
             self._prim_deletion_callback_id = None
@@ -350,9 +454,12 @@ class SensorBase(ABC):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _update_outdated_buffers(self):
         """Fills the sensor data for the outdated sensors."""
+        """填充过时传感器的传感器数据。"""
         outdated_env_ids = self._is_outdated.nonzero().squeeze(-1)
         if len(outdated_env_ids) > 0:
             # obtain new data

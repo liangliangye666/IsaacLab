@@ -13,8 +13,17 @@ It accompanies the tutorial on docker usage.
     ./isaaclab.sh -p scripts/tutorials/00_sim/log_time.py
 
 """
+"""在仿真播放时，该脚本展示如何生成日志输出。
+随着教程的使用。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/00_sim/log_time.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -33,12 +42,14 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 from isaaclab.sim import SimulationCfg, SimulationContext
 
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Specify that the logs must be in logs/docker_tutorial
     log_dir_path = os.path.join("logs")
     if not os.path.isdir(log_dir_path):

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Functions specific to the in-hand dexterous manipulation environments."""
+"""专用于手中的精通操纵环境的功能。"""
 
 from typing import TYPE_CHECKING
 
@@ -31,6 +32,17 @@ def success_bonus(
         command_name: The command term to be used for extracting the goal.
         object_cfg: The configuration for the scene entity. Default is "object".
     """
+    """奖金奖励成功达到目标。
+
+    当对象定向在门范围内时，被认为对象已经达到目标。
+    如果对象达到目标，则奖励为1.0，否则为0.0。
+
+    参数：
+        env: 环境对象。
+        command_name: 用于提取目标的命令项。
+        object_cfg: 场景实体的配置。
+                    默认是"对象"。
+    """
     # extract useful elements
     asset: RigidObject = env.scene[object_cfg.name]
     command_term: InHandReOrientationCommand = env.command_manager.get_term(command_name)
@@ -56,6 +68,16 @@ def track_pos_l2(
         env: The environment object.
         command_term: The command term to be used for extracting the goal.
         object_cfg: The configuration for the scene entity. Default is "object".
+    """
+    """使用L2标准追踪对象位置的奖励。
+
+    奖励是对象位置和目标位置之间的距离。
+
+    参数：
+        env: 环境对象。
+        command_term: 用于提取目标的命令项。
+        object_cfg: 场景实体的配置。
+                    默认是"对象"。
     """
     # extract useful elements
     asset: RigidObject = env.scene[object_cfg.name]
@@ -84,6 +106,18 @@ def track_orientation_inv_l2(
         command_name: The command term to be used for extracting the goal.
         object_cfg: The configuration for the scene entity. Default is "object".
         rot_eps: The threshold for the orientation error. Default is 1e-3.
+    """
+    """通过导向错误的逆向来追踪对象导向的奖励。
+
+    对象导向与目标导向之间的导向错误的反向是奖励。
+
+    参数：
+        env: 环境对象。
+        command_name: 用于提取目标的命令项。
+        object_cfg: 场景实体的配置。
+                    默认是"对象"。
+        rot_eps: 导向错误的门。
+                 默认是1e-3。
     """
     # extract useful elements
     asset: RigidObject = env.scene[object_cfg.name]

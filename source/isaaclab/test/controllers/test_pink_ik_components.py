@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Test cases for PinkKinematicsConfiguration class."""
+"""对PinkKinematicsConfiguration类的测试案例。"""
 
 # Import pinocchio in the main script to force the use of the dependencies installed
 # by IsaacLab and not the one installed by Isaac Sim
@@ -30,25 +31,30 @@ from isaaclab.controllers.pink_ik.pink_kinematics_configuration import PinkKinem
 
 class TestPinkKinematicsConfiguration:
     """Test suite for PinkKinematicsConfiguration class."""
+    """测试套件PinkKinematicsConfiguration类。"""
 
     @pytest.fixture
     def urdf_path(self):
         """Path to test URDF file."""
+        """测试URDF文件的路径。"""
         return Path(__file__).parent / "urdfs/test_urdf_two_link_robot.urdf"
 
     @pytest.fixture
     def mesh_path(self):
         """Path to mesh directory (empty for simple test)."""
+        """网格目录的路径 (用于简单测试而空)。"""
         return ""
 
     @pytest.fixture
     def controlled_joint_names(self):
         """List of controlled joint names for testing."""
+        """测试的控制联合名称列表。"""
         return ["joint_1", "joint_2"]
 
     @pytest.fixture
     def pink_config(self, urdf_path, mesh_path, controlled_joint_names):
         """Create a PinkKinematicsConfiguration instance for testing."""
+        """为测试创建一个PinkKinematicsConfiguration实例。"""
         return PinkKinematicsConfiguration(
             urdf_path=str(urdf_path),
             mesh_path=mesh_path,
@@ -59,6 +65,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_initialization(self, pink_config, controlled_joint_names):
         """Test proper initialization of PinkKinematicsConfiguration."""
+        """测试PinkKinematicsConfiguration的正确初始化。"""
         # Check that controlled joint names are stored correctly
         assert pink_config._controlled_joint_names == controlled_joint_names
 
@@ -77,6 +84,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_joint_names_properties(self, pink_config):
         """Test joint name properties."""
+        """测试联合名称属性。"""
         # Test controlled joint names in pinocchio order
         controlled_names = pink_config.controlled_joint_names_pinocchio_order
         assert isinstance(controlled_names, list)
@@ -93,6 +101,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_update_with_valid_configuration(self, pink_config):
         """Test updating configuration with valid joint values."""
+        """测试更新配置与有效的联合值。"""
         # Get initial configuration
         initial_q = pink_config.full_q.copy()
 
@@ -110,6 +119,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_update_with_none(self, pink_config):
         """Test updating configuration with None (should use current configuration)."""
+        """测试更新配置与None (应使用当前配置)。"""
         # Get initial configuration
         initial_q = pink_config.full_q.copy()
 
@@ -121,6 +131,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_update_with_wrong_dimensions(self, pink_config):
         """Test that update raises ValueError with wrong configuration dimensions."""
+        """测试更新将ValueError升级到错误的配置尺寸。"""
         # Create configuration with wrong number of joints
         wrong_q = np.array([0.1, 0.2, 0.3])  # Wrong number of joints
 
@@ -129,6 +140,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_get_frame_jacobian_existing_frame(self, pink_config):
         """Test getting Jacobian for an existing frame."""
+        """测试查找一个现有的框架。"""
         # Get Jacobian for link_1 frame
         jacobian = pink_config.get_frame_jacobian("link_1")
 
@@ -143,11 +155,13 @@ class TestPinkKinematicsConfiguration:
 
     def test_get_frame_jacobian_nonexistent_frame(self, pink_config):
         """Test that get_frame_jacobian raises FrameNotFound for non-existent frame."""
+        """测试是否get_frame_jacobian提升FrameNotFound为不存在的框架。"""
         with pytest.raises(FrameNotFound):
             pink_config.get_frame_jacobian("nonexistent_frame")
 
     def test_get_transform_frame_to_world_existing_frame(self, pink_config):
         """Test getting transform for an existing frame."""
+        """测试一个现有框架。"""
         # Get transform for link_1 frame
         transform = pink_config.get_transform_frame_to_world("link_1")
 
@@ -159,11 +173,13 @@ class TestPinkKinematicsConfiguration:
 
     def test_get_transform_frame_to_world_nonexistent_frame(self, pink_config):
         """Test that get_transform_frame_to_world raises FrameNotFound for non-existent frame."""
+        """测试是否get_transform_frame_to_world提升FrameNotFound为不存在的框架。"""
         with pytest.raises(FrameNotFound):
             pink_config.get_transform_frame_to_world("nonexistent_frame")
 
     def test_multiple_controlled_joints(self, urdf_path, mesh_path):
         """Test configuration with multiple controlled joints."""
+        """使用多个控制关节的测试配置。"""
         # Create configuration with all available joints as controlled
         controlled_joint_names = ["joint_1", "joint_2"]  # Both revolute joints
 
@@ -178,6 +194,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_no_controlled_joints(self, urdf_path, mesh_path):
         """Test configuration with no controlled joints."""
+        """测试配置没有控制关节。"""
         controlled_joint_names = []
 
         pink_config = PinkKinematicsConfiguration(
@@ -192,6 +209,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_jacobian_consistency(self, pink_config):
         """Test that Jacobian computation is consistent across updates."""
+        """在更新中测试Jacobian计算是否一致。"""
         # Get Jacobian at initial configuration
         jacobian_1 = pink_config.get_frame_jacobian("link_2")
 
@@ -208,6 +226,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_transform_consistency(self, pink_config):
         """Test that transform computation is consistent across updates."""
+        """测试变化计算在更新中一致。"""
         # Get transform at initial configuration
         transform_1 = pink_config.get_transform_frame_to_world("link_2")
 
@@ -224,6 +243,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_inheritance_from_configuration(self, pink_config):
         """Test that PinkKinematicsConfiguration properly inherits from Pink Configuration."""
+        """测试PinkKinematicsConfiguration正确继承了粉红色配置。"""
         from pink.configuration import Configuration
 
         # Check inheritance
@@ -235,6 +255,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_controlled_joint_indices_calculation(self, pink_config):
         """Test that controlled joint indices are calculated correctly."""
+        """测试控制关节索引的计算正确。"""
         # Check that controlled joint indices are valid
         assert len(pink_config._controlled_joint_indices) == len(pink_config._controlled_joint_names)
 
@@ -249,17 +270,20 @@ class TestPinkKinematicsConfiguration:
 
     def test_full_model_integrity(self, pink_config):
         """Test that the full model maintains integrity."""
+        """检查整个模型是否保持完整性。"""
         # Check that full model has all joints
         assert pink_config.full_model.nq > 0
         assert len(pink_config.full_model.names) > 1  # More than just "universe"
 
     def test_controlled_model_integrity(self, pink_config):
         """Test that the controlled model maintains integrity."""
+        """测试控制模型是否保持完整性。"""
         # Check that controlled model has correct number of joints
         assert pink_config.controlled_model.nq == len(pink_config._controlled_joint_names)
 
     def test_configuration_vector_consistency(self, pink_config):
         """Test that configuration vectors are consistent between full and controlled models."""
+        """测试完整和控制模型之间的配置向量是否一致。"""
         # Check that controlled_q is a subset of full_q
         controlled_indices = pink_config._controlled_joint_indices
         for i, idx in enumerate(controlled_indices):
@@ -267,6 +291,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_error_handling_invalid_urdf(self, mesh_path, controlled_joint_names):
         """Test error handling with invalid URDF path."""
+        """测试错误处理无效的URDF路径。"""
         with pytest.raises(Exception):  # Should raise some exception for invalid URDF
             PinkKinematicsConfiguration(
                 urdf_path="nonexistent.urdf",
@@ -276,6 +301,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_error_handling_invalid_joint_names(self, urdf_path, mesh_path):
         """Test error handling with invalid joint names."""
+        """测试错误处理无效的联合名称。"""
         invalid_joint_names = ["nonexistent_joint"]
 
         # This should not raise an error, but the controlled model should have 0 joints
@@ -290,6 +316,7 @@ class TestPinkKinematicsConfiguration:
 
     def test_undercontrolled_kinematics_model(self, urdf_path, mesh_path):
         """Test that the fixed joint to world is properly handled."""
+        """测试是否对世界固定关节进行正确处理。"""
 
         test_model = PinkKinematicsConfiguration(
             urdf_path=str(urdf_path),

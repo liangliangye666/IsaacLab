@@ -117,6 +117,7 @@ class ShadowHandVisionEnv(InHandManipulationEnv):
 
     def _compute_proprio_observations(self):
         """Proprioception observations from physics."""
+        """物理的自觉观测。"""
         obs = torch.cat(
             (
                 # hand
@@ -138,6 +139,7 @@ class ShadowHandVisionEnv(InHandManipulationEnv):
 
     def _compute_states(self):
         """Asymmetric states for the critic."""
+        """对于批评者来说是不对称的。"""
         sim_states = self.compute_full_state()
         state = torch.cat((sim_states, self.embeddings), dim=-1)
         return state
@@ -170,6 +172,18 @@ def compute_keypoints(
         num_keypoints: Number of keypoints to compute. Default = 8
         size: Length of X, Y, Z dimensions of cube. Default = [0.06, 0.06, 0.06]
         out: Buffer to store keypoints. If None, a new buffer will be created.
+    """
+    """计算一个立方体的8个角点的位置。
+
+    参数：
+        pose: 立方体中心的位置和方向。
+              形状是 (N， 7)
+        num_keypoints: 计算的关键点数。
+                       默认值 = 8
+        size: 立方体的 X， Y， Z 尺寸的长度。
+              默认值 = [0.06， 0.06， 0.06]
+        out: 缓冲存储关键点。
+             如果 None，将创建一个新的缓冲器。
     """
     num_envs = pose.shape[0]
     if out is None:

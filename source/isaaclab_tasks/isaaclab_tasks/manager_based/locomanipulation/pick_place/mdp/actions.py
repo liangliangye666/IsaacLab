@@ -22,12 +22,15 @@ if TYPE_CHECKING:
 
 class AgileBasedLowerBodyAction(ActionTerm):
     """Action term that is based on Agile lower body RL policy."""
+    """基于Agile下部RL策略的动作项。"""
 
     cfg: AgileBasedLowerBodyActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     _asset: Articulation
     """The articulation asset to which the action term is applied."""
+    """动作项适用于的关节资产。"""
 
     def __init__(self, cfg: AgileBasedLowerBodyActionCfg, env: ManagerBasedEnv):
         super().__init__(cfg, env)
@@ -55,10 +58,13 @@ class AgileBasedLowerBodyAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
         """Lower Body Action: [vx, vy, wz, hip_height]"""
+        """下部体动力: [vx， vy， wz， hip_height]"""
         return 4
 
     @property
@@ -79,6 +85,15 @@ class AgileBasedLowerBodyAction(ActionTerm):
         Returns:
             The composed policy input tensor with repeated commands concatenated to observations.
         """
+        """通过连接重复命令和观测来编译策略输入。
+
+        参数：
+            base_command: 基本命令子 [vx， vy， wz， hip_height]。
+            obs_tensor: 环境中的观测张量。
+
+        返回：
+            复合的策略输入子，重复命令连接到观测。
+        """
         # Get history length from observation configuration
         history_length = getattr(self._observation_cfg, self._obs_group_name).history_length
         # Default to 1 if history_length is None (no history, just current observation)
@@ -96,6 +111,11 @@ class AgileBasedLowerBodyAction(ActionTerm):
 
         Args:
             actions: The lower body commands.
+        """
+        """使用移动策略处理输入操作。
+
+        参数：
+            actions: 身体的下部控制着。
         """
 
         # Extract base command from the action tensor
@@ -122,5 +142,6 @@ class AgileBasedLowerBodyAction(ActionTerm):
 
     def apply_actions(self):
         """Apply the actions to the environment."""
+        """应对环境。"""
         # Store the raw actions
         self._asset.set_joint_position_target(self._processed_actions, joint_ids=self._joint_ids)

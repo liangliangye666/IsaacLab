@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -42,6 +44,7 @@ from isaaclab_assets import FRANKA_PANDA_CFG  # isort:skip
 @pytest.fixture
 def sim():
     """Create a simulation context for testing."""
+    """为测试创建仿真环境。"""
     # Wait for spawning
     stage = sim_utils.create_new_stage()
     # Constants
@@ -228,6 +231,7 @@ def sim():
 @pytest.mark.isaacsim_ci
 def test_franka_pose_abs_without_inertial_decoupling(sim):
     """Test absolute pose control with fixed impedance and without inertial dynamics decoupling."""
+    """测试绝对姿势控制，固定阻力，没有动力动力脱。"""
     (
         sim_context,
         num_envs,
@@ -277,6 +281,7 @@ def test_franka_pose_abs_without_inertial_decoupling(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_pose_abs_with_partial_inertial_decoupling(sim):
     """Test absolute pose control with fixed impedance and partial inertial dynamics decoupling."""
+    """测试绝对姿势控制，使用固定阻力和部分惯性动力脱。"""
     (
         sim_context,
         num_envs,
@@ -327,6 +332,7 @@ def test_franka_pose_abs_with_partial_inertial_decoupling(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_pose_abs_fixed_impedance_with_gravity_compensation(sim):
     """Test absolute pose control with fixed impedance, gravity compensation, and inertial dynamics decoupling."""
+    """测试绝对姿势控制，使用固定阻力，重力补偿和惯性动力脱。"""
     (
         sim_context,
         num_envs,
@@ -378,6 +384,7 @@ def test_franka_pose_abs_fixed_impedance_with_gravity_compensation(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_pose_abs(sim):
     """Test absolute pose control with fixed impedance and inertial dynamics decoupling."""
+    """测试固定阻力和惯性动力脱的绝对姿势控制。"""
     (
         sim_context,
         num_envs,
@@ -428,6 +435,7 @@ def test_franka_pose_abs(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_pose_rel(sim):
     """Test relative pose control with fixed impedance and inertial dynamics decoupling."""
+    """测试与固定阻力和惯性动力脱的相对姿势控制。"""
     (
         sim_context,
         num_envs,
@@ -478,6 +486,7 @@ def test_franka_pose_rel(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_pose_abs_variable_impedance(sim):
     """Test absolute pose control with variable impedance and inertial dynamics decoupling."""
+    """测试绝对姿势控制，使用可变阻力和惯性动力脱。"""
     (
         sim_context,
         num_envs,
@@ -526,6 +535,7 @@ def test_franka_pose_abs_variable_impedance(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_wrench_abs_open_loop(sim):
     """Test open loop absolute force control."""
+    """测试开放循环的绝对力控制。"""
     (
         sim_context,
         num_envs,
@@ -607,6 +617,7 @@ def test_franka_wrench_abs_open_loop(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_wrench_abs_closed_loop(sim):
     """Test closed loop absolute force control."""
+    """测试闭环绝对力控制。"""
     (
         sim_context,
         num_envs,
@@ -696,6 +707,7 @@ def test_franka_wrench_abs_closed_loop(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_hybrid_decoupled_motion(sim):
     """Test hybrid control with fixed impedance and partial inertial dynamics decoupling."""
+    """测试混合动力控制，具有固定阻力和部分惯性动力脱。"""
     (
         sim_context,
         num_envs,
@@ -772,6 +784,7 @@ def test_franka_hybrid_decoupled_motion(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_hybrid_variable_kp_impedance(sim):
     """Test hybrid control with variable kp impedance and inertial dynamics decoupling."""
+    """测试混合控制，具有可变的 kp阻力和惯性动力脱。"""
     (
         sim_context,
         num_envs,
@@ -847,6 +860,7 @@ def test_franka_hybrid_variable_kp_impedance(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_taskframe_pose_abs(sim):
     """Test absolute pose control in task frame with fixed impedance and inertial dynamics decoupling."""
+    """在任务框架中测试绝对姿势控制，使用固定阻力和惯性动力脱。"""
     (
         sim_context,
         num_envs,
@@ -898,6 +912,7 @@ def test_franka_taskframe_pose_abs(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_taskframe_pose_rel(sim):
     """Test relative pose control in task frame with fixed impedance and inertial dynamics decoupling."""
+    """在任务框架中测试相对姿势控制，具有固定阻力和惯性动力脱。"""
     (
         sim_context,
         num_envs,
@@ -949,6 +964,7 @@ def test_franka_taskframe_pose_rel(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_taskframe_hybrid(sim):
     """Test hybrid control in task frame with fixed impedance and inertial dynamics decoupling."""
+    """测试在任务框架中混合控制，具有固定阻力和惯性动力脱。"""
     (
         sim_context,
         num_envs,
@@ -1026,6 +1042,7 @@ def test_franka_taskframe_hybrid(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_pose_abs_without_inertial_decoupling_with_nullspace_centering(sim):
     """Test absolute pose control with fixed impedance and nullspace centerin but without inertial decoupling."""
+    """测试绝对姿势控制，固定阻抗和零空间中心，但没有惯性脱。"""
     (
         sim_context,
         num_envs,
@@ -1076,6 +1093,7 @@ def test_franka_pose_abs_without_inertial_decoupling_with_nullspace_centering(si
 @pytest.mark.isaacsim_ci
 def test_franka_pose_abs_with_partial_inertial_decoupling_nullspace_centering(sim):
     """Test absolute pose control with fixed impedance, partial inertial decoupling and nullspace centering."""
+    """测试固定阻抗，部分惯性脱和零空间中心的绝对姿势控制。"""
     (
         sim_context,
         num_envs,
@@ -1127,6 +1145,7 @@ def test_franka_pose_abs_with_partial_inertial_decoupling_nullspace_centering(si
 @pytest.mark.isaacsim_ci
 def test_franka_pose_abs_with_nullspace_centering(sim):
     """Test absolute pose control with fixed impedance, inertial decoupling and nullspace centering."""
+    """测试固定阻力，惯性脱和零空间中心的绝对姿势控制。"""
     (
         sim_context,
         num_envs,
@@ -1178,6 +1197,7 @@ def test_franka_pose_abs_with_nullspace_centering(sim):
 @pytest.mark.isaacsim_ci
 def test_franka_taskframe_hybrid_with_nullspace_centering(sim):
     """Test hybrid control in task frame with fixed impedance, inertial decoupling and nullspace centering."""
+    """测试在任务框架中混合控制，具有固定阻力，惯性脱和零空间中心化。"""
     (
         sim_context,
         num_envs,
@@ -1280,6 +1300,21 @@ def _run_op_space_controller(
         goal_marker (VisualizationMarkers): The goal marker.
         contact_forces (ContactSensor | None): The contact forces sensor.
         frame (str): The reference frame for targets.
+    """
+    """运行运行空间控制器，使用给定的参数。
+
+    参数：
+        robot (Articulation): 控制机器人。
+        osc (OperationalSpaceController): 操作空间控制器。
+        ee_frame_name (str): 末端执行器框架的名称。
+        arm_joint_names (list[str]): 它们的名字。
+        target_set (torch.tensor): 目标设定追踪。
+        sim (sim_utils.SimulationContext): 仿真环境。
+        num_envs (int): 环境的数量。
+        ee_marker (VisualizationMarkers): 终端效应标记。
+        goal_marker (VisualizationMarkers): 目标标记。
+        contact_forces (ContactSensor | None): 接触力传感器。
+        frame (str): 目标的参考框架。
     """
     # Initialize the masks for evaluating target convergence according to selection matrices
     pos_mask = torch.tensor(osc.cfg.motion_control_axes_task[:3], device=sim.device).view(1, 3)
@@ -1432,6 +1467,28 @@ def _update_states(
         joint_pos (torch.tensor): The joint positions.
         joint_vel (torch.tensor): The joint velocities.
     """
+    """更新机器人的状态，并获取运行空间控制器的相关量。
+
+    参数：
+        robot (Articulation): 控制机器人。
+        ee_frame_idx (int): 最终效应器框架的索引。
+        arm_joint_ids (list[int]): 腕关节的索引。
+        sim (sim_utils.SimulationContext): 仿真环境。
+        contact_forces (ContactSensor | None): 接触力传感器。
+        num_envs (int): 环境数量
+
+    返回：
+        jacobian_b (torch.tensor): 在根框中的雅可比人。
+        mass_matrix (torch.tensor): 质量矩阵。
+        gravity (torch.tensor): 引力向量。
+        ee_pose_b (torch.tensor): 根框架中的终端效应。
+        ee_vel_b (torch.tensor): 根框架中的末端执行器速度。
+        root_pose_w (torch.tensor): 在世界框架中的根姿势。
+        ee_pose_w (torch.tensor): 在世界框架中的终极效应者姿势。
+        ee_force_b (torch.tensor): 根框架中的终端效应力。
+        joint_pos (torch.tensor): 共同的位置。
+        joint_vel (torch.tensor): 关联速度。
+    """
     # obtain dynamics related quantities from simulation
     ee_jacobi_idx = ee_frame_idx - 1
     jacobian_w = robot.root_physx_view.get_jacobians()[:, ee_jacobi_idx, :, arm_joint_ids]
@@ -1514,6 +1571,24 @@ def _update_target(
     Raises:
         ValueError: If the target type is undefined.
     """
+    """更新操作空间控制器的目标。
+
+    参数：
+        osc (OperationalSpaceController): 操作空间控制器。
+        root_pose_w (torch.tensor): 在世界框架中的根姿势。
+        ee_pose_b (torch.tensor): 末端执行器在身体框架中的姿势。
+        target_set (torch.tensor): 目标设定追踪。
+        current_goal_idx (int): 现在的目标索引。
+
+    返回：
+        command (torch.tensor): 目标命令。
+        ee_target_pose_b (torch.tensor): 终端效应的目标在身体框架中。
+        ee_target_pose_w (torch.tensor): 在世界框架中，最终效应器的目标姿势。
+        next_goal_idx (int): 下一个目标索引。
+
+    异常：
+        ValueError: 如果目标类型未确定。
+    """
     # update the ee desired command
     command = torch.zeros(osc.num_envs, osc.action_dim, device=osc._device)
     command[:] = target_set[current_goal_idx]
@@ -1560,6 +1635,21 @@ def _convert_to_task_frame(
 
     Raises:
         ValueError: If the frame is invalid.
+    """
+    """如果需要，将目标命令转换为任务框架。
+
+    参数：
+        osc (OperationalSpaceController): 操作空间控制器。
+        command (torch.tensor): 目标命令要转换。
+        ee_target_pose_b (torch.tensor): 终端效应的目标在身体框架中。
+        frame (str): 目标的参考框架。
+
+    返回：
+        command (torch.tensor): 转换目标命令。
+        task_frame_pose_b (torch.tensor): 任务框架在身体框架中的姿势。
+
+    异常：
+        ValueError: 如果框架是无效的。
     """
     command = command.clone()
     task_frame_pose_b = None
@@ -1626,6 +1716,23 @@ def _check_convergence(
     Raises:
         AssertionError: If the convergence is not achieved.
         ValueError: If the target type is undefined.
+    """
+    """检查目标的接近。
+
+    参数：
+        osc (OperationalSpaceController): 操作空间控制器。
+        ee_pose_b (torch.tensor): 末端执行器在身体框架中的姿势。
+        ee_target_pose_b (torch.tensor): 终端效应的目标在身体框架中。
+        ee_force_b (torch.tensor): 身体框架中的最终效应力。
+        ee_target_b (torch.tensor): 在身体框架中的最终效应器目标。
+        pos_mask (torch.tensor): 位置面具。
+        rot_mask (torch.tensor): 旋转面具。
+        force_mask (torch.tensor): 力量面具。
+        frame (str): 目标的参考框架。
+
+    异常：
+        AssertionError: 如果没有实现融合。
+        ValueError: 如果目标类型未确定。
     """
     cmd_idx = 0
     for target_type in osc.cfg.target_types:

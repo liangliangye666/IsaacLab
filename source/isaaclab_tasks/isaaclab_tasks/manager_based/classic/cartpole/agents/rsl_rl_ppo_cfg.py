@@ -43,6 +43,7 @@ class CartpolePPORunnerCfg(RslRlOnPolicyRunnerCfg):
 @configclass
 class CartpolePPORunnerWithSymmetryCfg(CartpolePPORunnerCfg):
     """Configuration for the PPO agent with symmetry augmentation."""
+    """设置PPO代理与对称增强。"""
 
     # all the other settings are inherited from the parent class
     algorithm = RslRlPpoAlgorithmCfg(

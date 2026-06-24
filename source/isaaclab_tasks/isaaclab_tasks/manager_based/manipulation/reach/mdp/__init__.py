@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """This sub-module contains the functions that are specific to the locomotion environments."""
+"""该子模块包含特定于机动环境的功能。"""
 
 from isaaclab.envs.mdp import *  # noqa: F401, F403
 

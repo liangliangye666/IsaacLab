@@ -20,6 +20,8 @@ from isaaclab.managers import SceneEntityCfg
 """
 Drone control rewards.
 """
+"""无人机控制奖励。
+"""
 
 
 def distance_to_goal_exp(
@@ -45,6 +47,20 @@ def distance_to_goal_exp(
     Returns:
         A 1-D tensor of shape (num_envs,) containing the per-environment reward
         values in [0, 1], with 1.0 when the position error is zero.
+    """
+    """使用指数核来奖励距离到目标位置。
+
+    这种奖励计算了指数式下降，命令的目标位置和资产 (机器人) 根位置之间的方方曲方曲方程。
+
+    参数：
+        env: 基于管理器的RL环境实例。
+        asset_cfg: SceneEntityCfg识别资产 (默认为"机器人")。
+        std: 在指数核中使用的标准偏差；较大的值产生更轻微的下降。
+        command_name: 环境命令管理器的命令名。
+                      该函数预计命令子将在其前三列中包含位置。
+
+    返回：
+        包含[0， 1]中每个环境奖励值的1D形状数 (num_envs，) 且在位置错误为零时为1.0。
     """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
@@ -77,6 +93,19 @@ def ang_vel_xyz_exp(
         A 1-D tensor of shape (num_envs,) with values in (0, 1], where 1 indicates
         zero angular velocity.
     """
+    """用指数级核来惩罚角速度大小。
+
+    奖励计算出 exp(- 这2 时时时时时时时^/std^2) 在何处 omega 是资产的体格框架角速度。
+    它有助于鼓励低转速率。
+
+    参数：
+        env: 基于管理器的RL环境实例。
+        asset_cfg: SceneEntityCfg识别资产 (默认为"机器人")。
+        std: 在指数核中使用的标准偏差；对角速度大小的敏感性控制。
+
+    返回：
+        一个1D形状张量 (num_envs，) 值为 (0， 1)，其中1表示零角速度。
+    """
 
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
@@ -103,6 +132,19 @@ def lin_vel_xyz_exp(
     Returns:
         A 1-D tensor of shape (num_envs,) with values in (0, 1], where 1 indicates
         zero linear velocity.
+    """
+    """通过指数核来惩罚线性速度大小。
+
+    计算出 exp(- 时代时代时代^2 / std^2) ，其中v是资产在世界框架中的线性速度。
+    有助于鼓励代理减少转换速度。
+
+    参数：
+        env: 基于管理器的RL环境实例。
+        asset_cfg: SceneEntityCfg识别资产 (默认为"机器人")。
+        std: 在指数核中使用的标准偏差。
+
+    返回：
+        一个形状 (num_envs，) 的1-D子，值为 (0， 1)，其中1表示零线性速度。
     """
 
     # extract the used quantities (to enable type-hinting)
@@ -132,6 +174,19 @@ def yaw_aligned(
     Returns:
         A 1-D tensor of shape (num_envs,) with values in (0, 1], where 1 indicates
         perfect yaw alignment (yaw == 0).
+    """
+    """使用指数核来将车辆的向零的奖励对齐。
+
+    这个函数从世界框架根四方体中提取 (旋转约为Z) 并计算exp ((-yaw^2 / std^2)。
+    这鼓励标题与零yaw引用保持一致。
+
+    参数：
+        env: 基于管理器的RL环境实例。
+        asset_cfg: SceneEntityCfg识别资产 (默认为"机器人")。
+        std: 在指数核中使用的标准偏差；较小的值使奖励对偏差更加敏感。
+
+    返回：
+        一个形状 (num_envs，) 的1-D子，值为 (0， 1)，其中1表示完美的线 (yaw == 0)。
     """
 
     # extract the used quantities (to enable type-hinting)

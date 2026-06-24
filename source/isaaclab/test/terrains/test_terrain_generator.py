@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 import shutil
@@ -27,6 +29,7 @@ from isaaclab.utils.seed import configure_seed
 @pytest.fixture
 def output_dir():
     """Create directory to dump results."""
+    """创建目录，将结果丢弃。"""
     test_dir = os.path.dirname(os.path.abspath(__file__))
     output_dir = os.path.join(test_dir, "output", "generator")
     yield output_dir
@@ -37,6 +40,7 @@ def output_dir():
 
 def test_generation(output_dir):
     """Generates assorted terrains and tests that the resulting mesh has the expected size."""
+    """产生各种地形和测试，结果的网格具有预期的大小。"""
     # create terrain generator
     cfg = ROUGH_TERRAINS_CFG
     terrain_generator = TerrainGenerator(cfg=cfg)
@@ -63,6 +67,11 @@ def test_generation_reproducibility(use_global_seed, seed):
 
     We check both scenarios where the seed is set globally only and when it is set both globally and locally.
     Setting only locally is not tested as it is not supported.
+    """
+    """产生各种地形和测试，使得产生的网格可复制。
+
+    我们检查了当种子仅在全球范围内，以及当种子在全球和本地范围内。
+    仅在本地设置不测试，因为它不支持。
     """
     # set initial seed
     configure_seed(seed)
@@ -98,6 +107,10 @@ def test_generation_cache(output_dir, curriculum):
 
     When caching is enabled, the terrain should be generated only once and the same terrain should be returned
     when the terrain generator is created again.
+    """
+    """创建地形，检查缓存是否有效。
+
+    当缓存启用时，该地形应仅一次生成，当地形生成器再次创建时，该地形应返回。
     """
     # create terrain generator with cache enabled
     cfg: TerrainGeneratorCfg = ROUGH_TERRAINS_CFG
@@ -141,6 +154,7 @@ def test_generation_cache(output_dir, curriculum):
 
 def test_terrain_flat_patches():
     """Test the flat patches generation."""
+    """测试平面补丁生成。"""
     # create terrain generator
     cfg = ROUGH_TERRAINS_CFG
     # add flat patch configuration

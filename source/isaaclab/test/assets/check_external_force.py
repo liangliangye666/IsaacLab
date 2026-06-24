@@ -13,8 +13,18 @@ This script checks if the external force is applied correctly on the robot.
     # Usage to apply force on legs
     ./isaaclab.sh -p source/isaaclab/test/assets/check_external_force.py --body .*_SHANK --force 100
 """
+"""这种脚本检查了是否对机器人施加了正确的外部力。
+
+.. code-block:: bash
+
+    # Usage to apply force on base
+    ./isaaclab.sh -p source/isaaclab/test/assets/check_external_force.py --body base --force 1000
+    # Usage to apply force on legs
+    ./isaaclab.sh -p source/isaaclab/test/assets/check_external_force.py --body .*_SHANK --force 100
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -35,6 +45,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -50,6 +61,7 @@ from isaaclab_assets.robots.anymal import ANYMAL_C_CFG  # isort:skip
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # Load kit helper
     sim = SimulationContext(sim_utils.SimulationCfg(dt=0.005))

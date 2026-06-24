@@ -7,6 +7,11 @@
 
 Imported by base, environment, and task classes. Not directly executed.
 """
+"""Factory: 控制模块。
+
+根据基地，环境和任务类进行进口。
+没有直接执行。
+"""
 
 import math
 
@@ -34,6 +39,7 @@ def compute_dof_torque(
     device,
 ):
     """Compute Franka DOF torque to move fingertips towards target pose."""
+    """计算法兰卡DOF扭矩，将手指尖移动到目标姿势。"""
     # References:
     # 1) https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-intelligent-systems/rsl-dam/documents/RobotDynamics2018/RD_HS2018script.pdf
     # 2) Modern Robotics
@@ -100,6 +106,7 @@ def get_pose_error(
     rot_error_type,
 ):
     """Compute task-space error between target Franka fingertip pose and current pose."""
+    """计算目标弗兰卡指尖姿势和当前姿势之间的任务空间错误。"""
     # Reference: https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-intelligent-systems/rsl-dam/documents/RobotDynamics2018/RD_HS2018script.pdf
 
     # Compute pos error
@@ -137,6 +144,7 @@ def get_pose_error(
 
 def _get_delta_dof_pos(delta_pose, ik_method, jacobian, device):
     """Get delta Franka DOF position from delta pose using specified IK method."""
+    """通过指定的IK方法，从 delta 姿势中获得Delta Franka DOF位置。"""
     # References:
     # 1) https://www.cs.cmu.edu/~15464-s13/lectures/lecture6/iksurvey.pdf
     # 2) https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-intelligent-systems/rsl-dam/documents/RobotDynamics2018/RD_HS2018script.pdf (p. 47)  # noqa: E501
@@ -179,6 +187,9 @@ def _apply_task_space_gains(
     delta_fingertip_pose, fingertip_midpoint_linvel, fingertip_midpoint_angvel, task_prop_gains, task_deriv_gains
 ):
     """Interpret PD gains as task-space gains. Apply to task-space error."""
+    """解释PD收益为任务空间收益。
+    应用到任务空间错误。
+    """
 
     task_wrench = torch.zeros_like(delta_fingertip_pose)
 

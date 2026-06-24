@@ -27,8 +27,29 @@ optional arguments:
   --make-instanceable       Make the asset instanceable for efficient cloning. (default: False)
 
 """
+"""用于将URDFs或网格文件转换为可实例的USD格式。
+
+统一机器人描述格式 (URDF) 是XML文件格式，用于ROS描述机器人的所有元素。
+更多信息请见:http://wiki.ros.org/urdf
+
+该脚本使用来自Isaac Sim的URDF进口扩展 (``omni.isaac.urdf_importer``) 将URDF资产转换为USD格式。
+它被设计为命令行使用的便利脚本。
+关于URDF进口商的更多信息，请参见延期文件:
+https://docs.omniverse.nvidia.com/app_isaacsim/app_isaacsim/ext_omni_isaac_urdf.html
+
+
+位置参数:输入 包含URDFs和 Meshes的输入目录的路径。
+输出到目录的路径，以存储可实例文件。
+
+选项参数: -h，--help 显示此帮助消息，然后退出--conversion-type 选择将转换的文件类型，urdf或网格。
+(默认: urdf) --merge-joints 通过固定关联连接的结合。
+(默认:False) --fix-base 固定基在进口地点。
+(默认:False) --make-instanceable 让资产可以实现高效克隆。
+(默认:False)
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -81,6 +102,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 

@@ -14,6 +14,7 @@ from isaaclab_tasks.manager_based.locomanipulation.pick_place.locomanipulation_g
 @configclass
 class LocomanipulationG1MimicEnvCfg(LocomanipulationG1EnvCfg, MimicEnvCfg):
     """Configuration for G1 Locomanipulation Mimic environment."""
+    """为G1局部操纵仿真环境的配置。"""
 
     def __post_init__(self):
         # Call parent post-init

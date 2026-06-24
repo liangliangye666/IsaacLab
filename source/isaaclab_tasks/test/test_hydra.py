@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import sys
 
@@ -15,6 +16,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import functools
 from collections.abc import Callable
@@ -33,6 +35,9 @@ def hydra_task_config_test(task_name: str, agent_cfg_entry_point: str) -> Callab
     """Copied from hydra.py hydra_task_config, since hydra.main requires a single point of entry,
     which will not work with multiple tests. Here, we replace hydra.main with hydra initialize
     and compose."""
+    """从hydra.py hydra_task_config复制，因为hydra.main需要单个输入点，这不会适用于多次测试。
+    我们将hydra.main取代为Hydra初始化和组合。
+    """
 
     def decorator(func):
         @functools.wraps(func)
@@ -63,6 +68,7 @@ def hydra_task_config_test(task_name: str, agent_cfg_entry_point: str) -> Callab
 
 def test_hydra():
     """Test the hydra configuration system."""
+    """测试水配置系统。"""
 
     # set hardcoded command line arguments
     sys.argv = [
@@ -92,6 +98,7 @@ def test_hydra():
 
 def test_nested_iterable_dict():
     """Test the hydra configuration system when dict is nested in an Iterable."""
+    """测试 hyd水配置系统，当 dict 嵌入一个可回复式。"""
 
     @hydra_task_config_test("Isaac-Lift-Cube-Franka-v0", "rsl_rl_cfg_entry_point")
     def main(env_cfg, agent_cfg):

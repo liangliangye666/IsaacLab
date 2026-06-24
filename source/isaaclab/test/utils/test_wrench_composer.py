@@ -19,6 +19,7 @@ from isaaclab.utils.wrench_composer import WrenchComposer
 
 class MockAssetData:
     """Mock data class that provides body link positions and quaternions."""
+    """假设数据类，提供身体链接位置和四元数。"""
 
     def __init__(
         self,
@@ -37,6 +38,17 @@ class MockAssetData:
             link_pos: Optional link positions (num_envs, num_bodies, 3). Defaults to zeros.
             link_quat: Optional link quaternions in (w, x, y, z) format (num_envs, num_bodies, 4).
                        Defaults to identity quaternion.
+        """
+        """启动假资产数据。
+
+        参数：
+            num_envs: 环境数量
+            num_bodies: 尸体的数量。
+            device: 用的设备。
+            link_pos: 选择性链接位置 (num_envs，num_bodies， 3)。
+                      默认到零。
+            link_quat: 在 (w， x， y， z) 格式 (num_envs， num_bodies， 4) 中可选的链接四节。
+                       默认身份四元数。
         """
         if link_pos is not None:
             self.body_link_pos_w = link_pos.to(device=device, dtype=torch.float32)
@@ -57,6 +69,11 @@ class MockRigidObject:
     This mock enables testing WrenchComposer in isolation without requiring a full simulation setup.
     It passes isinstance checks by registering as a virtual subclass of RigidObject.
     """
+    """仿真RigidObject提供WrenchComposer所需的最小接口。
+
+    这种仿真使WrenchComposer可以单独测试，而不需要完全的仿真设置。
+    它通过实例检查，通过注册为RigidObject的虚拟子类。
+    """
 
     def __init__(
         self,
@@ -74,6 +91,15 @@ class MockRigidObject:
             device: Device to use.
             link_pos: Optional link positions (num_envs, num_bodies, 3).
             link_quat: Optional link quaternions in (w, x, y, z) format (num_envs, num_bodies, 4).
+        """
+        """启动仿真硬体。
+
+        参数：
+            num_envs: 环境数量
+            num_bodies: 尸体的数量。
+            device: 用的设备。
+            link_pos: 选择性链接位置 (num_envs，num_bodies， 3)。
+            link_quat: 在 (w， x， y， z) 格式 (num_envs， num_bodies， 4) 中可选的链接四节。
         """
         self.num_instances = num_envs
         self.num_bodies = num_bodies
@@ -93,6 +119,18 @@ def quat_rotate_inv_np(quat_wxyz: np.ndarray, vec: np.ndarray) -> np.ndarray:
 
     Returns:
         Rotated vector. Shape: (..., 3)
+    """
+    """旋转向量以四元数的逆转 (形)。
+
+    参数：
+        quat_wxyz: 在 (w， x， y， z) 格式中。
+                   形状: (...， 4)
+        vec: 转向向量。
+             形状: (...， 3)
+
+    返回：
+        旋转向量。
+        形状: (...， 3)
     """
     # Extract components
     w = quat_wxyz[..., 0:1]
@@ -118,6 +156,16 @@ def random_unit_quaternion_np(rng: np.random.Generator, shape: tuple) -> np.ndar
 
     Returns:
         Random unit quaternions. Shape: (*shape, 4)
+    """
+    """在 (w，x，y，z) 格式生成随机单元四节。
+
+    参数：
+        rng: 随机发电机。
+        shape: 输出形状，e.g。 (num_envs，num_bodies)。
+
+    返回：
+        随机单位四分之一。
+        形状: (*形状， 4)
     """
     # Generate random quaternion components
     q = rng.standard_normal(shape + (4,)).astype(np.float32)
@@ -210,6 +258,7 @@ def test_wrench_composer_add_torque(device: str, num_envs: int, num_bodies: int)
 @pytest.mark.parametrize("num_bodies", [1, 3, 5, 10])
 def test_add_forces_at_positons(device: str, num_envs: int, num_bodies: int):
     """Test adding forces at local positions (offset from link frame)."""
+    """测试在本地位置增加力量 (对接框的抵消)。"""
     rng = np.random.default_rng(seed=2)
 
     for _ in range(10):
@@ -311,6 +360,7 @@ def test_add_torques_at_position(device: str, num_envs: int, num_bodies: int):
 @pytest.mark.parametrize("num_bodies", [1, 3, 5, 10])
 def test_add_forces_and_torques_at_position(device: str, num_envs: int, num_bodies: int):
     """Test adding forces and torques at local positions."""
+    """测试在本地位置增加力和扭矩。"""
     rng = np.random.default_rng(seed=4)
 
     for _ in range(10):
@@ -417,6 +467,7 @@ def test_wrench_composer_reset(device: str, num_envs: int, num_bodies: int):
 @pytest.mark.parametrize("num_bodies", [1, 3, 5])
 def test_global_forces_with_rotation(device: str, num_envs: int, num_bodies: int):
     """Test that global forces are correctly rotated to the local frame."""
+    """测试全球力量是否正确转向本地框架。"""
     rng = np.random.default_rng(seed=10)
 
     for _ in range(5):
@@ -450,6 +501,7 @@ def test_global_forces_with_rotation(device: str, num_envs: int, num_bodies: int
 @pytest.mark.parametrize("num_bodies", [1, 3, 5])
 def test_global_torques_with_rotation(device: str, num_envs: int, num_bodies: int):
     """Test that global torques are correctly rotated to the local frame."""
+    """测试全球扭矩是否正确转向本地框架。"""
     rng = np.random.default_rng(seed=11)
 
     for _ in range(5):
@@ -483,6 +535,7 @@ def test_global_torques_with_rotation(device: str, num_envs: int, num_bodies: in
 @pytest.mark.parametrize("num_bodies", [1, 3, 5])
 def test_global_forces_at_global_position(device: str, num_envs: int, num_bodies: int):
     """Test global forces at global positions with full coordinate transformation."""
+    """在全球位置测试全球力量，"""
     rng = np.random.default_rng(seed=12)
 
     for _ in range(5):
@@ -537,6 +590,7 @@ def test_global_forces_at_global_position(device: str, num_envs: int, num_bodies
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_local_vs_global_identity_quaternion(device: str):
     """Test that local and global give same result with identity quaternion and zero position."""
+    """测试当地的和全球的结果相同的身份四元数和零位置。"""
     rng = np.random.default_rng(seed=13)
     num_envs, num_bodies = 10, 5
 
@@ -575,6 +629,7 @@ def test_local_vs_global_identity_quaternion(device: str):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_90_degree_rotation_global_force(device: str):
     """Test global force with a known 90-degree rotation for easy verification."""
+    """通过已知90度旋转来测试全球力量，以便轻松验证。"""
     num_envs, num_bodies = 1, 1
 
     # 90-degree rotation around Z-axis: (w, x, y, z) = (cos(45°), 0, 0, sin(45°))
@@ -605,6 +660,7 @@ def test_90_degree_rotation_global_force(device: str):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_composition_mixed_local_and_global(device: str):
     """Test that local and global forces can be composed together correctly."""
+    """测试当地的和全球的力量是否可以正确组合在一起。"""
     rng = np.random.default_rng(seed=14)
     num_envs, num_bodies = 5, 3
 
@@ -643,6 +699,7 @@ def test_composition_mixed_local_and_global(device: str):
 @pytest.mark.parametrize("num_bodies", [1, 3, 5])
 def test_local_forces_at_local_position(device: str, num_envs: int, num_bodies: int):
     """Test local forces at local positions (offset from link frame)."""
+    """在本地位置测试本地力量 (从链框中抵消)。"""
     rng = np.random.default_rng(seed=15)
 
     for _ in range(5):
@@ -679,6 +736,7 @@ def test_local_forces_at_local_position(device: str, num_envs: int, num_bodies: 
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_global_force_at_link_origin_no_torque(device: str):
     """Test that a global force applied at the link origin produces no torque."""
+    """测试在链接源头应用的全球力不会产生扭矩。"""
     rng = np.random.default_rng(seed=16)
     num_envs, num_bodies = 5, 3
 

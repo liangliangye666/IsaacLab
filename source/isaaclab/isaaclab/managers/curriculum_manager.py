@@ -6,6 +6,7 @@
 """Curriculum manager for updating environment quantities subject to a training curriculum."""
 
 from __future__ import annotations
+"""课程管理器更新环境数量"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -30,9 +31,18 @@ class CurriculumManager(ManagerBase):
     The curriculum terms are parsed from a config class containing the manager's settings and each term's
     parameters. Each curriculum term should instantiate the :class:`CurriculumTermCfg` class.
     """
+    """管理器实施和执行具体课程。
+
+    课程管理器通过调用项清单来更新一个培训课程所需的各种环境。
+    这些帮助稳定学习， 通过逐步使学习任务变得更加困难，
+
+    课程项由包含管理器设置和每个项参数的配置类进行分析。
+    每个课程项都应该包含:class:`CurriculumTermCfg`课程。
+    """
 
     _env: ManagerBasedRLEnv
     """The environment instance."""
+    """环境情况。"""
 
     def __init__(self, cfg: object, env: ManagerBasedRLEnv):
         """Initialize the manager.
@@ -44,6 +54,16 @@ class CurriculumManager(ManagerBase):
         Raises:
             TypeError: If curriculum term is not of type :class:`CurriculumTermCfg`.
             ValueError: If curriculum term configuration does not satisfy its function signature.
+        """
+        """启动管理器。
+
+        参数：
+            cfg: 配置对象或字典 (``dict[str， CurriculumTermCfg]``)
+            env: 一个环境对象。
+
+        异常：
+            TypeError: 如果课程项不是:class:`CurriculumTermCfg`类型。
+            ValueError: 如果课程项配置不符合其功能签名。
         """
         # create buffers to parse and store terms
         self._term_names: list[str] = list()
@@ -60,6 +80,7 @@ class CurriculumManager(ManagerBase):
 
     def __str__(self) -> str:
         """Returns: A string representation for curriculum manager."""
+        """Returns: 课程管理器。"""
         msg = f"<CurriculumManager> contains {len(self._term_names)} active terms.\n"
 
         # create table for term information
@@ -80,14 +101,19 @@ class CurriculumManager(ManagerBase):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def active_terms(self) -> list[str]:
         """Name of active curriculum terms."""
+        """事件课程项的名称。"""
         return self._term_names
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
@@ -100,6 +126,15 @@ class CurriculumManager(ManagerBase):
 
         Returns:
             Dictionary of curriculum terms and their states.
+        """
+        """返回个人课程项的现状。
+
+        说明：
+            这个函数不使用环境索引:attr:`env_ids`，并记录所有项的状态。
+            这种论点只存在于保持与其他类别的一致性。
+
+        返回：
+            课程项字典及其状态。
         """
         extras = {}
         for term_name, term_state in self._curriculum_state.items():
@@ -131,6 +166,15 @@ class CurriculumManager(ManagerBase):
             env_ids: The list of environment IDs to update.
                 If None, all the environments are updated. Defaults to None.
         """
+        """更新课程项。
+
+        这种函数将每个课程项称为由课堂管理的。
+
+        参数：
+            env_ids: 环境 IDs更新的列表。
+                     如果None，所有环境都会更新。
+                     默认为 None。
+        """
         # resolve environment indices
         if env_ids is None:
             env_ids = slice(None)
@@ -149,6 +193,16 @@ class CurriculumManager(ManagerBase):
 
         Returns:
             The active terms.
+        """
+        """返回活跃的项作为可反复的双数序列。
+
+        元组的第一个元素是项的名称，第二个元素是项的原始值。
+
+        参数：
+            env_idx: 具体的环境，可以从中提取活跃项。
+
+        返回：
+            积极的项。
         """
 
         terms = []
@@ -175,6 +229,8 @@ class CurriculumManager(ManagerBase):
 
     """
     Helper functions.
+    """
+    """辅助函数。
     """
 
     def _prepare_terms(self):

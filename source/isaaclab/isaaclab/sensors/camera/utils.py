@@ -7,6 +7,7 @@
 
 # needed to import for allowing type-hinting: torch.device | str | None
 from __future__ import annotations
+"""帮助函数在点云和深度图像之间投影。"""
 
 from collections.abc import Sequence
 
@@ -19,6 +20,8 @@ from isaaclab.utils.array import TensorData, convert_to_torch
 
 """
 Depth <-> Pointcloud conversions.
+"""
+"""Dep度 <->点云转换。
 """
 
 
@@ -49,6 +52,30 @@ def transform_points(
     Returns:
         A tensor of shape (N, 3) comprising of 3D points in target frame.
         If the input is a numpy array, the output is a numpy array. Otherwise, it is a torch tensor.
+    """
+    """将给定的框架中的输入点转换为目标框架。
+
+    这个函数将点从源框转换为目标框。
+    转换由目标框架的位置``t``和方向``R``在源框架中定义。
+
+    .. math::
+        p_{target} = R_{target} \times p_{source} + t_{target}
+
+    如果输入 `position` 和 `orientation` 是 None，则不应运行相应的转换。
+
+    参数：
+        points: 一个形状 (p，3) 或 (n，p，3) 的子，由源框中的3d点组成。
+        position: 目标框架中的源框架位置。
+                  默认为 None。
+        orientation: 目标框架中源框架的方向 (w，x，y，z)。
+                     默认为 None。
+        device: 计算应执行的火装置。
+                默认为 None，i.e.将与深度图像相匹配的设备。
+
+    返回：
+        一个形状张量 (N，3) 包含目标框架中的3D点。
+        如果输入是 numpy array，输出是 numpy array。
+        否则，它是火。
     """
     # check if numpy
     is_numpy = isinstance(points, np.ndarray)
@@ -115,6 +142,40 @@ def create_pointcloud_from_depth(
         An array/tensor of shape (N, 3) comprising of 3D coordinates of points.
         The returned datatype is torch if input depth is of type torch.tensor or wp.array. Otherwise, a np.ndarray
         is returned.
+    """
+    """通过输入深度图像和摄像头内在矩阵创建点云。
+
+    这种函数从深度图像和摄像头内在矩阵中创建一个点云。
+    计算点云使用以下方程:
+
+    .. math::
+        p_{camera} = K^{-1} \times [u, v, 1]^T \times d
+
+    where :数学:`K`是摄像头内在矩阵， 数学:`u`和 数学:`v`是像素坐标和
+    :math:`d`是像素的深度值。
+
+    此外，点云可以通过在目标框架中提供相机的位置``t``和方向``R``来从相机框架转换为目标框架:
+
+    .. math::
+        p_{target} = R_{target} \times p_{camera} + t_{target}
+
+    参数：
+        intrinsic_matrix: 提供相机校准矩阵的 (3，3) 阵列。
+        depth: 一个形状阵列 (H，W) 含有编码深度测量值。
+        keep_invalid: 在云中保留不行点还是不保留的。
+                      无效点与深度值为0.0或NaN的像素相符。
+                      默认为 False。
+        position: 摄像机在目标框架中的位置。
+                  默认为 None。
+        orientation: 目标框架中的相机的方向 (w， x， y， z)。
+                     默认为 None。
+        device: 计算应执行的火装置。
+                默认为 None，i.e.将与深度图像相匹配的设备。
+
+    返回：
+        一个由3D点坐标组成的形状阵列/ensor (N，3)。
+        如果输入深度是torch.tensor或wp.array类型，返回的数据类型是火。
+        否则，将返回np.ndarray。
     """
     # We use PyTorch here for matrix multiplication since it is compiled with Intel MKL while numpy
     # by default uses OpenBLAS. With PyTorch (CPU), we could process a depth image of size (480, 640)
@@ -196,6 +257,42 @@ def create_pointcloud_from_rgbd(
     Raises:
         ValueError:  When rgb image is a numpy array but not of shape (H, W, 3) or (H, W, 4).
     """
+    """从输入深度图像和摄像头转换矩阵创建点云。
+
+    这个函数提供了与:meth:`create_pointcloud_from_depth`相同的功能，但也允许为每个点提供RGB值。
+
+    用``rgb``属性来解决相应点的颜色:
+
+    - 如果 ``np.array``/``wp.array``/``torch.tensor``的形状 (H，W，3)，则相应的道将RGB值编码。
+    - 如果是tuple，那么点云的颜色是指值 (r，g，b) 所指定的。
+    - 如果None，则默认颜色是白色，i.e。 (0， 0， 0)。
+
+    如果输入 ``normalize_rgb`` 设置为 :obj:`True`，则RGB 值将正常化为 [0， 1] 范围。
+
+    参数：
+        intrinsic_matrix: 一个 (3， 3) 阵列/ensor提供摄像头的校准矩阵。
+        depth: 形状 (H，W) 的阵列/度器，含有编码深度测量值。
+        rgb: 产生点云的颜色。
+             默认为 None。
+        normalize_rgb: 是否正常化输入rgb。
+                       默认为 False。
+        position: 摄像机在目标框架中的位置。
+                  默认为 None。
+        orientation: 在目标框架中的相机的`(w， x， y， z)`导向。
+                     默认为 None。
+        device: 计算应执行的火装置。
+                默认为 None，在这种情况下，它采用与深度图像相匹配的设备。
+        num_channels: 在RGB点云中的频道数量。
+                      默认的3。
+
+    返回：
+        包含分别点的3D坐标和它们的RGB颜色的 (N，3) 阵列或子的图普。
+        如果输入深度是torch.tensor或wp.array类型，返回的数据类型是火。
+        否则，将返回np.ndarray。
+
+    异常：
+        ValueError:  当 rgb 图像是个 numpy 阵列，但不是形状 (H， W， 3) 或 (H， W， 4)。
+    """
     # check valid inputs
     if rgb is not None and not isinstance(rgb, tuple):
         if len(rgb.shape) == 3:
@@ -264,6 +361,12 @@ def save_images_to_file(images: torch.Tensor, file_path: str):
     Args:
         images: A tensor of shape (N, H, W, C) containing the images.
         file_path: The path to save the images to.
+    """
+    """保存图像以文件。
+
+    参数：
+        images: 包含图像的形状张量 (N，H，W，C)。
+        file_path: 保存图像的路径。
     """
     from torchvision.utils import make_grid, save_image
 

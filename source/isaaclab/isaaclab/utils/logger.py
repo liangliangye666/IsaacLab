@@ -22,6 +22,23 @@ Example:
 """
 
 from __future__ import annotations
+"""有记录工具的子模块。
+
+为了使用记录器，你可以使用:func:`logging.getLogger`函数。
+
+示例：
+    >>> import logging
+    >>>
+    >>> # define logger for the current module (enables fine-control)
+    >>> logger = logging.getLogger(__name__)
+    >>>
+    >>> # log messages
+    >>> logger.info("This is an info message")
+    >>> logger.warning("This is a warning message")
+    >>> logger.error("This is an error message")
+    >>> logger.critical("This is a critical message")
+    >>> logger.debug("This is a debug message")
+"""
 
 import logging
 import os
@@ -56,6 +73,27 @@ def configure_logging(
 
     Returns:
         The root logger.
+    """
+    """设置彩色格式仪和速度限制过器。
+
+    这个函数定义了IsaacLab的默认记录器。
+    它添加了带有彩色格式和速度限制过器的流处理器。
+    如果:attr:`save_logs_to_file`是True，它还会添加一个文件处理器来保存日志。
+    使用:attr:`log_dir`可以指定日志目录。
+    如果没有提供，则将存储到"isaaclab/logs"子目录的临时目录。
+
+    记录文件名称格式为"isaaclab_{datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}在"
+    记录格式是"%(asctime) s [%(filename) s:%(lineno) d] %(levelname) s: %(message) s"。
+    日期格式是"%Y-%m-%d %H:%M:%S"。
+
+    参数：
+        logging_level: 伐木水平。
+        save_logs_to_file: 是否将日志保存到文件中。
+        log_dir: 保存记录的目录。
+                 默认是None，在这种情况下，日志将被保存到 Temp目录中，附有"isaaclab/logs"子目录。
+
+    返回：
+        根记器。
     """
     root_logger = logging.getLogger()
     # the root logger must be the lowest level to ensure that all messages are logged
@@ -114,6 +152,10 @@ class ColoredFormatter(logging.Formatter):
 
     This formatter colors the log messages based on the log level.
     """
+    """彩色格式化器用于记录。
+
+    这个格式器根据日志水平来染色日志消息。
+    """
 
     COLORS = {
         "WARNING": "\033[33m",  # orange/yellow
@@ -123,9 +165,11 @@ class ColoredFormatter(logging.Formatter):
         "DEBUG": "\033[0m",
     }
     """Colors for different log levels."""
+    """不同的木材水平的颜色。"""
 
     RESET = "\033[0m"
     """Reset color."""
+    """重置颜色。"""
 
     def format(self, record: logging.LogRecord) -> str:
         """Format the log record.
@@ -135,6 +179,14 @@ class ColoredFormatter(logging.Formatter):
 
         Returns:
             The formatted log record.
+        """
+        """格式化日志记录。
+
+        参数：
+            record: 记录以格式化。
+
+        返回：
+            格式化日志记录。
         """
         color = self.COLORS.get(record.levelname, self.RESET)
         message = super().format(record)
@@ -147,6 +199,11 @@ class RateLimitFilter(logging.Filter):
     This filter allows warning-level messages only once every few seconds per message.
     This is useful to avoid flooding the log with the same message multiple times.
     """
+    """预警过器的定制速度限制。
+
+    这种过器只允许每几秒钟每次发出一次警告级信息。
+    这很有用，以避免多次将相同信息淹没日志。
+    """
 
     def __init__(self, interval_seconds: int = 5):
         """Initialize the rate limit filter.
@@ -154,6 +211,12 @@ class RateLimitFilter(logging.Filter):
         Args:
             interval_seconds: The interval in seconds to limit the warnings.
                 Defaults to 5 seconds.
+        """
+        """启动速度限制过器。
+
+        参数：
+            interval_seconds: 限制警告的数秒间隔。
+                              默认时间为5秒。
         """
         super().__init__()
         self.interval = interval_seconds
@@ -167,6 +230,14 @@ class RateLimitFilter(logging.Filter):
 
         Returns:
             True if the message should be logged, False otherwise.
+        """
+        """允许警告级别的消息每几秒钟只一次。
+
+        参数：
+            record: 记录记录以过。
+
+        返回：
+            如果该消息应该被记录下来，则True，否则False。
         """
         # only filter warning-level messages
         if record.levelno != logging.WARNING:

@@ -61,6 +61,26 @@ class LiveLinePlot(UIWidgetWrapper):
     +-------------------------------------------------------+
 
     """
+    """一个2D线路图片 widget显示场景数据。
+
+
+    这种小工具用于在2D线路图中显示场景数据。
+    它可以用于显示同一地图中的多个系列。
+
+    它的布局如下:
+    +-------------------------------------------------------+ | containing_frame |
+    |+-----------------------------------------------------+| | main_plot_frame |
+    ||+---------------------------------------------------+|| ||| plot_frames网格线 (Z_stacked) 时时时时时时时时时时时
+    时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时时legends_frame[x][Series
+    1] [x][Series 2] [ ][Series 3] [Series 3] [Series 2] [Series 3] [Series 3] [Series 3] [Series 3]
+    [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 3]
+    [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 3]
+    [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 3] [Series 4] [Series 4] [Series 4]
+    [Series 4] [Series 4] [Series 4] [Series 4] [Series 4] [Series 4] [Series 4] [Series 4] [Series 4]
+    [Series 4] [Series 4] [Series 4] [Series 4] [Series 4limits_frame时间: 时间: 时间: 时间: 时间:filter_frame |||
+    ||| ||| ||| ||| |+-----------------------------------------------------+|
+    +-------------------------------------------------------+
+    """
 
     def __init__(
         self,
@@ -85,6 +105,26 @@ class LiveLinePlot(UIWidgetWrapper):
                 labels are "Series_0", "Series_1", etc. Defaults to None.
             max_datapoints: The maximum number of data points to display. If the number of data points exceeds
                 this value, the oldest data points are removed. Defaults to 200.
+        """
+        """创建一个新的LiveLinePlot小工具。
+
+        参数：
+            y_data: 包含图形数据的浮游艇列表。
+                    每个浮游器的列表都代表了剧情中的一系列。
+            y_min: 显示的最小y值。
+                   设置为 -10。
+            y_max: 显示的最大y值。
+                   默认为10
+            plot_height: 在像素中图案的高度。
+                         默认到150。
+            show_legend: 是否展示传说。
+                         默认为 True。
+            legends: 列表包含每个系列的传奇标签。
+                     如果 None，默认标签是"Series_0"，"Series_1"，等。
+                     默认为 None。
+            max_datapoints: 显示数据点的最大数量。
+                            如果数据点数量超过此值，则删除最古老的数据点。
+                            默认到200。
         """
         super().__init__(self._create_ui_widget())
         self.plot_height = plot_height
@@ -112,6 +152,7 @@ class LiveLinePlot(UIWidgetWrapper):
         self._autoscale_model = omni.ui.SimpleBoolModel(True)
 
     """Properties"""
+    """产品"""
 
     @property
     def autoscale_mode(self) -> bool:
@@ -120,27 +161,33 @@ class LiveLinePlot(UIWidgetWrapper):
     @property
     def y_data(self) -> list[list[float]]:
         """The current data in the plot."""
+        """现在的数据。"""
         return self._y_data
 
     @property
     def y_min(self) -> float:
         """The current minimum y value."""
+        """现在的最小y值。"""
         return self._y_min
 
     @property
     def y_max(self) -> float:
         """The current maximum y value."""
+        """现在的最大y值。"""
         return self._y_max
 
     @property
     def legends(self) -> list[str]:
         """The current legend labels."""
+        """现在的传奇标签。"""
         return self._legends
 
     """ General Functions """
+    """一般职能"""
 
     def clear(self):
         """Clears the plot."""
+        """清除了阴谋。"""
         self._y_data = [[] for _ in range(len(self._y_data))]
         self._last_values = None
 
@@ -159,6 +206,16 @@ class LiveLinePlot(UIWidgetWrapper):
 
         Args:
             y_coords: A list of floats containing the y coordinates of the new data points.
+        """
+        """加入一个数据点。
+
+        数据点在图片末尾添加。
+        如果数据点数量超过最大数据点数量，则删除最古老的数据点。
+
+        假设``y_coords``是一个与该地图中的系列数量相同长度的浮动器列表。
+
+        参数：
+            y_coords: 包含新数据点的y坐标的浮游器列表。
         """
 
         for idx, y_coord in enumerate(y_coords):
@@ -203,6 +260,8 @@ class LiveLinePlot(UIWidgetWrapper):
     """
         Internal functions for building the UI.
     """
+    """构建UI的内部功能。
+    """
 
     def _build_stacked_plots(self, grid: bool = True):
         """Builds multiple plots stacked on top of each other to display multiple series.
@@ -227,6 +286,25 @@ class LiveLinePlot(UIWidgetWrapper):
         Args:
             grid: Whether to display grid lines. Defaults to True.
         """
+        """构建多个插图堆叠在一起以显示多个系列。
+
+        这是一个内部的功能，
+        它不应该来自课堂外，
+        from within the build function of a frame.
+
+        构建的 widget 设置如下:
+        +-------------------------------------------------------+ | main_plot_frame |
+        ||+---------------------------------------------------+|| ||| ||| |||
+        y_max|*******-------------------*******| ||| ||| |-------*****-----------**--------| ||| |||
+        0|------------**-----***-----------| ||| ||| |--------------***----------------| ||| |||
+        y_min|---------------------------------| ||| ||| |||
+        |||+-------------------------------------------------+|||
+
+
+        参数：
+            grid: 是否显示网格线。
+                  默认为 True。
+        """
 
         # Reset lists which are populated in the build function
         self._plot_frames = []
@@ -241,6 +319,15 @@ class LiveLinePlot(UIWidgetWrapper):
             Args:
                 y_data: The data to plot.
                 color: The color of the plot.
+            """
+            """建立一个单一的地图。
+
+            这是一个内部函数，以使用给定的数据和颜色构建单个地图。
+            这种函数只应从框架的构建函数内部调用。
+
+            参数：
+                y_data: 查看数据。
+                color: 剧情的颜色。
             """
             plot = omni.ui.Plot(
                 omni.ui.Type.LINE,
@@ -401,6 +488,14 @@ class LiveLinePlot(UIWidgetWrapper):
         |+-----------------------------------------------------+|
         +-------------------------------------------------------+
         """
+        """构建一个包含剧情传说的框架。
+
+        这是一个内部的功能， 构建一个包含剧情传说的框架。
+        这种函数只应从框架的构建函数内部调用。
+
+        构建的 widget 设置如下:
+        +-------------------------------------------------------+ | legends_frame◎ ◎ ◎ ◎ ◎ ◎ ◎ ◎ ◎ ◎ ◎
+        """
         if not self._show_legend:
             return
 
@@ -451,6 +546,16 @@ class LiveLinePlot(UIWidgetWrapper):
         |||         Autoscale[x]                              |||
         |||    -------------------------------------------    |||
         |||+-------------------------------------------------+|||
+        """
+        """构建包含y轴边界控制器的框架。
+
+        这是一个内部函数，用于构建包含y轴边界控制的框架。
+        这种函数只应从框架的构建函数内部调用。
+
+        现在，我们可以看到一个小程序.limits_frame实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上，
+        实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上，
+        实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上，
+        实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上， 实际上
         """
         with omni.ui.VStack():
             with omni.ui.HStack():
@@ -505,6 +610,18 @@ class LiveLinePlot(UIWidgetWrapper):
         |+-----------------------------------------------------+|
         +-------------------------------------------------------+
         """
+        """构建包含过器控制器的框架。
+
+        这是一个内部功能，构建包含过器控制的框架。
+        这种函数只应从框架的构建函数内部调用。
+
+        构建的 widget 设置如下:
+        +-------------------------------------------------------+ | filter_frame |
+        ||+---------------------------------------------------+|| ||| ||| ||| ||| ||| |||
+        |||+-------------------------------------------------+|||
+        |+-----------------------------------------------------+|
+        +-------------------------------------------------------+
+        """
         with omni.ui.VStack():
             with omni.ui.HStack():
 
@@ -534,6 +651,7 @@ class LiveLinePlot(UIWidgetWrapper):
 
     def _create_ui_widget(self):
         """Create the full UI widget."""
+        """创建完整的UI小工具。"""
 
         def _build_widget():
             self._is_built = False
@@ -552,27 +670,32 @@ class LiveLinePlot(UIWidgetWrapper):
         return containing_frame
 
     """ UI Actions Listener Functions """
+    """UI 动作 听器功能"""
 
     def _change_plot_visibility(self, idx: int, visible: bool):
         """Change the visibility of a plot at position idx."""
+        """在位置 idx 改变图片的可见性。"""
         self._series_visible[idx] = visible
         self._plot_frames[idx].visible = visible
         # self._main_plot_frame.rebuild()
 
     def _set_y_min(self, val: float):
         """Update the y-axis minimum."""
+        """更新 y 轴最小值。"""
         self._y_min = val
         self.lower_limit_drag.model.set_value(val)
         self._main_plot_frame.rebuild()
 
     def _set_y_max(self, val: float):
         """Update the y-axis maximum."""
+        """更新 y 轴最大值。"""
         self._y_max = val
         self.upper_limit_drag.model.set_value(val)
         self._main_plot_frame.rebuild()
 
     def _rescale_btn_pressed(self):
         """Autoscale the y-axis to the current data."""
+        """根据目前的数据，"""
         if any(self._series_visible):
             y_min = np.round(
                 min([min(y) for idx, y in enumerate(self._y_data) if self._series_visible[idx]]),
@@ -595,6 +718,7 @@ class LiveLinePlot(UIWidgetWrapper):
         self._main_plot_frame.rebuild()
 
     """ Helper Functions """
+    """助手职能"""
 
     def _get_distinct_hex_colors(self, num_colors) -> list[int]:
         """
@@ -605,6 +729,14 @@ class LiveLinePlot(UIWidgetWrapper):
 
         Returns:
             List[int]: a list of distinct colors in hexadecimal format 0xFFBBGGRR
+        """
+        """这项函数返回图形的不同颜色列表。
+
+        参数：
+            num_colors (int): 产生的颜色数量
+
+        返回：
+            列表[int]:以六成格式 0xFFBBGGRR的不同颜色列表
         """
         # Generate equally spaced colors in HSV space
         rgb_colors = [

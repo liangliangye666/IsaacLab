@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -26,6 +28,7 @@ from isaaclab.utils.timer import Timer
 @pytest.fixture
 def sim():
     """Create a blank new stage for each test."""
+    """创建一个空白的新阶段。"""
     # Simulation time-step
     dt = 0.01
     # Open a new stage
@@ -42,6 +45,7 @@ def sim():
 
 def test_instantiation(sim):
     """Test that the class can be initialized properly."""
+    """测试该类是否可以正确初始化。"""
     config = VisualizationMarkersCfg(
         prim_path="/World/Visuals/test",
         markers={
@@ -56,6 +60,7 @@ def test_instantiation(sim):
 
 def test_usd_marker(sim):
     """Test with marker from a USD."""
+    """通过USD的标记进行测试。"""
     # create a marker
     config = FRAME_MARKER_CFG.copy()
     config.prim_path = "/World/Visuals/test_frames"
@@ -82,6 +87,7 @@ def test_usd_marker(sim):
 
 def test_usd_marker_color(sim):
     """Test with marker from a USD with its color modified."""
+    """测试用USD的标记，其颜色改造。"""
     # create a marker
     config = FRAME_MARKER_CFG.copy()
     config.prim_path = "/World/Visuals/test_frames"
@@ -105,6 +111,7 @@ def test_usd_marker_color(sim):
 
 def test_multiple_prototypes_marker(sim):
     """Test with multiple prototypes of spheres."""
+    """用多个球体原型进行测试。"""
     # create a marker
     config = POSITION_GOAL_MARKER_CFG.copy()
     config.prim_path = "/World/Visuals/test_protos"
@@ -128,6 +135,7 @@ def test_multiple_prototypes_marker(sim):
 
 def test_visualization_time_based_on_prototypes(sim):
     """Test with time taken when number of prototypes is increased."""
+    """在增加原型数量时，需要花费的时间进行测试。"""
     # create a marker
     config = POSITION_GOAL_MARKER_CFG.copy()
     config.prim_path = "/World/Visuals/test_protos"
@@ -162,6 +170,9 @@ def test_visualization_time_based_on_prototypes(sim):
 
 def test_visualization_time_based_on_visibility(sim):
     """Test with visibility of markers. When invisible, the visualize call should return."""
+    """用标记的可见性进行测试。
+    视觉召唤应该回来。
+    """
     # create a marker
     config = POSITION_GOAL_MARKER_CFG.copy()
     config.prim_path = "/World/Visuals/test_protos"

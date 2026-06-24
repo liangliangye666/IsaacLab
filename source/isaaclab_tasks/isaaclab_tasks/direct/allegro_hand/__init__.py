@@ -6,6 +6,8 @@
 """
 Allegro Inhand Manipulation environment.
 """
+"""在手中操纵环境。
+"""
 
 import gymnasium as gym
 

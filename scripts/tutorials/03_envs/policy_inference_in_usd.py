@@ -15,8 +15,20 @@ using Isaac-Velocity-Rough-H1-v0. The robot is commanded to move forward at a co
     ./isaaclab.sh -p scripts/tutorials/03_envs/policy_inference_in_usd.py --checkpoint /path/to/jit/checkpoint.pt
 
 """
+"""这本脚本展示了在预建的USD环境中的策略推断。
+
+在这个例子中，我们使用了交通策略来控制H1机器人。
+机器人是使用Isaac-Velocity-Rough-H1-v0训练的。
+机器人被命令以恒定的速度前进。
+
+.. code-block:: bash
+
+    # Run the script
+    ./isaaclab.sh -p scripts/tutorials/03_envs/policy_inference_in_usd.py --checkpoint /path/to/jit/checkpoint.pt
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -37,6 +49,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 import io
 import os
 
@@ -53,6 +66,7 @@ from isaaclab_tasks.manager_based.locomotion.velocity.config.h1.rough_env_cfg im
 
 def main():
     """Main function."""
+    """主要功能。"""
     # load the trained jit policy
     policy_path = os.path.abspath(args_cli.checkpoint)  # 相对路径转成绝对路径
     file_content = omni.client.read_file(policy_path)[2]    # 读取文件，返回一个结果对象/元组

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import importlib
 import json
@@ -49,6 +51,7 @@ from isaaclab.devices.teleop_device_factory import create_teleop_device
 @pytest.fixture
 def mock_environment(mocker):
     """Set up common mock objects for tests."""
+    """为测试设置常见假象物体。"""
     # Create mock objects that will be used across tests
     carb_mock = mocker.MagicMock()
     omni_mock = mocker.MagicMock()
@@ -112,10 +115,13 @@ def mock_environment(mocker):
 """
 Test keyboard devices.
 """
+"""测试键盘设备。
+"""
 
 
 def test_se2keyboard_constructors(mock_environment, mocker):
     """Test constructor for Se2Keyboard."""
+    """测试构造器Se2Keyboard。"""
     # Test config-based constructor
     config = Se2KeyboardCfg(
         v_x_sensitivity=0.9,
@@ -142,6 +148,7 @@ def test_se2keyboard_constructors(mock_environment, mocker):
 
 def test_se3keyboard_constructors(mock_environment, mocker):
     """Test constructor for Se3Keyboard."""
+    """测试构造器Se3Keyboard。"""
     # Test config-based constructor
     config = Se3KeyboardCfg(
         pos_sensitivity=0.5,
@@ -167,10 +174,13 @@ def test_se3keyboard_constructors(mock_environment, mocker):
 """
 Test gamepad devices.
 """
+"""测试游戏盘设备。
+"""
 
 
 def test_se2gamepad_constructors(mock_environment, mocker):
     """Test constructor for Se2Gamepad."""
+    """测试构造器Se2Gamepad。"""
     # Test config-based constructor
     config = Se2GamepadCfg(
         v_x_sensitivity=1.1,
@@ -199,6 +209,7 @@ def test_se2gamepad_constructors(mock_environment, mocker):
 
 def test_se3gamepad_constructors(mock_environment, mocker):
     """Test constructor for Se3Gamepad."""
+    """测试构造器Se3Gamepad。"""
     # Test config-based constructor
     config = Se3GamepadCfg(
         pos_sensitivity=1.1,
@@ -226,10 +237,13 @@ def test_se3gamepad_constructors(mock_environment, mocker):
 """
 Test spacemouse devices.
 """
+"""测试太空鼠机。
+"""
 
 
 def test_se2spacemouse_constructors(mock_environment, mocker):
     """Test constructor for Se2SpaceMouse."""
+    """测试构造器Se2SpaceMouse。"""
     # Test config-based constructor
     config = Se2SpaceMouseCfg(
         v_x_sensitivity=0.9,
@@ -256,6 +270,7 @@ def test_se2spacemouse_constructors(mock_environment, mocker):
 
 def test_se3spacemouse_constructors(mock_environment, mocker):
     """Test constructor for Se3SpaceMouse."""
+    """测试构造器Se3SpaceMouse。"""
     # Test config-based constructor
     config = Se3SpaceMouseCfg(
         pos_sensitivity=0.5,
@@ -281,10 +296,13 @@ def test_se3spacemouse_constructors(mock_environment, mocker):
 """
 Test OpenXR devices.
 """
+"""测试OpenXR设备。
+"""
 
 
 def test_openxr_constructors(mock_environment, mocker):
     """Test constructor for OpenXRDevice."""
+    """测试构造器OpenXRDevice。"""
     # Test config-based constructor with custom XrCfg
     xr_cfg = XrCfg(
         anchor_pos=(1.0, 2.0, 3.0),
@@ -342,10 +360,13 @@ def test_openxr_constructors(mock_environment, mocker):
 """
 Test Haply devices.
 """
+"""测试Haply设备。
+"""
 
 
 def test_haply_constructors(mock_environment, mocker):
     """Test constructor for HaplyDevice."""
+    """测试构造器HaplyDevice。"""
     # Test config-based constructor
     config = HaplyDeviceCfg(
         websocket_uri="ws://localhost:10001",
@@ -481,10 +502,13 @@ def test_haply_constructors(mock_environment, mocker):
 """
 Test teleop device factory.
 """
+"""测试电话设备工厂。
+"""
 
 
 def test_create_teleop_device_basic(mock_environment, mocker):
     """Test creating devices using the teleop device factory."""
+    """使用电话设备工厂测试创建设备。"""
     # Create device configuration
     keyboard_cfg = Se3KeyboardCfg(pos_sensitivity=0.8, rot_sensitivity=1.2)
 
@@ -508,6 +532,7 @@ def test_create_teleop_device_basic(mock_environment, mocker):
 
 def test_create_teleop_device_with_callbacks(mock_environment, mocker):
     """Test creating device with callbacks."""
+    """测试使用回调的设备创建。"""
     # Create device configuration
     xr_cfg = XrCfg(anchor_pos=(0.0, 0.0, 0.0), anchor_rot=(1.0, 0.0, 0.0, 0.0), near_plane=0.15)
     openxr_cfg = OpenXRDeviceCfg(xr_cfg=xr_cfg)
@@ -551,6 +576,7 @@ def test_create_teleop_device_with_callbacks(mock_environment, mocker):
 
 def test_create_teleop_device_with_retargeters(mock_environment, mocker):
     """Test creating device with retargeters."""
+    """测试创建设备使用回器。"""
     # Create retargeter configurations
     retargeter_cfg1 = Se3AbsRetargeterCfg()
     retargeter_cfg2 = GripperRetargeterCfg()
@@ -590,6 +616,7 @@ def test_create_teleop_device_with_retargeters(mock_environment, mocker):
 
 def test_create_teleop_device_device_not_found():
     """Test error when device name is not found in configuration."""
+    """测试错误在配置中找不到设备名称时。"""
     # Create devices configuration dictionary
     devices_cfg: dict[str, DeviceCfg] = {"keyboard": Se3KeyboardCfg()}
 
@@ -600,6 +627,7 @@ def test_create_teleop_device_device_not_found():
 
 def test_create_teleop_device_unsupported_config():
     """Test error when device configuration type is not supported."""
+    """如果设备配置类型不支持，测试错误"""
 
     # Create a custom unsupported configuration class
     class UnsupportedCfg:

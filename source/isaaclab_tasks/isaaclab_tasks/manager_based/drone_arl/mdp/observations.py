@@ -10,6 +10,10 @@ the observation introduced by the function.
 """
 
 from __future__ import annotations
+"""可用于创建无人机观测项的共同函数。
+
+函数可以传递到:class:`isaaclab.managers.ObservationTermCfg`对象，以实现函数引入的观测。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -30,6 +34,8 @@ from isaaclab.envs.utils.io_descriptors import generic_io_descriptor, record_sha
 """
 State.
 """
+"""州。
+"""
 
 
 def base_roll_pitch(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
@@ -47,6 +53,21 @@ def base_roll_pitch(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntit
         - Euler angles are computed from asset.data.root_quat_w using XYZ convention.
         - Only roll and pitch are returned; yaw is omitted.
     """
+    """在仿真世界框架中返回基滚动。
+
+    Parameters:
+        env: 管理器提供场景和子。
+        asset_cfg: 对目标机器人的场景实体配置 (默认:"机器人")。
+
+    返回：
+        torch.Tensor: 形状 (num_envs， 2)。
+                      列0是滚动，列1是发射。
+        值是以 [-pi，pi]为正常的半径，
+
+    说明：
+        - 勒角是从asset.data.root_quat_w计算的，使用XYZ公约。
+        - 只返回滚动和；是省略的。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # extract euler angles (in world frame)
@@ -60,6 +81,8 @@ def base_roll_pitch(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntit
 
 """
 Commands.
+"""
+"""命令。
 """
 
 
@@ -92,6 +115,28 @@ def generated_drone_commands(
         - env.command_manager.get_command(command_name) returns at least three values
           representing a world-frame target position per environment.
         - A small epsilon (1e-8) is used to guard against zero-length direction vectors.
+    """
+    """产生一个身体框架方向和距离到命令位置。
+
+    这项观测是从env.command_manager由command_name，将其前三个组成部分解释为世界框架中的目标位置，
+    returns: [dir_x，dir_y，dir_z，距离]
+    在此，dir_*是从当前体源到目标的单元向量，表达在多轮体 (根链) 框架中，距离是尤克利德分离。
+
+    Parameters:
+        env: 基于管理器的RL环境提供场景和命令管理器。
+        command_name: 命令管理器的查询命令项名称。
+        asset_cfg: 场景实体对多机器资产的配置 (默认:"机器人")。
+
+    返回：
+        torch.Tensor: 形状 (num_envs， 4) 与车身框架单元方向 (3) 和距离 (1)。
+
+    框架会议:
+        - 目前位置是asset.data.root_pos_w与env.scene.env_origins相对 (世界框架)。
+        - 身体导向使用asset.data.root_link_quat_w将世界向量转换到身体框架中。
+
+    Assumptions:
+        - env.command_manager.get_command(command_name) 返回每环境至少3个代表世界框架目标位置的值。
+        - 为了保护对零长度方向向量，使用一个小的子 (1e-8)。
     """
     asset: Multirotor = env.scene[asset_cfg.name]
     current_position_w = asset.data.root_pos_w - env.scene.env_origins

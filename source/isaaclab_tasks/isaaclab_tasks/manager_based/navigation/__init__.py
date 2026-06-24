@@ -4,5 +4,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Navigation environments."""
+"""导航环境。"""
 
 from .config import anymal_c

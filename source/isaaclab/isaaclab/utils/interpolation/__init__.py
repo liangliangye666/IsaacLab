@@ -6,5 +6,7 @@
 """
 Submodule for different interpolation methods.
 """
+"""对不同插射方法的子模块。
+"""
 
 from .linear_interpolation import LinearInterpolation

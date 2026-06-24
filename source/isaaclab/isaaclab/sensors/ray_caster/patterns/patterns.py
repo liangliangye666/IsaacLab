@@ -32,6 +32,23 @@ def grid_pattern(cfg: patterns_cfg.GridPatternCfg, device: str) -> tuple[torch.T
         ValueError: If the ordering is not "xy" or "yx".
         ValueError: If the resolution is less than or equal to 0.
     """
+    """对于射线造的常规格格式。
+
+    网格图案由相对的射线制成。
+    它们在传感器的本地坐标中跨越2D格，从``(-length/2， -width/2)``到``(length/2， width/2)``，这是由配置中的``size = (length，
+    width)``和``resolution``参数定义的。
+
+    参数：
+        cfg: 模式的配置实例。
+        device: 创建模式的设备。
+
+    返回：
+        射线的起始位置和方向。
+
+    异常：
+        ValueError: 如果顺序不是"xy"或"yx"。
+        ValueError: 如果分辨率小于或等于0。
+    """
     # check valid arguments
     if cfg.ordering not in ["xy", "yx"]:
         raise ValueError(f"Ordering must be 'xy' or 'yx'. Received: '{cfg.ordering}'.")
@@ -78,6 +95,23 @@ def pinhole_camera_pattern(
         The starting positions and directions of the rays. The shape of the tensors are
         (N, H * W, 3) and (N, H * W, 3) respectively.
     """
+    """射线造的图像模式。
+
+    .. 谨慎::
+        这种函数不遵循标准模式界面。
+        它需要传输摄像机的内在矩阵。
+        这是因为我们想能够随机定制摄像机的内在矩阵，
+
+    参数：
+        cfg: 模式的配置实例。
+        intrinsic_matrices: 摄像机的内在矩阵。
+                            形状是 (N， 3， 3)。
+        device: 创建模式的设备。
+
+    返回：
+        射线的起始位置和方向。
+        子的形状分别是 (N，H*W，3) 和 (N，H*W，3)。
+    """
     # get image plane mesh grid
     grid = torch.meshgrid(
         torch.arange(start=0, end=cfg.width, dtype=torch.int32, device=device),
@@ -119,6 +153,20 @@ def bpearl_pattern(cfg: patterns_cfg.BpearlPatternCfg, device: str) -> tuple[tor
     Returns:
         The starting positions and directions of the rays.
     """
+    """对于光线造的RS-Pearl模式。
+
+    `Robosense RS-Bpearl`_是一个短距离LiDAR， 360度×90度的超宽视野。
+    它用于近场盲点检测。
+
+    .. _Robosense RS-Bpearl: https://www.roscomponents.com/product/rs-bpearl/
+
+    参数：
+        cfg: 模式的配置实例。
+        device: 创建模式的设备。
+
+    返回：
+        射线的起始位置和方向。
+    """
     h = torch.arange(-cfg.horizontal_fov / 2, cfg.horizontal_fov / 2, cfg.horizontal_res, device=device)
     v = torch.tensor(list(cfg.vertical_ray_angles), device=device)
 
@@ -143,6 +191,15 @@ def lidar_pattern(cfg: patterns_cfg.LidarPatternCfg, device: str) -> tuple[torch
 
     Returns:
         The starting positions and directions of the rays.
+    """
+    """对于射线造的光线传感器模式。
+
+    参数：
+        cfg: 模式的配置实例。
+        device: 创建模式的设备。
+
+    返回：
+        射线的起始位置和方向。
     """
     # Vertical angles
     vertical_angles = torch.linspace(cfg.vertical_fov_range[0], cfg.vertical_fov_range[1], cfg.channels)

@@ -20,6 +20,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -38,6 +39,7 @@ from isaaclab_assets.robots.anymal import ANYMAL_C_CFG  # isort: skip
 @configclass
 class FrameTransformerSensorSceneCfg(InteractiveSceneCfg):
     """Design the scene with sensors on the robot."""
+    """用机器人的传感器设计场景。"""
 
     # ground plane
     ground = AssetBaseCfg(prim_path="/World/defaultGroundPlane", spawn=sim_utils.GroundPlaneCfg())
@@ -88,6 +90,7 @@ class FrameTransformerSensorSceneCfg(InteractiveSceneCfg):
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     """Run the simulator."""
+    """运行仿真器。"""
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()
     sim_time = 0.0
@@ -146,6 +149,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.005, device=args_cli.device)

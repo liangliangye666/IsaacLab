@@ -14,15 +14,22 @@ from .differential_ik import DifferentialIKController
 @configclass
 class DifferentialIKControllerCfg:
     """Configuration for differential inverse kinematics controller."""
+    """对于分化逆动力控制器的配置。"""
 
     class_type: type = DifferentialIKController
     """The associated controller class."""
+    """相关控制器类。"""
 
     command_type: Literal["position", "pose"] = MISSING
     """Type of task-space command to control the articulation's body.
 
     If "position", then the controller only controls the position of the articulation's body.
     Otherwise, the controller controls the pose of the articulation's body.
+    """
+    """任务空间命令控制关节体的类型。
+
+    如果"位置"，则控制器只控制关节体的位置。
+    否则，控制器控制了关节体的姿势。
     """
 
     use_relative_mode: bool = False
@@ -31,9 +38,16 @@ class DifferentialIKControllerCfg:
     If True, then the controller treats the input command as a delta change in the position/pose.
     Otherwise, the controller treats the input command as the absolute position/pose.
     """
+    """控制器是否使用相对模式。
+    默认为 False。
+
+    如果 True，则控制器将输入命令视为位置/位置的多角变化。
+    否则，控制器将输入命令视为绝对位置/位置。
+    """
 
     ik_method: Literal["pinv", "svd", "trans", "dls"] = MISSING
     """Method for computing inverse of Jacobian."""
+    """计算 Jacobian 的逆方法。"""
 
     ik_params: dict[str, float] | None = None
     """Parameters for the inverse-kinematics method. Defaults to None, in which case the default
@@ -48,6 +62,19 @@ class DifferentialIKControllerCfg:
         - "k_val": Scaling of computed delta-joint positions (default: 1.0).
     - Damped Moore-Penrose pseudo-inverse ("dls"):
         - "lambda_val": Damping coefficient (default: 0.01).
+    """
+    """逆动力学方法的参数。
+    在 None 中，使用该方法的默认参数。
+
+    - 摩尔-罗斯伪逆 ("pinv"):
+        - "k_val":计算的三角关联位置的扩展 (默认1.0)。
+    - 适应单元值分解 (svd):
+        - "k_val":计算的三角关联位置的扩展 (默认1.0)。
+        - "min_singular_value":小于此的单个值被压缩到零 (默认:1e-5)。
+    - 雅可比语转化 ("转化"):
+        - "k_val":计算的三角关联位置的扩展 (默认1.0)。
+    - 化摩尔-罗斯伪逆 ("dls"):
+        - "lambda_val":缩系数 (默认:0.01)。
     """
 
     def __post_init__(self):

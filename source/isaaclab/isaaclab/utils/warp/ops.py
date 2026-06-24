@@ -7,6 +7,7 @@
 
 # needed to import for allowing type-hinting: torch.Tensor | None
 from __future__ import annotations
+"""绕在变形内核上，以确保与火器兼容。"""
 
 import numpy as np
 import torch
@@ -57,6 +58,43 @@ def raycast_mesh(
         The ray hit face id. Shape (N,).
             Will only return if :attr:`return_face_id` is True else returns None.
             The returned tensor contains :obj:`int(-1)` for missed hits.
+    """
+    """射线射线射线射线。
+
+    请注意，`ray_starts`和`ray_directions`，以及`ray_hits`应具有兼容的形状和数据类型，以确保适当的执行。
+    另外，它们都必须处于一个框架内。
+
+    参数：
+        ray_starts: 射线的起始位置。
+                    形状 (N， 3)。
+        ray_directions: 每个射线的射线方向。
+                        形状 (N， 3)。
+        mesh: 变形网向射线。
+        max_dist: 射线最大距离。
+                  在1e6上默认设置。
+        return_distance: 返回射线的距离，直到它撞到网格。
+                         默认为 False。
+        return_normal: 射线撞击的网面是否恢复正常。
+                       默认为 False。
+        return_face_id: 无论是返回网格面孔的面孔，
+                        默认为 False。
+
+    返回：
+        射击位置。
+        形状 (N， 3)。
+        返回的张量包含错过的击中 :obj:`float('inf')`。
+        射线撞到距离。
+        形状 (N，)。
+        如果:attr:`return_distance`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`float('inf')`。
+        射线正常。
+        形状 (N， 3)。
+        如果:attr:`return_normal`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`float('inf')`。
+        射线撞到了脸部。
+        形状 (N，)。
+        如果:attr:`return_face_id`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`int(-1)`。
     """
     # extract device and shape information
     shape = ray_starts.shape
@@ -164,6 +202,43 @@ def raycast_single_mesh(
             Will only return if :attr:`return_face_id` is True else returns None.
             The returned tensor contains :obj:`int(-1)` for missed hits.
     """
+    """射线射线射线射线。
+
+    请注意，:attr:`ray_starts`，:attr:`ray_directions`和:attr:`ray_hits`应具有兼容的形状和数据类型，以确保适当的执行。
+    另外，它们都必须处于一个框架内。
+
+    参数：
+        ray_starts: 射线的起始位置。
+                    形状 (B，N，3)
+        ray_directions: 每个射线的射线方向。
+                        形状 (B，N，3)
+        mesh_id: 变形网格的标识。
+        max_dist: 射线最大距离。
+                  在1e6上默认设置。
+        return_distance: 返回射线的距离，直到它撞到网格。
+                         默认为 False。
+        return_normal: 射线撞击的网面是否恢复正常。
+                       默认为 False。
+        return_face_id: 无论是返回网格面孔的面孔，
+                        默认为 False。
+
+    返回：
+        射击位置。
+        形状 (B，N，3)
+        返回的张量包含错过的击中 :obj:`float('inf')`。
+        射线撞到距离。
+        形状 (B，N，)。
+        如果:attr:`return_distance`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`float('inf')`。
+        射线正常。
+        形状 (B，N，3)
+        如果:attr:`return_normal`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`float('inf')`。
+        射线撞到了脸部。
+        形状 (B，N，)。
+        如果:attr:`return_face_id`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`int(-1)`。
+    """
     # cast mesh id into array
     mesh_ids = wp.array2d(
         [[mesh_id] for _ in range(ray_starts.shape[0])], dtype=wp.uint64, device=wp.device_from_torch(ray_starts.device)
@@ -229,6 +304,57 @@ def raycast_dynamic_meshes(
         The ray hit mesh id. Shape (B, N,).
             Will only return if :attr:`return_mesh_id` is True else returns None.
             The returned tensor contains :obj:`-1` for missed hits.
+    """
+    """执行射线射线与多个动态网格。
+
+    请注意，:attr:`ray_starts`，:attr:`ray_directions`和:attr:`ray_hits`应具有兼容的形状和数据类型，以确保适当的执行。
+    另外，它们都必须处于一个框架内。
+
+    如果提供网格位置和旋转，它们必须与网格数量相同的形状。
+
+    参数：
+        ray_starts: 射线的起始位置。
+                    形状 (B，N，3)
+        ray_directions: 每个射线的射线方向。
+                        形状 (B，N，3)
+        mesh_ids_wp: 变形网格是对射线的。
+                     长度 (B，M)。
+        mesh_positions_w: 网格的世界位置。
+                          形状 (B，M，3)
+        mesh_orientations_w: 世界方向作为四元数 (wxyz) 格式。
+                             形状 (B，M，4)。
+        max_dist: 射线最大距离。
+                  在1e6上默认设置。
+        return_distance: 返回射线的距离，直到它撞到网格。
+                         默认为 False。
+        return_normal: 射线撞击的网面是否恢复正常。
+                       默认为 False。
+        return_face_id: 无论是返回网格面孔的面孔，
+                        默认为 False。
+        return_mesh_id: 射线撞击面的网格ID是否返回。
+                        默认为 False。
+                        NOTE: 返回子的类型是torch.int16，所以不能超过32767个网格。
+
+    返回：
+        射击位置。
+        形状 (B，N，3)
+        返回的张量包含错过的击中 :obj:`float('inf')`。
+        射线撞到距离。
+        形状 (B，N，)。
+        如果:attr:`return_distance`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`float('inf')`。
+        射线正常。
+        形状 (B，N，3)
+        如果:attr:`return_normal`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`float('inf')`。
+        射线撞到了脸部。
+        形状 (B，N，)。
+        如果:attr:`return_face_id`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`int(-1)`。
+        射线撞到了网格身份。
+        形状 (B，N，)。
+        如果:attr:`return_mesh_id`是True，否则会返回None。
+        返回的张量包含错过的击中 :obj:`-1`。
     """
     # extract device and shape information
     shape = ray_starts.shape
@@ -390,6 +516,18 @@ def convert_to_warp_mesh(points: np.ndarray, indices: np.ndarray, device: str) -
 
     Returns:
         The warp mesh object.
+    """
+    """创建一个由顶点和三角形定义的 war网。
+
+    参数：
+        points: 网的顶点。
+                形状是 (N， 3)，其中N是顶点数。
+        indices: 网格的三角形作为每个三角形的顶点引用。
+                 形状是 (M， 3)，其中M是三角形/面孔的数量。
+        device: 用于网格的设备。
+
+    返回：
+        变形网体。
     """
     return wp.Mesh(
         points=wp.array(points.astype(np.float32), dtype=wp.vec3, device=device),

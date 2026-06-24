@@ -26,6 +26,10 @@ CUSTOM_PINHOLE_CAMERA_ATTRIBUTES = {
 
 The dictionary maps the attribute name in the configuration to the attribute name in the USD prim.
 """
+"""孔相机模型的定制属性。
+
+字典将配置中的属性名称映射到USD prim中的属性名称。
+"""
 
 
 CUSTOM_FISHEYE_CAMERA_ATTRIBUTES = {
@@ -45,6 +49,10 @@ CUSTOM_FISHEYE_CAMERA_ATTRIBUTES = {
 """Custom attributes for fisheye camera model.
 
 The dictionary maps the attribute name in the configuration to the attribute name in the USD prim.
+"""
+"""鱼眼相机模型的定制属性。
+
+字典将配置中的属性名称映射到USD prim中的属性名称。
 """
 
 
@@ -81,6 +89,34 @@ def spawn_camera(
 
     Raises:
         ValueError: If a prim already exists at the given path.
+    """
+    """创建一个USD摄像头prim与给定的投影类型。
+
+    该函数在相机prim上创建了各种属性，以指定相机的属性。
+    后者被``omni.replicator.core``使用，以提供相机的场景。
+
+    .. 说明::
+        这个函数是用 :func:`clone` 装饰的，解决了 prim 路径的路径列表
+        if the input prim path is a regex pattern. This is done to support spawning multiple assets
+        from a single and cloning the USD prim at the given path expression.
+
+    参数：
+        prim_path: 在 prim 路径或模式中产生资产。
+                   如果prim路径是regex模式，那么所有匹配的prim路径都会产生资产。
+        cfg: 设置实例。
+        translation: 适用于prim w.r.t的翻译。
+                     它的母prim。
+                     默认为 None，在这种情况下，它设置为源。
+        orientation: 在 (w， x， y， z) 中适用于prim w.r.t的方向。
+                     它的母prim。
+                     默认设置为None，在这种情况下，设置为身份。
+        **kwargs: 其他关键词参数，比如``clone_in_fabric``。
+
+    返回：
+        创建了prim。
+
+    异常：
+        ValueError: 如果已在给定的路径上存在prim。
     """
     # obtain stage handle
     stage = get_current_stage()

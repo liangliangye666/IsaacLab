@@ -28,6 +28,15 @@ class EmptyWindow:
         >>>     ui.Label("My UI element")
 
     """
+    """创建一个空 UI窗口，可以在全宇宙套件环境中停靠。
+
+    该类初始化可调动的UI窗口，并提供一个垂直堆的主框架。
+    您可以将自定义UI元素添加到这个垂直堆中。
+
+    从独立执行脚本中添加UI元素的例子:
+        >>> with env.window.ui_window_elements["main_vstack"]:
+        >>>     ui.Label("My UI element")
+    """
 
     def __init__(self, env: ManagerBasedEnv, window_name: str):
         """Initialize the window.
@@ -35,6 +44,12 @@ class EmptyWindow:
         Args:
             env: The environment object.
             window_name: The name of the window.
+        """
+        """启动窗口。
+
+        参数：
+            env: 环境对象。
+            window_name: 窗户的名字。
         """
         # store environment
         self.env = env
@@ -57,6 +72,7 @@ class EmptyWindow:
 
     def __del__(self):
         """Destructor for the window."""
+        """破坏机的窗户。"""
         # destroy the window
         if self.ui_window is not None:
             self.ui_window.visible = False
@@ -65,6 +81,7 @@ class EmptyWindow:
 
     async def _dock_window(self, window_title: str):
         """Docks the custom UI window to the property window."""
+        """关闭自定义UI窗口到房产窗口。"""
         # wait for the window to be created
         for _ in range(5):
             if omni.ui.Workspace.get_window(window_title):

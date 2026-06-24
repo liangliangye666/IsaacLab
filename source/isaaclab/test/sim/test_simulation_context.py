@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 from collections.abc import Generator
 
@@ -26,6 +28,7 @@ from isaaclab.sim import SimulationCfg, SimulationContext
 @pytest.fixture(autouse=True)
 def test_setup_teardown():
     """Setup and teardown for each test."""
+    """每次测试的设置和拆除。"""
     # Setup: Clear any existing simulation context
     SimulationContext.clear_instance()
 
@@ -39,6 +42,7 @@ def test_setup_teardown():
 @pytest.fixture
 def sim_with_stage_in_memory() -> Generator[SimulationContext, None, None]:
     """Create a simulation context with stage in memory."""
+    """创建一个仿真背景，"""
     # create stage in memory
     cfg = SimulationCfg(create_stage_in_memory=True)
     sim = SimulationContext(cfg=cfg)
@@ -58,6 +62,7 @@ def sim_with_stage_in_memory() -> Generator[SimulationContext, None, None]:
 @pytest.mark.isaacsim_ci
 def test_singleton():
     """Tests that the singleton is working."""
+    """测试了单身的运行。"""
     sim1 = SimulationContext()
     sim2 = SimulationContext()
     assert sim1 is sim2
@@ -74,6 +79,7 @@ def test_singleton():
 @pytest.mark.isaacsim_ci
 def test_initialization():
     """Test the simulation config."""
+    """测试仿真配置。"""
     cfg = SimulationCfg(physics_prim_path="/Physics/PhysX", render_interval=5, gravity=(0.0, -0.5, -0.5))
     sim = SimulationContext(cfg)
     # TODO: Figure out why keyword argument doesn't work.
@@ -96,6 +102,7 @@ def test_initialization():
 @pytest.mark.isaacsim_ci
 def test_sim_version():
     """Test obtaining the version."""
+    """测试获取版本。"""
     sim = SimulationContext()
     version = sim.get_version()
     assert len(version) > 0
@@ -105,6 +112,7 @@ def test_sim_version():
 @pytest.mark.isaacsim_ci
 def test_carb_setting():
     """Test setting carb settings."""
+    """测试设置碳水化合物设置"""
     sim = SimulationContext()
     # known carb setting
     sim.set_setting("/physics/physxDispatcher", False)
@@ -117,6 +125,7 @@ def test_carb_setting():
 @pytest.mark.isaacsim_ci
 def test_headless_mode():
     """Test that render mode is headless since we are running in headless mode."""
+    """测试显示模式是无头的，因为我们在无头的模式下运行。"""
     sim = SimulationContext()
     # check default render mode
     assert sim.render_mode == sim.RenderMode.NO_GUI_OR_RENDERING
@@ -154,6 +163,7 @@ def test_headless_mode():
 @pytest.mark.isaacsim_ci
 def test_zero_gravity():
     """Test that gravity can be properly disabled."""
+    """测试重力是否可以适当除。"""
     cfg = SimulationCfg(gravity=(0.0, 0.0, 0.0))
 
     sim = SimulationContext(cfg)

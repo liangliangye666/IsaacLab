@@ -18,6 +18,7 @@ from isaaclab.utils.datasets import HDF5DatasetFileHandler
 
 def get_nested_value(d: dict[str, Any], keys: list[str]) -> Any:
     """Retrieve a nested value from dictionary d using list of keys."""
+    """从字典d中从键列表中获取嵌入式值。"""
     for k in keys:
         d = d[k]
     return d
@@ -25,6 +26,7 @@ def get_nested_value(d: dict[str, Any], keys: list[str]) -> Any:
 
 def update_nested_value(d: dict[str, Any], keys: list[str], value: Any) -> None:
     """Update a nested value in dictionary d using list of keys."""
+    """使用键列表更新字典d中的嵌套值。"""
     for k in keys[:-1]:
         d = d.setdefault(k, {})
     d[keys[-1]] = value
@@ -32,6 +34,7 @@ def update_nested_value(d: dict[str, Any], keys: list[str], value: Any) -> None:
 
 def reset_env(env: ManagerBasedEnv, steps: int = 1) -> None:
     """Reset environment and step simulation to stabilize state."""
+    """恢复环境和步骤仿真，以稳定状态。"""
     # Get sim and scene from unwrapped environment
     sim = env.unwrapped.sim
     scene = env.unwrapped.scene
@@ -58,6 +61,7 @@ def get_parameter_input(
     event_term_name: str | None = None,
 ) -> widgets.FloatSlider | widgets.FloatRangeSlider:
     """Get parameter input using ipywidgets with immediate value updates."""
+    """使用 ipywidgets 获得参数输入，即时更新值。"""
 
     if isinstance(current_val, (tuple, list)):
         step_size = allowed_range[2] if len(allowed_range) > 2 else 0.01
@@ -138,6 +142,7 @@ def interactive_update_randomizable_params(
     env: ManagerBasedEnv | None = None,
 ) -> list[tuple[list[str], widgets.FloatSlider | widgets.FloatRangeSlider]]:
     """Interactive parameter updates using ipywidgets."""
+    """使用 ipywidget 进行交互参数更新。"""
     inputs = []
 
     for key, allowed_range in param_config.items():
@@ -184,6 +189,16 @@ def setup_output_paths(output_file_path: str) -> tuple[str, str]:
             - output_dir: Path to the output directory
             - output_file_name: Name of the output file without extension
     """
+    """设置输出目录并获取数据集生成文件名称。
+
+    参数：
+        output_file_path: 输出文件的完整路径
+
+    返回：
+        含有:
+            - output_dir:输出目录的路径
+            - output_file_name:没有扩展的输出文件名称
+    """
     output_dir = os.path.dirname(output_file_path)
     output_file_name = os.path.splitext(os.path.basename(output_file_path))[0]
 
@@ -205,6 +220,17 @@ def get_env_name_from_dataset(input_file_path: str) -> str:
 
     Raises:
         FileNotFoundError: If the input file does not exist
+    """
+    """从输入数据集文件中获取环境名称。
+
+    参数：
+        input_file_path: 输入数据集文件的路径
+
+    返回：
+        env_name: 数据集中的环境名称
+
+    异常：
+        FileNotFoundError: 如果输入文件不存在
     """
     if not os.path.exists(input_file_path):
         raise FileNotFoundError(f"The dataset file {input_file_path} does not exist.")

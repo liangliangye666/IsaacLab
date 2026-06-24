@@ -13,6 +13,16 @@ The following configurations are available:
 
 Reference: https://github.com/frankaemika/franka_ros
 """
+"""对于弗兰卡艾米卡机器人来说，
+
+下列配置可用:
+
+* :obj:`FRANKA_PANDA_CFG`: 弗兰卡·埃米卡·潘达机器人与潘达手
+* :obj:`FRANKA_PANDA_HIGH_PD_CFG`: 弗兰卡·埃米卡·潘达机器人与潘达手，更硬的PD控制
+* :obj:`FRANKA_ROBOTIQ_GRIPPER_CFG`: 机器人Franka 具有Robottiq_2f_85抓住器
+
+Reference: https://github.com/frankaemika/franka_ros
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -71,6 +81,7 @@ FRANKA_PANDA_CFG = ArticulationCfg(
     soft_joint_pos_limit_factor=1.0,
 )
 """Configuration of Franka Emika Panda robot."""
+"""弗兰卡艾米卡达机器人的配置。"""
 
 
 FRANKA_PANDA_HIGH_PD_CFG = FRANKA_PANDA_CFG.copy()
@@ -82,6 +93,10 @@ FRANKA_PANDA_HIGH_PD_CFG.actuators["panda_forearm"].damping = 80.0
 """Configuration of Franka Emika Panda robot with stiffer PD control.
 
 This configuration is useful for task-space control using differential IK.
+"""
+"""弗兰卡·埃米卡·潘达机器人的配置PD控制。
+
+这种配置对于使用差异 IK 的任务空间控制是有用的。
 """
 
 
@@ -145,3 +160,4 @@ FRANKA_ROBOTIQ_GRIPPER_CFG.actuators = {
 
 
 """Configuration of Franka Emika Panda robot with Robotiq_2f_85 gripper."""
+"""机器人机器人机器人机器人机器人机器人"""

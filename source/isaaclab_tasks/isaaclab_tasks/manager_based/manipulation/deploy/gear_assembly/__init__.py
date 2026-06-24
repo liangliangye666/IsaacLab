@@ -4,3 +4,4 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Assemble 3 gears into a base."""
+"""组装3个轮子成一个基。"""

@@ -15,6 +15,7 @@ from isaaclab_mimic.locomanipulation_sdg.scene_utils import HasPose, SceneFixtur
 
 class LocomanipulationSDGOutputDataRecorder(RecorderTerm):
     """Recorder for Locomanipulation SDG output data."""
+    """记录器用于Locomanipulation SDG输出数据。"""
 
     def record_pre_step(self):
         output_data: LocomanipulationSDGOutputData = self._env._locomanipulation_sdg_output_data
@@ -48,6 +49,11 @@ class LocomanipulationSDGEnv(ManagerBasedRLEnv):
     locomanipulation replay.  By implementing these methods for a new environment, the environment can be used with
     the locomanipulation SDG replay function.
     """
+    """一个抽象的基础类，包裹了底层环境，揭示了集成与位置操纵重播所需的方法。
+
+    该类定义了将环境与位置操作SDG管道集成用于位置操作重播所需的核心方法。
+    通过在新环境中实现这些方法，环境可以使用SDG重播功能。
+    """
 
     def load_input_data(self, episode_data: EpisodeData, step: int) -> LocomanipulationSDGInputData:
         raise NotImplementedError
@@ -64,28 +70,35 @@ class LocomanipulationSDGEnv(ManagerBasedRLEnv):
 
     def get_base(self) -> HasPose:
         """Get the robot base body."""
+        """拿起机器人基体。"""
         raise NotImplementedError
 
     def get_left_hand(self) -> HasPose:
         """Get the robot left hand body."""
+        """拿着机器人左手身体。"""
         raise NotImplementedError
 
     def get_right_hand(self) -> HasPose:
         """Get the robot right hand body."""
+        """拿着机器人右手身体。"""
         raise NotImplementedError
 
     def get_object(self) -> HasPose:
         """Get the target object body."""
+        """拿到目标物体。"""
         raise NotImplementedError
 
     def get_start_fixture(self) -> SceneFixture:
         """Get the start fixture body."""
+        """拿起启动装置的机体。"""
         raise NotImplementedError
 
     def get_end_fixture(self) -> SceneFixture:
         """Get the end fixture body."""
+        """拿到终端装置的身体。"""
         raise NotImplementedError
 
     def get_obstacle_fixtures(self) -> list[SceneFixture]:
         """Get the set of obstacle fixtures."""
+        """拿出障碍灯。"""
         raise NotImplementedError

@@ -20,8 +20,22 @@ through the auto-tune functionality.
     ./isaaclab.sh -p scripts/benchmarks/benchmark_cameras.py -h --headless
 
 """
+"""这种脚本可以帮助您确定您的系统可以在不同的设置上实际运行多少摄像头。
+
+您可以提供不同的任务环境来注入摄像头，或者只是测试一个样本场景。
+通过自动调节功能，您还可以自动找到最多的摄像头。
+
+.. code-block:: bash
+
+    # Usage with GUI
+    ./isaaclab.sh -p scripts/benchmarks/benchmark_cameras.py -h
+
+    # Usage with headless
+    ./isaaclab.sh -p scripts/benchmarks/benchmark_cameras.py -h --headless
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 from collections.abc import Callable
@@ -37,6 +51,8 @@ parser = argparse.ArgumentParser(description="This script can help you benchmark
 The following arguments only need to be supplied for when one wishes
 to try injecting cameras into their environment, and automatically determining
 the maximum camera count.
+"""
+"""只有在试图将摄像头注入环境中并自动确定最大摄像头数量时才需要提供以下参数。
 """
 parser.add_argument(
     "--task",
@@ -100,6 +116,8 @@ parser.add_argument(
 """
 The following arguments are shared for when injecting cameras into a task environment,
 as well as when creating cameras independent of a task environment.
+"""
+"""在注射摄像头进入任务环境时，以及创建独立于任务环境的摄像头时，共享以下论点。
 """
 
 parser.add_argument(
@@ -238,6 +256,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import random
 import time
@@ -266,6 +285,8 @@ from isaaclab_tasks.utils import load_cfg_from_registry
 """
 Camera Creation
 """
+"""摄像机创建
+"""
 
 
 def create_camera_base(
@@ -278,6 +299,7 @@ def create_camera_base(
     instantiate: bool = True,
 ) -> Camera | TiledCamera | CameraCfg | TiledCameraCfg | None:
     """Generalized function to create a camera or tiled camera sensor."""
+    """整体功能，以创建相机或 camera式相机传感器。"""
     # Determine prim prefix based on the camera class
     name = camera_cfg.class_type.__name__
 
@@ -313,6 +335,7 @@ def create_tiled_cameras(
     if data_types is None:
         data_types = ["rgb", "depth"]
     """Defines the tiled camera sensor to add to the scene."""
+    """定义了加上场景的 camera摄像头传感器。"""
     return create_camera_base(
         camera_cfg=TiledCameraCfg,
         num_cams=num_cams,
@@ -326,6 +349,7 @@ def create_cameras(
     num_cams: int = 2, data_types: list[str] | None = None, height: int = 100, width: int = 120
 ) -> Camera | None:
     """Defines the Standard cameras."""
+    """定义了标准摄像头。"""
     if data_types is None:
         data_types = ["rgb", "depth"]
     return create_camera_base(
@@ -343,6 +367,7 @@ def create_ray_caster_cameras(
     instantiate: bool = True,
 ) -> RayCasterCamera | RayCasterCameraCfg | None:
     """Create the raycaster cameras; different configuration than Standard/Tiled camera"""
+    """创建射频摄像头；不同于标准/式摄像头的配置"""
     for idx in range(num_cams):
         sim_utils.create_prim(f"/World/RayCasterCamera_{idx:02d}/RayCaster", "Xform")
 
@@ -372,6 +397,7 @@ def create_ray_caster_cameras(
 
 def create_tiled_camera_cfg(prim_path: str) -> TiledCameraCfg:
     """Grab a simple tiled camera config for injecting into task environments."""
+    """拿一个简单的 camera片摄像头配置，"""
     return create_camera_base(
         TiledCameraCfg,
         num_cams=args_cli.num_tiled_cameras,
@@ -385,6 +411,7 @@ def create_tiled_camera_cfg(prim_path: str) -> TiledCameraCfg:
 
 def create_standard_camera_cfg(prim_path: str) -> CameraCfg:
     """Grab a simple standard camera config for injecting into task environments."""
+    """拿一个简单的标准摄像头配置，"""
     return create_camera_base(
         CameraCfg,
         num_cams=args_cli.num_standard_cameras,
@@ -398,6 +425,7 @@ def create_standard_camera_cfg(prim_path: str) -> CameraCfg:
 
 def create_ray_caster_camera_cfg(prim_path: str) -> RayCasterCameraCfg:
     """Grab a simple ray caster config for injecting into task environments."""
+    """拿一个简单的射线投射器配置，"""
     return create_ray_caster_cameras(
         num_cams=args_cli.num_ray_caster_cameras,
         data_types=args_cli.ray_caster_camera_data_types,
@@ -409,6 +437,8 @@ def create_ray_caster_camera_cfg(prim_path: str) -> RayCasterCameraCfg:
 
 """
 Scene Creation
+"""
+"""场景创作
 """
 
 
@@ -425,6 +455,7 @@ def design_scene(
     mesh_prim_paths: list[str] = ["/World/ground"],
 ) -> dict:
     """Design the scene."""
+    """设计场景。"""
     if tiled_camera_data_types is None:
         tiled_camera_data_types = ["rgb"]
     if standard_camera_data_types is None:
@@ -507,6 +538,7 @@ def inject_cameras_into_task(
     num_cameras_per_env: int = 1,
 ) -> gym.Env:
     """Loads the task, sticks cameras into the config, and creates the environment."""
+    """它将任务加载，将摄像头插入配置器中，"""
     cfg = load_cfg_from_registry(task, "env_cfg_entry_point")
     cfg.sim.device = args_cli.device
     cfg.sim.use_fabric = args_cli.use_fabric
@@ -527,11 +559,15 @@ def inject_cameras_into_task(
 """
 System diagnosis
 """
+"""系统诊断
+"""
 
 
 def get_utilization_percentages(reset: bool = False, max_values: list[float] = [0.0, 0.0, 0.0, 0.0]) -> list[float]:
     """Get the maximum CPU, RAM, GPU utilization (processing), and
     GPU memory usage percentages since the last time reset was true."""
+    """获得最大的 CPU， RAM， GPU使用率 (处理)， 和 GPU内存使用率，
+    """
     if reset:
         max_values[:] = [0, 0, 0, 0]  # Reset the max values
 
@@ -573,6 +609,8 @@ def get_utilization_percentages(reset: bool = False, max_values: list[float] = [
 """
 Experiment
 """
+"""实验
+"""
 
 
 def run_simulator(
@@ -590,6 +628,9 @@ def run_simulator(
     env: gym.Env | None = None,
 ) -> dict:
     """Run the simulator with all cameras, and return timing analytics. Visualize if desired."""
+    """运行仿真器和所有的相机，返回时间分析。
+    如果您愿意，可以设想。
+    """
 
     if tiled_camera_data_types is None:
         tiled_camera_data_types = ["rgb"]
@@ -730,6 +771,7 @@ def run_simulator(
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load simulation context
     if args_cli.num_tiled_cameras + args_cli.num_standard_cameras + args_cli.num_ray_caster_cameras <= 0:
         raise ValueError("You must select at least one camera.")

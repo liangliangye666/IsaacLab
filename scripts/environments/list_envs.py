@@ -12,8 +12,18 @@ It prints the name of the environment, the entry point and the config file.
 All the environments are registered in the `isaaclab_tasks` extension. They start
 with `Isaac` in their name.
 """
+"""脚本将打印所有可用环境在艾萨克实验室。
+
+脚本在所有注册环境中进行代，并将细节存储在表中。
+它打印环境名称，输入点和配置文件。
+
+所有环境都被注册在`isaaclab_tasks`扩展中。
+他们开始
+with `Isaac` in their name.
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -31,6 +41,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import gymnasium as gym
 from prettytable import PrettyTable
@@ -40,6 +51,7 @@ import isaaclab_tasks  # noqa: F401
 
 def main():
     """Print all environments registered in `isaaclab_tasks` extension."""
+    """打印在`isaaclab_tasks`扩展中注册的所有环境。"""
     # print all the available environments
     table = PrettyTable(["S. No.", "Task Name", "Entry Point", "Config"])
     table.title = "Available Environments in Isaac Lab"

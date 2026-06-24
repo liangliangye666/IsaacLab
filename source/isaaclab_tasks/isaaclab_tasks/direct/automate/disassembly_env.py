@@ -50,6 +50,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _set_body_inertias(self):
         """Note: this is to account for the asset_options.armature parameter in IGE."""
+        """Note: 这将解释IGE中的asset_options.armature参数。"""
         inertias = self._robot.root_physx_view.get_inertias()
         offset = torch.zeros_like(inertias)
         offset[:, :, [0, 4, 8]] += 0.01
@@ -58,6 +59,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _set_default_dynamics_parameters(self):
         """Set parameters defining dynamic interactions."""
+        """设置定义动态相互作用的参数。"""
         self.default_gains = torch.tensor(self.cfg.ctrl.default_task_prop_gains, device=self.device).repeat(
             (self.num_envs, 1)
         )
@@ -76,6 +78,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _set_friction(self, asset, value):
         """Update material properties for a given asset."""
+        """更新给定的资产的材料属性。"""
         materials = asset.root_physx_view.get_material_properties()
         materials[..., 0] = value  # Static friction.
         materials[..., 1] = value  # Dynamic friction.
@@ -84,6 +87,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _init_tensors(self):
         """Initialize tensors once."""
+        """一次启动光器。"""
         self.identity_quat = (
             torch.tensor([1.0, 0.0, 0.0, 0.0], device=self.device).unsqueeze(0).repeat(self.num_envs, 1)
         )
@@ -149,6 +153,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _load_assembly_info(self):
         """Load grasp pose and disassembly distance for plugs in each environment."""
+        """每个环境中的插头的负载抓住姿势和拆卸距离。"""
 
         retrieve_file_path(self.cfg_task.plug_grasp_json, download_dir="./")
         with open(os.path.basename(self.cfg_task.plug_grasp_json)) as f:
@@ -164,6 +169,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _setup_scene(self):
         """Initialize simulation scene."""
+        """启动仿真场景。"""
         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg(), translation=(0.0, 0.0, -0.4))
 
         # spawn a usd file of a table into the scene
@@ -193,6 +199,9 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _compute_intermediate_values(self, dt):
         """Get values computed from raw tensors. This includes adding noise."""
+        """从原始张量计算的值。
+        这包括增加噪音。
+        """
         # TODO: A lot of these can probably only be set once?
         self.fixed_pos = self._fixed_asset.data.root_pos_w - self.scene.env_origins
         self.fixed_quat = self._fixed_asset.data.root_quat_w
@@ -258,6 +267,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _get_observations(self):
         """Get actor/critic inputs using asymmetric critic."""
+        """用不对称的评论家来获取演员/评论家的输入。"""
 
         obs_dict = {
             "joint_pos": self.joint_pos[:, 0:7],
@@ -293,16 +303,19 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _reset_buffers(self, env_ids):
         """Reset buffers."""
+        """重置缓冲器。"""
         self.ep_succeeded[env_ids] = 0
 
     def _pre_physics_step(self, action):
         """Apply policy actions with smoothing."""
+        """采取策略动作，以平滑的方式。"""
         env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)
         if len(env_ids) > 0:
             self._reset_buffers(env_ids)
 
     def move_gripper_in_place(self, ctrl_target_gripper_dof_pos):
         """Keep gripper in current position as gripper closes."""
+        """保持抓住器的位置当抓住器关闭。"""
         actions = torch.zeros((self.num_envs, 6), device=self.device)
         ctrl_target_gripper_dof_pos = 0.0
 
@@ -339,6 +352,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _apply_action(self):
         """Apply actions for policy as delta targets from current position."""
+        """根据当前情况，将策略动作作为多角目标。"""
         # Get current yaw for success checking.
         _, _, curr_yaw = torch_utils.get_euler_xyz(self.fingertip_midpoint_quat)
         self.curr_yaw = torch.where(curr_yaw > np.deg2rad(235), curr_yaw - 2 * np.pi, curr_yaw)
@@ -390,12 +404,16 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _set_gains(self, prop_gains, rot_deriv_scale=1.0):
         """Set robot gains using critical damping."""
+        """设置机器人使用关键缩。"""
         self.task_prop_gains = prop_gains
         self.task_deriv_gains = 2 * torch.sqrt(prop_gains)
         self.task_deriv_gains[:, 3:6] /= rot_deriv_scale
 
     def generate_ctrl_signals(self):
         """Get Jacobian. Set Franka DOF position targets (fingers) or DOF torques (arm)."""
+        """找杰科比亚。
+        设置Franka DOF位置目标 (指) 或DOF扭矩 (臂)。
+        """
         self.joint_torque, self.applied_wrench = fc.compute_dof_torque(
             cfg=self.cfg,
             dof_pos=self.joint_pos,
@@ -422,6 +440,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _get_dones(self):
         """Update intermediate values used for rewards and observations."""
+        """更新用于奖励和观测的中间值。"""
         self._compute_intermediate_values(dt=self.physics_dt)
         time_out = self.episode_length_buf >= self.max_episode_length - 1
 
@@ -440,6 +459,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _get_rewards(self):
         """Update rewards and compute success statistics."""
+        """更新奖励和计算成功统计数据。"""
         # Get successful and failed envs at current timestep
 
         rew_buf = self._update_rew_buf()
@@ -447,11 +467,14 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _update_rew_buf(self):
         """Compute reward at current timestep."""
+        """在当前时间步骤计算奖励。"""
         return torch.zeros((self.num_envs,), device=self.device)
 
     def _reset_idx(self, env_ids):
         """
         We assume all envs will always be reset at the same time.
+        """
+        """我们假设所有envs将始终同时重置。
         """
         super()._reset_idx(env_ids)
 
@@ -471,6 +494,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _set_assets_to_default_pose(self, env_ids):
         """Move assets to default pose before randomization."""
+        """在随机化之前将资产移动到默认状态。"""
         held_state = self._held_asset.data.default_root_state.clone()[env_ids]
         held_state[:, 0:3] += self.scene.env_origins[env_ids]
         held_state[:, 7:] = 0.0
@@ -487,6 +511,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _move_gripper_to_grasp_pose(self, env_ids):
         """Define grasp pose for plug and move gripper to pose."""
+        """设定插头的抓住姿势，移动抓住器的姿势。"""
 
         gripper_goal_quat, gripper_goal_pos = torch_utils.tf_combine(
             self.held_quat,
@@ -513,6 +538,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def set_pos_inverse_kinematics(self, env_ids):
         """Set robot joint position using DLS IK."""
+        """使用DLS IK设置机器人关节位置。"""
         ik_time = 0.0
         while ik_time < 0.50:
             # Compute error to target.
@@ -591,6 +617,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _set_franka_to_default_pose(self, joints, env_ids):
         """Return Franka to its default joint position."""
+        """返回弗兰卡的默认位置。"""
         # gripper_width = self.cfg_task.held_asset_cfg.diameter / 2 * 1.25
         # gripper_width = self.cfg_task.hand_width_max / 3.0
         gripper_width = self.gripper_open_width
@@ -609,6 +636,9 @@ class DisassemblyEnv(DirectRLEnv):
 
     def step_sim_no_action(self):
         """Step the simulation without an action. Used for resets."""
+        """在没有动作的情况下进行仿真。
+        用于重置。
+        """
         self.scene.write_data_to_sim()
         self.sim.step(render=True)
         self.scene.update(dt=self.physics_dt)
@@ -684,6 +714,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def randomize_initial_state(self, env_ids):
         """Randomize initial state and perform any episode-level randomization."""
+        """随机化初始状态和执行任何事件级随机化。"""
         # Disable gravity.
         physics_sim_view = sim_utils.SimulationContext.instance().physics_sim_view
         physics_sim_view.set_gravity(carb.Float3(0.0, 0.0, 0.0))
@@ -729,6 +760,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _disassemble_plug_from_socket(self):
         """Lift plug from socket till disassembly and then randomize end-effector pose."""
+        """提升插座从插座到拆除，然后随机定制末端执行器姿势。"""
 
         if_intersect = np.ones(self.num_envs, dtype=np.float32)
 
@@ -743,6 +775,9 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _lift_gripper(self, lift_distance, sim_steps, env_ids=None):
         """Lift gripper by specified distance. Called outside RL loop (i.e., after last step of episode)."""
+        """按指定的距离将电梯起。
+        在 RL 循环外调 (i.e.，在事件的最后一步之后)。
+        """
 
         ctrl_tgt_pos = torch.empty_like(self.fingertip_midpoint_pos).copy_(self.fingertip_midpoint_pos)
         ctrl_tgt_quat = torch.empty_like(self.fingertip_midpoint_quat).copy_(self.fingertip_midpoint_quat)
@@ -754,6 +789,7 @@ class DisassemblyEnv(DirectRLEnv):
 
     def _randomize_gripper_pose(self, sim_steps, env_ids):
         """Move gripper to random pose."""
+        """移动抓住器到随机姿势。"""
 
         ctrl_tgt_pos = torch.empty_like(self.gripper_goal_pos).copy_(self.gripper_goal_pos)
         ctrl_tgt_pos[:, 2] += self.cfg_task.gripper_rand_z_offset

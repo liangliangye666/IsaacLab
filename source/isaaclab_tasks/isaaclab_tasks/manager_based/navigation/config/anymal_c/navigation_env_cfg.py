@@ -24,6 +24,7 @@ LOW_LEVEL_ENV_CFG = AnymalCFlatEnvCfg()
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_base = EventTerm(
         func=mdp.reset_root_state_uniform,
@@ -45,6 +46,7 @@ class EventCfg:
 @configclass
 class ActionsCfg:
     """Action terms for the MDP."""
+    """对MDP的动作项。"""
 
     pre_trained_policy_action: mdp.PreTrainedPolicyActionCfg = mdp.PreTrainedPolicyActionCfg(
         asset_name="robot",
@@ -58,10 +60,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # observation terms (order preserved)
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel)
@@ -75,6 +79,7 @@ class ObservationsCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     termination_penalty = RewTerm(func=mdp.is_terminated, weight=-400.0)
     position_tracking = RewTerm(
@@ -97,6 +102,7 @@ class RewardsCfg:
 @configclass
 class CommandsCfg:
     """Command terms for the MDP."""
+    """对MDP的命令条件。"""
 
     pose_command = mdp.UniformPose2dCommandCfg(
         asset_name="robot",
@@ -110,6 +116,7 @@ class CommandsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     base_contact = DoneTerm(
@@ -121,6 +128,7 @@ class TerminationsCfg:
 @configclass
 class NavigationEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the navigation environment."""
+    """对导航环境的配置。"""
 
     # environment settings
     scene: SceneEntityCfg = LOW_LEVEL_ENV_CFG.scene
@@ -134,6 +142,7 @@ class NavigationEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
 
         self.sim.dt = LOW_LEVEL_ENV_CFG.sim.dt
         self.sim.render_interval = LOW_LEVEL_ENV_CFG.decimation

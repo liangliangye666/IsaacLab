@@ -55,17 +55,52 @@ class NonHolonomicAction(ActionTerm):
         For velocity control of the base with dummy mechanism, we recommend setting high damping gains to the joints.
         This ensures that the base remains unperturbed from external disturbances, such as an arm mounted on the base.
     """
+    """不全性动作，将二维动作映射到x，y和方向的机器人的速度。
+
+    这种动作项帮助模型滑动方向盘机器人基地。
+    动作是一个2D向量，包括前进速度:`v_{B，x}`和转速:{B，z}:在基架上。
+    使用当前的基地导向，命令转化为仿真关节速度目标，如:
+
+    .. math::
+
+        \dot{q}_{0, des} &= v_{B,x} \cos(\theta) \
+        \dot{q}_{1, des} &= v_{B,x} \sin(\theta) \
+        \dot{q}_{2, des} &= \omega_{B,z}
+
+    where :数学:`\theta`是二维基的。
+           由于底部被仿真为一个模具关节，所以直接
+    随着z，i.e.，:数学:`q_2 = \theta`的结合值。
+
+    .. 说明::
+        目前的实施假设，基底是仿真的三个模具关节 (沿 x 和 y 的pr结，沿 z 的转折关节)。
+        这是因为比仿真轮子更容易将移动基作为由三个仿真关节控制的浮动链，这有时是由于摩擦设置而棘手的。
+
+        然而，操作项也可以延长到其他基层配置。
+
+    .. 提示::
+        为了控制底部的速度，我们建议设置高缩增长。
+        这确保底部不受外部干扰的影响，例如在底部安装的手臂。
+    """
 
     cfg: actions_cfg.NonHolonomicActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
     _asset: Articulation
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
     _scale: torch.Tensor
     """The scaling factor applied to the input action. Shape is (1, 2)."""
+    """对输入操作所应用的扩展因素。
+    形状为 (1， 2)。
+    """
     _offset: torch.Tensor
     """The offset applied to the input action. Shape is (1, 2)."""
+    """对输入操作所应用的抵消。
+    形状为 (1， 2)。
+    """
     _clip: torch.Tensor
     """The clip applied to the input action."""
+    """在输入操作中应用的裁剪。"""
 
     def __init__(self, cfg: actions_cfg.NonHolonomicActionCfg, env: ManagerBasedEnv):
         # initialize the action term
@@ -125,6 +160,8 @@ class NonHolonomicAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
@@ -155,6 +192,21 @@ class NonHolonomicAction(ActionTerm):
         Returns:
             The IO descriptor of the action term.
         """
+        """动作项的IO描述符。
+
+        这种描述符用于描述非全态作用的作用项。
+        它将以下信息添加到基础描述符中:
+        - 规模:动作项的规模。
+        - 抵消:动作项的抵消。
+        - 动作项的裁剪。
+        - body_name尸体的名字。
+        - x_joint_name:X合点的名称。
+        - y_joint_name: y 关节的名称。
+        - yaw_joint_namejoint 的名称。
+
+        返回：
+            动作项的IO描述符。
+        """
         super().IO_descriptor
         self._IO_descriptor.shape = (self.action_dim,)
         self._IO_descriptor.dtype = str(self.raw_actions.dtype)
@@ -170,6 +222,8 @@ class NonHolonomicAction(ActionTerm):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def process_actions(self, actions):

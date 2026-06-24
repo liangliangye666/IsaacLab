@@ -15,6 +15,16 @@ The following converters are currently supported:
 * :class:`MeshConverter`: Converts a mesh file into a USD file. This supports OBJ, STL and FBX files.
 
 """
+"""包含各种文件类型转换为USD的转换器的子模块。
+
+为了支持将各种文件类型直接加载到Omniverse中，我们提供了一套可将文件转换为USD文件的转换器。
+转换器作为:class:`AssetConverterBase`类的子类进行实施。
+
+目前支持以下转换器:
+
+* :class:`UrdfConverter`:将URDF文件转换为USD文件。
+* :class:`MeshConverter`:将网格文件转换为USD文件。 这支持OBJ，STL和FBX文件。
+"""
 
 from .asset_converter_base import AssetConverterBase
 from .asset_converter_base_cfg import AssetConverterBaseCfg

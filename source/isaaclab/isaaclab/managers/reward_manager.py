@@ -6,6 +6,7 @@
 """Reward manager for computing reward signals for a given world."""
 
 from __future__ import annotations
+"""计算一个特定世界的奖励信号的奖励管理器。"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -37,9 +38,23 @@ class RewardManager(ManagerBase):
         respect to the chosen time-step interval in the environment.
 
     """
+    """管理一个特定世界的计算奖励信号。
+
+    奖励管理器将总奖励计算为加权奖励项的总和。
+    奖励条件由包含奖励的设置和奖励条件配置的嵌套配置类进行分析。
+
+    奖励项由包含管理器的设置和每个项的参数的配置类进行分析。
+    每个奖励项都应该标记:class:`RewardTermCfg`类。
+
+    .. 说明::
+
+        奖励管理器将奖励期的``weight``乘以环境的时间步骤间隔``dt``。
+        这样才能确保计算的奖励条件与环境中选择的时间步骤间隔保持平衡。
+    """
 
     _env: ManagerBasedRLEnv
     """The environment instance."""
+    """环境情况。"""
 
     def __init__(self, cfg: object, env: ManagerBasedRLEnv):
         """Initialize the reward manager.
@@ -47,6 +62,12 @@ class RewardManager(ManagerBase):
         Args:
             cfg: The configuration object or dictionary (``dict[str, RewardTermCfg]``).
             env: The environment instance.
+        """
+        """启动奖励管理器。
+
+        参数：
+            cfg: 配置对象或字典 (``dict[str， RewardTermCfg]``)。
+            env: 环境情况。
         """
         # create buffers to parse and store terms
         self._term_names: list[str] = list()
@@ -67,6 +88,7 @@ class RewardManager(ManagerBase):
 
     def __str__(self) -> str:
         """Returns: A string representation for reward manager."""
+        """Returns: 一个奖励管理器的字符串表示。"""
         msg = f"<RewardManager> contains {len(self._term_names)} active terms.\n"
 
         # create table for term information
@@ -88,14 +110,19 @@ class RewardManager(ManagerBase):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def active_terms(self) -> list[str]:
         """Name of active reward terms."""
+        """事件奖励条件的名称。"""
         return self._term_names
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, torch.Tensor]:
@@ -107,6 +134,15 @@ class RewardManager(ManagerBase):
 
         Returns:
             Dictionary of episodic sum of individual reward terms.
+        """
+        """返回个别奖励条件的事件总数。
+
+        参数：
+            env_ids: 必须返回单个奖励条件的事件总和的环境ID。
+                     所有环境 ID的默认。
+
+        返回：
+            单个奖励项的回合总数字典。
         """
         # resolve environment ids
         if env_ids is None:
@@ -138,6 +174,17 @@ class RewardManager(ManagerBase):
         Returns:
             The net reward signal of shape (num_envs,).
         """
+        """计算奖励信号作为个体项的权重总数。
+
+        这个函数将由类管理的每个奖励项调用，并添加它们来计算净奖励信号。
+        它还更新了各个奖励项相应的集体金额。
+
+        参数：
+            dt: 环境的时间间隔。
+
+        返回：
+            形状的净奖励信号 (num_envs，)。
+        """
         # reset computation
         self._reward_buf[:] = 0.0
         # iterate over all the reward terms
@@ -161,6 +208,8 @@ class RewardManager(ManagerBase):
     """
     Operations - Term settings.
     """
+    """运营 - 项设置
+    """
 
     def set_term_cfg(self, term_name: str, cfg: RewardTermCfg):
         """Sets the configuration of the specified term into the manager.
@@ -171,6 +220,15 @@ class RewardManager(ManagerBase):
 
         Raises:
             ValueError: If the term name is not found.
+        """
+        """设置指定项的配置在管理器中。
+
+        参数：
+            term_name: 奖励项的名称。
+            cfg: 奖励项的配置。
+
+        异常：
+            ValueError: 如果没有找到项名称。
         """
         if term_name not in self._term_names:
             raise ValueError(f"Reward term '{term_name}' not found.")
@@ -189,6 +247,17 @@ class RewardManager(ManagerBase):
         Raises:
             ValueError: If the term name is not found.
         """
+        """获得指定项的配置。
+
+        参数：
+            term_name: 奖励项的名称。
+
+        返回：
+            奖励项的配置。
+
+        异常：
+            ValueError: 如果没有找到项名称。
+        """
         if term_name not in self._term_names:
             raise ValueError(f"Reward term '{term_name}' not found.")
         # return the configuration
@@ -205,6 +274,16 @@ class RewardManager(ManagerBase):
         Returns:
             The active terms.
         """
+        """返回活跃的项作为可反复的双数序列。
+
+        元组的第一个元素是项的名称，第二个元素是项的原始值。
+
+        参数：
+            env_idx: 具体的环境，可以从中提取活跃项。
+
+        返回：
+            积极的项。
+        """
         terms = []
         for idx, name in enumerate(self._term_names):
             terms.append((name, [self._step_reward[env_idx, idx].cpu().item()]))
@@ -212,6 +291,8 @@ class RewardManager(ManagerBase):
 
     """
     Helper functions.
+    """
+    """辅助函数。
     """
 
     def _prepare_terms(self):

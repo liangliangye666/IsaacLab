@@ -25,12 +25,14 @@ def object_poses_in_base_frame(
     return_key: Literal["pos", "quat", None] = None,
 ) -> torch.Tensor:
     """The pose of the object in the robot base frame."""
+    """机器人基架中的物体姿势。"""
     object: RigidObject = env.scene[object_cfg.name]
 
     pos_object_world = object.data.root_pos_w
     quat_object_world = object.data.root_quat_w
 
     """The position of the robot in the world frame."""
+    """机器人在世界框架中的位置。"""
     robot: Articulation = env.scene[robot_cfg.name]
     root_pos_w = robot.data.root_pos_w
     root_quat_w = robot.data.root_quat_w
@@ -58,6 +60,10 @@ def object_grasped(
     Check if an object is grasped by the specified robot.
     Support both surface gripper and parallel gripper.
     If contact_grasp sensor is found, check if the contact force is greater than force_threshold.
+    """
+    """检查指定的机器人是否抓住物体。
+    支持表面和平行。
+    如果发现contact_grasp传感器，检查接触力是否超过force_threshold。
     """
 
     robot: Articulation = env.scene[robot_cfg.name]

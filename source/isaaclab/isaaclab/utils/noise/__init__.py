@@ -25,6 +25,27 @@ Usage:
     my_noisified_tensor = cfg.func(my_tensor, cfg)
 
 """
+"""含有不同噪音模型的部模块。
+
+噪音模型作为函数实现，将一个子和一个配置，然后返回一个子
+with the noise applied. These functions are then used in the :class:`NoiseCfg` configuration class.
+
+Usage:
+
+.. code-block:: python
+
+    import torch
+    from isaaclab.utils.noise import AdditiveGaussianNoiseCfg
+
+    # create a random tensor
+    my_tensor = torch.rand(128, 128, device="cuda")
+
+    # create a noise configuration
+    cfg = AdditiveGaussianNoiseCfg(mean=0.0, std=1.0)
+
+    # apply the noise
+    my_noisified_tensor = cfg.func(my_tensor, cfg)
+"""
 from .noise_cfg import NoiseCfg  # noqa: F401
 from .noise_cfg import ConstantNoiseCfg, GaussianNoiseCfg, NoiseModelCfg, NoiseModelWithAdditiveBiasCfg, UniformNoiseCfg
 from .noise_model import NoiseModel, NoiseModelWithAdditiveBias, constant_noise, gaussian_noise, uniform_noise

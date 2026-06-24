@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Haply device interface for teleoperation."""
+"""机器接口可用于远程操作。"""
 
 from .se3_haply import HaplyDevice, HaplyDeviceCfg
 

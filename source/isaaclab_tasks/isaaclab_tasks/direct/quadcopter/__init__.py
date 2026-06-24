@@ -6,6 +6,8 @@
 """
 Quacopter environment.
 """
+"""飞机环境。
+"""
 
 import gymnasium as gym
 

@@ -21,6 +21,9 @@ class UIWidgetWrapper:
     Base class for creating wrappers around any subclass of omni.ui.Widget in order to provide an easy interface
     for creating and managing specific types of widgets such as state buttons or file pickers.
     """
+    """基于omni.ui.Widget的任何子类的包装，以提供简单的接口
+    for creating and managing specific types of widgets such as state buttons or file pickers.
+    """
 
     def __init__(self, container_frame: omni.ui.Frame):
         self._container_frame = container_frame
@@ -48,5 +51,7 @@ class UIWidgetWrapper:
     def cleanup(self):
         """
         Perform any necessary cleanup
+        """
+        """进行任何必要的清理
         """
         pass

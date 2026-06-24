@@ -6,6 +6,7 @@
 """Spacemouse controller for SE(3) control."""
 
 from __future__ import annotations
+"""控制器用于SE(3)"""
 
 import threading
 import time
@@ -42,12 +43,36 @@ class Se3SpaceMouse(DeviceBase):
     .. _HID-API: https://github.com/libusb/hidapi
 
     """
+    """一个空间鼠标控制器用于发送SE(3) 命令作为三角形姿势。
+
+    这种类型使用空间鼠标控制器，以控制机器人的手臂。
+    它使用`HID-API`_，它与多个平台的USD和蓝牙HID类设备接口 [1]。
+
+    命令包括两个部分:
+
+    * 角定位:在米和半径中 (x，y，z，roll，pitch， yaw) 的六维向量。
+    * 抓住器:是打开或关闭抓住器的二进制命令。
+
+    说明：
+        接口找到和使用与计算机连接的第一个支持设备。
+
+    目前用于以下设备进行测试:
+
+    - SpaceMouse 紧: https://3dconnexion.com/de/product/spacemouse-compact/
+
+    .. _HID-API: https://github.com/libusb/hidapi
+    """
 
     def __init__(self, cfg: Se3SpaceMouseCfg):
         """Initialize the space-mouse layer.
 
         Args:
             cfg: Configuration object for space-mouse settings.
+        """
+        """启动空间鼠标层。
+
+        参数：
+            cfg: 空间鼠标设置的配置对象
         """
         # store inputs
         self.pos_sensitivity = cfg.pos_sensitivity
@@ -73,10 +98,12 @@ class Se3SpaceMouse(DeviceBase):
 
     def __del__(self):
         """Destructor for the class."""
+        """对于这个班级来说，它是降采样性的。"""
         self._thread.join()
 
     def __str__(self) -> str:
         """Returns: A string containing the information of joystick."""
+        """Returns: 包含玩具信息的字符串。"""
         msg = f"Spacemouse Controller for SE(3): {self.__class__.__name__}\n"
         msg += f"\tManufacturer: {self._device.get_manufacturer_string()}\n"
         msg += f"\tProduct: {self._device.get_product_string()}\n"
@@ -90,6 +117,8 @@ class Se3SpaceMouse(DeviceBase):
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self):
@@ -106,6 +135,13 @@ class Se3SpaceMouse(DeviceBase):
             func: The function to call when key is pressed. The callback function should not
                 take any arguments.
         """
+        """增加额外的功能来绑定空间鼠标。
+
+        参数：
+            key: 键盘检查。
+            func: 在键时调用的函数。
+                  召回函数不应进行任何争论。
+        """
         self._additional_callbacks[key] = func
 
     def advance(self) -> torch.Tensor:
@@ -115,6 +151,13 @@ class Se3SpaceMouse(DeviceBase):
             torch.Tensor: A 7-element tensor containing:
                 - delta pose: First 6 elements as [x, y, z, rx, ry, rz] in meters and radians.
                 - gripper command: Last element as a binary value (+1.0 for open, -1.0 for close).
+        """
+        """提供空间鼠事件状态的结果。
+
+        返回：
+            torch.Tensor: 一个含有:
+                - 德尔塔姿势:第6个元素以米和半径为 [x，y，z，rx， ry，rz]。
+                - 抓住器命令:最后一个元素作为二进制值 (+1.0为开放，-1.0为关闭)。
         """
         rot_vec = Rotation.from_euler("XYZ", self._delta_rot).as_rotvec()
         command = np.concatenate([self._delta_pos, rot_vec])
@@ -127,9 +170,12 @@ class Se3SpaceMouse(DeviceBase):
     """
     Internal helpers.
     """
+    """内部助理。
+    """
 
     def _find_device(self):
         """Find the device connected to computer."""
+        """找到连接到电脑的设备。"""
         found = False
         # implement a timeout for device search
         for _ in range(5):
@@ -158,6 +204,7 @@ class Se3SpaceMouse(DeviceBase):
 
     def _run_device(self):
         """Listener thread that keeps pulling new messages."""
+        """听者线索，不断吸引新的信息。"""
         # keep running
         while True:
             # read the device data
@@ -208,6 +255,7 @@ class Se3SpaceMouse(DeviceBase):
 @dataclass
 class Se3SpaceMouseCfg(DeviceCfg):
     """Configuration for SE3 space mouse devices."""
+    """设置SE3空间鼠标设备。"""
 
     gripper_term: bool = True
     pos_sensitivity: float = 0.4

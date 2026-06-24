@@ -7,6 +7,7 @@
 # pyright: reportPrivateUsage=none
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -16,6 +17,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 # Define a fixture to replace setUpClass
 import pytest
@@ -45,6 +47,7 @@ def registered_entities():
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_asset_configs(registered_entities, device):
     """Check all registered asset configurations."""
+    """检查所有注册的资产配置。"""
     # iterate over all registered assets
     for asset_name, entity_cfg in registered_entities.items():
         # Use pytest's subtests

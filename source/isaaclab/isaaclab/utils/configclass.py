@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module that provides a wrapper around the Python 3.7 onwards ``dataclasses`` module."""
+"""封装 Python 3.7 及以上版本 ``dataclasses`` 模块的子模块。"""
 
 import inspect
 import types
@@ -16,14 +17,18 @@ from .dict import class_to_dict, update_class_from_dict
 
 _CONFIGCLASS_METHODS = ["to_dict", "from_dict", "replace", "copy", "validate"]
 """List of class methods added at runtime to dataclass."""
+"""运行时注入 dataclass 的类方法列表。"""
 
 """
 Wrapper around dataclass.
+"""
+"""dataclass 封装。
 """
 
 
 def __dataclass_transform__():
     """Add annotations decorator for PyLance."""
+    """为 PyLance 提供 dataclass transform 类型提示。"""
     return lambda a: a
 
 
@@ -84,6 +89,59 @@ def configclass(cls, **kwargs):
 
     .. _dataclass: https://docs.python.org/3/library/dataclasses.html
     """
+    """在 ``dataclass`` 基础上增加配置检查和辅助功能。
+
+    Python 标准 dataclass 在配置类场景中主要存在两个限制：
+
+    1. 要求对所有成员进行类型注释。
+    2. 可变默认值必须显式使用 :meth:`field(default_factory=...)`，以确保不同实例不会共享对象。
+
+    该装饰器在 Python `dataclass`_ 之上处理上述问题，并额外提供字典与配置对象之间的转换、
+    配置复制、字段替换和配置校验等功能。
+
+    用法：
+
+    .. code-block:: python
+
+        from dataclasses import MISSING
+
+        from isaaclab.utils.configclass import configclass
+
+
+        @configclass
+        class ViewerCfg:
+            eye: list = [7.5, 7.5, 7.5]  # field missing on purpose
+            lookat: list = field(default_factory=[0.0, 0.0, 0.0])
+
+
+        @configclass
+        class EnvCfg:
+            num_envs: int = MISSING
+            episode_length: int = 2000
+            viewer: ViewerCfg = ViewerCfg()
+
+
+        # create configuration instance
+        env_cfg = EnvCfg(num_envs=24)
+
+        # print information as a dictionary
+        print(env_cfg.to_dict())
+
+        # create a copy of the configuration
+        env_cfg_copy = env_cfg.copy()
+
+        # replace arbitrary fields using keyword arguments
+        env_cfg_copy = env_cfg_copy.replace(num_envs=32)
+
+    参数：
+        cls: 要封装的配置类。
+        **kwargs: 传递给 :func:`dataclass` 的附加参数。
+
+    返回：
+        完成封装后的配置类。
+
+    .. _dataclass: https://docs.python.org/3/library/dataclasses.html
+    """
     # add type annotations
     _add_annotation_types(cls)
     # add field factory
@@ -111,6 +169,10 @@ Dictionary <-> Class operations.
 
 These are redefined here to add new docstrings.
 """
+"""字典与类之间的转换操作。
+
+这里重新定义包装函数，以提供适用于 configclass 的 docstring。
+"""
 
 
 def _class_to_dict(obj: object) -> dict[str, Any]:
@@ -121,6 +183,14 @@ def _class_to_dict(obj: object) -> dict[str, Any]:
 
     Returns:
         Converted dictionary mapping.
+    """
+    """递归地将对象转换为字典。
+
+    参数：
+        obj: 要转换的对象。
+
+    返回：
+        转换后的字典。
     """
     return class_to_dict(obj)
 
@@ -138,6 +208,19 @@ def _update_class_from_dict(obj, data: dict[str, Any]) -> None:
         TypeError: When input is not a dictionary.
         ValueError: When dictionary has a value that does not match default config type.
         KeyError: When dictionary has a key that does not exist in the default config type.
+    """
+    """读取字典并递归设置对象成员。
+
+    该函数会原地更新类成员属性。
+
+    参数：
+        obj: 要更新的对象。
+        data: 作为更新来源的输入（可嵌套）字典。
+
+    异常：
+        TypeError: 当输入不是字典时。
+        ValueError: 当字典的值不符合默认配置类型时。
+        KeyError: 字典包含默认配置类型中不存在的键。
     """
     update_class_from_dict(obj, data, _ns="")
 
@@ -166,16 +249,42 @@ def _replace_class_with_kwargs(obj: object, **kwargs) -> object:
     Returns:
         The new object.
     """
+    """返回一个新对象，并用给定值替换指定字段。
+
+    该方法对 frozen 类尤其有用。示例：
+
+    .. code-block:: python
+
+        @configclass(frozen=True)
+        class C:
+            x: int
+            y: int
+
+
+        c = C(1, 2)
+        c1 = c.replace(x=3)
+        assert c1.x == 3 and c1.y == 2
+
+    参数：
+        obj: 原对象。
+        **kwargs: 要替换的字段及其新值。
+
+    返回：
+        替换字段后的新对象。
+    """
     return replace(obj, **kwargs)
 
 
 def _copy_class(obj: object) -> object:
     """Return a new object with the same fields as the original."""
+    """返回与原始相同的字段的新对象。"""
     return replace(obj)
 
 
 """
 Private helper functions.
+"""
+"""内部辅助函数。
 """
 
 
@@ -196,6 +305,16 @@ def _add_annotation_types(cls):
            ^^
            If the function is NOT used, the following type-error is returned:
            TypeError: 'pos' is a field but has no type annotation
+    """
+    """为 dataclass 中的所有字段补充类型注解。
+
+    Python 将带类型注解的类变量识别为 dataclass 字段。若未提供类型注解，dataclass 会忽略该成员。
+    本函数根据默认值推断并补充缺失的类型注解，使下列写法可用：
+
+    @dataclass
+    class State:
+        pos = (0.0, 0.0, 0.0)
+           ^^ 若不调用本函数，会出现字段缺少类型注解的 TypeError。
     """
     # get type hints
     hints = {}
@@ -259,6 +378,20 @@ def _validate(obj: object, prefix: str = "") -> list[str]:
     Raises:
         TypeError: When the object is not a valid configuration object.
     """
+    """检查 configclass 对象是否合法。
+
+    合法的 configclass 对象中不能存在值为 ``MISSING`` 的字段。
+
+    参数：
+        obj: 要检查的对象。
+        prefix: 添加到缺失字段路径前的前缀。默认为空字符串。
+
+    返回：
+        缺失字段路径列表。
+
+    异常：
+        TypeError: 当对象不是一个有效的配置对象时。
+    """
     missing_fields = []
 
     if type(obj).__name__ == "MeshConverterCfg":
@@ -321,6 +454,19 @@ def _process_mutable_types(cls):
            ^^
            If the function is NOT used, the following value-error is returned:
            ValueError: mutable default <class 'list'> for field pos is not allowed: use default_factory
+    """
+    """通过 :obj:`dataclasses.Field` 初始化可变成员，避免共享默认对象。
+
+    dataclass 要求可变默认值使用 :obj:`field(default_factory=...)`，从而在每次创建实例时重新生成对象。
+    Python 主要显式检查 list、set 和 dict，但配置类实例本身也可能是可变对象并产生隐蔽的共享状态问题。
+    本函数统一为这些成员创建 ``default_factory``。
+
+    因此以下写法可以正常工作：
+
+    @dataclass
+    class State:
+        pos: list = [0.0, 0.0, 0.0]
+           ^^ 若不调用本函数，会出现要求使用 default_factory 的 ValueError。
     """
     # note: Need to set this up in the same order as annotations. Otherwise, it
     #   complains about missing positional arguments.
@@ -389,6 +535,11 @@ def _custom_post_init(obj):
     proxy type i.e. a read only proxy for mapping objects. The error is thrown when using hierarchical data-classes
     for configuration.
     """
+    """在 dataclass 初始化后深拷贝所有成员，避免可变对象共享内存。
+
+    该逻辑通过显式的 post-init 步骤执行，而不是放入 :func:`_process_mutable_types`，
+    以避免分层配置 dataclass 中 mapping proxy 等只读映射对象导致的问题。
+    """
     for key in dir(obj):
         # skip dunder members
         if key.startswith("__"):
@@ -412,6 +563,15 @@ def _combined_function(f1: Callable, f2: Callable) -> Callable:
     Returns:
         The combined function.
     """
+    """将两个函数组合为一个函数。
+
+    参数：
+        f1: 第一个函数。
+        f2: 第二个函数。
+
+    返回：
+        依次调用两个输入函数的组合函数。
+    """
 
     def _combined(*args, **kwargs):
         # call both functions
@@ -423,6 +583,8 @@ def _combined_function(f1: Callable, f2: Callable) -> Callable:
 
 """
 Helper functions
+"""
+"""辅助函数。
 """
 
 
@@ -445,6 +607,24 @@ def _skippable_class_member(key: str, value: Any, hints: dict | None = None) -> 
 
     Returns:
         True if the class member should be skipped, False otherwise.
+    """
+    """检查类成员是否应跳过 configclass 处理。
+
+    以下成员会被跳过：
+
+    * dunder 成员：``__name__``、``__module__``、``__qualname__``、``__annotations__``、``__dict__``；
+    * :obj:`_CONFIGCLASS_METHODS` 中列出的手动注入方法；
+    * 已存在于类型注解中的成员；
+    * 绑定到类或实例的方法；
+    * property。
+
+    参数：
+        key: 类成员名称。
+        value: 类成员值。
+        hints: 类的类型注解。默认为 None，此时不检查成员是否已存在于类型注解中。
+
+    返回：
+        如果该类成员被跳过，则True，否则False。
     """
     # skip dunder members
     if key.startswith("__"):
@@ -483,6 +663,17 @@ def _return_f(f: Any) -> Callable[[], Any]:
     This function should be used to create default factory functions for variables.
 
     Example:
+
+        .. code-block:: python
+
+            value = field(default_factory=_return_f(value))
+            setattr(cls, key, value)
+    """
+    """返回用于创建可变或不可变变量的默认工厂函数。
+
+    该函数用于构造变量的 ``default_factory``。
+
+    示例：
 
         .. code-block:: python
 

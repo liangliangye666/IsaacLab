@@ -57,6 +57,50 @@ Usage:
     # to see all arguments
     ./isaaclab.sh -p scripts/reinforcement_learning/ray/wrap_resources.py -h
 """
+"""这种脚本将一个特定集群的GPU启用节点中的子工作 (个别工作，用于调整工作的文件:`tuner.py`) 发送给一个工作者作为资源包装的集成工作的一部分。
+如果没有指定每个子工作所需的计算资源，则该脚本为每个节点创建一个工作者，每个节点在集群中有GPU(s。
+如果每个子工作所需的资源已指定，则每个节点将创建出可用所需资源的最大可能的工人数
+with GPU(s) in the cluster. It is also possible to split available node resources for each node
+在``--num_workers``标志的工人数量中，可以轻松平行多GPU节点的子工作。
+由于艾萨克实验室需要GPU，这忽略了所有CPU只节点，如记录器。
+
+在一个集群中，子工作通过下列关系与节点 (node) 匹配:
+sorted_nodes = Node sorted by descending GPUs, then descending CPUs, then descending RAM, then node ID
+node_submitted_to = sorted_nodes[job_index % total_node_count]
+
+为了检查排序的节点，输入``--test``参数并运行脚本。
+
+部分工作由+界限器分开。
+``--sub_jobs``参数必须是最后一个参数。
+
+如果有多个可用的工人，多个子工作，子工作将同时执行。
+如果有比工人多的子工作，
+几乎可以同时提交的子工作数量没有限制。
+
+这种脚本是为了在Ray集群头节点执行作为集群工作。
+提交像本脚本这样的集群工作到一个或多个远程集群，
+see :文件:`../submit_isaac_ray_job.py`。
+
+在Google GKE上可以创建KubeRay集群:文件:`../launch.py`
+
+Usage:
+
+.. code-block:: bash
+    # **Ensure that sub-jobs are separated by the ``+`` delimiter.**
+    # Generic Templates-----------------------------------
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/wrap_resources.py -h
+    # No resource isolation; no parallelization:
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/wrap_resources.py
+    --sub_jobs <JOB0>+<JOB1>+<JOB2>
+    # Automatic Resource Isolation; Example A: needed for parallelization
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/wrap_resources.py     --num_workers <NUM_TO_DIVIDE_TOTAL_RESOURCES_BY>     --sub_jobs <JOB0>+<JOB1>
+    # Manual Resource Isolation; Example B:  needed for parallelization
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/wrap_resources.py --num_cpu_per_worker <CPU>     --gpu_per_worker <GPU> --ram_gb_per_worker <RAM> --sub_jobs <JOB0>+<JOB1>
+    # Manual Resource Isolation; Example C: Needed for parallelization, for heterogeneous workloads
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/wrap_resources.py --num_cpu_per_worker <CPU>     --gpu_per_worker <GPU1> <GPU2> --ram_gb_per_worker <RAM> --sub_jobs <JOB0>+<JOB1>
+    # to see all arguments
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/wrap_resources.py -h
+"""
 
 import argparse
 
@@ -72,6 +116,12 @@ def wrap_resources_to_jobs(jobs: list[str], args: argparse.Namespace) -> None:
         jobs: bash commands to execute on a Ray cluster
         args: The arguments for resource allocation
 
+    """
+    """如果提供工作列表，只要资源限制明确其他情况，将工作分配给每一个可用的节点的工人。
+
+    参数：
+        jobs: 在Ray集群中执行Bash命令
+        args: 资源分配的论点
     """
     job_objs = []
     util.ray_init(

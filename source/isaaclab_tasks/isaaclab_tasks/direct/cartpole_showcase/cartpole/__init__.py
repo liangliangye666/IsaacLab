@@ -6,6 +6,8 @@
 """
 Cartpole balancing environment.
 """
+"""杆平衡环境。
+"""
 
 import gymnasium as gym
 

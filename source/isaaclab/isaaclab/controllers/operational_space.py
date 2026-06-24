@@ -31,6 +31,15 @@ class OperationalSpaceController:
     2. `Robot Dynamics Lecture Notes <https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-intelligent-systems/rsl-dam/documents/RobotDynamics2017/RD_HS2017script.pdf>`_
        by Marco Hutter (ETH Zurich)
     """
+    """运营空间控制器。
+
+    Reference:
+
+    1. `A unified approach for motion and force control of robot manipulators: The operational space
+       formulation <http://dx.doi.org/10.1109/JRA.1987.1087068>`通过Oussama Khatib (斯坦福大学)
+    2. `Robot Dynamics Lecture Notes <https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-
+       intelligent-systems/rsl-dam/documents/RobotDynamics2017/RD_HS2017script.pdf>`马可·哈特 (ETH苏黎世
+    """
 
     def __init__(self, cfg: OperationalSpaceControllerCfg, num_envs: int, device: str):
         """Initialize operational-space controller.
@@ -42,6 +51,16 @@ class OperationalSpaceController:
 
         Raises:
             ValueError: When invalid control command is provided.
+        """
+        """启动操作空间控制器。
+
+        参数：
+            cfg: 操作空间控制器的配置
+            num_envs: 环境的数量。
+            device: 用于计算的设备。
+
+        异常：
+            ValueError: 当提供无效控制命令时。
         """
         # store inputs
         self.cfg = cfg
@@ -143,10 +162,13 @@ class OperationalSpaceController:
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
         """Dimension of the action space of controller."""
+        """控制器操作空间的尺寸"""
         # impedance mode
         if self.cfg.impedance_mode == "fixed":
             # task-space targets
@@ -163,9 +185,12 @@ class OperationalSpaceController:
     """
     Operations.
     """
+    """操作。
+    """
 
     def reset(self):
         """Reset the internals."""
+        """重置内部。"""
         self.desired_ee_pose_b = None
         self.desired_ee_pose_task = None
         self.desired_ee_wrench_b = None
@@ -207,6 +232,35 @@ class OperationalSpaceController:
             ValueError: When an invalid impedance mode is provided.
             ValueError: When the current end-effector pose is not provided for the ``pose_rel`` command.
             ValueError: When an invalid control command is provided.
+        """
+        """设置任务空间目标和阻力参数。
+
+        参数：
+            command (torch.Tensor): 包含任务空间目标 (i.e.，姿势/关键) 和阻力参数的形状紧链紧缩器 (``num_envs``，``action_dim``)。
+            current_ee_pose_b (torch.Tensor, optional): 在根框中，有形状的 (``num_envs``，7)，包含位置和四角形 ``(w， x， y，
+                                                        z)``。
+                                                        对于相对命令而言，
+                                                        默认为 None。
+            current_task_frame_pose_b: 任务框架的当前姿势，在根框架中，其中定义目标和控制轴 (运动/轮)。
+                                       它是一个形状张量 (``num_envs``， 7)，包含位置和四角形 ``(w， x， y， z)``。
+                                       默认为 None。
+
+        Format: 按"command_types"排列的任务空间目标:
+
+                绝对姿势:形状 (``num_envs``， 7)，包含位置和四角形 ``(w， x， y， z)``。
+                相对姿势:形状 (``num_envs``， 6)，含着轴角形的三角形位置和旋转。
+                绝对匙:形状 (``num_envs``， 6)，含有力和扭矩。
+
+            阻塞参数:``variable_kp``的度，或``variable``的度，然后是 X度比:
+
+                Stiffness: 形状 (``num_envs``， 6)
+                压缩比:形状 (``num_envs``， 6)
+
+        异常：
+            ValueError: 当命令尺寸不有效时。
+            ValueError: 当提供无效阻抗模式时。
+            ValueError: 当对``pose_rel``命令没有提供当前末端执行器姿势时。
+            ValueError: 当提供无效的控制命令时。
         """
         # Check the input dimensions
         if command.shape != (self.num_envs, self.action_dim):
@@ -394,6 +448,51 @@ class OperationalSpaceController:
 
         Returns:
             Tensor: The joint efforts computed by the controller. It is a tensor of shape (``num_envs``, ``num_DoF``).
+        """
+        """通过控制器进行推断。
+
+        参数：
+            jacobian_b: 在根框中的末端执行器的雅可比矩阵。
+                        它是一个形状张量 (``num_envs``， 6，``num_DoF``)。
+            current_ee_pose_b: 现在的末端执行器在根框中姿势。
+                               它是一个形状张量 (``num_envs``， 7)，其中包含位置和四角形 ``(w， x， y， z)``。
+                               在``None``上默认。
+            current_ee_vel_b: 根框架中的末端执行器速度。
+                              它是形状张量 (``num_envs``， 6)，其中包含线性和角性速度。
+                              默认为 None。
+            current_ee_force_b: 根框架中的末端执行器上的电流外部力。
+                                它是一个形状张量 (``num_envs``， 3)，其中包含线性力。
+                                在``None``上默认。
+            mass_matrix: 联合空间质量/惰性矩阵。
+                         它是形状张量 (``num_envs``，``num_DoF``，``num_DoF``)。
+                         在``None``上默认。
+            gravity: 共同空间引力向量。
+                     它是形状张量 (``num_envs``，``num_DoF``)。
+                     在``None``上默认。
+            current_joint_pos: 目前的联合立场。
+                               它是形状张量 (``num_envs``，``num_DoF``)。
+                               在``None``上默认。
+            current_joint_vel: 现在的关节速度。
+                               它是形状张量 (``num_envs``，``num_DoF``)。
+                               在``None``上默认。
+            nullspace_joint_pos_target: 目标关节位置，空位控制器试图执行，
+                                        它是形状张量 (``num_envs``，``num_DoF``)。
+
+        异常：
+            ValueError: 当运动控制是启用的，但没有提供电流终端效应的姿势或速度时。
+            ValueError: 当动力动力脱启用，但不提供质量矩阵时。
+            ValueError: 当对``pose_rel``命令没有提供当前末端执行器姿势时。
+            ValueError: 当关闭循环的力控制是启用的，但没有提供电流终端效应力时。
+            ValueError: 当引力补偿是启用的，但引力向量没有提供。
+            ValueError: 如果启用了零空间控制，但系统不冗余。
+            ValueError: 当动态一致的伪逆式启用，但不提供质量矩阵逆式时。
+            ValueError: 当启用零空间控制，但没有提供当前的关节位置和速度时。
+            ValueError: 当为零空间控制提供目标关节位置，但其尺寸不匹配当前的关节位置时。
+            ValueError: 如果提供无效的零空间控制方法。
+
+        返回：
+            Tensor: 控制器计算的共同努力。
+                    它是形状张量 (``num_envs``，``num_DoF``)。
         """
 
         # deduce number of DoF

@@ -15,6 +15,7 @@ if TYPE_CHECKING:
 
 def position_command_error_tanh(env: ManagerBasedRLEnv, std: float, command_name: str) -> torch.Tensor:
     """Reward position tracking with tanh kernel."""
+    """奖励位置跟踪，使用TANH核。"""
     command = env.command_manager.get_command(command_name)
     des_pos_b = command[:, :3]
     distance = torch.norm(des_pos_b, dim=1)
@@ -23,6 +24,7 @@ def position_command_error_tanh(env: ManagerBasedRLEnv, std: float, command_name
 
 def heading_command_error_abs(env: ManagerBasedRLEnv, command_name: str) -> torch.Tensor:
     """Penalize tracking orientation error."""
+    """惩罚追踪方向错误。"""
     command = env.command_manager.get_command(command_name)
     heading_b = command[:, 3]
     return heading_b.abs()

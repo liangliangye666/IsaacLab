@@ -4,3 +4,4 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Manipulation environments to open drawers in a cabinet."""
+"""操作环境，以打开柜子中的抽。"""

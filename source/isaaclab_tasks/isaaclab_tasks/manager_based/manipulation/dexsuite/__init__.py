@@ -24,3 +24,23 @@ Lift:
 }
 
 """
+"""德克苏伊特环境。
+
+实施参考:
+
+Reorient:
+现在，我们需要一个人。
+  title={Dexpbt: Scaling up dexterous manipulation for hand-arm systems with population based training},
+  author={Petrenko, Aleksei and Allshire, Arthur and State, Gavriel and Handa, Ankur and Makoviychuk, Viktor},
+  journal={arXiv preprint arXiv:2305.12127},
+  year={2023}
+}
+
+Lift:
+现在，我们要做什么?
+  title={Dextrah-rgb: Visuomotor policies to grasp anything with dexterous hands},
+  author={Singh, Ritvik and Allshire, Arthur and Handa, Ankur and Ratliff, Nathan and Van Wyk, Karl},
+  journal={arXiv preprint arXiv:2412.01791},
+  year={2024}
+}
+"""

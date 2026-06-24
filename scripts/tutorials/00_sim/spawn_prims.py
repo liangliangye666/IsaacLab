@@ -11,8 +11,16 @@
     ./isaaclab.sh -p scripts/tutorials/00_sim/spawn_prims.py
 
 """
+"""这本脚本展示了如何将prims引入场景。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/00_sim/spawn_prims.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -30,6 +38,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
@@ -37,6 +46,7 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR
 
 def design_scene():
     """Designs the scene by spawning ground plane, light, objects and meshes from usd files."""
+    """通过从USD文件中生成地面平面，光，物体和网格来设计场景。"""
     '''
     在 Isaac Sim 里，所有东西都放在一个叫 Stage 的场景树里。你可以把它理解成：
         Stage = 整个仿真世界
@@ -186,6 +196,7 @@ def design_scene():
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.01, device=args_cli.device)

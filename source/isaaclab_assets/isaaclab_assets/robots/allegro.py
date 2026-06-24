@@ -14,6 +14,16 @@ Reference:
 * https://www.wonikrobotics.com/robot-hand
 
 """
+"""沃尼克机器人公司的阿莱格罗手机器人配置。
+
+下列配置可用:
+
+* :obj:`ALLEGRO_HAND_CFG`: 隐含动机模型的手。
+
+Reference:
+
+* https://www.wonikrobotics.com/robot-hand
+"""
 
 import math
 
@@ -66,3 +76,4 @@ ALLEGRO_HAND_CFG = ArticulationCfg(
     soft_joint_pos_limit_factor=1.0,
 )
 """Configuration of Allegro Hand robot."""
+"""机器人的配置。"""

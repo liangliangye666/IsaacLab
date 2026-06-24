@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Integration tests for simulation context with stage in memory."""
+"""仿真环境与记忆阶段的集成测试。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -14,6 +16,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 import pytest
@@ -33,6 +36,7 @@ from isaaclab.utils.version import get_isaac_sim_version
 @pytest.fixture
 def sim():
     """Create a simulation context."""
+    """创建一个仿真环境。"""
     cfg = SimulationCfg(create_stage_in_memory=True)
     sim = SimulationContext(cfg=cfg)
     sim_utils.update_stage()
@@ -47,10 +51,13 @@ def sim():
 """
 Tests
 """
+"""测试
+"""
 
 
 def test_stage_in_memory_with_shapes(sim):
     """Test spawning of shapes with stage in memory."""
+    """测试以记忆中的阶段生成形状。"""
 
     # skip test if stage in memory is not supported
     if get_isaac_sim_version().major < 5:
@@ -138,6 +145,7 @@ def test_stage_in_memory_with_shapes(sim):
 
 def test_stage_in_memory_with_usds(sim):
     """Test spawning of USDs with stage in memory."""
+    """测试USDs的生殖，在记忆中的阶段。"""
 
     # skip test if stage in memory is not supported
     if get_isaac_sim_version().major < 5:
@@ -203,6 +211,7 @@ def test_stage_in_memory_with_usds(sim):
 
 def test_stage_in_memory_with_clone_in_fabric(sim):
     """Test cloning in fabric with stage in memory."""
+    """测试在织物中克隆，"""
 
     # skip test if stage in memory is not supported
     if get_isaac_sim_version().major < 5:

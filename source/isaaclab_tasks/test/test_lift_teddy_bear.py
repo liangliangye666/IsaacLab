@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import sys
 
@@ -22,6 +23,7 @@ app_launcher = AppLauncher(
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 
@@ -34,6 +36,7 @@ from env_test_utils import _run_environments  # isort: skip
 @pytest.mark.parametrize("num_envs, device", [(32, "cuda"), (1, "cuda")])
 def test_lift_teddy_bear_environment(num_envs, device):
     """Test the Isaac-Lift-Teddy-Bear-Franka-IK-Abs-v0 environment in isolation."""
+    """试验伊萨克-升起-泰迪-熊-弗兰卡-IK-Abs-v0环境。"""
     task_name = "Isaac-Lift-Teddy-Bear-Franka-IK-Abs-v0"
 
     # Try to run the environment with specific settings for this problematic case

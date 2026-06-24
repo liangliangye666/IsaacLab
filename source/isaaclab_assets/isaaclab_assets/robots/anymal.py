@@ -18,6 +18,20 @@ Reference:
 * https://github.com/ANYbotics/anymal_d_simple_description
 
 """
+"""对于ANYbotics机器人的配置。
+
+下列配置参数可用:
+
+* :obj:`ANYMAL_B_CFG`:ANYmal-B机器人与ANYdrives 3.0
+* :obj:`ANYMAL_C_CFG`:ANYmal-C机器人与ANYdrives 3.0
+* :obj:`ANYMAL_D_CFG`:ANYmal-D机器人与ANYdrives 3.0
+
+Reference:
+
+* https://github.com/ANYbotics/anymal_b_simple_description
+* https://github.com/ANYbotics/anymal_c_simple_description
+* https://github.com/ANYbotics/anymal_d_simple_description
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ActuatorNetLSTMCfg, DCMotorCfg
@@ -40,6 +54,7 @@ ANYDRIVE_3_SIMPLE_ACTUATOR_CFG = DCMotorCfg(
     damping={".*": 5.0},
 )
 """Configuration for ANYdrive 3.x with DC actuator model."""
+"""对ANYdrive 3.x的配置与DC动机模型。"""
 
 
 ANYDRIVE_3_LSTM_ACTUATOR_CFG = ActuatorNetLSTMCfg(
@@ -50,6 +65,7 @@ ANYDRIVE_3_LSTM_ACTUATOR_CFG = ActuatorNetLSTMCfg(
     velocity_limit=7.5,
 )
 """Configuration for ANYdrive 3.0 (used on ANYmal-C) with LSTM actuator model."""
+"""配置ANYdrive 3.0 (用于ANYmal-C) 与LSTM执行器模型。"""
 
 
 ##
@@ -88,6 +104,7 @@ ANYMAL_B_CFG = ArticulationCfg(
     soft_joint_pos_limit_factor=0.95,
 )
 """Configuration of ANYmal-B robot using actuator-net."""
+"""使用动力网的ANYmal-B机器人配置。"""
 
 
 ANYMAL_C_CFG = ArticulationCfg(
@@ -123,6 +140,7 @@ ANYMAL_C_CFG = ArticulationCfg(
     soft_joint_pos_limit_factor=0.95,
 )
 """Configuration of ANYmal-C robot using actuator-net."""
+"""使用动力网的ANYmal-C机器人的配置。"""
 
 
 ANYMAL_D_CFG = ArticulationCfg(
@@ -163,6 +181,12 @@ Note:
     Since we don't have a publicly available actuator network for ANYmal-D, we use the same network as ANYmal-C.
     This may impact the sim-to-real transfer performance.
 """
+"""使用动力网的ANYmal-D机器人配置。
+
+说明：
+    由于我们没有公开可用的执行器网络ANYmal-D，我们使用相同的网络ANYmal- ，我知道。
+    这可能会影响sim到真实转移性能。
+"""
 
 
 ##
@@ -173,3 +197,4 @@ ANYMAL_LIDAR_CFG = VELODYNE_VLP_16_RAYCASTER_CFG.replace(
     offset=RayCasterCfg.OffsetCfg(pos=(-0.310, 0.000, 0.159), rot=(0.0, 0.0, 0.0, 1.0))
 )
 """Configuration for the Velodyne VLP-16 sensor mounted on the ANYmal robot's base."""
+"""在ANYmal机器人基础上安装的Velodyne VLP-16传感器的配置。"""

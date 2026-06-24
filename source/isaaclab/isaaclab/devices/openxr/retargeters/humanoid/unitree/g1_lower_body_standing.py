@@ -14,9 +14,11 @@ from isaaclab.devices.retargeter_base import RetargeterBase, RetargeterCfg
 
 class G1LowerBodyStandingRetargeter(RetargeterBase):
     """Provides lower body standing commands for the G1 robot."""
+    """为G1机器人提供底部站立指令。"""
 
     def __init__(self, cfg: G1LowerBodyStandingRetargeterCfg):
         """Initialize the retargeter."""
+        """启动重定位器。"""
         super().__init__(cfg)
         self.cfg = cfg
 
@@ -31,7 +33,11 @@ class G1LowerBodyStandingRetargeter(RetargeterBase):
 @dataclass
 class G1LowerBodyStandingRetargeterCfg(RetargeterCfg):
     """Configuration for the G1 lower body standing retargeter."""
+    """设置G1底部站立回器。"""
 
     hip_height: float = 0.72
     """Height of the G1 robot hip in meters. The value is a fixed height suitable for G1 to do tabletop manipulation."""
+    """机器人G1的部的高度在米。
+    值为G1进行桌面操作的固定高度。
+    """
     retargeter_type: type[RetargeterBase] = G1LowerBodyStandingRetargeter

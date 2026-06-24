@@ -22,6 +22,7 @@ from isaaclab.sensors.ray_caster.patterns import patterns, patterns_cfg
 @pytest.fixture(scope="module", params=["cuda", "cpu"])
 def device(request):
     """Fixture to parameterize tests over both CUDA and CPU devices."""
+    """在CUDA和CPU设备上进行参数测试的固定装置。"""
     if request.param == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
     return request.param
@@ -29,6 +30,7 @@ def device(request):
 
 class TestGridPattern:
     """Test cases for grid_pattern function."""
+    """对grid_pattern函数的测试案例。"""
 
     @pytest.mark.parametrize(
         "size,resolution,ordering,expected_num_rays",
@@ -42,6 +44,7 @@ class TestGridPattern:
     )
     def test_grid_pattern_num_rays(self, device, size, resolution, ordering, expected_num_rays):
         """Test that grid pattern generates the correct number of rays."""
+        """测试这个网格模式产生了正确的射线数量。"""
         cfg = patterns_cfg.GridPatternCfg(size=size, resolution=resolution, ordering=ordering)
         ray_starts, ray_directions = patterns.grid_pattern(cfg, device)
 
@@ -53,6 +56,7 @@ class TestGridPattern:
     @pytest.mark.parametrize("ordering", ["xy", "yx"])
     def test_grid_pattern_ordering(self, device, ordering):
         """Test that grid pattern respects the ordering parameter."""
+        """测试是否符合排序参数的网格模式。"""
         cfg = patterns_cfg.GridPatternCfg(size=(2.0, 2.0), resolution=1.0, ordering=ordering)
         ray_starts, ray_directions = patterns.grid_pattern(cfg, device)
 
@@ -71,6 +75,7 @@ class TestGridPattern:
     @pytest.mark.parametrize("direction", [(0.0, 0.0, -1.0), (0.0, 0.0, 1.0), (1.0, 0.0, 0.0)])
     def test_grid_pattern_direction(self, device, direction):
         """Test that grid pattern uses the specified direction."""
+        """测试使用指定的方向的网格图案。"""
         cfg = patterns_cfg.GridPatternCfg(size=(2.0, 2.0), resolution=1.0, direction=direction)
         ray_starts, ray_directions = patterns.grid_pattern(cfg, device)
 
@@ -81,6 +86,7 @@ class TestGridPattern:
 
     def test_grid_pattern_bounds(self, device):
         """Test that grid pattern respects the size bounds."""
+        """测试是否符合尺寸限制。"""
         size = (2.0, 4.0)
         cfg = patterns_cfg.GridPatternCfg(size=size, resolution=1.0)
         ray_starts, ray_directions = patterns.grid_pattern(cfg, device)
@@ -95,12 +101,14 @@ class TestGridPattern:
 
     def test_grid_pattern_invalid_ordering(self, device):
         """Test that invalid ordering raises ValueError."""
+        """测试是否无效的订单提高ValueError。"""
         cfg = patterns_cfg.GridPatternCfg(size=(2.0, 2.0), resolution=1.0, ordering="invalid")
         with pytest.raises(ValueError, match="Ordering must be 'xy' or 'yx'"):
             patterns.grid_pattern(cfg, device)
 
     def test_grid_pattern_invalid_resolution(self, device):
         """Test that invalid resolution raises ValueError."""
+        """测试是否无效的分辨率提高ValueError。"""
         cfg = patterns_cfg.GridPatternCfg(size=(2.0, 2.0), resolution=-1.0)
         with pytest.raises(ValueError, match="Resolution must be greater than 0"):
             patterns.grid_pattern(cfg, device)
@@ -108,6 +116,7 @@ class TestGridPattern:
 
 class TestLidarPattern:
     """Test cases for lidar_pattern function."""
+    """对lidar_pattern函数的测试案例。"""
 
     @pytest.mark.parametrize(
         "horizontal_fov_range,horizontal_res,channels,vertical_fov_range",
@@ -132,6 +141,7 @@ class TestLidarPattern:
     )
     def test_lidar_pattern_num_rays(self, device, horizontal_fov_range, horizontal_res, channels, vertical_fov_range):
         """Test that lidar pattern generates the correct number of rays."""
+        """测试是否能产生正确的射线数量。"""
         cfg = patterns_cfg.LidarPatternCfg(
             horizontal_fov_range=horizontal_fov_range,
             horizontal_res=horizontal_res,
@@ -163,6 +173,7 @@ class TestLidarPattern:
 
     def test_lidar_pattern_basic_properties(self, device):
         """Test that ray directions are normalized and rays start from origin."""
+        """测试射线方向正常化，射线从原点开始。"""
         cfg = patterns_cfg.LidarPatternCfg(
             horizontal_fov_range=(-180.0, 180.0),
             horizontal_res=45.0,
@@ -188,6 +199,7 @@ class TestLidarPattern:
     )
     def test_lidar_pattern_vertical_channels(self, device, vertical_fov_range, channels):
         """Test that vertical channels are distributed correctly."""
+        """测试垂直道是否正确分布。"""
         cfg = patterns_cfg.LidarPatternCfg(
             horizontal_fov_range=(0.0, 0.0),  # Single horizontal direction
             horizontal_res=1.0,
@@ -229,6 +241,10 @@ class TestLidarPattern:
 
         This test verifies the fix for the horizontal angle calculation to ensure
         the actual resolution matches the requested resolution.
+        """
+        """测试Lidar图案是否产生正确的数量和角度间隔。
+
+        该测试验验证了水平角度计算的固定值，以确保实际分辨率符合所需分辨率。
         """
         cfg = patterns_cfg.LidarPatternCfg(
             horizontal_fov_range=horizontal_fov_range,
@@ -272,6 +288,7 @@ class TestLidarPattern:
 
 class TestBpearlPattern:
     """Test cases for bpearl_pattern function."""
+    """对bpearl_pattern函数的测试案例。"""
 
     @pytest.mark.parametrize(
         "horizontal_fov,horizontal_res",
@@ -284,6 +301,7 @@ class TestBpearlPattern:
     )
     def test_bpearl_pattern_horizontal_params(self, device, horizontal_fov, horizontal_res):
         """Test bpearl pattern with different horizontal parameters."""
+        """测试不同水平参数的珠宝图案。"""
         cfg = patterns_cfg.BpearlPatternCfg(
             horizontal_fov=horizontal_fov,
             horizontal_res=horizontal_res,
@@ -298,6 +316,7 @@ class TestBpearlPattern:
 
     def test_bpearl_pattern_basic_properties(self, device):
         """Test that ray directions are normalized and rays start from origin."""
+        """测试射线方向正常化，射线从原点开始。"""
         cfg = patterns_cfg.BpearlPatternCfg()
         ray_starts, ray_directions = patterns.bpearl_pattern(cfg, device)
 
@@ -310,6 +329,7 @@ class TestBpearlPattern:
 
     def test_bpearl_pattern_custom_vertical_angles(self, device):
         """Test bpearl pattern with custom vertical angles."""
+        """用定制垂直角进行试验。"""
         custom_angles = [10.0, 20.0, 30.0, 40.0, 50.0]
         cfg = patterns_cfg.BpearlPatternCfg(
             horizontal_fov=360.0,
@@ -325,6 +345,7 @@ class TestBpearlPattern:
 
 class TestPinholeCameraPattern:
     """Test cases for pinhole_camera_pattern function."""
+    """对pinhole_camera_pattern函数的测试案例。"""
 
     @pytest.mark.parametrize(
         "width,height",
@@ -337,6 +358,7 @@ class TestPinholeCameraPattern:
     )
     def test_pinhole_camera_pattern_num_rays(self, device, width, height):
         """Test that pinhole camera pattern generates the correct number of rays."""
+        """测试 camera孔摄像头图案产生了正确的射线数量。"""
         cfg = patterns_cfg.PinholeCameraPatternCfg(
             width=width,
             height=height,
@@ -363,6 +385,7 @@ class TestPinholeCameraPattern:
 
     def test_pinhole_camera_pattern_basic_properties(self, device):
         """Test that ray directions are normalized and rays start from origin."""
+        """测试射线方向正常化，射线从原点开始。"""
         cfg = patterns_cfg.PinholeCameraPatternCfg(width=100, height=100)
 
         fx = fy = 500.0
@@ -383,6 +406,7 @@ class TestPinholeCameraPattern:
 
     def test_pinhole_camera_pattern_batch(self, device):
         """Test that pinhole camera pattern works with batched intrinsic matrices."""
+        """测试 camera孔摄像头模式是否与批量内在矩阵工作。"""
         cfg = patterns_cfg.PinholeCameraPatternCfg(width=50, height=50)
 
         # Create batch of 3 different intrinsic matrices
@@ -405,6 +429,7 @@ class TestPinholeCameraPattern:
 
     def test_pinhole_camera_from_intrinsic_matrix(self, device):
         """Test creating PinholeCameraPatternCfg from intrinsic matrix."""
+        """从内在矩阵中创建PinholeCameraPatternCfg的测试。"""
         width, height = 640, 480
         fx, fy = 500.0, 500.0
         cx, cy = 320.0, 240.0

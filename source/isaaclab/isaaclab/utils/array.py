@@ -7,6 +7,7 @@
 
 # needed to import for allowing type-hinting: torch.device | str | None
 from __future__ import annotations
+"""包含与不同阵列后端工作的工具的子模块。"""
 
 from typing import Union
 
@@ -19,6 +20,10 @@ TensorData = Union[np.ndarray, torch.Tensor, wp.array]  # noqa: UP007
 
 Union of numpy, torch, and warp arrays.
 """
+"""为 data光数据的类型定义。
+
+Union，火和曲阵列的联盟。
+"""
 
 TENSOR_TYPES = {
     "numpy": np.ndarray,
@@ -30,6 +35,10 @@ TENSOR_TYPES = {
 The keys are the name of the backend ("numpy", "torch", "warp") and the values are the corresponding type
 (``np.ndarray``, ``torch.Tensor``, ``wp.array``).
 """
+"""一个包含每个后端类型的字典。
+
+键是后端的名称 ("numpy"，"torch"，"warp") 和值是相应的类型 (``np.ndarray``，``torch.Tensor``，``wp.array``)。
+"""
 
 TENSOR_TYPE_CONVERSIONS = {
     "numpy": {wp.array: lambda x: x.numpy(), torch.Tensor: lambda x: x.detach().cpu().numpy()},
@@ -40,6 +49,11 @@ TENSOR_TYPE_CONVERSIONS = {
 
 The keys of the outer dictionary are the name of target backend ("numpy", "torch", "warp"). The keys of the
 inner dictionary are the source backend (``np.ndarray``, ``torch.Tensor``, ``wp.array``).
+"""
+"""包含每个后端的转换函数的嵌入式字典。
+
+外部字典的键是目标后端的名称 ("numpy"，"torch"，"warp")。
+内部字典的键是源后端 (``np.ndarray``，``torch.Tensor``，``wp.array``)。
 """
 
 
@@ -68,6 +82,29 @@ def convert_to_torch(
 
     Returns:
         The converted array as torch tensor.
+    """
+    """转换给定的数组为火。
+
+    函数试图将数组转换为火。
+    如果数组是一个 numpy/warp数组，或者python列表/tuples，则将其转换为火。
+    如果数组已经是火，则直接返回。
+
+    如果``device``是None，那么函数将数据的当前设备推断。
+    对于 numpy 阵列，这个默认是"cpu"，对于火器，它是"cpu"或"cuda"，而对于变形阵列，它是"cuda"。
+
+    说明：
+        由于PyTorch不支持未签名整数类型，未签名整数阵列转换为签名整数阵列。
+        通过将数组投放到相应的签名整数类型上，这样做。
+
+    参数：
+        array: 输入阵列。
+               它可以是 numpy array， warp array， python list/tuple，或火。
+        dtype: 为光器的目标数据类型。
+        device: 子的目标装置。
+                默认为 None。
+
+    返回：
+        转换为火。
     """
     # Convert array to tensor
     # if the datatype is not currently supported by torch we need to improvise

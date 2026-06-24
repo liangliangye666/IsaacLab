@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -12,6 +13,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 
@@ -21,6 +23,7 @@ import isaaclab.sim as sim_utils
 @pytest.fixture(autouse=True)
 def test_setup_teardown():
     """Create a blank new stage for each test."""
+    """创建一个空白的新阶段。"""
     # Setup: Create a new stage
     sim_utils.create_new_stage()
     sim_utils.update_stage()
@@ -34,6 +37,7 @@ def test_setup_teardown():
 
 def create_test_environment_with_labels():
     """Creates a test environment with objects with labels."""
+    """创建一个具有标签的对象的测试环境。"""
     # create 3 cubes with label "cube"
     for i in range(3):
         sim_utils.create_prim(f"/World/Test/Object{i}", "Cube", semantic_label="cube")
@@ -49,10 +53,13 @@ def create_test_environment_with_labels():
 """
 Tests.
 """
+"""测试。
+"""
 
 
 def test_add_and_get_labels():
     """Test add_labels() and get_labels() functions."""
+    """测试add_labels() 和get_labels() 函数。"""
     # get stage handle
     stage = sim_utils.get_current_stage()
     # create a test prim
@@ -78,6 +85,7 @@ def test_add_and_get_labels():
 
 def test_add_labels_with_overwrite():
     """Test add_labels() function with overwriting existing labels."""
+    """测试add_labels() 功能，覆盖现有标签。"""
     # get stage handle
     stage = sim_utils.get_current_stage()
     # create a test prim
@@ -97,6 +105,7 @@ def test_add_labels_with_overwrite():
 
 def test_add_labels_without_overwrite():
     """Test add_labels() function without overwriting existing labels."""
+    """测试add_labels() 函数，而不用覆盖现有标签。"""
     # get stage handle
     stage = sim_utils.get_current_stage()
     # create a test prim
@@ -114,6 +123,7 @@ def test_add_labels_without_overwrite():
 
 def test_remove_all_labels():
     """Test removing of all labels from a prim and its descendants."""
+    """测试将所有标签从prim及其后代中移除。"""
     # get stage handle
     stage = sim_utils.get_current_stage()
     # create a test prim
@@ -151,6 +161,7 @@ def test_remove_all_labels():
 
 def test_remove_specific_labels():
     """Test removing of specific labels from a prim and its descendants."""
+    """测试将prim及其后代的特定标签删除。"""
     # get stage handle
     stage = sim_utils.get_current_stage()
     # create a test prim
@@ -188,6 +199,7 @@ def test_remove_specific_labels():
 
 def test_check_missing_labels():
     """Test the check_missing_labels() function."""
+    """测试check_missing_labels() 函数。"""
     # create a test environment with labels
     object_paths = create_test_environment_with_labels()
 
@@ -210,6 +222,7 @@ def test_check_missing_labels():
 
 def test_count_labels_in_scene():
     """Test the count_labels_in_scene() function."""
+    """测试count_labels_in_scene() 函数。"""
     # create a test environment with labels
     create_test_environment_with_labels()
 

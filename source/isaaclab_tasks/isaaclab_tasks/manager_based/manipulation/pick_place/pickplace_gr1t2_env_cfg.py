@@ -41,6 +41,7 @@ from isaaclab_assets.robots.fourier import GR1T2_HIGH_PD_CFG  # isort: skip
 @configclass
 class ObjectTableSceneCfg(InteractiveSceneCfg):
     """Configuration for the GR1T2 Pick Place Base Scene."""
+    """设置GR1T2选择位置基地场景。"""
 
     # Table
     packing_table = AssetBaseCfg(
@@ -117,6 +118,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     upper_body_ik = PinkInverseKinematicsActionCfg(
         pink_controlled_joint_names=[
@@ -224,10 +226,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group with state values."""
+        """对国家价值观的策略组的观测。"""
 
         actions = ObsTerm(func=mdp.last_action)
         robot_joint_pos = ObsTerm(
@@ -267,6 +271,7 @@ class ObservationsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -280,6 +285,7 @@ class TerminationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_all = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
 
@@ -300,6 +306,7 @@ class EventCfg:
 @configclass
 class PickPlaceGR1T2EnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the GR1T2 environment."""
+    """对GR1T2环境的配置。"""
 
     # Scene settings
     scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=1, env_spacing=2.5, replicate_physics=True)
@@ -373,6 +380,7 @@ class PickPlaceGR1T2EnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 6
         self.episode_length_s = 20.0

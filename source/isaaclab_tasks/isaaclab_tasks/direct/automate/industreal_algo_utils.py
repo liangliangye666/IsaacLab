@@ -41,6 +41,16 @@ Contains functions that implement:
 
 Not intended to be executed as a standalone script.
 """
+"""IndustReal: 算法模块
+
+包含执行以下功能:
+
+- 仿真知情策略更新 (SAPU)
+- 基于SDF的奖励
+- 基于样本的课程 (SBC)
+
+不是作为独立脚本执行的。
+"""
 
 # Force garbage collection for large arrays
 import gc
@@ -61,10 +71,13 @@ from isaaclab.utils.assets import retrieve_file_path
 """
 Simulation-Aware Policy Update (SAPU)
 """
+"""仿真知情策略更新 (SAPU)
+"""
 
 
 def load_asset_mesh_in_warp(held_asset_obj, fixed_asset_obj, num_samples, device):
     """Create mesh objects in Warp for all environments."""
+    """在Warp中创建所有环境的网格对象。"""
     retrieve_file_path(held_asset_obj, download_dir="./")
     plug_trimesh = load(os.path.basename(held_asset_obj))
     # plug_trimesh = load(held_asset_obj)
@@ -92,6 +105,8 @@ def load_asset_mesh_in_warp(held_asset_obj, fixed_asset_obj, num_samples, device
 """
 SDF-Based Reward
 """
+"""基于SDF的奖励
+"""
 
 
 def get_sdf_reward(
@@ -105,6 +120,7 @@ def get_sdf_reward(
     device,
 ):
     """Calculate SDF-based reward."""
+    """根据SDF计算奖励。"""
 
     num_envs = len(plug_pos)
     sdf_reward = torch.zeros((num_envs,), dtype=torch.float32, device=device)
@@ -170,10 +186,13 @@ def get_sdf_reward(
 """
 Sampling-Based Curriculum (SBC)
 """
+"""基于样本的课程 (SBC)
+"""
 
 
 def get_curriculum_reward_scale(cfg_task, curr_max_disp):
     """Compute reward scale for SBC."""
+    """为SBC计算奖励规模。"""
 
     # Compute difference between max downward displacement at beginning of training (easiest condition)
     # and current max downward displacement (based on current curriculum stage)
@@ -192,6 +211,7 @@ def get_curriculum_reward_scale(cfg_task, curr_max_disp):
 
 def get_new_max_disp(curr_success, cfg_task, curr_max_disp):
     """Update max downward displacement of plug at beginning of episode, based on success rate."""
+    """根据成功率，更新回合开始时最大的插座下移。"""
 
     if curr_success > cfg_task.curriculum_success_thresh:
         # If success rate is above threshold, reduce max downward displacement until min value
@@ -219,10 +239,13 @@ def get_new_max_disp(curr_success, cfg_task, curr_max_disp):
 """
 Bonus and Success Checking
 """
+"""奖金和成功检查
+"""
 
 
 def get_keypoint_offsets(num_keypoints, device):
     """Get uniformly-spaced keypoints along a line of unit length, centered at 0."""
+    """得到一个单元长度线沿着均的关键点，中心在0。"""
 
     keypoint_offsets = torch.zeros((num_keypoints, 3), device=device)
     keypoint_offsets[:, -1] = torch.linspace(0.0, 1.0, num_keypoints, device=device) - 0.5
@@ -232,6 +255,7 @@ def get_keypoint_offsets(num_keypoints, device):
 
 def check_plug_close_to_socket(keypoints_plug, keypoints_socket, dist_threshold, progress_buf):
     """Check if plug is close to socket."""
+    """检查插座是否接近插座。"""
 
     # Compute keypoint distance between plug and socket
     keypoint_dist = torch.norm(keypoints_socket - keypoints_plug, p=2, dim=-1)
@@ -250,6 +274,7 @@ def check_plug_inserted_in_socket(
     plug_pos, socket_pos, keypoints_plug, keypoints_socket, success_height_thresh, close_error_thresh, progress_buf
 ):
     """Check if plug is inserted in socket."""
+    """检查插头是否插入插头。"""
 
     # Check if plug is within threshold distance of assembled state
     is_plug_below_insertion_height = plug_pos[:, 2] < socket_pos[:, 2] + success_height_thresh
@@ -273,6 +298,10 @@ def check_plug_inserted_in_socket(
 def get_engagement_reward_scale(plug_pos, socket_pos, is_plug_engaged_w_socket, success_height_thresh, device):
     """Compute scale on reward. If plug is not engaged with socket, scale is zero.
     If plug is engaged, scale is proportional to distance between plug and bottom of socket."""
+    """计算奖励的规模。
+    如果插座没有插座，尺度为零。
+    如果插头被打开，尺度应与插头和插头底之间的距离相比例。
+    """
 
     # Set default value of scale to zero
     num_envs = len(plug_pos)
@@ -291,6 +320,8 @@ def get_engagement_reward_scale(plug_pos, socket_pos, is_plug_engaged_w_socket, 
 """
 Warp Functions
 """
+"""变形功能
+"""
 
 
 @wp.func
@@ -308,6 +339,8 @@ def mesh_sdf(mesh: wp.uint64, point: wp.vec3, max_dist: float):
 
 """
 Warp Kernels
+"""
+"""变形核
 """
 
 

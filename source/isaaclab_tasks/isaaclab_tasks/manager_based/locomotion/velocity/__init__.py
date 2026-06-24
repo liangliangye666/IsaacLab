@@ -10,3 +10,10 @@ These environments are based on the `legged_gym` environments provided by Rudin 
 Reference:
     https://github.com/leggedrobotics/legged_gym
 """
+"""具有速度跟踪指令的机动环境。
+
+这些环境基于Rudin等人提供的`legged_gym`环境。
+
+Reference:
+    https://github.com/ 腿部机器人legged_gym
+"""

@@ -83,6 +83,11 @@ free_thresh: {free_thresh}
         Returns:
             np.ndarray: The binary mask representing freespace of the occupancy map.
         """
+        """拿一个二进制面具来表示占用地图的自由空间。
+
+        返回：
+            np.ndarray: 占用地图的自由空间。
+        """
         return self.data == OccupancyMapDataValue.FREESPACE
 
     def unknown_mask(self) -> np.ndarray:
@@ -91,6 +96,11 @@ free_thresh: {free_thresh}
         Returns:
             np.ndarray: The binary mask representing unknown area of the occupancy map.
         """
+        """拿一个二进制面具，代表居住地图的未知区域。
+
+        返回：
+            np.ndarray: 占用地图的未知区域的二进制面具。
+        """
         return self.data == OccupancyMapDataValue.UNKNOWN
 
     def occupied_mask(self) -> np.ndarray:
@@ -98,6 +108,11 @@ free_thresh: {free_thresh}
 
         Returns:
             np.ndarray: The binary mask representing occupied area of the occupancy map.
+        """
+        """获得一个占用地图的占用区域的二进制面具。
+
+        返回：
+            np.ndarray: 占用地图的占用区域的二进制面具。
         """
         return self.data == OccupancyMapDataValue.OCCUPIED
 
@@ -109,6 +124,15 @@ free_thresh: {free_thresh}
 
         Returns:
             PIL.Image.Image: The ROS image for the occupancy map as a PIL image.
+        """
+        """拿出ROS图像，为居住地图。
+
+        参数：
+            negate (bool, optional): 在ROS占用地图文档中见"负值"。
+                                     默认为 False。
+
+        返回：
+            PIL.Image.Image: 占用地图的ROS图像作为PIL图像。
         """
         occupied_mask = self.occupied_mask()
         ros_image = np.zeros(self.occupied_mask().shape, dtype=np.uint8)
@@ -127,6 +151,15 @@ free_thresh: {free_thresh}
         Returns:
             str: The ROS occupancy map YAML file contents.
         """
+        """获取ROS占用地图YAML文件内容。
+
+        参数：
+            negate (bool, optional): 在ROS占用地图文档中见"负值"。
+                                     默认为 False。
+
+        返回：
+            str: ROS占用地图YAML文件内容。
+        """
         return self.ROS_YAML_TEMPLATE.format(
             image_filename=self.ROS_IMAGE_FILENAME,
             resolution=self.resolution,
@@ -144,6 +177,13 @@ free_thresh: {free_thresh}
 
         Args:
             path (str): The output path to save the occupancy map.
+        """
+        """保存占用地图在ROS格式的文件中。
+
+        这种方法可以保存ROS格式的PNG图像以及相应的YAML文件。
+
+        参数：
+            path (str): 输出路径保存占用地图。
         """
         if not os.path.exists(path):
             os.makedirs(path)
@@ -165,6 +205,17 @@ free_thresh: {free_thresh}
             ros_yaml_path (str): The path to the ROS yaml file.
 
         Returns:
+            _type_: OccupancyMap
+        """
+        """从ROSXYAML文件中加载一个占用地图。
+
+        这种方法从ROS yaml文件中加载了占用地图。
+        这种方法从YAML文件中指定的值中查找占用地图图像，并要求图像存在于指定路径。
+
+        参数：
+            ros_yaml_path (str): 进入ROS yamML文件的路径。
+
+        返回：
             _type_: OccupancyMap
         """
         with open(ros_yaml_path, encoding="utf-8") as f:
@@ -209,6 +260,24 @@ free_thresh: {free_thresh}
         Returns:
             OccupancyMap: The occupancy map.
         """
+        """从ROS格式图像创建一个占用地图，以及其他数据。
+
+        这种方法旨在用作其他方法的实用性，但不一定适用于最终用途。
+
+        参数：
+            ros_image (PIL.Image.Image): 在ROS格式化PIL图像
+            resolution (float): 占用地图的分辨率 (meter/px)。
+            origin (tp.Tuple[float, float, float]): 在世界坐标中占用地图的起源。
+            negate (bool, optional): 在ROS占用地图文档中见"负值"。
+                                     默认为 False。
+            occupied_thresh (float, optional): 考虑占用值的门。
+                                               在ROS_OCCUPIED_THRESH_DEFAULT中设置错误。
+            free_thresh (float, optional): 值值可以被视为自由。
+                                           在ROS_FREESPACE_THRESH_DEFAULT中默认错误。
+
+        返回：
+            OccupancyMap: 居住地图。
+        """
         ros_image = ros_image.convert("L")
 
         free_thresh = free_thresh * 255
@@ -243,6 +312,19 @@ free_thresh: {free_thresh}
 
         Returns:
             OccupancyMap: The occupancy map.
+        """
+        """从二元面具和其他数据创建一个占用地图
+
+        这种方法是用其他方法的实用性，但不一定适用于最终用途。
+
+        参数：
+            freespace_mask (np.ndarray): 为自由空间区域进行二进制面具。
+            occupied_mask (np.ndarray): 占据地区的二元面具。
+            resolution (float): 地图的分辨率 (m/px)。
+            origin (tp.Tuple[float, float, float]): 世界坐标地图的起源。
+
+        返回：
+            OccupancyMap: 居住地图。
         """
 
         data = np.zeros(freespace_mask.shape, dtype=np.uint8)
@@ -303,6 +385,11 @@ free_thresh: {free_thresh}
         Returns:
             int: The width in pixels.
         """
+        """在像素中获得占用地图的宽度。
+
+        返回：
+            int: 像素的宽度。
+        """
         return self._width_pixels
 
     def height_pixels(self) -> int:
@@ -310,6 +397,11 @@ free_thresh: {free_thresh}
 
         Returns:
             int: The height in pixels.
+        """
+        """在像素中获得占用地图的高度。
+
+        返回：
+            int: 像素的高度。
         """
         return self._height_pixels
 
@@ -319,6 +411,11 @@ free_thresh: {free_thresh}
         Returns:
             float: The width in meters.
         """
+        """在米中得到占用地图的宽度。
+
+        返回：
+            float: 宽度在米。
+        """
         return self.resolution * self.width_pixels()
 
     def height_meters(self) -> float:
@@ -326,6 +423,11 @@ free_thresh: {free_thresh}
 
         Returns:
             float: The height in meters.
+        """
+        """在米中查取占用地图的高度。
+
+        返回：
+            float: 在公尺的高度。
         """
         return self.resolution * self.height_pixels()
 
@@ -336,6 +438,11 @@ free_thresh: {free_thresh}
             tp.Tuple[float, float]: The (x, y) world coordinates of the
                 bottom left pixel in the occupancy map.
         """
+        """得到左下方像素的世界坐标。
+
+        返回：
+            tp.Tuple[漂浮，漂浮]:占用地图中左下方像素的 (x， y) 世界坐标。
+        """
         return (self.origin[0], self.origin[1])
 
     def top_left_pixel_world_coords(self) -> tuple[float, float]:
@@ -344,6 +451,11 @@ free_thresh: {free_thresh}
         Returns:
             tp.Tuple[float, float]: The (x, y) world coordinates of the
                 top left pixel in the occupancy map.
+        """
+        """得到左上方像素的世界坐标。
+
+        返回：
+            tp.Tuple[漂浮，漂浮]:占用地图上方左边像素的 (x， y) 世界坐标。
         """
         return (self.origin[0], self.origin[1] + self.height_meters())
 
@@ -354,6 +466,11 @@ free_thresh: {free_thresh}
             tp.Tuple[float, float]: The (x, y) world coordinates of the
                 bottom right pixel in the occupancy map.
         """
+        """得到右下方像素的世界坐标。
+
+        返回：
+            tp.Tuple[漂浮，漂浮]:占用地图中右下方像素的 (x， y) 世界坐标。
+        """
         return (self.origin[0] + self.width_meters(), self.origin[1])
 
     def top_right_pixel_world_coords(self) -> tuple[float, float]:
@@ -362,6 +479,11 @@ free_thresh: {free_thresh}
         Returns:
             tp.Tuple[float, float]: The (x, y) world coordinates of the
                 top right pixel in the occupancy map.
+        """
+        """得到右上方像素的世界坐标。
+
+        返回：
+            tp.Tuple[漂浮，漂浮]:占用地图上右边像素的 (x， y) 世界坐标。
         """
         return (self.origin[0] + self.width_meters(), self.origin[1] + self.height_meters())
 
@@ -381,6 +503,18 @@ free_thresh: {free_thresh}
 
         Returns:
             OccupancyMap: The buffered (aka: dilated / padded) occupancy map.
+        """
+        """通过扩大占据地区来获得缓冲地图。
+
+        这种方法通过使用"buffer_distance_pixels"指定的半径圆形面具来扩大占用区域来缓冲 (也称为pads/dilates) 占用地图。
+
+        这可用于修改路径规划，碰撞检查或机器人繁殖的占用地图，简单地假设机器人具有圆形碰撞形状。
+
+        参数：
+            buffer_distance_pixels (int): 在像素中缓冲半径/距离。
+
+        返回：
+            OccupancyMap: 缓冲式 (也称为扩展/填充) 居住地图。
         """
 
         buffer_distance_pixels = int(buffer_distance_pixels)
@@ -410,6 +544,16 @@ free_thresh: {free_thresh}
         Returns:
             OccupancyMap: The buffered (aka: dilated / padded) occupancy map.
         """
+        """通过扩大占据地区来获得缓冲地图。
+
+        看看OccupancyMap.buffer更多详情。
+
+        参数：
+            buffer_distance_meters (int): 在像素中缓冲半径/距离。
+
+        返回：
+            OccupancyMap: 缓冲式 (也称为扩展/填充) 居住地图。
+        """
         buffer_distance_pixels = int(buffer_distance_meters / self.resolution)
         return self.buffered(buffer_distance_pixels)
 
@@ -421,6 +565,14 @@ free_thresh: {free_thresh}
 
         Returns:
             Point2d: The world coordinate.
+        """
+        """转换一个像素坐标为世界坐标。
+
+        参数：
+            point (Point2d): 像素坐标。
+
+        返回：
+            Point2d: 世界协调。
         """
         # currently doesn't handle rotations
         bot_left = self.bottom_left_pixel_world_coords()
@@ -439,6 +591,14 @@ free_thresh: {free_thresh}
         Returns:
             np.ndarray: The Nx2 numpy array of world coordinates.
         """
+        """转换一个像素坐标阵列为世界坐标。
+
+        参数：
+            points (np.ndarray): 像素坐标的Nx2 numpy阵列。
+
+        返回：
+            np.ndarray: 世界坐标的Nx2 numpy阵列。
+        """
         bot_left = self.bottom_left_pixel_world_coords()
         u = points[:, 0] / self.width_pixels()
         v = 1.0 - points[:, 1] / self.height_pixels()
@@ -454,6 +614,14 @@ free_thresh: {free_thresh}
 
         Returns:
             np.ndarray: The Nx2 numpy array of pixel coordinates.
+        """
+        """将世界坐标数组转换为像素坐标。
+
+        参数：
+            points (np.ndarray): 世界坐标的Nx2 numpy阵列。
+
+        返回：
+            np.ndarray: 像素坐标的Nx2 numpy阵列。
         """
         bot_left_world = self.bottom_left_pixel_world_coords()
         u = (points[:, 0] - bot_left_world[0]) / self.width_meters()
@@ -471,6 +639,15 @@ free_thresh: {free_thresh}
         Returns:
             bool: True if the coordinate is inside the bounds of
                 the occupancy map.  False otherwise.
+        """
+        """检查世界坐标是否在占用地图的范围内。
+
+        参数：
+            point (Point2d): 世界协调。
+
+        返回：
+            bool: True如果坐标位于占用地图的边界内。
+                  False否则。
         """
 
         pixel = self.world_to_pixel_numpy(np.array([[point.x, point.y]]))
@@ -491,6 +668,15 @@ free_thresh: {free_thresh}
         Returns:
             bool: True if the world coordinate is inside the freespace region of the occupancy map.
                 False otherwise.
+        """
+        """检查世界坐标是否位于占用地图的自由空间区域内
+
+        参数：
+            point (Point2d): 世界协调。
+
+        返回：
+            bool: True如果世界坐标位于占用地图的自由空间区域内。
+                  False否则。
         """
         if not self.check_world_point_in_bounds(point):
             return False
@@ -527,6 +713,7 @@ def merge_occupancy_maps(
     src_omaps: list[OccupancyMap], method: OccupancyMapMergeMethod = OccupancyMapMergeMethod.UNION
 ) -> OccupancyMap:
     """Merge occupancy maps by computing the union or intersection of the occupied regions."""
+    """通过计算占领地区的联盟或交叉点，将占用地图合并。"""
     dst_resolution = min([o.resolution for o in src_omaps])
 
     min_x = min([o.bottom_left_pixel_world_coords()[0] for o in src_omaps])
@@ -594,11 +781,13 @@ def merge_occupancy_maps(
 
 def intersect_occupancy_maps(src_omaps: list[OccupancyMap]) -> OccupancyMap:
     """Compute a new occupancy map by intersecting the occupied regions of a list of occupancy maps."""
+    """通过交叉占用地区的占用地图列表来计算一个新的占用地图。"""
     return merge_occupancy_maps(src_omaps=src_omaps, method=OccupancyMapMergeMethod.INTERSECTION)
 
 
 def transform_points(points: np.ndarray, transform: np.ndarray) -> np.ndarray:
     """Transform a set of points by a 2D transform."""
+    """通过二维转换将一组点转换成。"""
     points = np.concatenate([points, np.ones_like(points[:, 0:1])], axis=-1).T
     points = transform @ points
     points = points.T
@@ -608,16 +797,19 @@ def transform_points(points: np.ndarray, transform: np.ndarray) -> np.ndarray:
 
 def make_rotate_transform(angle: float) -> np.ndarray:
     """Create a 2D rotation transform."""
+    """创建一个2D旋转转换。"""
     return np.array([[np.cos(angle), -np.sin(angle), 0.0], [np.sin(angle), np.cos(angle), 0.0], [0.0, 0.0, 1.0]])
 
 
 def make_translate_transform(dx: float, dy: float) -> np.ndarray:
     """Create a 2D translation transform."""
+    """创建一个2D翻译转换。"""
     return np.array([[1.0, 0.0, dx], [0.0, 1.0, dy], [0.0, 0.0, 1.0]])
 
 
 def transform_occupancy_map(omap: OccupancyMap, transform: np.ndarray) -> OccupancyMap:
     """Transform an occupancy map using a 2D transform."""
+    """用二维转换来转换一个占用地图。"""
 
     src_box_world_coords = np.array(
         [

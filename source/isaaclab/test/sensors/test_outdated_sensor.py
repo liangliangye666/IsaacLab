@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import shutil
 import tempfile
@@ -29,6 +31,7 @@ from isaaclab_tasks.utils.parse_cfg import parse_env_cfg
 @pytest.fixture()
 def temp_dir():
     """Fixture to create and clean up a temporary directory for test datasets."""
+    """为测试数据集创建和清理临时目录的固定装置。"""
     # this flag is necessary to prevent a bug where the simulation gets stuck randomly when running the
     # test on many environments.
     carb_settings_iface = carb.settings.get_settings()
@@ -46,6 +49,7 @@ def temp_dir():
 @pytest.mark.isaacsim_ci
 def test_action_state_recorder_terms(temp_dir, task_name, device, num_envs):
     """Check FrameTransformer values after reset."""
+    """在重置后检查FrameTransformer值。"""
     omni.usd.get_context().new_stage()
 
     # parse configuration

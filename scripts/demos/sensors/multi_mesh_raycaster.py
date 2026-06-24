@@ -18,6 +18,19 @@
     python scripts/demos/sensors/multi_mesh_raycaster.py --num_envs 16 --asset_type objects
 
 """
+"""采用多射器传感器的例子。
+
+.. code-block:: bash
+
+    # with allegro hand
+    python scripts/demos/sensors/multi_mesh_raycaster.py --num_envs 16 --asset_type allegro_hand
+
+    # with anymal-D bodies
+    python scripts/demos/sensors/multi_mesh_raycaster.py --num_envs 16 --asset_type anymal_d
+
+    # with random multiple objects
+    python scripts/demos/sensors/multi_mesh_raycaster.py --num_envs 16 --asset_type objects
+"""
 
 import argparse
 
@@ -43,6 +56,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import random
 
@@ -177,6 +191,7 @@ else:
 @configclass
 class RaycasterSensorSceneCfg(InteractiveSceneCfg):
     """Design the scene with sensors on the asset."""
+    """设计场景，使用传感器。"""
 
     # ground plane
     ground = AssetBaseCfg(
@@ -200,6 +215,7 @@ class RaycasterSensorSceneCfg(InteractiveSceneCfg):
 
 def randomize_shape_color(prim_path_expr: str):
     """Randomize the color of the geometry."""
+    """随机定制几何的颜色。"""
 
     # acquire stage
     stage = omni.usd.get_context().get_stage()
@@ -226,6 +242,7 @@ def randomize_shape_color(prim_path_expr: str):
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     """Run the simulator."""
+    """运行仿真器。"""
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()
     sim_time = 0.0
@@ -275,6 +292,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.005, device=args_cli.device)

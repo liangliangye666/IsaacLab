@@ -6,6 +6,7 @@
 """Gamepad controller for SE(2) control."""
 
 from __future__ import annotations
+"""控制器用于SE(2) 控制。"""
 
 import weakref
 from collections.abc import Callable
@@ -44,6 +45,27 @@ class Se2Gamepad(DeviceBase):
         The official documentation for the gamepad interface: `Carb Gamepad Interface <https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/input-devices/gamepad.html>`__.
 
     """
+    """作为速度指令发送SE(2) 的游戏盘控制器。
+
+    这一类是为移动基座 (如四肢) 提供游戏pad控制器而设计的。
+    它使用了Omniverse游戏平台接口来听取游戏平台事件并将它们映射到机器人的任务空间命令。
+
+    命令包括基线和角速度:`(v_x， v_y， \omega_z)`。
+
+    关键约束:
+    ====================================================================================================
+    ====================================================================================================
+    ====================================================================================================
+    ====================================================================================================
+    ====================================================================================================
+    ==========
+
+    ..
+    查看:
+
+        游戏板接口的官方文档:`Carb Gamepad Interface <https://docs.omniverse.nvidia.com/dev-guide/latest/programme
+        r_ref/input-devices/gamepad.html>`__。
+    """
 
     def __init__(
         self,
@@ -57,6 +79,19 @@ class Se2Gamepad(DeviceBase):
             omega_z_sensitivity: Magnitude of angular velocity along z-direction scaling. Defaults to 1.0.
             dead_zone: Magnitude of dead zone for gamepad. An event value from the gamepad less than
                 this value will be ignored. Defaults to 0.01.
+        """
+        """启动游戏板层。
+
+        参数：
+            v_x_sensitivity: 在 x 方向尺度上线性速度的大小。
+                             默认到1.0。
+            v_y_sensitivity: 沿着y方向扩展的线性速度的大小。
+                             默认到1.0。
+            omega_z_sensitivity: 沿着z方向尺度的角度速度的大小。
+                                 默认到1.0。
+            dead_zone: 游戏区的死区大小。
+                       游戏pad的事件值将被忽略为低于此值。
+                       默认为0.01。
         """
         # turn off simulator gamepad control
         carb_settings_iface = carb.settings.get_settings()
@@ -91,11 +126,13 @@ class Se2Gamepad(DeviceBase):
 
     def __del__(self):
         """Unsubscribe from gamepad events."""
+        """退出游戏pad事件的订阅。"""
         self._input.unsubscribe_to_gamepad_events(self._gamepad, self._gamepad_sub)
         self._gamepad_sub = None
 
     def __str__(self) -> str:
         """Returns: A string containing the information of joystick."""
+        """Returns: 包含玩具信息的字符串。"""
         msg = f"Gamepad Controller for SE(2): {self.__class__.__name__}\n"
         msg += f"\tDevice name: {self._input.get_gamepad_name(self._gamepad)}\n"
         msg += "\t----------------------------------------------\n"
@@ -105,6 +142,8 @@ class Se2Gamepad(DeviceBase):
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self):
@@ -122,6 +161,16 @@ class Se2Gamepad(DeviceBase):
             func: The function to call when key is pressed. The callback function should not
                 take any arguments.
         """
+        """添加额外的功能来绑定游戏板。
+
+        现有游戏pad键的列表在`carb documentation
+        <https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/input-devices/gamepad.html>`__。
+
+        参数：
+            key: 这是一个游戏板按。
+            func: 在键时调用的函数。
+                  召回函数不应进行任何争论。
+        """
         self._additional_callbacks[key] = func
 
     def advance(self) -> torch.Tensor:
@@ -130,11 +179,18 @@ class Se2Gamepad(DeviceBase):
         Returns:
             A tensor containing the linear (x,y) and angular velocity (z).
         """
+        """提供游戏pad事件状态的结果。
+
+        返回：
+            包含线性 (x，y) 和角速度 (z) 的子。
+        """
         numpy_result = self._resolve_command_buffer(self._base_command_raw)
         return torch.tensor(numpy_result, dtype=torch.float32, device=self._sim_device)
 
     """
     Internal helpers.
+    """
+    """内部助理。
     """
 
     def _on_gamepad_event(self, event: carb.input.GamepadEvent, *args, **kwargs):
@@ -142,6 +198,11 @@ class Se2Gamepad(DeviceBase):
 
         Reference:
             https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/input-devices/gamepad.html
+        """
+        """订阅者将在更新套件时回调。
+
+        Reference:
+            https://docs.omniverse.nvidia.com/dev-guide/最新programmer_ref/输入设备/gamepad.html
         """
 
         # check if the event is a button press
@@ -163,6 +224,7 @@ class Se2Gamepad(DeviceBase):
 
     def _create_key_bindings(self):
         """Creates default key binding."""
+        """创建默认键绑定。"""
         self._INPUT_STICK_VALUE_MAPPING = {
             # forward command
             carb.input.GamepadInput.LEFT_STICK_UP: (0, 0, self.v_x_sensitivity),
@@ -190,6 +252,17 @@ class Se2Gamepad(DeviceBase):
         Returns:
             Resolved command. Shape is (3,)
         """
+        """解决命令缓冲器。
+
+        参数：
+            raw_command: 游戏板的原始命令。
+                         形状是 (2， 3) 这是一个2D阵列，因为游戏paddpad/stick返回两个值，相应于正面和负面方向。
+                         第一个索引是指向 (0:正， 1:负) 第二个索引是指令的值 (绝对)。
+
+        返回：
+            解决了命令。
+            形状是 (3，)
+        """
         # compare the positive and negative value decide the sign of the value
         #   if the positive value is larger, the sign is positive (i.e. False, 0)
         #   if the negative value is larger, the sign is positive (i.e. True, 1)
@@ -207,6 +280,7 @@ class Se2Gamepad(DeviceBase):
 @dataclass
 class Se2GamepadCfg(DeviceCfg):
     """Configuration for SE2 gamepad devices."""
+    """对于SE2游戏盘设备的配置。"""
 
     v_x_sensitivity: float = 1.0
     v_y_sensitivity: float = 1.0

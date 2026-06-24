@@ -16,6 +16,8 @@ class FrankaCubeStackIKRelVisuomotorCosmosMimicEnvCfg(FrankaCubeStackVisuomotorC
     """
     Isaac Lab Mimic environment config class for Franka Cube Stack IK Rel Visuomotor Cosmos env.
     """
+    """艾萨克实验室仿真环境配置类，为Franka Cube Stack IK 轮视电动宇宙env。
+    """
 
     def __post_init__(self):
         # post init of parents

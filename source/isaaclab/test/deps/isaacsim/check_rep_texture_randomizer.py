@@ -18,8 +18,21 @@ Usage:
     ./isaaclab.sh -p source/isaaclab/test/deps/isaacsim/check_rep_texture_randomizer.py
 
 """
+"""这本脚本显示如何使用复制器随机改变USD场景的纹理。
+
+说明：
+    目前，该脚本失败了，因为克隆器不支持克隆 USD prims 的变化纹理。
+    这是因为prims使用`Sdf.ChangeBlock`进行克隆，这不允许单个纹理变化。
+
+Usage:
+
+.. code-block:: bash
+
+    ./isaaclab.sh -p source/isaaclab/test/deps/isaacsim/check_rep_texture_randomizer.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -41,6 +54,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import numpy as np
 import torch
@@ -56,6 +70,7 @@ from isaacsim.core.utils.viewports import set_camera_view
 
 def main():
     """Spawn a bunch of balls and randomly change their textures."""
+    """起一堆球，随机改变它们的纹理。"""
 
     # Load kit helper
     sim_params = {

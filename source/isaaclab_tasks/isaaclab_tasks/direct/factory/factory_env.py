@@ -39,6 +39,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _set_default_dynamics_parameters(self):
         """Set parameters defining dynamic interactions."""
+        """设置定义动态相互作用的参数。"""
         self.default_gains = torch.tensor(self.cfg.ctrl.default_task_prop_gains, device=self.device).repeat(
             (self.num_envs, 1)
         )
@@ -57,6 +58,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _init_tensors(self):
         """Initialize tensors once."""
+        """一次启动光器。"""
         # Control targets.
         self.ctrl_target_joint_pos = torch.zeros((self.num_envs, self._robot.num_joints), device=self.device)
         self.ema_factor = self.cfg.ctrl.ema_factor
@@ -84,6 +86,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _setup_scene(self):
         """Initialize simulation scene."""
+        """启动仿真场景。"""
         spawn_ground_plane(prim_path="/World/ground", cfg=GroundPlaneCfg(), translation=(0.0, 0.0, -1.05))
 
         # spawn a usd file of a table into the scene
@@ -117,6 +120,9 @@ class FactoryEnv(DirectRLEnv):
 
     def _compute_intermediate_values(self, dt):
         """Get values computed from raw tensors. This includes adding noise."""
+        """从原始张量计算的值。
+        这包括增加噪音。
+        """
         # TODO: A lot of these can probably only be set once?
         self.fixed_pos = self._fixed_asset.data.root_pos_w - self.scene.env_origins
         self.fixed_quat = self._fixed_asset.data.root_quat_w
@@ -159,6 +165,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _get_factory_obs_state_dict(self):
         """Populate dictionaries for the policy and critic."""
+        """填写策略和批评者的字典。"""
         noisy_fixed_pos = self.fixed_pos_obs_frame + self.init_fixed_pos_obs_noise
 
         prev_actions = self.actions.clone()
@@ -193,6 +200,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _get_observations(self):
         """Get actor/critic inputs using asymmetric critic."""
+        """用不对称的评论家来获取演员/评论家的输入。"""
         obs_dict, state_dict = self._get_factory_obs_state_dict()
 
         obs_tensors = factory_utils.collapse_obs_dict(obs_dict, self.cfg.obs_order + ["prev_actions"])
@@ -201,11 +209,13 @@ class FactoryEnv(DirectRLEnv):
 
     def _reset_buffers(self, env_ids):
         """Reset buffers."""
+        """重置缓冲器。"""
         self.ep_succeeded[env_ids] = 0
         self.ep_success_times[env_ids] = 0
 
     def _pre_physics_step(self, action):
         """Apply policy actions with smoothing."""
+        """采取策略动作，以平滑的方式。"""
         env_ids = self.reset_buf.nonzero(as_tuple=False).squeeze(-1)
         if len(env_ids) > 0:
             self._reset_buffers(env_ids)
@@ -214,6 +224,7 @@ class FactoryEnv(DirectRLEnv):
 
     def close_gripper_in_place(self):
         """Keep gripper in current position as gripper closes."""
+        """保持抓住器的位置当抓住器关闭。"""
         actions = torch.zeros((self.num_envs, 6), device=self.device)
 
         # Interpret actions as target pos displacements and set pos target
@@ -252,6 +263,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _apply_action(self):
         """Apply actions for policy as delta targets from current position."""
+        """根据当前情况，将策略动作作为多角目标。"""
         # Note: We use finite-differenced velocities for control and observations.
         # Check if we need to re-compute velocities within the decimation loop.
         if self.last_update_timestamp < self._robot._data._sim_timestamp:
@@ -305,6 +317,9 @@ class FactoryEnv(DirectRLEnv):
         self, ctrl_target_fingertip_midpoint_pos, ctrl_target_fingertip_midpoint_quat, ctrl_target_gripper_dof_pos
     ):
         """Get Jacobian. Set Franka DOF position targets (fingers) or DOF torques (arm)."""
+        """找杰科比亚。
+        设置Franka DOF位置目标 (指) 或DOF扭矩 (臂)。
+        """
         self.joint_torque, self.applied_wrench = factory_control.compute_dof_torque(
             cfg=self.cfg,
             dof_pos=self.joint_pos,
@@ -336,12 +351,17 @@ class FactoryEnv(DirectRLEnv):
         For Factory reset logic, it is important that all environments
         stay in sync (i.e., _get_dones should return all true or all false).
         """
+        """检查哪些环境被终止。
+
+        对于工厂重置逻辑来说，重要的是所有环境保持同步 (i.e.， _get_dones应该返回全部 true或全部 false)。
+        """
         self._compute_intermediate_values(dt=self.physics_dt)
         time_out = self.episode_length_buf >= self.max_episode_length - 1
         return time_out, time_out
 
     def _get_curr_successes(self, success_threshold, check_rot=False):
         """Get success mask at current timestep."""
+        """在当前的时间步骤中获得成功面具。"""
         curr_successes = torch.zeros((self.num_envs,), dtype=torch.bool, device=self.device)
 
         held_base_pos, held_base_quat = factory_utils.get_held_base_pose(
@@ -383,6 +403,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _log_factory_metrics(self, rew_dict, curr_successes):
         """Keep track of episode statistics and log rewards."""
+        """追踪事件统计和奖励记录。"""
         # Only log episode success rates at the end of an episode.
         if torch.any(self.reset_buf):
             self.extras["successes"] = torch.count_nonzero(curr_successes) / self.num_envs
@@ -404,6 +425,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _get_rewards(self):
         """Update rewards and compute success statistics."""
+        """更新奖励和计算成功统计数据。"""
         # Get successful and failed envs at current timestep
         check_rot = self.cfg_task.name == "nut_thread"
         curr_successes = self._get_curr_successes(
@@ -423,6 +445,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _get_factory_rew_dict(self, curr_successes):
         """Compute reward terms at current timestep."""
+        """在当前时间阶段计算奖励条件。"""
         rew_dict, rew_scales = {}, {}
 
         # Compute pos of keypoints on held asset, and fixed asset in world frame
@@ -487,6 +510,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _reset_idx(self, env_ids):
         """We assume all envs will always be reset at the same time."""
+        """我们假设所有envs将始终同时重置。"""
         super()._reset_idx(env_ids)
 
         self._set_assets_to_default_pose(env_ids)
@@ -497,6 +521,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _set_assets_to_default_pose(self, env_ids):
         """Move assets to default pose before randomization."""
+        """在随机化之前将资产移动到默认状态。"""
         held_state = self._held_asset.data.default_root_state.clone()[env_ids]
         held_state[:, 0:3] += self.scene.env_origins[env_ids]
         held_state[:, 7:] = 0.0
@@ -515,6 +540,7 @@ class FactoryEnv(DirectRLEnv):
         self, ctrl_target_fingertip_midpoint_pos, ctrl_target_fingertip_midpoint_quat, env_ids
     ):
         """Set robot joint position using DLS IK."""
+        """使用DLS IK设置机器人关节位置。"""
         ik_time = 0.0
         while ik_time < 0.25:
             # Compute error to target.
@@ -552,6 +578,7 @@ class FactoryEnv(DirectRLEnv):
 
     def get_handheld_asset_relative_pose(self):
         """Get default relative pose between help asset and fingertip."""
+        """在助力资产和指尖之间的默认相对姿势。"""
         if self.cfg_task.name == "peg_insert":
             held_asset_relative_pos = torch.zeros((self.num_envs, 3), device=self.device)
             held_asset_relative_pos[:, 2] = self.cfg_task.held_asset_cfg.height
@@ -586,6 +613,7 @@ class FactoryEnv(DirectRLEnv):
 
     def _set_franka_to_default_pose(self, joints, env_ids):
         """Return Franka to its default joint position."""
+        """返回弗兰卡的默认位置。"""
         gripper_width = self.cfg_task.held_asset_cfg.diameter / 2 * 1.25
         joint_pos = self._robot.data.default_joint_pos[env_ids]
         joint_pos[:, 7:] = gripper_width  # MIMIC
@@ -606,6 +634,11 @@ class FactoryEnv(DirectRLEnv):
         This method should only be called during resets when all environments
         reset at the same time.
         """
+        """在没有动作的情况下进行仿真。
+        仅用于重置。
+
+        在所有环境同时重置时，该方法只应在重置时调用。
+        """
         self.scene.write_data_to_sim()
         self.sim.step(render=False)
         self.scene.update(dt=self.physics_dt)
@@ -613,6 +646,7 @@ class FactoryEnv(DirectRLEnv):
 
     def randomize_initial_state(self, env_ids):
         """Randomize initial state and perform any episode-level randomization."""
+        """随机化初始状态和执行任何事件级随机化。"""
         # Disable gravity.
         physics_sim_view = sim_utils.SimulationContext.instance().physics_sim_view
         physics_sim_view.set_gravity(carb.Float3(0.0, 0.0, 0.0))

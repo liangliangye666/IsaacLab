@@ -19,6 +19,17 @@ There are two main components in this package:
   * :meth:`TerrainImporter.import_usd`: spawn a prim as reference to input USD file.
 
 """
+"""配备程序性地形的公用设施。
+
+包装有两个主要组成部分:
+
+* :class:`TerrainGenerator`:这个类程序性地形生成基于通过的地下配置.它创建``trimesh``网格对象，并包含每个生成的地下的起源。
+* :class:`TerrainImporter`:本类主要涉及从不同可能来源进口地形并将其添加到仿真器中作为prim对象。
+
+  * :meth:`TerrainImporter.import_ground_plane`:在Isaac Sim中默认的格式平面。
+  * :meth:`TerrainImporter.import_mesh`:从``trimesh``对象中产生prim。
+  * :meth:`TerrainImporter.import_usd`:生成一个prim作为输入USD文件的引用。
+"""
 from .height_field import *  # noqa: F401, F403
 from .sub_terrain_cfg import FlatPatchSamplingCfg, SubTerrainBaseCfg
 from .terrain_generator import TerrainGenerator

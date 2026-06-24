@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows from here."""
+"""休息，从这里开始。"""
 
 from collections.abc import Generator
 
@@ -23,6 +25,7 @@ from isaaclab.utils import DelayBuffer
 @pytest.fixture
 def delay_buffer():
     """Create a delay buffer for testing."""
+    """建立一个测试延迟缓冲器。"""
     device: str = "cpu"
     batch_size: int = 10
     history_length: int = 4
@@ -31,12 +34,14 @@ def delay_buffer():
 
 def _generate_data(batch_size: int, length: int, device: str) -> Generator[torch.Tensor]:
     """Data generator for testing the buffer."""
+    """测试缓冲器的数据生成器。"""
     for step in range(length):
         yield torch.full((batch_size, 1), step, dtype=torch.int, device=device)
 
 
 def test_constant_time_lags(delay_buffer):
     """Test constant delay."""
+    """测试持续延迟。"""
     const_lag: int = 3
     batch_size: int = 10
 
@@ -53,6 +58,7 @@ def test_constant_time_lags(delay_buffer):
 
 def test_reset(delay_buffer):
     """Test resetting the last two batch indices after iteration `reset_itr`."""
+    """测试重置`reset_itr`代后最后两个批量索引。"""
     const_lag: int = 2
     reset_itr = 10
     batch_size: int = 10
@@ -81,6 +87,7 @@ def test_reset(delay_buffer):
 
 def test_random_time_lags(delay_buffer):
     """Test random delays."""
+    """测试随机延迟。"""
     max_lag: int = 3
     time_lags = torch.randint(
         low=0, high=max_lag + 1, size=(delay_buffer.batch_size,), dtype=torch.int, device=delay_buffer.device

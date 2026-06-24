@@ -79,6 +79,70 @@ class NullSpacePostureTask(Task):
     imposed by higher priority tasks (e.g., end-effector positioning).
 
     """
+    """基于粉红色的任务，添加在其他任务的零空间投影中的姿势目标。
+
+    这项任务在粉红色反动动力学框架内实现了更高优先任务 (通常是最终效应器姿势任务) 的零空间姿势控制。
+
+    **数学公式:**
+
+    详细了解粉红色反动动力学优化配方访问:https://github.com/stephane-caron/pink
+
+    **零空间姿势任务实施:**
+
+    这项任务包括两个组成部分:
+
+    1. **错误函数**:姿势错误计算为:
+
+    .. math::
+
+        \mathbf{e}(\mathbf{q}) = \mathbf{M} \cdot (\mathbf{q}^* - \mathbf{q})
+
+    where:
+        - :math:`\mathbf{q}^*`是目标联合配置
+        - :math:`\mathbf{q}`是当前的联合配置
+        - :数学:`\mathbf{M}`是一个联合选择面具矩阵
+
+    2. **Jacobian Matrix**: Jacobian 的任务是零空间投影机:
+
+    .. math::
+
+        \mathbf{J}_{\text{posture}}(\mathbf{q}) = \mathbf{N}(\mathbf{q}) =
+            \mathbf{I} -\mathbf{J}_{\text{primary}}^+ \mathbf{J}_{\text{primary}}
+
+    where:
+        - :数学:`\mathbf{J}_{\text{primary}}`是所有更高优先任务的联合Jacobian
+        - :数学:`\mathbf{J}_{\text{primary}}^+`是主要任务Jacobian的伪逆
+        - :数学:`\mathbf{N}(\mathbf{q})`是零空间投影矩阵
+
+    例如，如果有两个框架任务 (e.g.，控制两个末端执行器位姿)，
+    :math:`\mathbf{J}_{\text{primary}}`是通过垂直堆叠每个框架的单个Jacobians来构建的:
+
+    .. math::
+
+        \mathbf{J}_{\text{primary}} =
+        \begin{bmatrix}
+            \mathbf{J}_1(\mathbf{q}) \\
+            \mathbf{J}_2(\mathbf{q})
+        \end{bmatrix}
+
+    where :数学:`\mathbf{J}_1(\mathbf{q})`和:数学:`\mathbf{J}_2(\mathbf{q})`是Jacobians为
+    分别的第一和第二个框架任务。
+
+    零空间投影器确保零空间中的关节速度产生零速度
+    for the primary tasks: :math:`\mathbf{J}_{\text{primary}} \cdot \dot{\mathbf{q}}_{\text{null}} = \mathbf{0}`.
+
+    **任务集成:**
+
+    在 Pink 框架中集成时，该任务有助于优化:
+
+    .. math::
+
+        \left\|
+            \mathbf{N}(\mathbf{q}) \mathbf{v} + \mathbf{M} \cdot (\mathbf{q}^* - \mathbf{q})
+        \right\|_{W_{\text{posture}}}^2
+
+    这种配方使机器人能够保持所需的姿势，同时尊重较高优先任务 (e.g.，终端效应物定位) 所造成的限制。
+    """
 
     # Regularization factor for pseudoinverse computation to ensure numerical stability
     PSEUDOINVERSE_DAMPING_FACTOR: float = 1e-9
@@ -109,6 +173,23 @@ class NullSpacePostureTask(Task):
             controlled_joints: Joint names to control in the posture task. If None or
                 empty, all actuated joints are controlled.
         """
+        """启动零空间姿势任务。
+
+        这项任务在优先级框架任务的零空间中保持所需的联合姿势。
+        关节选择允许排除特定关节 (e.g.，人形操纵中的手腕关节)，以防止肩膀和腰部等关键关节中的巨大旋转错误。
+
+        参数：
+            cost: 优化目标中的任务权重因素。
+                Units: 数学:`[\text{cost}] / [\text{rad}]`。
+            lm_damping: 利文伯格-马卡尔特规律化尺度 (无单位)。
+                        默认为0.0。
+            gain: 任务收益:数学`\alpha \in [0， 1]`为低通道过。
+                  默认到1.0 (没有过)。
+            controlled_frames: 框架名称，其雅可比人定义了零空间投影的主要任务。
+                               如果None或空，则不使用投影。
+            controlled_joints: 在姿势任务中控制的共同名称。
+                               如果None或空，所有动力关节都控制。
+        """
         super().__init__(cost=cost, gain=gain, lm_damping=lm_damping)
         self.target_q: np.ndarray | None = None
         self.controlled_frames: list[str] = controlled_frames or []
@@ -118,6 +199,7 @@ class NullSpacePostureTask(Task):
 
     def __repr__(self) -> str:
         """Human-readable representation of the task."""
+        """人能阅读任务的表现。"""
         return (
             f"NullSpacePostureTask(cost={self.cost}, gain={self.gain}, lm_damping={self.lm_damping},"
             f" controlled_frames={self.controlled_frames}, controlled_joints={self.controlled_joints})"
@@ -131,6 +213,13 @@ class NullSpacePostureTask(Task):
 
         Args:
             configuration: Robot configuration containing the model and joint information.
+        """
+        """构建常用的联合面具和缓存值。
+
+        建立一个二进制面具，选择在姿势任务中应该控制哪些关节。
+
+        参数：
+            configuration: 包含模型和联合信息的机器人配置。
         """
         # Create joint mask for full configuration size
         self._joint_mask = np.zeros(configuration.model.nq)
@@ -155,6 +244,12 @@ class NullSpacePostureTask(Task):
                 floating-base coordinates (although they have no effect on the
                 posture task since only actuated joints are controlled).
         """
+        """设置目标姿势配置。
+
+        参数：
+            target_q: 在配置空间中的目标向量。
+                      如果模型有一个浮动基，那么这个向量应该包括浮动基座位 (尽管它们对姿势任务没有影响，因为只有动力关节控制)。
+        """
         self.target_q = target_q.copy()
 
     def set_target_from_configuration(self, configuration: Configuration) -> None:
@@ -163,6 +258,11 @@ class NullSpacePostureTask(Task):
         Args:
             configuration: Robot configuration whose joint angles will be used
                 as the target posture.
+        """
+        """从机器人配置设置目标姿势。
+
+        参数：
+            configuration: 机器人配置，其合角将作为目标姿势。
         """
         self.set_target(configuration.q)
 
@@ -187,6 +287,26 @@ class NullSpacePostureTask(Task):
 
         Raises:
             ValueError: If no posture target has been set.
+        """
+        """计算姿势任务错误。
+
+        错误计算如下:
+
+        .. math::
+
+            \mathbf{e}(\mathbf{q}) = \mathbf{M} \cdot (\mathbf{q}^* - \mathbf{q})
+
+        where :数学:`\mathbf{M}`是联合选择面具和:math:`\mathbf{q}^* - \mathbf{q}`
+        通过皮诺基奥的区别函数来计算，
+
+        参数：
+            configuration: 机器人配置:数学:`\mathbf{q}`。
+
+        返回：
+            姿势任务错误:数学:`\mathbf{e}(\mathbf{q})` 与配置向量相同的维度，但对于不受控制的关节有零。
+
+        异常：
+            ValueError: 如果没有设定位置目标。
         """
         if self.target_q is None:
             raise ValueError("No posture target has been set. Call set_target() first.")
@@ -232,6 +352,31 @@ class NullSpacePostureTask(Task):
         Returns:
             Null space projector matrix :math:`\mathbf{N}(\mathbf{q})` with dimensions
             :math:`n_q \times n_q` where :math:`n_q` is the number of configuration variables.
+        """
+        """计算零空间投影机Jacobian。
+
+        零空间投影器定义为:
+
+        .. math::
+
+            \mathbf{N}(\mathbf{q}) = \mathbf{I} - \mathbf{J}_{\text{primary}}^+ \mathbf{J}_{\text{primary}}
+
+        where:
+            - :math:`\mathbf{J}_{\text{primary}}`是所有控制框架的联合Jacobian
+            - :数学:`\mathbf{J}_{\text{primary}}^+`是主要任务Jacobian的伪逆
+            - :数学:`\mathbf{I}`是身份矩阵
+
+        零空间投影器确保零空间中的关节速度为主要任务产生零速度:
+        :math:`\mathbf{J}_{\text{primary}} \cdot \dot{\mathbf{q}}_{\text{null}} = \mathbf{0}`。
+
+        如果没有指定控制框架，则返回身份矩阵。
+
+        参数：
+            configuration: 机器人配置:数学:`\mathbf{q}`。
+
+        返回：
+            零空间投影仪矩阵:数学:`\mathbf{N}(\mathbf{q})` 尺寸
+            :math:`n_q \times n_q`在哪里:`n_q`是配置变量的数量。
         """
         # Initialize joint mapping if needed
         if self._frame_names is None:

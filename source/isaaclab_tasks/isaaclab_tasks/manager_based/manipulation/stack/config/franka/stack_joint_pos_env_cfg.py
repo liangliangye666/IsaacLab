@@ -27,6 +27,7 @@ from isaaclab_assets.robots.franka import FRANKA_PANDA_CFG  # isort: skip
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     init_franka_arm_pose = EventTerm(
         func=franka_stack_events.set_default_joint_pose,
@@ -60,6 +61,7 @@ class EventCfg:
 @configclass
 class FrankaCubeStackEnvCfg(StackEnvCfg):
     """Configuration for the Franka Cube Stack Environment."""
+    """设置为弗兰卡立方体堆环境。"""
 
     def __post_init__(self):
         # post init of parent

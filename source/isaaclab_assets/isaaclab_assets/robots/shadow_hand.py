@@ -14,6 +14,16 @@ Reference:
 * https://www.shadowrobot.com/dexterous-hand-series/
 
 """
+"""对于影子机器人的巧妙手来说，
+
+下列配置可用:
+
+* :obj:`SHADOW_HAND_CFG`: 暗影手与隐含的动机模型。
+
+Reference:
+
+* https://www.shadowrobot.com/dexterous-hand-series/
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -82,3 +92,4 @@ SHADOW_HAND_CFG = ArticulationCfg(
     soft_joint_pos_limit_factor=1.0,
 )
 """Configuration of Shadow Hand robot."""
+"""影子手机器人的配置。"""

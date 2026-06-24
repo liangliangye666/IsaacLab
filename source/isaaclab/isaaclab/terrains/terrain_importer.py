@@ -41,9 +41,24 @@ class TerrainImporter:
     to a harder difficulty. This is done by calling :func:`update_terrain_levels`. The idea comes from game-based
     curriculum. For example, in a game, the player starts with easy levels and progresses to harder levels.
     """
+    """一个课程来处理地形网格，并将它们进口到仿真器中。
+
+    我们假设一个地形网格由排列在网格的地形组成``num_rows``和列``num_cols``。
+    地形起源是机器人应产生的地下位置。
+
+    根据地形配置，地形进口商将从地形下进行环境起源计算。
+    在典型的设置中，地下地数 (:math:`num\_rows \times num\_cols`) 比环境数 (:math:`num\_envs`) 小。
+    在这种情况下，环境起源由采样地底起源计算。
+
+    如果使用课程，可以将环境起源更新到更难的地形起源。
+    通过电话给:func:`update_terrain_levels`来完成。
+    这一想法来自游戏课程。
+    例如，在游戏中，玩家从轻松的水平开始，
+    """
 
     terrain_prim_paths: list[str]
     """A list containing the USD prim paths to the imported terrains."""
+    """包含进口地形的USD prim路径的列表。"""
 
     terrain_origins: torch.Tensor | None
     """The origins of the sub-terrains in the added terrain mesh. Shape is (num_rows, num_cols, 3).
@@ -51,9 +66,18 @@ class TerrainImporter:
     If terrain origins is not None, the environment origins are computed based on the terrain origins.
     Otherwise, the environment origins are computed based on the grid spacing.
     """
+    """在增加的地形网格中地下地产的起源。
+    形状是 (num_rows，num_cols， 3)。
+
+    如果地形起源不是None，则环境起源根据地形起源计算。
+    否则，环境的起源是根据网格间隔计算的。
+    """
 
     env_origins: torch.Tensor
     """The origins of the environments. Shape is (num_envs, 3)."""
+    """环境的起源。
+    形状是 (num_envs， 3)。
+    """
 
     def __init__(self, cfg: TerrainImporterCfg):
         """Initialize the terrain importer.
@@ -66,6 +90,17 @@ class TerrainImporter:
             ValueError: If terrain type is 'generator' and no configuration provided for ``terrain_generator``.
             ValueError: If terrain type is 'usd' and no configuration provided for ``usd_path``.
             ValueError: If terrain type is 'usd' or 'plane' and no configuration provided for ``env_spacing``.
+        """
+        """启动地形进口者。
+
+        参数：
+            cfg: 对地形进口商的配置
+
+        异常：
+            ValueError: 如果输入地形类型不支持。
+            ValueError: 如果地形类型是"发电机"，并没有为``terrain_generator``提供配置。
+            ValueError: 如果地形类型是"usd"，并没有为``usd_path``提供配置。
+            ValueError: 如果地形类型是"usd"或"平面"，并没有为``env_spacing``提供配置。
         """
         # check that the config is valid
         cfg.validate()
@@ -119,12 +154,18 @@ class TerrainImporter:
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def has_debug_vis_implementation(self) -> bool:
         """Whether the terrain importer has a debug visualization implemented.
 
         This always returns True.
+        """
+        """地形进口商是否实现了调试可视化。
+
+        这总是返回True。
         """
         return True
 
@@ -137,15 +178,25 @@ class TerrainImporter:
 
         Please refer to the :attr:`TerrainGenerator.flat_patches` for more information.
         """
+        """含有采样地形的有效 (平面) 补丁的字典。
+
+        只有地形类型是"发电机"时才可使用。
+        对于其他地形类型，此功能不存在，并且函数返回空白字典。
+
+        更多信息请参阅:attr:`TerrainGenerator.flat_patches`。
+        """
         return self._terrain_flat_patches
 
     @property
     def terrain_names(self) -> list[str]:
         """A list of names of the imported terrains."""
+        """进口地形名称列表。"""
         return [f"'{path.split('/')[-1]}'" for path in self.terrain_prim_paths]
 
     """
     Operations - Visibility.
+    """
+    """动作 - 可见性
     """
 
     def set_debug_vis(self, debug_vis: bool) -> bool:
@@ -160,6 +211,18 @@ class TerrainImporter:
 
         Raises:
             RuntimeError: If terrain origins are not configured.
+        """
+        """设置地形进口器的故障可视化。
+
+        参数：
+            debug_vis: 是否想象地形的起源。
+
+        返回：
+            设置错误可视化是否成功。
+            False如果地形进口商不支持故障可视化。
+
+        异常：
+            RuntimeError: 如果地形的起源没有配置。
         """
         # create a marker if necessary
         if debug_vis:
@@ -184,6 +247,8 @@ class TerrainImporter:
     """
     Operations - Import.
     """
+    """运营 - 进口
+    """
 
     def import_ground_plane(self, name: str, size: tuple[float, float] = (2.0e6, 2.0e6)):
         """Add a plane to the terrain importer.
@@ -195,6 +260,17 @@ class TerrainImporter:
 
         Raises:
             ValueError: If a terrain with the same name already exists.
+        """
+        """增加一个飞机地形进口商。
+
+        参数：
+            name: 进口地形名称。
+                  这个名字用于创建 USD prim，与地形相符。
+            size: 飞机的尺寸。
+                  在 (2.0e6， 2.0e6) 中默认设置。
+
+        异常：
+            ValueError: 如果有类似地址，
         """
         # create prim path for the terrain
         prim_path = self.cfg.prim_path + f"/{name}"
@@ -237,6 +313,19 @@ class TerrainImporter:
         Raises:
             ValueError: If a terrain with the same name already exists.
         """
+        """进口一个网格进入仿真器。
+
+        在prim路径``cfg.prim_path/{key}``下，网格被进口到仿真器中。
+        创建的路径包含网格作为:class:`pxr.UsdGeom`实例以及视觉或物理材料prims。
+
+        参数：
+            name: 进口地形名称。
+                  这个名字用于创建 USD prim，与地形相符。
+            mesh: 进口的网格。
+
+        异常：
+            ValueError: 如果有类似地址，
+        """
         # create prim path for the terrain
         prim_path = self.cfg.prim_path + f"/{name}"
         # check if key exists
@@ -270,6 +359,23 @@ class TerrainImporter:
         Raises:
             ValueError: If a terrain with the same name already exists.
         """
+        """从USD文件中进口一个网格。
+
+        这种功能将USD文件作为地形输入到仿真器中。
+        它分析USD文件并存储在prim路径``cfg.prim_path/{key}``下的网格。
+        如果USD文件中存在多个网格，则只输入第一个网格。
+
+        函数对网格没有任何材料特性。
+        在USD文件中应定义材料属性。
+
+        参数：
+            name: 进口地形名称。
+                  这个名字用于创建 USD prim，与地形相符。
+            usd_path: 进入USD文件的路径。
+
+        异常：
+            ValueError: 如果有类似地址，
+        """
         # create prim path for the terrain
         prim_path = self.cfg.prim_path + f"/{name}"
         # check if key exists
@@ -287,12 +393,20 @@ class TerrainImporter:
     """
     Operations - Origins.
     """
+    """动作 - 起源
+    """
 
     def configure_env_origins(self, origins: np.ndarray | torch.Tensor | None = None):
         """Configure the origins of the environments based on the added terrain.
 
         Args:
             origins: The origins of the sub-terrains. Shape is (num_rows, num_cols, 3).
+        """
+        """根据添加的地形配置环境的起源。
+
+        参数：
+            origins: 在地底的起源。
+                     形状是 (num_rows，num_cols， 3)。
         """
         # decide whether to compute origins in a grid or based on curriculum
         if origins is not None:
@@ -313,6 +427,7 @@ class TerrainImporter:
 
     def update_env_origins(self, env_ids: torch.Tensor, move_up: torch.Tensor, move_down: torch.Tensor):
         """Update the environment origins based on the terrain levels."""
+        """根据地形水平更新环境的起源。"""
         # check if grid-like spawning
         if self.terrain_origins is None:
             return
@@ -331,9 +446,12 @@ class TerrainImporter:
     """
     Internal helpers.
     """
+    """内部助理。
+    """
 
     def _compute_env_origins_curriculum(self, num_envs: int, origins: torch.Tensor) -> torch.Tensor:
         """Compute the origins of the environments defined by the sub-terrains origins."""
+        """根据地下起源定义的环境的起源计算。"""
         # extract number of rows and cols
         num_rows, num_cols = origins.shape[:2]
         # maximum initial level possible for the terrains
@@ -355,6 +473,7 @@ class TerrainImporter:
 
     def _compute_env_origins_grid(self, num_envs: int, env_spacing: float) -> torch.Tensor:
         """Compute the origins of the environments in a grid based on configured spacing."""
+        """根据配置的间隔计算在网格中的环境的起源。"""
         # create tensor based on number of environments
         env_origins = torch.zeros(num_envs, 3, device=self.device)
         # create a grid of origins
@@ -371,6 +490,8 @@ class TerrainImporter:
     """
     Deprecated.
     """
+    """丧了。
+    """
 
     @property
     def warp_meshes(self):
@@ -378,6 +499,12 @@ class TerrainImporter:
 
         .. deprecated:: v2.1.0
             The `warp_meshes` attribute is deprecated. It is no longer stored inside the class.
+        """
+        """一个包含地形名称和它们的扭曲网格的字典。
+
+        ..
+        `warp_meshes`属性被废除。
+        它不再存储在课堂内。
         """
         logger.warning(
             "The `warp_meshes` attribute is deprecated. It is no longer stored inside the `TerrainImporter` class."
@@ -391,6 +518,12 @@ class TerrainImporter:
 
         .. deprecated:: v2.1.0
             The `meshes` attribute is deprecated. It is no longer stored inside the class.
+        """
+        """一个包含地形名称和它们的三的字典。
+
+        ..
+        `meshes`属性被废除。
+        它不再存储在课堂内。
         """
         logger.warning(
             "The `meshes` attribute is deprecated. It is no longer stored inside the `TerrainImporter` class."

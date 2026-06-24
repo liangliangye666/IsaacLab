@@ -28,14 +28,24 @@ class GenericActionIODescriptor:
     This descriptor is used to describe the action space of a policy.
     It can be extended as needed to add more information about the action term that is being described.
     """
+    """简体动作IO描述器。
+
+    这种描述符用于描述策略的动作空间。
+    根据需要，可以延长，以增加有关所描述的动作项的更多信息。
+    """
 
     mdp_type: str = "Action"
     """The type of MDP that the action term belongs to."""
+    """动作项属于的MDP类型。"""
 
     name: str = None
     """The name of the action term.
 
     By default, the name of the action term class is used.
+    """
+    """动作项的名称。
+
+    默认情况下，使用动作项类的名称。
     """
 
     full_path: str = None
@@ -44,37 +54,65 @@ class GenericActionIODescriptor:
     By default, python's will retrieve the path from the file that the action term class is defined in
     and the name of the action term class.
     """
+    """动作项类的全部路径。
+
+    默认情况下， python 将从该类定义的文件中获取该类的路径和该类的名称。
+    """
 
     description: str = None
     """The description of the action term.
 
     By default, the docstring of the action term class is used.
     """
+    """动作项的描述。
+
+    默认情况下，使用动作项类的 docstring。
+    """
 
     shape: tuple[int, ...] = None
     """The shape of the action term.
 
     This should be populated by the user."""
+    """动作项的形状。
+
+    用户应填写。
+    """
 
     dtype: str = None
     """The dtype of the action term.
 
     This should be populated by the user."""
+    """动作项的d类型。
+
+    用户应填写。
+    """
 
     action_type: str = None
     """The type of the action term.
 
     This attribute is purely informative and should be populated by the user."""
+    """动作项的类型。
+
+    这种属性是纯粹的信息性，应由用户填写。
+    """
 
     extras: dict[str, Any] = {}
     """Extra information about the action term.
 
     This attribute is purely informative and should be populated by the user."""
+    """关于动作项的额外信息。
+
+    这种属性是纯粹的信息性，应由用户填写。
+    """
 
     export: bool = True
     """Whether to export the action term.
 
     Should be set to False if the class is not meant to be exported.
+    """
+    """是否出口动作项。
+
+    如果该类不打算出口，应设置为False。
     """
 
 
@@ -84,6 +122,11 @@ class GenericObservationIODescriptor:
 
     This descriptor is used to describe the observation space of a policy.
     It can be extended as needed to add more information about the observation term that is being described.
+    """
+    """一般观测IO描述器。
+
+    这种描述符用于描述策略的观测空间。
+    根据需要，可以延长，以增加有关所描述的观测项的更多信息。
     """
 
     mdp_type: str = "Observation"
@@ -104,6 +147,7 @@ R = TypeVar("R")
 # Automatically builds a descriptor from the kwargs
 def _make_descriptor(**kwargs: Any) -> GenericObservationIODescriptor:
     """Split *kwargs* into (known dataclass fields) and (extras)."""
+    """分开*kwargs*为 (已知数据类领域) 和 (额外)。"""
     field_names = {f.name for f in dataclasses.fields(GenericObservationIODescriptor)}
     known = {k: v for k, v in kwargs.items() if k in field_names}
     extras = {k: v for k, v in kwargs.items() if k not in field_names}
@@ -193,6 +237,73 @@ def generic_io_descriptor(
     Returns:
         A decorator that can be used to decorate a function.
     """
+    """装饰器工厂，用于IO描述器。
+
+    这种装饰器可以用不同的方式:
+
+    1. 默认装饰器有我需要的所有信息:
+
+       ...代码区块:: python @generic_io_descriptor(GenericIODescriptor(描述=".."，dtype=".."))
+            def my_func(env: ManagerBasedEnv, *args, **kwargs):
+            ...
+
+       如果没有设置描述，则使用函数的 docstring来填写它。
+
+    2. 我需要添加更多信息。
+
+       ..代码区块:: python @generic_io_descriptor(描述=".."，new_var_1"一个"new_var_2" (b) "
+            def my_func(env: ManagerBasedEnv, *args, **kwargs):
+                ...
+
+    3. 我需要把子添加到描述器:
+
+       ..代码区块:: 字thon
+            def record_shape(tensor: torch.Tensor, desc: GenericIODescriptor, **kwargs):
+                desc.shape = (tensor.shape[-1]，)
+
+        @generic_io_descriptor(描述=".."，new_var_1"一个"new_var_2"b"on_inspect=[record_shape， record_dtype])
+        def my_func(env: ManagerBasedEnv, *args, **kwargs):
+            ...
+
+        ...注意:
+
+            如果在调用函数时设置`inspect`旗，则函数调用后将调用。
+
+            例如:
+
+            ..代码区块:: 字thonmy_func(env检查True)
+
+    4. 我需要把子添加到描述符中，这个子将写到一个不属于基本描述符的变量。
+
+       ..代码区块:: 字thon
+
+            def record_joint_names(output: torch.Tensor, descriptor: GenericIODescriptor, **kwargs):
+                asset: 关节 = kwargs["env"].场景[kwargs["asset_cfg"].名称]
+                joint_ids = kwargs["asset_cfg"].joint_ids
+                if joint_ids == slice(None, None, None):
+                joint_ids = list(range(len(asset.joint_names)))
+                在 joint_ids 中， descriptor.joint_names = [asset.joint_names[i]
+
+            @generic_io_descriptor(
+                new_var_1="a",
+                new_var_2="b",
+                on_inspect=[record_shape, record_dtype, record_joint_names],
+            )
+            def my_func(env: ManagerBasedEnv, *args, **kwargs):
+                ...
+
+       ...注意:
+
+            可以访问包装函数的签名中的所有变量。
+            虽然它是有用的，但用户应该小心只访问现有的变量。
+
+    参数：
+        _func: 装饰的功能。
+        **descriptor_kwargs: 关键词参数将传递到描述符。
+
+    返回：
+        装饰器可以用来装饰功能。
+    """
     # If the decorator is used with a descriptor, use it as the descriptor.
     if _func is not None and isinstance(_func, GenericObservationIODescriptor):
         descriptor = _func
@@ -257,6 +368,13 @@ def record_shape(output: torch.Tensor, descriptor: GenericObservationIODescripto
         descriptor: The descriptor to record the shape to.
         **kwargs: Additional keyword arguments.
     """
+    """记录输出子的形状。
+
+    参数：
+        output: 输出子。
+        descriptor: 描述器可以记录形状。
+        **kwargs: 其他关键词参数。
+    """
     descriptor.shape = (output.shape[-1],)
 
 
@@ -267,6 +385,13 @@ def record_dtype(output: torch.Tensor, descriptor: GenericObservationIODescripto
         output: The output tensor.
         descriptor: The descriptor to record the dtype to.
         **kwargs: Additional keyword arguments.
+    """
+    """记录输出子的d类型。
+
+    参数：
+        output: 输出子。
+        descriptor: 记录d类型的描述符。
+        **kwargs: 其他关键词参数。
     """
     descriptor.dtype = str(output.dtype)
 
@@ -280,6 +405,15 @@ def record_joint_names(output: torch.Tensor, descriptor: GenericObservationIODes
         output: The output tensor.
         descriptor: The descriptor to record the joint names to.
         **kwargs: Additional keyword arguments.
+    """
+    """记录输出子的联合名称。
+
+    预计`asset_cfg`关键字参数将设置。
+
+    参数：
+        output: 输出子。
+        descriptor: 描述器可以记录共同名称。
+        **kwargs: 其他关键词参数。
     """
     asset: Articulation = kwargs["env"].scene[kwargs["asset_cfg"].name]
     joint_ids = kwargs["asset_cfg"].joint_ids
@@ -298,6 +432,15 @@ def record_body_names(output: torch.Tensor, descriptor: GenericObservationIODesc
         descriptor: The descriptor to record the body names to.
         **kwargs: Additional keyword arguments.
     """
+    """记录输出子的体名。
+
+    预计`asset_cfg`关键字参数将设置。
+
+    参数：
+        output: 输出子。
+        descriptor: 描述器记录尸体的名字。
+        **kwargs: 其他关键词参数。
+    """
     asset: Articulation = kwargs["env"].scene[kwargs["asset_cfg"].name]
     body_ids = kwargs["asset_cfg"].body_ids
     if body_ids == slice(None, None, None):
@@ -314,6 +457,15 @@ def record_joint_pos_offsets(output: torch.Tensor, descriptor: GenericObservatio
         output: The output tensor.
         descriptor: The descriptor to record the joint position offsets to.
         **kwargs: Additional keyword arguments.
+    """
+    """记录输出子的关节位置偏移。
+
+    预计`asset_cfg`关键字参数将设置。
+
+    参数：
+        output: 输出子。
+        descriptor: 记录关节位置的描述符对
+        **kwargs: 其他关键词参数。
     """
     asset: Articulation = kwargs["env"].scene[kwargs["asset_cfg"].name]
     ids = kwargs["asset_cfg"].joint_ids
@@ -332,6 +484,15 @@ def record_joint_vel_offsets(output: torch.Tensor, descriptor: GenericObservatio
         descriptor: The descriptor to record the joint velocity offsets to.
         **kwargs: Additional keyword arguments.
     """
+    """记录输出子的关节速度抵消。
+
+    预计`asset_cfg`关键字参数将设置。
+
+    参数：
+        output: 输出子。
+        descriptor: 记录关联速度的描述器对
+        **kwargs: 其他关键词参数。
+    """
     asset: Articulation = kwargs["env"].scene[kwargs["asset_cfg"].name]
     ids = kwargs["asset_cfg"].joint_ids
     # Get the offsets of the joints for the first robot in the scene.
@@ -347,6 +508,14 @@ def export_articulations_data(env: ManagerBasedEnv) -> dict[str, dict[str, list[
 
     Returns:
         A dictionary containing the articulations data.
+    """
+    """输出关节数据。
+
+    参数：
+        env: 环境。
+
+    返回：
+        一个包含关节数据的字典。
     """
     # Create a dictionary for all the articulations in the scene.
     articulation_joint_data = {}
@@ -387,6 +556,14 @@ def export_scene_data(env: ManagerBasedEnv) -> dict[str, Any]:
 
     Returns:
         A dictionary containing the scene data.
+    """
+    """输出场景数据。
+
+    参数：
+        env: 环境。
+
+    返回：
+        一个包含场景数据的字典。
     """
     # Create a dictionary for the scene data.
     scene_data = {"physics_dt": env.physics_dt, "dt": env.step_dt, "decimation": env.cfg.decimation}

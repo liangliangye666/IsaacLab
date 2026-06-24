@@ -5,8 +5,10 @@
 
 
 """Script to train RL agent with Stable Baselines3."""
+"""脚本要训练RL特工稳定基线3。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import contextlib
@@ -61,6 +63,8 @@ def cleanup_pbar(*args):
     A small helper to stop training and
     cleanup progress bar properly on ctrl+c
     """
+    """在ctrl+c上正确地停止训练和清理的小辅助器
+    """
     import gc
 
     tqdm_objects = [obj for obj in gc.get_objects() if "tqdm" in type(obj).__name__]
@@ -74,6 +78,7 @@ def cleanup_pbar(*args):
 signal.signal(signal.SIGINT, cleanup_pbar)
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import logging
 import os
@@ -110,6 +115,7 @@ logger = logging.getLogger(__name__)
 @hydra_task_config(args_cli.task, args_cli.agent)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: dict):
     """Train with stable-baselines agent."""
+    """与稳定线线代理进行训练。"""
     # randomly sample a seed if seed = -1
     if args_cli.seed == -1:
         args_cli.seed = random.randint(0, 10000)

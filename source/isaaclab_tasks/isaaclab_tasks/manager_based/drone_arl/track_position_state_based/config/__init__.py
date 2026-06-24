@@ -4,3 +4,4 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Configurations for state-based control environments."""
+"""对基于状态的控制环境的配置。"""

@@ -11,6 +11,14 @@ The following configurations are available:
 
 Reference: https://github.com/ridgeback/ridgeback_manipulation
 """
+"""机器人的配置。
+
+下列配置可用:
+
+* :obj:`RIDGEBACK_FRANKA_PANDA_CFG`: 克里帕特里奇贝克基地，
+
+Reference: https://github.com/ridgeback/ridgeback_manipulation
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -81,4 +89,12 @@ The following control configuration is used:
 * Arm: position control with damping
 * Hand: position control with damping
 
+"""
+"""在ClearpathRidgeback基地上使用隐含的动力模型配置弗兰卡臂与弗兰卡手。
+
+使用以下控制配置:
+
+* 基础:速度控制
+* 手臂:控制位置，用压缩
+* 手:控制位置，用缩
 """

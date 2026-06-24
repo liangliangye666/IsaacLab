@@ -8,6 +8,7 @@
 
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -15,6 +16,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import ctypes
 
@@ -55,6 +57,24 @@ def generate_cubes_scene(
         The deformable object representing the cubes.
 
     """
+    """创建一个场景，提供数量的立方体。
+
+    参数：
+        num_cubes: 需要生成的立方体数量。
+        height: 立方体的高度。
+                默认是1.0。
+        initial_rot: 立方体的初始旋转。
+                     默认是 (1.0，0.0，0.0，0.0)。
+        has_api: 立方体是否具有可变体 API。
+        material_path: 进入材料文件的路径。
+                       如果None，则没有添加材料。
+                       默认是"材料"，这是与产生的对象prim路径相对的路径。
+        kinematic_enabled: 立方体是否是动态的。
+        device: 用于仿真的设备。
+
+    返回：
+        形状可变的物体代表立方体。
+    """
     origins = torch.tensor([(i * 1.0, 0, height) for i in range(num_cubes)]).to(device)
     # Create Top-level Xforms, one for each cube
     for i, origin in enumerate(origins):
@@ -92,6 +112,7 @@ def generate_cubes_scene(
 @pytest.fixture
 def sim():
     """Create simulation context."""
+    """创建仿真环境。"""
     with build_simulation_context(auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         yield sim
@@ -101,6 +122,7 @@ def sim():
 @pytest.mark.parametrize("material_path", [None, "/World/SoftMaterial", "material"])
 def test_initialization(sim, num_cubes, material_path):
     """Test initialization for prim with deformable body API at the provided prim path."""
+    """在提供 prim 路径上测试启动 prim 与可变体 API。"""
     cube_object = generate_cubes_scene(num_cubes=num_cubes, material_path=material_path)
 
     # Check that boundedness of deformable object is correct
@@ -167,6 +189,7 @@ def test_initialization(sim, num_cubes, material_path):
 @pytest.mark.isaacsim_ci
 def test_initialization_on_device_cpu():
     """Test that initialization fails with deformable body API on the CPU."""
+    """测试在CPU上的可变体API上启动失败。"""
     with build_simulation_context(device="cpu", auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         cube_object = generate_cubes_scene(num_cubes=5, device="cpu")
@@ -183,6 +206,7 @@ def test_initialization_on_device_cpu():
 @pytest.mark.isaacsim_ci
 def test_initialization_with_kinematic_enabled(sim, num_cubes):
     """Test that initialization for prim with kinematic flag enabled."""
+    """测试为prim的初始化，"""
     cube_object = generate_cubes_scene(num_cubes=num_cubes, kinematic_enabled=True)
 
     # Check that boundedness of deformable object is correct
@@ -210,6 +234,7 @@ def test_initialization_with_kinematic_enabled(sim, num_cubes):
 @pytest.mark.isaacsim_ci
 def test_initialization_with_no_deformable_body(sim, num_cubes):
     """Test that initialization fails when no deformable body is found at the provided prim path."""
+    """测试在提供的prim路径上没有发现可变体时启动失败。"""
     cube_object = generate_cubes_scene(num_cubes=num_cubes, has_api=False)
 
     # Check that boundedness of deformable object is correct
@@ -224,6 +249,7 @@ def test_initialization_with_no_deformable_body(sim, num_cubes):
 @pytest.mark.isaacsim_ci
 def test_set_nodal_state(sim, num_cubes):
     """Test setting the state of the deformable object."""
+    """测试设置可变形物体的状态。"""
     cube_object = generate_cubes_scene(num_cubes=num_cubes)
 
     # Play the simulator
@@ -265,6 +291,7 @@ def test_set_nodal_state(sim, num_cubes):
 @pytest.mark.isaacsim_ci
 def test_set_nodal_state_with_applied_transform(sim, num_cubes, randomize_pos, randomize_rot):
     """Test setting the state of the deformable object with applied transform."""
+    """测试设置可变形物体状态，使用转换。"""
     carb_settings_iface = carb.settings.get_settings()
     carb_settings_iface.set_bool("/physics/cooking/ujitsoCollisionCooking", False)
 
@@ -310,6 +337,7 @@ def test_set_nodal_state_with_applied_transform(sim, num_cubes, randomize_pos, r
 @pytest.mark.isaacsim_ci
 def test_set_kinematic_targets(sim, num_cubes):
     """Test setting kinematic targets for the deformable object."""
+    """测试设置可变物体的动态目标。"""
     cube_object = generate_cubes_scene(num_cubes=num_cubes, height=1.0)
 
     sim.reset()

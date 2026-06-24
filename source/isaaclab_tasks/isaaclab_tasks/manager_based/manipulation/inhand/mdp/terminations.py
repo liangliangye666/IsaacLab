@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Functions specific to the in-hand dexterous manipulation environments."""
+"""专用于手中的精通操纵环境的功能。"""
 
 from typing import TYPE_CHECKING
 
@@ -23,6 +24,13 @@ def max_consecutive_success(env: ManagerBasedRLEnv, num_success: int, command_na
         env: The environment object.
         num_success: Threshold for the number of consecutive successes required.
         command_name: The command term to be used for extracting the goal.
+    """
+    """检查任务是否已连续完成一定数次。
+
+    参数：
+        env: 环境对象。
+        num_success: 要求连续成功数量的门。
+        command_name: 用于提取目标的命令项。
     """
     command_term: InHandReOrientationCommand = env.command_manager.get_term(command_name)
 
@@ -45,6 +53,17 @@ def object_away_from_goal(
         threshold: The threshold for the distance between the robot and the object.
         command_name: The command term to be used for extracting the goal.
         object_cfg: The configuration for the scene entity. Default is "object".
+    """
+    """检查物体是否远离目标。
+
+    如果目标与对象之间的距离超过门，则将视为无法达到的对象。
+
+    参数：
+        env: 环境对象。
+        threshold: 机器人与物体之间的距离的门。
+        command_name: 用于提取目标的命令项。
+        object_cfg: 场景实体的配置。
+                    默认是"对象"。
     """
     # extract useful elements
     command_term: InHandReOrientationCommand = env.command_manager.get_term(command_name)
@@ -73,6 +92,18 @@ def object_away_from_robot(
         threshold: The threshold for the distance between the robot and the object.
         asset_cfg: The configuration for the robot entity. Default is "robot".
         object_cfg: The configuration for the object entity. Default is "object".
+    """
+    """检查物体是否远离机器人。
+
+    如果机器人与物体之间的距离超过门，则将被视为无法达到的物体。
+
+    参数：
+        env: 环境对象。
+        threshold: 机器人与物体之间的距离的门。
+        asset_cfg: 机器人实体的配置。
+                   默认是"机器人"。
+        object_cfg: 对象实体的配置。
+                    默认是"对象"。
     """
     # extract useful elements
     robot = env.scene[asset_cfg.name]

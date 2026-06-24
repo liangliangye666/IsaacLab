@@ -31,6 +31,8 @@ logger = logging.getLogger(__name__)
 """
 Implicit Actuator Models.
 """
+"""隐含的执行器模型。
+"""
 
 
 class ImplicitActuator(ActuatorBase):
@@ -51,9 +53,26 @@ class ImplicitActuator(ActuatorBase):
         The class is only provided for consistency with the other actuator models. It does not implement any
         functionality and should not be used. All values should be set to the simulation directly.
     """
+    """仿真操作的隐含执行器模型。
+
+    这与:class:`IdealPDActuator`类相同的功能。
+    然而，PD控制是通过仿真直接处理的，该仿真执行了PD控制法的连续时间集成。
+    这通常比在:class:`IdealPDActuator`中使用的明确PD控制法更准确，当仿真时间步骤大时。
+
+    关节类将隐含的执行器配置中的度和缩参数设置在仿真中。
+    因此，该类不对应应用于仿真的联合动作进行自己的计算。
+    然而，它计算了动力关节的近似扭矩，因为PhysX不明确地暴露这一数量。
+
+    .. 谨慎::
+
+        该类只为与其他动机模型一致提供。
+        它没有实施任何功能，不应使用。
+        所有值应直接设置在仿真中。
+    """
 
     cfg: ImplicitActuatorCfg
     """The configuration for the actuator model."""
+    """执行器模型的配置"""
 
     def __init__(self, cfg: ImplicitActuatorCfg, *args, **kwargs):
         # effort limits
@@ -109,6 +128,8 @@ class ImplicitActuator(ActuatorBase):
     """
     Operations.
     """
+    """操作。
+    """
 
     def reset(self, *args, **kwargs):
         # This is a no-op. There is no state to reset for implicit actuators.
@@ -133,6 +154,22 @@ class ImplicitActuator(ActuatorBase):
         Returns:
             The computed desired joint positions, joint velocities and joint efforts.
         """
+        """处理动机组操作和计算关节操作。
+
+        在隐含执行器的情况下，控制操作直接作为计算操作返回。
+        这种函数是无操作的，并不会对输入控制操作进行任何计算。
+        然而，它计算了动力关节的近似扭矩，因为PhysX没有明确计算这个数量。
+
+        参数：
+            control_action: 联合动作实例，包括所需的关节位置，关节速度和 (向前) 联合努力。
+            joint_pos: 组中关节的当前关节位置。
+                       形状是 (num_envs，num_joints)。
+            joint_vel: 组中的关节的当前关节速度。
+                       形状是 (num_envs，num_joints)。
+
+        返回：
+            计算了所需的关节位置，关节速度和联合努力。
+        """
         # store approximate torques for reward computation
         error_pos = control_action.joint_positions - joint_pos
         error_vel = control_action.joint_velocities - joint_vel
@@ -144,6 +181,8 @@ class ImplicitActuator(ActuatorBase):
 
 """
 Explicit Actuator Models.
+"""
+"""显而易见的执行器模型。
 """
 
 
@@ -172,12 +211,40 @@ class IdealPDActuator(ActuatorBase):
     and :math:`\tau_{motor, max}` is the maximum motor effort possible. These parameters are read from
     the configuration instance passed to the class.
     """
+    """具有简单的和模型的理想扭矩控制的执行器模型。
+
+    它采用以下模型来计算触动关节扭矩:`j`:
+
+    .. math::
+
+        \tau_{j, computed} = k_p * (q_{des} - q) + k_d * (\dot{q}_{des} - \dot{q}) + \tau_{ff}
+
+    在哪里:`k_p`和数学:`k_d`是关节硬度和缩的增长:`q`和数学:`\dot{q}`是当前的关节位置和速度:`q_{des}`，
+    数学:`\dot{q}_{des}`和数学:`\tau_{ff}`是所需的关节位置，速度和扭矩命令。
+
+    裁剪模型基于发动机所应用的最大扭矩。
+    它以以下方式实施:
+
+    .. math::
+
+        \tau_{j, max} & = \gamma \times \tau_{motor, max} \
+        \tau_{j, applied} & = clip(\tau_{computed}, -\tau_{j, max}, \tau_{j, max})
+
+    在此，裁剪函数被定义为:math:`clip(x， x_{min}， x_{max}) = min(max(x， x_{min})， x_{max})`。
+    参数:数学:`\gamma`是连接发动机和动力结尾的变速箱的变速比例，
+    and :数学:`\tau_{motor， max}`是最大的运动力。
+         这些参数从
+    配置实例转移到类。
+    """
 
     cfg: IdealPDActuatorCfg
     """The configuration for the actuator model."""
+    """执行器模型的配置"""
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int]):
@@ -256,9 +323,58 @@ class DCMotor(IdealPDActuator):
         :alt: The effort clipping as a function of joint velocity for a linear DC Motor.
 
     """
+    """直接控制 (DC) 动机动力驱动器模型，具有基于速度的和模型。
+
+    它使用与:class:`IdealPDActuator`相同的模型来计算输入命令中的扭矩。
+    然而，它实现了通过线性四方形DC电动扭矩速度曲线定义的和模型。
+
+    一种DC电动机是一种由直流电力驱动的电动机。
+    在大多数情况下，发动机连接到一个恒定电压源，而电流由风电器控制。
+    根据各种设计因素，如轮和材料，发动机可以获得有限的最大功率
+    from the electronic source, which limits the produced motor torque and speed.
+
+    一个DC发动机的特性由以下参数定义:
+
+    * 无负载速度 (:数学:`\dot{q}_{motor， max}`) :在零扭矩 (:attr:`velocity_limit`) 时，发动机的最高额定速度。
+    * 停机扭矩 (:数学:`\tau_{motor， stall}`):在零速度 (:attr:`saturation_effort`) 产生的最大额定扭矩。
+    * 连续扭矩 (:数学:`\tau_{motor， con}`):可以在短时间内输出的最大扭矩.这通常被强加在DC电机的电流驱动器上，以限制过热，防止机械损坏或被电力限制
+      (:attr:`effort_limit`) 强加。
+    * 角角速度 (:数学:`V_{c}`):扭矩速度曲线与连续扭矩交叉的速度。
+
+    根据这些参数，角速之间的速度 (扭矩速度曲线与连续扭矩交叉时) 的瞬间最小和最大扭矩是如下定义的:
+
+    .. math::
+
+        \tau_{j, max}(\dot{q}) & = clip \left (\tau_{j, stall} \times \left(1 -
+            \frac{\dot{q}}{\dot{q}_{j, max}}\right), -∞, \tau_{j, con} \right) \
+        \tau_{j, min}(\dot{q}) & = clip \left (\tau_{j, stall} \times \left( -1 -
+            \frac{\dot{q}}{\dot{q}_{j, max}}\right), - \tau_{j, con}, ∞ \right)
+
+    where :数学:`\gamma`是连接发动机和动力结尾的变速箱的变速比例，
+    :math:`\dot{q}_{j， max} = \gamma^{-1} \times \dot{q}_{motor， max}`， :，，{j， con} =
+    变量{motor， con}` and :math:`{j， stall}子子{motor， stall}`分别是最大的关节速度，连续的关节扭矩和停滞扭矩。
+    这些参数从配置实例中读取到类。
+
+    使用这些值，计算的扭矩根据瞬间结合速度被裁剪到最低和最高值:
+
+    .. math::
+
+        \tau_{j, applied} = clip(\tau_{computed}, \tau_{j, min}(\dot{q}), \tau_{j, max}(\dot{q}))
+
+    如果关联的速度是外角速度 (这可能是由于外部力量)，则应用输出扭矩将被驱动到连续扭矩 (`effort_limit`)。
+
+    下面的图表显示了裁剪操作，例如 (速度，扭矩) 双。
+
+    ..
+    图: ../../_static/actuator-group/dc_motor_clipping.jpg
+        :align: 中央
+        :figwidth: 100%
+        :alt: 为线性DC发动机的关节速度的函数。
+    """
 
     cfg: DCMotorCfg
     """The configuration for the actuator model."""
+    """执行器模型的配置"""
 
     def __init__(self, cfg: DCMotorCfg, *args, **kwargs):
         super().__init__(cfg, *args, **kwargs)
@@ -279,6 +395,8 @@ class DCMotor(IdealPDActuator):
     """
     Operations.
     """
+    """操作。
+    """
 
     def compute(
         self, control_action: ArticulationActions, joint_pos: torch.Tensor, joint_vel: torch.Tensor
@@ -290,6 +408,8 @@ class DCMotor(IdealPDActuator):
 
     """
     Helper functions.
+    """
+    """辅助函数。
     """
 
     def _clip_effort(self, effort: torch.Tensor) -> torch.Tensor:
@@ -319,9 +439,19 @@ class DelayedPDActuator(IdealPDActuator):
     lag bounds at every reset. The minimum and maximum time lag values are set in the configuration instance passed
     to the class.
     """
+    """理想的PD执行器，有延迟命令应用。
+
+    这类通过增加延迟执行器命令扩展:class:`IdealPDActuator`类。
+    延迟是使用一个循环缓冲器实现的，该缓冲器存储了特定数量的物理步骤的执行器命令。
+    最新的动作值在物理步骤中推向缓冲器，但用于仿真的最终动作值被一定数量的物理步骤拖延。
+
+    时间延迟量可配置，每次重置时可设置为最小和最大时间延迟界限之间的随机值。
+    在向类传输的配置实例中设置了最小和最大时间延误值。
+    """
 
     cfg: DelayedPDActuatorCfg
     """The configuration for the actuator model."""
+    """执行器模型的配置"""
 
     def __init__(self, cfg: DelayedPDActuatorCfg, *args, **kwargs):
         super().__init__(cfg, *args, **kwargs)
@@ -376,6 +506,14 @@ class RemotizedPDActuator(DelayedPDActuator):
 
     The torque limits are interpolated based on the current joint positions and applied to the actuator commands.
     """
+    """理想的PD驱动器，依赖角度的扭矩限制。
+
+    这种类型通过增加对动机的角度依赖扭矩限制来扩大:class:`DelayedPDActuator`类型。
+    joint矩限制应通过查询查找表来应用，该表描述了结合角与最大输出矩之间的关系。
+    查找表在向类传输的配置实例中提供。
+
+    扭矩界限根据当前的关节位置进行回合，并应用于执行器命令。
+    """
 
     def __init__(
         self,
@@ -419,6 +557,8 @@ class RemotizedPDActuator(DelayedPDActuator):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def angle_samples(self) -> torch.Tensor:
@@ -434,6 +574,8 @@ class RemotizedPDActuator(DelayedPDActuator):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def compute(

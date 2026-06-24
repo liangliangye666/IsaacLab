@@ -30,6 +30,21 @@ class DelayBuffer:
     .. note::
         By default, the delay buffer has no delay, meaning that the data is returned as is.
     """
+    """延迟缓冲器，允许随着延迟获取存储的数据。
+
+    该类使用批量循环缓冲来存储输入数据。
+    与标准循环缓冲器不同，使用LIFO根据用户设置的延迟，延误缓冲类可以根据用户设置的延迟检索数据。
+    例如，如果缓冲器内设置的延迟为1，则从流中获取第二次最后的输入。
+    如果是2，那么第三个是最后一个输入，等等等。
+
+    该类支持存储批量数数据。
+    这意味着附加数据的形状预计是 (batch_size， ...)，其中第一个维度是批量维度。
+    根据此，每批量索引的延迟可以单独设置。
+    如果要求的延迟超过底层缓冲的当前长度，则返回最新的输入。
+
+    .. 说明::
+        默认情况下，延迟缓冲器没有延迟，这意味着数据会像现在一样返回。
+    """
 
     def __init__(self, history_length: int, batch_size: int, device: str):
         """Initialize the delay buffer.
@@ -40,6 +55,15 @@ class DelayBuffer:
                 is expected. The minimum acceptable value is zero, which means only the latest data is stored.
             batch_size: The batch dimension of the data.
             device: The device used for processing.
+        """
+        """启动延迟缓冲器。
+
+        参数：
+            history_length: 缓冲器的历史，i.e.，数据将被缓冲的过去时间步骤数。
+                            建议设置这个值等于预期的最大时间步骤延迟。
+                            最低可接受值为零，这意味着只存储最新数据。
+            batch_size: 数据的批量尺寸。
+            device: 用于加工的装置。
         """
         # set the parameters
         self._history_length = max(0, history_length)
@@ -56,15 +80,19 @@ class DelayBuffer:
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def batch_size(self) -> int:
         """The batch size of the ring buffer."""
+        """环境器的批量。"""
         return self._circular_buffer.batch_size
 
     @property
     def device(self) -> str:
         """The device used for processing."""
+        """用于加工的装置。"""
         return self._circular_buffer.device
 
     @property
@@ -72,6 +100,11 @@ class DelayBuffer:
         """The history length of the delay buffer.
 
         If zero, only the latest data is stored. If one, the latest and the previous data are stored, and so on.
+        """
+        """延迟缓冲器的历史长度。
+
+        如果是零，只有最新的数据才能存储。
+        如果一个，最新的和以前的数据存储，
         """
         return self._history_length
 
@@ -81,6 +114,10 @@ class DelayBuffer:
 
         This value cannot be negative or larger than :attr:`max_time_lag`.
         """
+        """最少可延迟的时间步骤。
+
+        这一值不能为负或超过:attr:`max_time_lag`。
+        """
         return self._min_time_lag
 
     @property
@@ -88,6 +125,10 @@ class DelayBuffer:
         """Maximum amount of time steps that can be delayed.
 
         This value cannot be greater than :attr:`history_length`.
+        """
+        """最多可延迟的时间步骤。
+
+        这一值不能超过:attr:`history_length`。
         """
         return self._max_time_lag
 
@@ -98,10 +139,18 @@ class DelayBuffer:
         The shape of the tensor is (batch_size, ). The value at each index represents the delay for that index.
         This value is used to retrieve the data from the buffer.
         """
+        """每个批量索引的时间延误。
+
+        子的形状是 (batch_size， )。
+        每个索引的值代表该索引的延迟。
+        这一值用于从缓冲器中获取数据。
+        """
         return self._time_lags
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def set_time_lag(self, time_lag: int | torch.Tensor, batch_ids: Sequence[int] | None = None):
@@ -120,6 +169,22 @@ class DelayBuffer:
         Raises:
             TypeError: If the type of the :attr:`time_lag` is not int or integer tensor.
             ValueError: If the minimum time lag is negative or the maximum time lag is larger than the history length.
+        """
+        """设置在提供的批量索引中延迟缓冲的时间延迟。
+
+        参数：
+            time_lag: 缓冲器所需的延迟。
+
+              * 如果提供整数，则为提供批量索引设定相同的延迟。
+              * 如果提供一个子，则每个批量索引的延迟是单独设置的。 tens子的形状应该是 (len(batch_ids)，)。
+
+            batch_ids: 时间延误设置的批量索引。
+                       默认是None，
+                for all batch indices.
+
+        异常：
+            TypeError: 如果:attr:`time_lag`的类型不是int或整数子。
+            ValueError: 如果最小时间延迟是负值的，或者最大时间延迟超过历史长度。
         """
         # resolve batch indices
         if batch_ids is None:
@@ -155,6 +220,12 @@ class DelayBuffer:
         Args:
             batch_ids: Elements to reset in the batch dimension. Default is None, which resets all the batch indices.
         """
+        """在延迟缓冲器中的数据重置到指定批量索引。
+
+        参数：
+            batch_ids: 在批量维度中重置元素。
+                       默认是None，它重置了所有批量索引。
+        """
         self._circular_buffer.reset(batch_ids)
 
     def compute(self, data: torch.Tensor) -> torch.Tensor:
@@ -170,6 +241,20 @@ class DelayBuffer:
 
         Returns:
             The delayed version of the data from the stored buffer. Shape is (batch_size, ...).
+        """
+        """将输入数据添加到缓冲器中，并返回基于时间延迟的数据版本。
+
+        如果要求的延迟超过自上一次重置以来缓冲数据点数量，函数将返回最新数据。
+        例如，如果延迟设置为2并且只有一个数据点存储在缓冲器中，函数将返回最新数据。
+        如果延误设置为2个数据点，并且存储了3个数据点，函数将返回第一个数据点。
+
+        参数：
+           data: 输入数据。
+                 形状是 (batch_size， ...)。
+
+        返回：
+            存储缓冲器中的数据的延迟版本。
+            形状是 (batch_size， ...)。
         """
         # add the new data to the last layer
         self._circular_buffer.append(data)

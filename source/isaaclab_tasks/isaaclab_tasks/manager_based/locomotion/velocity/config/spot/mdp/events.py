@@ -11,6 +11,10 @@ the randomization introduced by the function.
 """
 
 from __future__ import annotations
+"""该子模块包含可用于实现 Spot 随机定位的函数。
+
+函数可以传递到:class:`isaaclab.managers.EventTermCfg`对象，以实现函数引入的随机化。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -36,6 +40,12 @@ def reset_joints_around_default(
     This function samples random values from the given ranges around the default joint positions and velocities.
     The ranges are clipped to fit inside the soft joint limits. The sampled values are then set into the physics
     simulation.
+    """
+    """按给定的范围重置机器人关节，
+
+    这种函数在默认的关节位置和速度周围的给定的范围中抽取随机值。
+    它们的范围被裁剪，以便适合柔软关节的边界。
+    然后将样本值设置在物理仿真中。
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]

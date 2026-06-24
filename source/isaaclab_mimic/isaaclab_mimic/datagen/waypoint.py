@@ -6,6 +6,8 @@
 """
 A collection of classes used to represent waypoints and trajectories.
 """
+"""用于表示路线点和轨迹的类组。
+"""
 
 import asyncio
 import inspect
@@ -22,6 +24,8 @@ class Waypoint:
     """
     Represents a single desired 6-DoF waypoint, along with corresponding gripper actuation for this point.
     """
+    """代表一个所需的6-DoF路线点，以及对此点的相应的抓紧动力。
+    """
 
     def __init__(self, pose, gripper_action, noise=None):
         """
@@ -31,12 +35,18 @@ class Waypoint:
             noise (float or None): action noise amplitude to apply during execution at this timestep
                 (for arm actions, not gripper actions)
         """
+        """参数：
+            pose (torch.Tensor): 机器人控制器的4×4姿势目标
+            gripper_action (torch.Tensor): 机器人控制器的抓住器操作
+            noise (float or None): 在此时间步骤执行过程中应应用的动作噪声幅度 (用于臂动作，而不是抓住器动作)
+        """
         self.pose = pose
         self.gripper_action = gripper_action
         self.noise = noise
 
     def __str__(self):
         """String representation of the waypoint."""
+        """字符串表示路线点。"""
         return f"Waypoint:\n  Pose:\n{self.pose}\n"
 
 
@@ -44,11 +54,16 @@ class WaypointSequence:
     """
     Represents a sequence of Waypoint objects.
     """
+    """代表了一系列的Waypoint物体。
+    """
 
     def __init__(self, sequence=None):
         """
         Args:
             sequence (list or None): if provided, should be a list of Waypoint objects
+        """
+        """参数：
+            sequence (list or None): 如果提供，应列出Waypoint对象列表
         """
         if sequence is None:
             self.sequence = []
@@ -71,6 +86,14 @@ class WaypointSequence:
                 magnitudes that should be applied at each timestep. If a
                 single float is provided, the noise magnitude will be
                 constant over the trajectory.
+        """
+        """设置一个WaypointSequence对象，给出一系列姿势，抓住器操作和动作噪音。
+
+        参数：
+            poses (torch.Tensor): 形状的姿势矩阵序列 (T， 4， 4)
+            gripper_actions (torch.Tensor): 在每个形状时间步骤 (T，D) 中应应用的抓住器操作序列。
+            action_noise (float or torch.Tensor): 每个时间步骤都应应用的动作噪音大小序列。
+                                                  如果提供单一的浮动，噪声大小将在轨道上保持一致。
         """
         assert isinstance(action_noise, (float, torch.Tensor))
 
@@ -108,16 +131,24 @@ class WaypointSequence:
         Returns:
             waypoint (Waypoint instance)
         """
+        """返回索引的路线点。
+
+        返回：
+            路线点 (路线点实例)
+        """
         return self.sequence[ind]
 
     def __add__(self, other):
         """
         Defines addition (concatenation) of sequences
         """
+        """定义序列的加算 (结)
+        """
         return WaypointSequence(sequence=(self.sequence + other.sequence))
 
     def __str__(self):
         """Prints all waypoints in the sequence."""
+        """在序列中打印所有路线点。"""
         output = []
         for idx, waypoint in enumerate(self.sequence):
             output.append(f"Waypoint {idx}: {waypoint}")
@@ -131,12 +162,20 @@ class WaypointSequence:
         Returns:
             waypoint (Waypoint instance)
         """
+        """顺序返回最后一个路线点。
+
+        返回：
+            路线点 (路线点实例)
+        """
         return deepcopy(self.sequence[-1])
 
     def split(self, ind):
         """
         Splits this sequence into 2 pieces, the part up to time index @ind, and the
         rest. Returns 2 WaypointSequence objects.
+        """
+        """这条序列分为2个部分，部分是时间索引@ind，其余部分。
+        返回2个WaypointSequence对象。
         """
         seq_1 = self.sequence[:ind]
         seq_2 = self.sequence[ind:]
@@ -146,6 +185,8 @@ class WaypointSequence:
 class WaypointTrajectory:
     """
     A sequence of WaypointSequence objects that corresponds to a full 6-DoF trajectory.
+    """
+    """顺序 WaypointSequence 对象，对应一个完整的 6-DoF轨迹。
     """
 
     def __init__(self):
@@ -161,6 +202,11 @@ class WaypointTrajectory:
 
         Returns:
             waypoint (Waypoint instance)
+        """
+        """返回时间索引的路径点。
+
+        返回：
+            路线点 (路线点实例)
         """
         assert len(self.waypoint_sequences) > 0
         assert (ind >= 0) and (ind < len(self))
@@ -184,6 +230,11 @@ class WaypointTrajectory:
         Returns:
             waypoint (Waypoint instance)
         """
+        """顺序返回最后一个路线点。
+
+        返回：
+            路线点 (路线点实例)
+        """
         return self.waypoint_sequences[-1].last_waypoint
 
     def get_poses(self):
@@ -199,6 +250,11 @@ class WaypointTrajectory:
 
         Args:
             sequence (WaypointSequence instance): sequence to add
+        """
+        """直接将序列添加到列表中 (无回合)。
+
+        参数：
+            sequence (WaypointSequence instance): 连接序列
         """
         assert isinstance(sequence, WaypointSequence)
         self.waypoint_sequences.append(sequence)
@@ -231,6 +287,22 @@ class WaypointTrajectory:
 
             action_noise (float): scale of random gaussian noise to add during action execution (e.g.
                 when @execute is called)
+        """
+        """添加一个新的路点序列，与所需的目标姿势相符。
+        新的WaypointSequence将由@num_steps中间的Waypoint对象构建。
+        这些可以从最后的路线点 (默认) 构建以线性插图，或者是目标姿势的恒定集合 (设置 @skip_interpolation到 True)。
+
+        参数：
+            pose (torch.Tensor): 4x4目标姿势
+
+            gripper_action (torch.Tensor): 抓住器作用的值
+
+            num_steps (int): 在试图达到这个路线点时采取的动作步骤数量。
+                             将在这个轨道上最后的姿势和目标姿势之间添加中间线性插入点，使步骤的总数为 @num_steps。
+
+            skip_interpolation (bool): 如果True，保持目标姿势固定，并重复 @num_steps次，而不是使用线性插入目标。
+
+            action_noise (float): 在执行操作时添加随机高斯声的规模 (当调用@execute时e.g.)
         """
         if len(self.waypoint_sequences) == 0:
             assert skip_interpolation, "cannot interpolate since this is the first waypoint sequence"
@@ -270,6 +342,12 @@ class WaypointTrajectory:
         Returns:
             waypoint (Waypoint instance)
         """
+        """取消第一个路线点在第一个路线点序列中，然后返回它。
+        如果第一个路线线序列现在是空的，它也会被删除。
+
+        返回：
+            路线点 (路线点实例)
+        """
         first, rest = self.waypoint_sequences[0].split(1)
         if len(rest) == 0:
             # remove empty waypoint sequence
@@ -299,6 +377,17 @@ class WaypointTrajectory:
                 target poses corresponding to the first target pose in @other
 
             action_noise (float): noise to use during the interpolation segment
+        """
+        """合并这个轨迹与另一个 (@other)。
+
+        参数：
+            other (WaypointTrajectory object): 其他轨迹将融入这个轨迹
+
+            num_steps_interp (int or None): 如果不是None，则添加一个路线点序列，该序列在当前轨迹的结束和 @other 的开始之间进行交互
+
+            num_steps_fixed (int or None): 如果不是None，则添加一个具有与 @other中的第一个目标姿势相匹配的恒定目标姿势的路点序列
+
+            action_noise (float): 在插射段中使用的噪音
         """
         need_interp = (num_steps_interp is not None) and (num_steps_interp > 0)
         need_fixed = (num_steps_fixed is not None) and (num_steps_fixed > 0)
@@ -349,6 +438,11 @@ class WaypointTrajectory:
         Returns:
             sequence (WaypointSequence instance)
         """
+        """返回轨迹中的通路点的全部序列。
+
+        返回：
+            序列 (WaypointSequence实例)
+        """
         return WaypointSequence(sequence=[waypoint for seq in self.waypoint_sequences for waypoint in seq.sequence])
 
 
@@ -356,11 +450,16 @@ class MultiWaypoint:
     """
     A collection of Waypoint objects for multiple end effectors in the environment.
     """
+    """环境中的多个末端执行器的Waypoint对象集合。
+    """
 
     def __init__(self, waypoints: dict[str, Waypoint]):
         """
         Args:
             waypoints (dict): a dictionary of waypionts of end effectors
+        """
+        """参数：
+            waypoints (dict): 末端执行器的路线指标字典
         """
         self.waypoints = waypoints
 
@@ -382,6 +481,17 @@ class MultiWaypoint:
 
         Returns:
             A dictionary containing the state, observation, action, and success of the multi-waypoint actions.
+        """
+        """在环境中执行多个方向的有效动作。
+
+        参数：
+            env: 执行多方向动作的环境。
+            success_term: 终止时间检查任务是否成功。
+            env_id: 环境 ID执行多方向操作。
+            env_action_queue: 让我们在线观看。
+
+        返回：
+            一个包含多方向动作的状态，观测，动作和成功的字典。
         """
         # current state
         state = env.scene.get_state(is_relative=True)

@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Tests for stage utilities."""
+"""测试场景用品。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import tempfile
 from pathlib import Path
@@ -26,6 +29,7 @@ import isaaclab.sim as sim_utils
 
 def test_create_new_stage():
     """Test creating a new stage attached to USD context."""
+    """测试创建与USD文本连接的新阶段。"""
     stage = sim_utils.create_new_stage()
 
     # Should return a valid stage
@@ -43,6 +47,7 @@ def test_create_new_stage():
 
 def test_create_multiple_stages():
     """Test creating multiple stages."""
+    """测试创建多个阶段。"""
     stage1 = sim_utils.create_new_stage()
     stage2 = sim_utils.create_new_stage()
     stage3 = sim_utils.create_new_stage()
@@ -57,6 +62,7 @@ def test_create_multiple_stages():
 
 def test_create_new_stage_in_memory():
     """Test creating a new stage in memory (Isaac Sim 5.0+)."""
+    """测试在内存中创建一个新的阶段 (Isaac Sim 5.0+)。"""
     stage = sim_utils.create_new_stage_in_memory()
 
     # Should return a valid stage
@@ -70,6 +76,7 @@ def test_create_new_stage_in_memory():
 
 def test_is_current_stage_in_memory():
     """Test checking if current stage is in memory."""
+    """测试检查是否记忆中的当前阶段。"""
     # Create a regular stage (attached to context)
     sim_utils.create_new_stage()
     is_in_memory = sim_utils.is_current_stage_in_memory()
@@ -88,6 +95,7 @@ def test_is_current_stage_in_memory():
 
 def test_save_and_open_stage():
     """Test saving and opening a stage."""
+    """测试保存和开放一个阶段。"""
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create a stage with some content
         stage = sim_utils.create_new_stage()
@@ -115,12 +123,14 @@ def test_save_and_open_stage():
 
 def test_open_stage_invalid_path():
     """Test opening a stage with invalid path."""
+    """测试启动一个无效路径的阶段。"""
     with pytest.raises(ValueError, match="not supported"):
         sim_utils.open_stage("/invalid/path/to/stage.invalid")
 
 
 def test_use_stage_context_manager():
     """Test use_stage context manager."""
+    """测试use_stage文本管理器。"""
     # Create two stages
     stage1 = sim_utils.create_new_stage()
     stage1.DefinePrim("/World", "Xform")
@@ -150,6 +160,7 @@ def test_use_stage_context_manager():
 
 def test_use_stage_with_invalid_input():
     """Test use_stage with invalid input."""
+    """测试use_stage使用无效输入。"""
     with pytest.raises((TypeError, AssertionError)):
         with sim_utils.use_stage("not a stage"):  # type: ignore
             pass
@@ -157,6 +168,7 @@ def test_use_stage_with_invalid_input():
 
 def test_update_stage():
     """Test updating the stage."""
+    """测试更新舞台。"""
     # Create a new stage
     stage = sim_utils.create_new_stage()
 
@@ -174,6 +186,7 @@ def test_update_stage():
 
 def test_save_stage_with_reload():
     """Test saving stage with reload in place."""
+    """测试储存阶段，重新加载。"""
     with tempfile.TemporaryDirectory() as temp_dir:
         # Create a stage with content
         stage = sim_utils.create_new_stage()
@@ -195,6 +208,7 @@ def test_save_stage_with_reload():
 
 def test_save_stage_invalid_path():
     """Test saving stage with invalid path."""
+    """测试节省阶段无效路径。"""
     _ = sim_utils.create_new_stage()
 
     with pytest.raises(ValueError, match="not supported"):
@@ -203,6 +217,7 @@ def test_save_stage_invalid_path():
 
 def test_close_stage():
     """Test closing the current stage."""
+    """测试结束了目前的阶段。"""
     # Create a stage
     stage = sim_utils.create_new_stage()
     assert stage is not None
@@ -216,6 +231,7 @@ def test_close_stage():
 
 def test_close_stage_with_callback():
     """Test closing stage with a callback function."""
+    """测试闭幕阶段使用回调函数。"""
     # Create a stage
     sim_utils.create_new_stage()
 
@@ -235,6 +251,7 @@ def test_close_stage_with_callback():
 
 def test_clear_stage():
     """Test clearing the stage."""
+    """测试清理舞台。"""
     # Create a new stage
     stage = sim_utils.create_new_stage()
 
@@ -252,6 +269,7 @@ def test_clear_stage():
 
 def test_is_stage_loading():
     """Test checking if stage is loading."""
+    """测试检查是否正在加载。"""
     # Create a new stage
     sim_utils.create_new_stage()
 
@@ -267,6 +285,7 @@ def test_is_stage_loading():
 
 def test_get_current_stage():
     """Test getting the current stage."""
+    """测试现阶段。"""
     # Create a new stage
     created_stage = sim_utils.create_new_stage()
 
@@ -278,6 +297,7 @@ def test_get_current_stage():
 
 def test_get_current_stage_id():
     """Test getting the current stage ID."""
+    """测试得到目前的ID阶段。"""
     # Create a new stage
     sim_utils.create_new_stage()
 

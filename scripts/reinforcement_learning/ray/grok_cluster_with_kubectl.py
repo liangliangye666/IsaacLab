@@ -24,10 +24,22 @@ Usage:
     python3 scripts/reinforcement_learning/ray/grok_cluster_with_kubectl.py
     # For options, supply -h arg
 """
+"""这种脚本要求安装 kubectl，并使用KubeRay创建集群。
+
+创建包含配置文件``name: <NAME> address: http://<IP>:<PORT>``在每个集群的新线上，MLFlow URI。
+
+Usage:
+
+.. code-block:: bash
+
+    python3 scripts/reinforcement_learning/ray/grok_cluster_with_kubectl.py
+    # For options, supply -h arg
+"""
 
 
 def get_namespace() -> str:
     """Get the current Kubernetes namespace from the context, fallback to default if not set"""
+    """从文本中获取当前 Kubernetes 名字空间，如果未设置，则返回默认状态"""
     try:
         namespace = (
             subprocess.check_output(["kubectl", "config", "view", "--minify", "--output", "jsonpath={..namespace}"])
@@ -43,6 +55,7 @@ def get_namespace() -> str:
 
 def get_pods(namespace: str = "default") -> list[tuple]:
     """Get a list of all of the pods in the namespace"""
+    """在名字空间中找到所有 pods 的列表"""
     cmd = ["kubectl", "get", "pods", "-n", namespace, "--no-headers"]
     output = subprocess.check_output(cmd).decode()
     pods = []
@@ -58,6 +71,10 @@ def get_clusters(pods: list, cluster_name_prefix: str) -> set:
     """
     Get unique cluster name(s). Works for one or more clusters, based off of the number of head nodes.
     Excludes MLflow deployments.
+    """
+    """获取独特的集群名称。
+    根据头节点数量，适用于一个或多个集群。
+    排除MLflow部署。
     """
     clusters = set()
     for pod_name, _ in pods:
@@ -83,6 +100,14 @@ def get_mlflow_info(namespace: str = None, cluster_prefix: str = "isaacray") -> 
         cluster_prefix: Base cluster name (without -head/-worker suffixes)
     Returns:
         MLflow service URL
+    """
+    """如果它存在于给定的前的名称空间中，请获取MLflow服务信息。
+    只有一个集群实例。
+    参数：
+        namespace: 库伯内特名称空间
+        cluster_prefix: 基群名称 (没有 -head/worker后音)
+    返回：
+        MLflow服务 URL
     """
     # Strip any -head or -worker suffixes to get base name
     if namespace is None:
@@ -119,6 +144,15 @@ def check_clusters_running(pods: list, clusters: set) -> bool:
     Returns:
         bool: True if all pods in any of the clusters are running, False otherwise.
     """
+    """检查所有供应集群中的子是否运行。
+
+    参数：
+        pods (list): 一个元组列表，其中每个元组都包含了子名称及其状态。
+        clusters (set): 一组集群名称要检查。
+
+    返回：
+        bool: True如果任何集群中的所有子都在运行，False否则。
+    """
     clusters_running = False
     for cluster in clusters:
         cluster_pods = [p for p in pods if p[0].startswith(cluster)]
@@ -145,6 +179,21 @@ def get_ray_address(head_pod: str, namespace: str = "default", ray_head_name: st
     Raises:
         ValueError: If the logs cannot be retrieved or the ray address is not found.
     """
+    """鉴于集群头，请检查其日志，该日志应包括可以接受工作申请的射线地址。
+
+    参数：
+        head_pod (str): 头的名称。
+        namespace (str, optional): 库伯尼特的名字空间。
+                                   默认到"默认"。
+        ray_head_name (str, optional): 射线头容器的名称。
+                                       默认的"头"。
+
+    返回：
+        str: 如果找到射线地址，None否则。
+
+    异常：
+        ValueError: 如果无法检索日志或无法找到射线地址。
+    """
     cmd = ["kubectl", "logs", head_pod, "-c", ray_head_name, "-n", namespace]
     try:
         output = subprocess.check_output(cmd).decode()
@@ -170,6 +219,16 @@ def process_cluster(cluster_info: dict, ray_head_name: str = "head") -> str:
     Returns:
         A string containing the cluster name and its Ray head address, or an error message if
         the head pod or Ray address is not found.
+    """
+    """每个集团，检查它是否运行，
+
+    参数：
+        cluster_info: 一个包含"集群"，"pod"和"名区"键的集群信息字典。
+        ray_head_name: 射线头容器的名称。
+                       默认的"头"。
+
+    返回：
+        包含集群名称和其Ray头地址的字符串，或者错误信息，如果没有找到头或Ray头地址。
     """
     cluster, pods, namespace = cluster_info
     head_pod = None

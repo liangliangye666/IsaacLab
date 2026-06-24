@@ -6,6 +6,7 @@
 """Functions to generate different terrains using the ``trimesh`` library."""
 
 from __future__ import annotations
+"""使用``trimesh``库生成不同的地形的功能。"""
 
 from typing import TYPE_CHECKING
 
@@ -40,6 +41,24 @@ def flat_terrain(
     Returns:
         A tuple containing the tri-mesh of the terrain and the origin of the terrain (in m).
     """
+    """像飞机一样生成平面地形。
+
+    ..
+    图片: 静态/地形/trimesh/flat_terrain.jpg
+       :width: 45%
+       :align: 中央
+
+    说明：
+        The :对于这个地形，`difficulty`参数被忽略。
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
+    """
     # compute the position of the terrain
     origin = (cfg.size[0] / 2.0, cfg.size[1] / 2.0, 0.0)
     # compute the vertices of the terrain
@@ -71,6 +90,30 @@ def pyramid_stairs_terrain(
 
     Returns:
         A tuple containing the tri-mesh of the terrain and the origin of the terrain (in m).
+    """
+    """创建一个具有金字塔楼梯图案的地形。
+
+    地形是一个金字塔楼梯图案，在地形中心的平坦平台上。
+
+    If :`cfg.holes`是True，地形将具有长度或宽度的金字塔楼梯
+    :obj:`cfg.platform_width` (取决于方向) 在剩余区域没有步骤。
+    此外，不会增加任何边界。
+
+    ..
+    图片: 静态/地形/trimesh/pyramid_stairs_terrain.jpg
+       :width: 45%
+
+    ..
+    图片: 静态/地形/trimesh/pyramid_stairs_terrain_with_holes.jpg
+       :width: 45%
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
     """
     # resolve the terrain configuration
     step_height = cfg.step_height_range[0] + difficulty * (cfg.step_height_range[1] - cfg.step_height_range[0])
@@ -171,6 +214,30 @@ def inverted_pyramid_stairs_terrain(
 
     Returns:
         A tuple containing the tri-mesh of the terrain and the origin of the terrain (in m).
+    """
+    """创建一个以逆向金字塔楼梯模式的地形。
+
+    地形是倒的金字塔楼梯图案，它向地形中心的平坦平台。
+
+    If :`cfg.holes`是True，地形将具有长度或宽度的金字塔楼梯
+    :obj:`cfg.platform_width` (取决于方向) 在剩余区域没有步骤。
+    此外，不会增加任何边界。
+
+    ..
+    图片: 静态/地形/trimesh/inverted_pyramid_stairs_terrain.jpg
+       :width: 45%
+
+    ..
+    图片: 静态/地形/trimesh/inverted_pyramid_stairs_terrain_with_holes.jpg
+       :width: 45%
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
     """
     # resolve the terrain configuration
     step_height = cfg.step_height_range[0] + difficulty * (cfg.step_height_range[1] - cfg.step_height_range[0])
@@ -277,6 +344,38 @@ def random_grid_terrain(
     Raises:
         ValueError: If the terrain is not square. This method only supports square terrains.
         RuntimeError: If the grid width is large such that the border width is negative.
+    """
+    """产生随机高度和固定宽度的细胞。
+
+    地形在xy平面上生成，高度为1.0。
+    然后将其分为指定尺寸:obj:`cfg.grid_width`的网格。
+    然后每一个格格细胞随机在z方向转移到:obj:`cfg.grid_height_range`之间均样本的值。
+    在地形中心，一个平台的指定
+    width :产量:`cfg.platform_width`
+
+    If :`cfg.holes`是True，地形将仅沿着延伸的平面随机格式细胞
+    from the platform (like a plus sign). The remaining area remains empty and no border will be added.
+
+    ..
+    图片: 静态/地形/trimesh/random_grid_terrain.jpg
+       :width: 45%
+
+    ..
+    图片: 静态/地形/trimesh/random_grid_terrain_with_holes.jpg
+       :width: 45%
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
+
+    异常：
+        ValueError: 如果地形不方形。
+                    这种方法只支持方形地形。
+        RuntimeError: 如果网格宽度大，边界宽度为负。
     """
     # check to ensure square terrain
     if cfg.size[0] != cfg.size[1]:
@@ -397,6 +496,25 @@ def rails_terrain(
     Returns:
         A tuple containing the tri-mesh of the terrain and the origin of the terrain (in m).
     """
+    """产生一个地形，以 extr道作为 extr道。
+
+    面积包含两套作为挤出的盒子轨道。
+    第一个集 (内轨) 是从地形中心的平台挤出，第二个集是从地形边界和第一套地轨之间挤出。
+    每一组轨道都挤出到相同的高度。
+
+    ..
+    图片: 静态/地形/trimesh/rails_terrain.jpg
+       :width: 40%
+       :align: 中央
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
+    """
     # resolve the terrain configuration
     rail_height = cfg.rail_height_range[0] + difficulty * (cfg.rail_height_range[1] - cfg.rail_height_range[0])
 
@@ -453,6 +571,29 @@ def pit_terrain(
 
     Returns:
         A tuple containing the tri-mesh of the terrain and the origin of the terrain (in m).
+    """
+    """产生一个带有坑的地形，带有层次 (楼层) 带出坑。
+
+    地形中有一个平台，一个楼梯从坑里走出来。
+    楼梯是一系列沿 x 轴和 y 轴排列的阶梯。
+    通过沿 x 轴和 y 轴挤出一圈来创建步骤。
+    如果:obj:`is_double_pit`是True，那么坑里有两个层次。
+
+    ..
+    图片: 静态/地形/trimesh/pit_terrain.jpg
+       :width: 40%
+
+    ..
+    图片: 静态/地形/trimesh/pit_terrain_with_two_levels.jpg
+       :width: 40%
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
     """
     # resolve the terrain configuration
     pit_depth = cfg.pit_depth_range[0] + difficulty * (cfg.pit_depth_range[1] - cfg.pit_depth_range[0])
@@ -516,6 +657,28 @@ def box_terrain(
     Returns:
         A tuple containing the tri-mesh of the terrain and the origin of the terrain (in m).
     """
+    """产生一个带盒的地形 (类似于金字塔)。
+
+    在地形上，有一块地面，上面有盒子，
+    通过沿着z轴挤出一个矩形来创建盒子。
+    如果:obj:`double_box`是True，那么两个高度:obj:`box_height`的盒子都是叠加在一起的。
+
+    ..
+    图片: 静态/地形/trimesh/box_terrain.jpg
+       :width: 40%
+
+    ..
+    图片: 静态/地形/trimesh/box_terrain_with_two_boxes.jpg
+       :width: 40%
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
+    """
     # resolve the terrain configuration
     box_height = cfg.box_height_range[0] + difficulty * (cfg.box_height_range[1] - cfg.box_height_range[0])
 
@@ -575,6 +738,24 @@ def gap_terrain(
     Returns:
         A tuple containing the tri-mesh of the terrain and the origin of the terrain (in m).
     """
+    """在平台周围产生一个空隙的地形。
+
+    地形有一个地面，中间有一个平台。
+    平台周围有两侧宽度:obj:`gap_width`的空隙。
+
+    ..
+    图片: 静态/地形/trimesh/gap_terrain.jpg
+       :width: 40%
+       :align: 中央
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
+    """
     # resolve the terrain configuration
     gap_width = cfg.gap_width_range[0] + difficulty * (cfg.gap_width_range[1] - cfg.gap_width_range[0])
 
@@ -618,6 +799,26 @@ def floating_ring_terrain(
 
     Returns:
         A tuple containing the tri-mesh of the terrain and the origin of the terrain (in m).
+    """
+    """产生一个浮动方形环的地形。
+
+    地形有一个地面，中间有一个浮动的环。
+    环从中心从:obj:`platform_width`延伸到:obj:`platform_width`+:obj:`ring_width`在x和y方向。
+    环的厚度是:obj:`ring_thickness`，环的高度从地形
+    is :其他:`ring_height`。
+
+    ..
+    图片: 静态/地形/trimesh/floating_ring_terrain.jpg
+       :width: 40%
+       :align: 中央
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
     """
     # resolve the terrain configuration
     ring_height = cfg.ring_height_range[1] - difficulty * (cfg.ring_height_range[1] - cfg.ring_height_range[0])
@@ -667,6 +868,29 @@ def star_terrain(
 
     Raises:
         ValueError: If :obj:`num_bars` is less than 2.
+    """
+    """创建一个星球的地形。
+
+    地形有一个地面，中间有一个。
+    恒星是由:obj:`num_bars`杆制成的
+    with a width of :obj:`bar_width` and a height of :obj:`bar_height`. The bars are evenly
+    它们在圆柱周围间隔，并连接到地形的边缘。
+
+    ..
+    图片: 静态/地形/trimesh/star_terrain.jpg
+       :width: 40%
+       :align: 中央
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
+
+    异常：
+        ValueError: 如果:obj:`num_bars`小于2。
     """
     # check the number of bars
     if cfg.num_bars < 2:
@@ -751,6 +975,42 @@ def repeated_objects_terrain(
 
     Raises:
         ValueError: If the object type is not supported. It must be either a string or a callable.
+    """
+    """创建一组重复的物体的地形。
+
+    地形有一个地面，中间有一个平台。
+    这些物体被随机放置在s.t地形上。
+    它们不会与平台重叠。
+
+    根据对象类型，对象以不同的参数生成。
+    产生的物体类型是:``"cylinder"``，``"box"``，``"cone"``。
+
+    在配置中指定对象参数为课程参数。
+    难度用于线性地对参数最小值和最大值进行间接。
+
+    ..
+    图片: 静态/地形/trimesh/repeated_objects_cylinder_terrain.jpg
+       :width: 30%
+
+    ..
+    图片: 静态/地形/trimesh/repeated_objects_box_terrain.jpg
+       :width: 30%
+
+    ..
+    图片: 静态/地形/trimesh/repeated_objects_pyramid_terrain.jpg
+       :width: 30%
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        含有地形的三网和地形的起源 (m) 的图普。
+
+    异常：
+        ValueError: 如果对象类型不支持。
+                    这必须是电线或电话。
     """
     # import the object functions -- this is done here to avoid circular imports
     from .mesh_terrains_cfg import (

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 import os
@@ -42,6 +44,7 @@ def random_quaternion():
 @pytest.fixture(scope="session")
 def assets():
     """Load assets for tests."""
+    """运载资产进行测试。"""
     assets_dir = f"{ISAACLAB_NUCLEUS_DIR}/Tests/MeshConverter/duck"
     # Create mapping of file endings to file paths that can be used by tests
     assets = {
@@ -61,6 +64,7 @@ def assets():
 @pytest.fixture(autouse=True)
 def sim():
     """Create a blank new stage for each test."""
+    """创建一个空白的新阶段。"""
     # Create a new stage
     sim_utils.create_new_stage()
     # Simulation time-step
@@ -78,6 +82,7 @@ def sim():
 
 def check_mesh_conversion(mesh_converter: MeshConverter):
     """Check that mesh is loadable and stage is valid."""
+    """检查网格是否可加载，阶段是否有效。"""
     # Obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -114,6 +119,7 @@ def check_mesh_conversion(mesh_converter: MeshConverter):
 
 def check_mesh_collider_settings(mesh_converter: MeshConverter):
     """Check that mesh collider settings are correct."""
+    """检查网格碰撞器设置是否正确。"""
     # Obtain stage handle
     stage = sim_utils.get_current_stage()
 
@@ -156,6 +162,10 @@ def test_no_change(assets):
 
     This should not generate a new USD file if the hash is the same.
     """
+    """在同一输入资产上两次调用转换。
+
+    如果哈希是相同的，则不会生成新的USD文件。
+    """
     # create an initial USD file from asset
     mesh_config = MeshConverterCfg(asset_path=assets["obj"])
     mesh_converter = MeshConverter(mesh_config)
@@ -173,6 +183,9 @@ def test_no_change(assets):
 
 def test_config_change(assets):
     """Call conversion twice but change the config in the second call. This should generate a new USD file."""
+    """在第二次调用时，调用转换，但在第二次调用时，调用配置。
+    这应该生成一个新的USD文件。
+    """
     # create an initial USD file from asset
     mesh_config = MeshConverterCfg(asset_path=assets["obj"])
     mesh_converter = MeshConverter(mesh_config)
@@ -192,6 +205,7 @@ def test_config_change(assets):
 
 def test_convert_obj(assets):
     """Convert an OBJ file"""
+    """转换一个OBJ文件"""
     mesh_config = MeshConverterCfg(
         asset_path=assets["obj"],
         scale=(random.uniform(0.1, 2.0), random.uniform(0.1, 2.0), random.uniform(0.1, 2.0)),
@@ -206,6 +220,7 @@ def test_convert_obj(assets):
 
 def test_convert_stl(assets):
     """Convert an STL file"""
+    """转换一个STL文件"""
     mesh_config = MeshConverterCfg(
         asset_path=assets["stl"],
         scale=(random.uniform(0.1, 2.0), random.uniform(0.1, 2.0), random.uniform(0.1, 2.0)),
@@ -220,6 +235,7 @@ def test_convert_stl(assets):
 
 def test_convert_fbx(assets):
     """Convert an FBX file"""
+    """转换一个FBX文件"""
     mesh_config = MeshConverterCfg(
         asset_path=assets["fbx"],
         scale=(random.uniform(0.1, 2.0), random.uniform(0.1, 2.0), random.uniform(0.1, 2.0)),
@@ -234,6 +250,7 @@ def test_convert_fbx(assets):
 
 def test_convert_default_xform_transforms(assets):
     """Convert an OBJ file and check that default xform transforms are applied correctly"""
+    """转换一个OBJ文件并检查默认的xform转换是否正确应用"""
     mesh_config = MeshConverterCfg(asset_path=assets["obj"])
     mesh_converter = MeshConverter(mesh_config)
     # check that mesh conversion is successful
@@ -242,6 +259,7 @@ def test_convert_default_xform_transforms(assets):
 
 def test_collider_no_approximation(assets):
     """Convert an OBJ file using no approximation"""
+    """转换一个OBJ文件没有近似"""
     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=True)
     mesh_config = MeshConverterCfg(
         asset_path=assets["obj"],
@@ -255,6 +273,7 @@ def test_collider_no_approximation(assets):
 
 def test_collider_convex_hull(assets):
     """Convert an OBJ file using convex hull approximation"""
+    """使用形体近似转换OBJ文件"""
     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=True)
     mesh_collision_prop = schemas_cfg.ConvexHullPropertiesCfg()
     mesh_config = MeshConverterCfg(
@@ -270,6 +289,7 @@ def test_collider_convex_hull(assets):
 
 def test_collider_convex_decomposition(assets):
     """Convert an OBJ file using convex decomposition approximation"""
+    """转换一个OBJ文件使用曲分解近似"""
     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=True)
     mesh_collision_prop = schemas_cfg.ConvexDecompositionPropertiesCfg()
     mesh_config = MeshConverterCfg(
@@ -285,6 +305,7 @@ def test_collider_convex_decomposition(assets):
 
 def test_collider_triangle_mesh(assets):
     """Convert an OBJ file using triangle mesh approximation"""
+    """使用三角形网格近似转换OBJ文件"""
     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=True)
     mesh_collision_prop = schemas_cfg.TriangleMeshPropertiesCfg()
     mesh_config = MeshConverterCfg(
@@ -300,6 +321,7 @@ def test_collider_triangle_mesh(assets):
 
 def test_collider_mesh_simplification(assets):
     """Convert an OBJ file using mesh simplification approximation"""
+    """转换OBJ文件使用网格简化近似"""
     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=True)
     mesh_collision_prop = schemas_cfg.TriangleMeshSimplificationPropertiesCfg()
     mesh_config = MeshConverterCfg(
@@ -315,6 +337,7 @@ def test_collider_mesh_simplification(assets):
 
 def test_collider_mesh_bounding_cube(assets):
     """Convert an OBJ file using bounding cube approximation"""
+    """转换OBJ文件使用边界立方接近"""
     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=True)
     mesh_collision_prop = schemas_cfg.BoundingCubePropertiesCfg()
     mesh_config = MeshConverterCfg(
@@ -330,6 +353,7 @@ def test_collider_mesh_bounding_cube(assets):
 
 def test_collider_mesh_bounding_sphere(assets):
     """Convert an OBJ file using bounding sphere"""
+    """使用边界球转换OBJ文件"""
     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=True)
     mesh_collision_prop = schemas_cfg.BoundingSpherePropertiesCfg()
     mesh_config = MeshConverterCfg(
@@ -345,6 +369,7 @@ def test_collider_mesh_bounding_sphere(assets):
 
 def test_collider_mesh_sdf(assets):
     """Convert an OBJ file using signed distance field approximation"""
+    """转换OBJ文件使用签署的距离场近似"""
     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=True)
     mesh_collision_prop = schemas_cfg.SDFMeshPropertiesCfg()
     mesh_config = MeshConverterCfg(
@@ -360,6 +385,7 @@ def test_collider_mesh_sdf(assets):
 
 def test_collider_mesh_no_collision(assets):
     """Convert an OBJ file using bounding sphere with collision disabled"""
+    """转换一个OBJ文件，使用边界球，无能碰撞"""
     collision_props = schemas_cfg.CollisionPropertiesCfg(collision_enabled=False)
     mesh_collision_prop = schemas_cfg.BoundingSpherePropertiesCfg()
     mesh_config = MeshConverterCfg(

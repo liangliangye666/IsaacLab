@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -27,6 +28,7 @@ from isaaclab_rl.utils.pretrained_checkpoint import WORKFLOW_EXPERIMENT_NAME_VAR
 
 def setup_environment():
     """Setup environment for testing."""
+    """设置环境进行测试。"""
     # Acquire all Isaac environments names
     registered_task_specs = []
     for task_spec in gym.registry.values():
@@ -46,6 +48,7 @@ def setup_environment():
 
 def train_job(workflow, task, env_config, num_gpus):
     """Train a single job for a given workflow, task, and configuration, and return the duration."""
+    """训练一个单个工作，用于特定的工作流，任务和配置，然后返回时间。"""
     cmd = [
         sys.executable,
         WORKFLOW_TRAINER[workflow],
@@ -79,6 +82,7 @@ def train_job(workflow, task, env_config, num_gpus):
 @pytest.mark.parametrize("task_spec", setup_environment())
 def test_train_environments(workflow, task_spec, config_path, mode, num_gpus, kpi_store):
     """Train environments provided in the config file, save KPIs, and evaluate against thresholds"""
+    """在配置文件中提供的训练环境，保存KPIs，并根据门进行评估"""
     # Skip if workflow not supported for this task
     if workflow + "_cfg_entry_point" not in task_spec.kwargs:
         pytest.skip(f"Workflow {workflow} not supported for task {task_spec.id}")

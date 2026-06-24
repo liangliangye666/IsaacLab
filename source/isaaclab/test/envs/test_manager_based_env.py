@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -16,6 +17,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -32,6 +34,7 @@ from isaaclab.utils import configclass
 @configclass
 class EmptyManagerCfg:
     """Empty manager specifications for the environment."""
+    """管理器对环境的规格是空的。"""
 
     pass
 
@@ -39,10 +42,12 @@ class EmptyManagerCfg:
 @configclass
 class EmptyObservationWithHistoryCfg:
     """Empty observation with history specifications for the environment."""
+    """环境历史规范的空观。"""
 
     @configclass
     class EmptyObservationGroupWithHistoryCfg(ObsGroup):
         """Empty observation with history specifications for the environment."""
+        """环境历史规范的空观。"""
 
         dummy_term: ObsTerm = ObsTerm(func=lambda env: torch.randn(env.num_envs, 1, device=env.device))
 
@@ -55,16 +60,19 @@ class EmptyObservationWithHistoryCfg:
 @configclass
 class EmptySceneCfg(InteractiveSceneCfg):
     """Configuration for an empty scene."""
+    """设置为空场景。"""
 
     pass
 
 
 def get_empty_base_env_cfg(device: str = "cuda:0", num_envs: int = 1, env_spacing: float = 1.0):
     """Generate base environment config based on device"""
+    """根据设备生成基环境配置"""
 
     @configclass
     class EmptyEnvCfg(ManagerBasedEnvCfg):
         """Configuration for the empty test environment."""
+        """对于空试环境的配置。"""
 
         # Scene settings
         scene: EmptySceneCfg = EmptySceneCfg(num_envs=num_envs, env_spacing=env_spacing)
@@ -74,6 +82,7 @@ def get_empty_base_env_cfg(device: str = "cuda:0", num_envs: int = 1, env_spacin
 
         def __post_init__(self):
             """Post initialization."""
+            """在初始化后。"""
             # step settings
             self.decimation = 4  # env step every 4 sim steps: 200Hz / 4 = 50Hz
             # simulation settings
@@ -87,10 +96,12 @@ def get_empty_base_env_cfg(device: str = "cuda:0", num_envs: int = 1, env_spacin
 
 def get_empty_base_env_cfg_with_history(device: str = "cuda:0", num_envs: int = 1, env_spacing: float = 1.0):
     """Generate base environment config based on device"""
+    """根据设备生成基环境配置"""
 
     @configclass
     class EmptyEnvWithHistoryCfg(ManagerBasedEnvCfg):
         """Configuration for the empty test environment."""
+        """对于空试环境的配置。"""
 
         # Scene settings
         scene: EmptySceneCfg = EmptySceneCfg(num_envs=num_envs, env_spacing=env_spacing)
@@ -100,6 +111,7 @@ def get_empty_base_env_cfg_with_history(device: str = "cuda:0", num_envs: int = 
 
         def __post_init__(self):
             """Post initialization."""
+            """在初始化后。"""
             # step settings
             self.decimation = 4  # env step every 4 sim steps: 200Hz / 4 = 50Hz
             # simulation settings
@@ -114,6 +126,7 @@ def get_empty_base_env_cfg_with_history(device: str = "cuda:0", num_envs: int = 
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_initialization(device):
     """Test initialization of ManagerBasedEnv."""
+    """测试启动ManagerBasedEnv。"""
     # create a new stage
     omni.usd.get_context().new_stage()
     # create environment
@@ -141,6 +154,10 @@ def test_observation_history_changes_only_after_step(device):
     """Test observation history of ManagerBasedEnv.
 
     The history buffer should only change after a step is taken.
+    """
+    """ManagerBasedEnv的测试观测历史。
+
+    历史缓冲器只应在采取一步后改变。
     """
     # create a new stage
     omni.usd.get_context().new_stage()

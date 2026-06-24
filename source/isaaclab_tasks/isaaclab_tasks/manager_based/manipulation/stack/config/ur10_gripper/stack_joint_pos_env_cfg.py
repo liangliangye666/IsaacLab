@@ -32,6 +32,7 @@ from isaaclab.markers.config import FRAME_MARKER_CFG  # isort: skip
 @configclass
 class EventCfgLongSuction:
     """Configuration for events."""
+    """为事件的配置。"""
 
     init_franka_arm_pose = EventTerm(
         func=franka_stack_events.set_default_joint_pose,
@@ -136,6 +137,7 @@ class UR10CubeStackEnvCfg(StackEnvCfg):
 @configclass
 class UR10LongSuctionCubeStackEnvCfg(UR10CubeStackEnvCfg):
     """Configuration for the UR10 Long Suction Cube Stack Environment."""
+    """对于UR10长吸收立方体堆环境的配置。"""
 
     def __post_init__(self):
         # post init of parent

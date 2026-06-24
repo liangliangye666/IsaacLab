@@ -73,6 +73,29 @@ class ManagerBasedEnv:
     environment time-step is computed as the product of the two. The two time-steps can be obtained by
     querying the :attr:`physics_dt` and the :attr:`step_dt` properties respectively.
     """
+    """基于管理器工作流的基础环境，封装仿真场景以及各类环境管理器。
+
+    仿真场景（或仿真世界）由机器人、物体和传感器（摄像头、激光雷达等）组成；
+    环境则是更高层的抽象，为外部程序提供统一的仿真交互接口。环境包含以下组件：
+
+    * **场景**：创建并管理机器人运行的虚拟世界，包括机器人、静态/动态物体和传感器等。
+    * **观测管理器**：根据当前仿真状态和传感器数据生成观测。观测可以包含真实机器人无法直接获取的
+      特权信息，也可以通过用户自定义项进一步处理，例如利用神经网络将高维观测编码到低维空间。
+    * **动作管理器**：处理环境接收的原始动作，并将其转换为发送给仿真器的低层命令。动作可以采用不同
+      抽象层级，例如机械臂的关节力矩、关节位置或末端执行器位姿，以及移动底盘的关节力矩或基座目标速度。
+    * **事件管理器**：编排由仿真事件触发的操作，例如将场景重置到默认状态、按时间间隔向机器人施加
+      随机扰动，或者随机化质量、摩擦系数等属性，以支持多样化场景下的训练和评估。
+    * **记录器管理器**：记录仿真 reset 和 step 前后的数据。记录数据按环境和回合组织，并可通过
+      dataset file handler 导出到文件。
+
+    环境本身不包含奖励函数、终止条件等任务特定量。这些量属于 Markov Decision Process（MDP）的定义，
+    而本基础环境与具体 MDP 无关。
+
+    环境按固定的环境时间步推进，而底层物理仿真使用更小的物理时间步执行多次，以保证仿真稳定性。
+    两个时间尺度分别由 :attr:`ManagerBasedEnvCfg.decimation`（每个环境步包含的物理仿真步数）和
+    :attr:`ManagerBasedEnvCfg.sim.dt`（物理时间步）配置。环境时间步等于二者的乘积，可分别通过
+    :attr:`physics_dt` 和 :attr:`step_dt` 属性查询物理时间步与环境时间步。
+    """
 
     def __init__(self, cfg: ManagerBasedEnvCfg):
         """Initialize the environment.
@@ -83,6 +106,15 @@ class ManagerBasedEnv:
         Raises:
             RuntimeError: If a simulation context already exists. The environment must always create one
                 since it configures the simulation context and controls the simulation.
+        """
+        """初始化环境。
+
+        参数：
+            cfg: 环境的配置对象。
+
+        异常：
+            RuntimeError: 如果仿真上下文已经存在。
+                          环境必须始终自行创建仿真上下文，因为环境需要配置并控制该仿真上下文。
         """
         # check that the config is valid
         cfg.validate()
@@ -213,15 +245,19 @@ class ManagerBasedEnv:
 
     def __del__(self):
         """Cleanup for the environment."""
+        """清理环境。"""
         self.close()
 
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def num_envs(self) -> int:
         """The number of instances of the environment that are running."""
+        """正在运行的环境实例数量。"""
         return self.scene.num_envs
 
     @property
@@ -229,6 +265,10 @@ class ManagerBasedEnv:
         """The physics time-step (in s).
 
         This is the lowest time-decimation at which the simulation is happening.
+        """
+        """物理时间步（单位：s）。
+
+        这是仿真采用的最小时间步。
         """
         return self.cfg.sim.dt
 
@@ -238,11 +278,16 @@ class ManagerBasedEnv:
 
         This is the time-step at which the environment steps forward.
         """
+        """环境步进时间步（单位：s）。
+
+        这是环境向前推进一个步长时使用的时间步。
+        """
         return self.cfg.sim.dt * self.cfg.decimation
 
     @property
     def device(self):
         """The device on which the environment is running."""
+        """环境运行所在的设备。"""
         return self.sim.device
 
     @property
@@ -251,6 +296,11 @@ class ManagerBasedEnv:
 
         Returns:
             A dictionary with keys as the group names and values as the IO descriptors.
+        """
+        """获取环境的 IO 描述符。
+
+        返回：
+            一个字典，键为组名、值为 IO 描述符。
         """
         return {
             "observations": self.observation_manager.get_IO_descriptors,
@@ -264,6 +314,11 @@ class ManagerBasedEnv:
 
         Args:
             output_dir: The directory to export the IO descriptors to.
+        """
+        """导出环境的 IO 描述符。
+
+        参数：
+            output_dir: 导出IO描述符的目录
         """
         import os
 
@@ -290,6 +345,8 @@ class ManagerBasedEnv:
     """
     Operations - Setup.
     """
+    """操作 - 初始化。
+    """
 
     def load_managers(self):
         """Load the managers for the environment.
@@ -306,6 +363,17 @@ class ManagerBasedEnv:
             is reset. This is because the simulator is only reset when the user calls
             :meth:`SimulationContext.reset_async` and it isn't possible to call async functions in the constructor.
 
+        """
+        """加载环境管理器。
+
+        该函数负责为环境创建各种管理器，包括动作管理器、观测管理器和事件管理器等。
+        由于这些管理器需要访问物理句柄，因此只能在仿真器完成首次 reset（即第一次开始运行）后创建。
+
+        .. 说明::
+            在独立运行应用中（即从 Python 启动仿真器时），该函数会在类初始化期间自动调用。
+
+            但在 extension 模式下，用户必须在仿真器 reset 后手动调用该函数。
+            这是因为只有用户调用 :meth:`SimulationContext.reset_async` 时仿真器才会 reset，而构造函数中无法调用 async 函数。
         """
         # prepare the managers
         # -- event manager (we print it here to make the logging consistent)
@@ -328,6 +396,7 @@ class ManagerBasedEnv:
 
     def setup_manager_visualizers(self):
         """Creates live visualizers for manager terms."""
+        """为各管理器项创建实时可视化器。"""
 
         self.manager_visualizers = {
             "action_manager": ManagerLiveVisualizer(manager=self.action_manager),
@@ -336,6 +405,8 @@ class ManagerBasedEnv:
 
     """
     Operations - MDP.
+    """
+    """操作 - MDP。
     """
 
     def reset(
@@ -357,6 +428,22 @@ class ManagerBasedEnv:
 
         Returns:
             A tuple containing the observations and extras.
+        """
+        """重置指定环境并返回观测。
+
+        该函数调用 :meth:`_reset_idx` 重置指定环境，但不会重复执行初始化阶段完成的操作，
+        例如程序化地形生成。
+
+        参数：
+            seed: 随机化使用的随机种子。默认为 None，表示不重新设置随机种子。
+            env_ids: 需要重置的环境 ID。默认为 None，表示重置全部环境。
+            options: 指定环境重置方式的附加信息。默认为 None。
+
+                说明：
+                    该参数用于兼容 Gymnasium 的环境接口定义。
+
+        返回：
+            包含观测和附加信息的元组。
         """
         if env_ids is None:
             env_ids = torch.arange(self.num_envs, dtype=torch.int64, device=self.device)
@@ -416,6 +503,17 @@ class ManagerBasedEnv:
             is_relative: If set to True, the state is considered relative to the environment origins.
                 Defaults to False.
         """
+        """将指定环境重置到给定状态。
+
+        ``state`` 是包含场景实体状态的字典，其格式请参阅 :meth:`InteractiveScene.get_state`。
+        与 :meth:`reset` 不同，该函数直接恢复指定状态，而不是通过随机化事件生成重置状态。
+
+        参数：
+            state: 指定环境要恢复到的状态。格式请参阅 :meth:`InteractiveScene.get_state`。
+            env_ids: 需要重置的环境 ID。默认为 None，表示重置全部环境。
+            seed: 随机化使用的随机种子。默认为 None，表示不重新设置随机种子。
+            is_relative: 若为 True，则将给定状态视为相对于各环境原点的状态。默认为 False。
+        """
         # reset all envs in the scene if env_ids is None
         if env_ids is None:
             env_ids = torch.arange(self.num_envs, dtype=torch.int64, device=self.device)
@@ -464,6 +562,18 @@ class ManagerBasedEnv:
         Returns:
             A tuple containing the observations and extras.
         """
+        """执行一个环境时间步的动力学更新。
+
+        环境以固定的环境时间步推进，底层物理仿真则以更小的时间步执行 ``decimation`` 次。
+        :attr:`ManagerBasedEnvCfg.decimation` 指定每个环境步包含的物理仿真步数，
+        :attr:`ManagerBasedEnvCfg.sim.dt` 指定物理时间步；环境时间步为二者的乘积。
+
+        参数：
+            action: 施加到环境的动作，形状为 ``(num_envs, action_dim)``。
+
+        返回：
+            包含观测和附加信息的元组。
+        """
         # process actions
         self.action_manager.process_action(action.to(self.device))
 
@@ -511,6 +621,15 @@ class ManagerBasedEnv:
         Returns:
             The seed used for random generator.
         """
+        """为环境提供种子。
+
+        参数：
+            seed: 种子是随机发电机。
+                  设置为 -1。
+
+        返回：
+            种子用于随机发电机。
+        """
         # set seed for replicator
         try:
             import omni.replicator.core as rep
@@ -523,6 +642,7 @@ class ManagerBasedEnv:
 
     def close(self):
         """Cleanup for the environment."""
+        """清理环境。"""
         if not self._is_closed:
             # destructor is order-sensitive
             del self.viewport_camera_controller
@@ -552,12 +672,19 @@ class ManagerBasedEnv:
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _reset_idx(self, env_ids: Sequence[int]):
         """Reset environments based on specified indices.
 
         Args:
             env_ids: List of environment ids which must be reset
+        """
+        """根据指定索引重置环境。
+
+        参数：
+            env_ids: 必须重置的环境ID列表
         """
         # reset the internal buffers of the scene elements
         self.scene.reset(env_ids)

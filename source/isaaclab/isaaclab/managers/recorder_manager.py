@@ -5,6 +5,7 @@
 """Recorder manager for recording data produced from the given world."""
 
 from __future__ import annotations
+"""记录器管理器用于记录从给定的世界产生的数据。"""
 
 import enum
 import os
@@ -26,6 +27,7 @@ if TYPE_CHECKING:
 
 class DatasetExportMode(enum.IntEnum):
     """The mode to handle episode exports."""
+    """处理剧情出口的模式。"""
 
     EXPORT_NONE = 0  # Export none of the episodes
     EXPORT_ALL = 1  # Export all episodes to a single dataset file
@@ -36,23 +38,29 @@ class DatasetExportMode(enum.IntEnum):
 @configclass
 class RecorderManagerBaseCfg:
     """Base class for configuring recorder manager terms."""
+    """基于配置录音机管理器项的基础类。"""
 
     dataset_file_handler_class_type: type = HDF5DatasetFileHandler
 
     dataset_export_dir_path: str = "/tmp/isaaclab/logs"
     """The directory path where the recorded datasets are exported."""
+    """记录的数据集出口的目录路径。"""
 
     dataset_filename: str = "dataset"
     """Dataset file name without file extension."""
+    """数据集文件名，没有文件扩展。"""
 
     dataset_export_mode: DatasetExportMode = DatasetExportMode.EXPORT_ALL
     """The mode to handle episode exports."""
+    """处理剧情出口的模式。"""
 
     export_in_record_pre_reset: bool = True
     """Whether to export episodes in the record_pre_reset call."""
+    """在record_pre_reset电话中是否出口剧集。"""
 
     export_in_close: bool = False
     """Whether to export episodes in the close call."""
+    """在近距离中是否出口事件。"""
 
 
 class RecorderTerm(ManagerTermBase):
@@ -67,6 +75,16 @@ class RecorderTerm(ManagerTermBase):
           and before the action is applied by the action manager.
     * Post-step recording: This callback is invoked at the end of `env.step()` when all the managers are processed.
     """
+    """对于录音器的基本类。
+
+    记录器的项负责记录环境生命周期的各个阶段的数据。
+    一个记录器项由四个用户定义的回调来记录相应阶段的数据组成:
+
+    * 预设重置录音:在重置效果之前，该回调应应于`env.reset()`开始。
+    * 后重置录音:在`env.reset()`结束时调用回调。
+    * 步骤前记录:此回调应应于`env.step()`的开始，步骤操作处理后，并且动作管理器在执行该操作之前。
+    * 后步录音:当所有管理器处理时，这个回调是在`env.step()`结束时调用的。
+    """
 
     def __init__(self, cfg: RecorderTermCfg, env: ManagerBasedEnv):
         """Initialize the recorder term.
@@ -75,11 +93,19 @@ class RecorderTerm(ManagerTermBase):
             cfg: The configuration object.
             env: The environment instance.
         """
+        """开始录音器项。
+
+        参数：
+            cfg: 配置对象。
+            env: 环境情况。
+        """
         # call the base class constructor
         super().__init__(cfg, env)
 
     """
     User-defined callbacks.
+    """
+    """用户定义的回调。
     """
 
     def record_pre_reset(self, env_ids: Sequence[int] | None) -> tuple[str | None, torch.Tensor | dict | None]:
@@ -95,6 +121,19 @@ class RecorderTerm(ManagerTermBase):
             The value can be a tensor or a nested dictionary of tensors. The shape of a tensor in the value
             is (env_ids, ...).
         """
+        """在重置之前，在env.reset的开始记录数据。
+
+        参数：
+            env_ids: 环境 ID。
+                     设置为None时应考虑所有环境。
+
+        返回：
+            一个要记录的钥匙和值。
+            钥匙可以包含以"/"分开的嵌套钥匙。
+            例如"，obs/joint_pos"将在 ['obs']['policy']下添加所给定的值，在记录的事件数据中。
+            值可以是子或 tens子的嵌套字典。
+            值中的子形状是 (env_ids， ...)。
+        """
         return None, None
 
     def record_post_reset(self, env_ids: Sequence[int] | None) -> tuple[str | None, torch.Tensor | dict | None]:
@@ -107,6 +146,16 @@ class RecorderTerm(ManagerTermBase):
             A tuple of key and value to be recorded.
             Please refer to the `record_pre_reset` function for more details.
         """
+        """记录数据在env.reset的最后()。
+
+        参数：
+            env_ids: 环境 ID。
+                     设置为None时应考虑所有环境。
+
+        返回：
+            一个要记录的钥匙和值。
+            详细请参阅`record_pre_reset`函数。
+        """
         return None, None
 
     def record_pre_step(self) -> tuple[str | None, torch.Tensor | dict | None]:
@@ -115,6 +164,12 @@ class RecorderTerm(ManagerTermBase):
         Returns:
             A tuple of key and value to be recorded.
             Please refer to the `record_pre_reset` function for more details.
+        """
+        """在ActionManager中缓存/处理后，在env.step开始记录数据。
+
+        返回：
+            一个要记录的钥匙和值。
+            详细请参阅`record_pre_reset`函数。
         """
         return None, None
 
@@ -125,6 +180,12 @@ class RecorderTerm(ManagerTermBase):
             A tuple of key and value to be recorded.
             Please refer to the `record_pre_reset` function for more details.
         """
+        """在所有管理器处理时，记录数据在env.step的最后。
+
+        返回：
+            一个要记录的钥匙和值。
+            详细请参阅`record_pre_reset`函数。
+        """
         return None, None
 
     def record_post_physics_decimation_step(self) -> tuple[str | None, torch.Tensor | dict | None]:
@@ -133,6 +194,12 @@ class RecorderTerm(ManagerTermBase):
         Returns:
             A tuple of key and value to be recorded.
             Please refer to the `record_pre_reset` function for more details.
+        """
+        """记录数据在10分循环中执行物理步骤后。
+
+        返回：
+            一个要记录的钥匙和值。
+            详细请参阅`record_pre_reset`函数。
         """
         return None, None
 
@@ -145,11 +212,19 @@ class RecorderTerm(ManagerTermBase):
         Args:
             file_path: the absolute path to the file
         """
+        """完成和"清理"录音器项。
+
+        这可能包括将元数据 (e.g.标签) 添加到文件中，以及适当关闭相关文件处理器或资源等任务。
+
+        参数：
+            file_path: 到文件的绝对路径
+        """
         pass
 
 
 class RecorderManager(ManagerBase):
     """Manager for recording data from recorder terms."""
+    """记录数据的管理器。"""
 
     def __init__(self, cfg: object, env: ManagerBasedEnv):
         """Initialize the recorder manager.
@@ -157,6 +232,12 @@ class RecorderManager(ManagerBase):
         Args:
             cfg: The configuration object or dictionary (``dict[str, RecorderTermCfg]``).
             env: The environment instance.
+        """
+        """启动录音器管理器。
+
+        参数：
+            cfg: 配置对象或字典 (``dict[str， RecorderTermCfg]``)。
+            env: 环境情况。
         """
         self._term_names: list[str] = list()
         self._terms: dict[str, RecorderTerm] = dict()
@@ -200,6 +281,7 @@ class RecorderManager(ManagerBase):
 
     def __str__(self) -> str:
         """Returns: A string representation for recorder manager."""
+        """Returns: 录音机管理器的字符串表示。"""
         msg = f"<RecorderManager> contains {len(self._term_names)} active terms.\n"
         # create table for term information
         table = PrettyTable()
@@ -217,15 +299,19 @@ class RecorderManager(ManagerBase):
 
     def __del__(self):
         """Destructor for recorder."""
+        """破坏器的记录器。"""
         self.close()
 
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def active_terms(self) -> list[str]:
         """Name of active recorder terms."""
+        """活跃记录器项名称"""
         return self._term_names
 
     @property
@@ -237,6 +323,15 @@ class RecorderManager(ManagerBase):
 
         Returns:
             The number of successful episodes.
+        """
+        """许多成功的集。
+
+        参数：
+            env_id: 环境 ID。
+                    在 None 中，默认情况下考虑所有环境。
+
+        返回：
+            许多成功的回合。
         """
         if not hasattr(self, "_exported_successful_episode_count"):
             return 0
@@ -254,6 +349,15 @@ class RecorderManager(ManagerBase):
         Returns:
             The number of failed episodes.
         """
+        """失败的事件数量。
+
+        参数：
+            env_id: 环境 ID。
+                    在 None 中，默认情况下考虑所有环境。
+
+        返回：
+            失败的事件。
+        """
         if not hasattr(self, "_exported_failed_episode_count"):
             return 0
         if env_id is not None:
@@ -262,6 +366,8 @@ class RecorderManager(ManagerBase):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, torch.Tensor]:
@@ -273,6 +379,15 @@ class RecorderManager(ManagerBase):
 
         Returns:
             An empty dictionary.
+        """
+        """恢复录音机数据。
+
+        参数：
+            env_ids: 环境 ID。
+                     在 None 中，默认情况下考虑所有环境。
+
+        返回：
+            一个空白的字典。
         """
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
@@ -302,6 +417,14 @@ class RecorderManager(ManagerBase):
         Returns:
             The episode data for the given environment id.
         """
+        """返回给定的环境ID的事件数据。
+
+        参数：
+            env_id: 环境 ID。
+
+        返回：
+            给定的环境ID的事件数据。
+        """
         return self._episodes.get(env_id, EpisodeData())
 
     def add_to_episodes(self, key: str, value: torch.Tensor | dict, env_ids: Sequence[int] | None = None):
@@ -314,6 +437,18 @@ class RecorderManager(ManagerBase):
             value: The value to be added to the episodes. The value can be a tensor or a nested dictionary of tensors.
                 The shape of a tensor in the value is (env_ids, ...).
             env_ids: The environment ids. Defaults to None, in which case all environments are considered.
+        """
+        """将给定的键值对添加到给定的环境ID的回合中。
+
+        参数：
+            key: 在回合中添加给定的值的关键。
+                 钥匙可以包含以"/"分开的嵌套钥匙。
+                 例如"，obs/joint_pos"将在"obs"]["policy"下添加给定的值，在事件数据中的底层字典中。
+            value: 增加到回合中的价值。
+                   值可以是子或 tens子的嵌套字典。
+                   值中的子形状是 (env_ids， ...)。
+            env_ids: 环境 ID。
+                     在 None 中，默认情况下考虑所有环境。
         """
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
@@ -345,6 +480,14 @@ class RecorderManager(ManagerBase):
             env_ids: The environment ids. Defaults to None, in which case all environments are considered.
             success_values: The task success values to be set to the episodes. The shape of the tensor is (env_ids, 1).
         """
+        """设置任务成功值为给定的环境ID的事件。
+
+        参数：
+            env_ids: 环境 ID。
+                     在 None 中，默认情况下考虑所有环境。
+            success_values: 任务成功值应根据事件设置。
+                            子的形状是 (env_ids， 1)。
+        """
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
             return
@@ -360,6 +503,7 @@ class RecorderManager(ManagerBase):
 
     def record_pre_step(self) -> None:
         """Trigger recorder terms for pre-step functions."""
+        """触发器记录器的项为前步骤函数。"""
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
             return
@@ -370,6 +514,7 @@ class RecorderManager(ManagerBase):
 
     def record_post_step(self) -> None:
         """Trigger recorder terms for post-step functions."""
+        """触发器记录器项后步骤函数"""
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
             return
@@ -380,6 +525,7 @@ class RecorderManager(ManagerBase):
 
     def record_post_physics_decimation_step(self) -> None:
         """Trigger recorder terms for post-physics step functions in the decimation loop."""
+        """引发器记录器项用于10分循环中的后物理步骤函数。"""
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
             return
@@ -393,6 +539,11 @@ class RecorderManager(ManagerBase):
 
         Args:
             env_ids: The environment ids in which a reset is triggered.
+        """
+        """预设函数的触发记录器项。
+
+        参数：
+            env_ids: 环境ID，其中启动重置。
         """
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
@@ -424,6 +575,11 @@ class RecorderManager(ManagerBase):
         Args:
             env_ids: The environment ids in which a reset is triggered.
         """
+        """启动记录器后重置函数的条件。
+
+        参数：
+            env_ids: 环境ID，其中启动重置。
+        """
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
             return
@@ -434,6 +590,7 @@ class RecorderManager(ManagerBase):
 
     def get_ep_meta(self) -> dict:
         """Get the episode metadata."""
+        """获取事件的元数据。"""
         if not hasattr(self._env.cfg, "get_ep_meta"):
             # Add basic episode metadata
             ep_meta = dict()
@@ -459,6 +616,17 @@ class RecorderManager(ManagerBase):
                 If provided, episodes will be named "demo_{demo_id}" in the dataset.
                 Should have the same length as env_ids if both are provided.
                 If None, uses the default sequential naming scheme. Defaults to None.
+        """
+        """结论和出口给定的环境ID的事件。
+
+        参数：
+            env_ids: 环境 ID。
+                     在 None 中，默认情况下考虑所有环境。
+            demo_ids: 对出口事件的定制标识符。
+                      如果提供，回合将被命名为"demo_{demo_id}在数据集中。
+                      如果提供两者，应与env_ids相同的长度。
+                      如果 None，则使用默认的序列命名方案。
+                      默认为 None。
         """
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
@@ -530,6 +698,8 @@ class RecorderManager(ManagerBase):
         """Closes the recorder manager by exporting any remaining data to file as well as properly
         closes the recorder terms.
         """
+        """关闭记录器管理器，将其剩余的数据出口到文件中，并正确关闭记录器项。
+        """
         # Do nothing if no active recorder terms are provided
         if len(self.active_terms) == 0:
             return
@@ -545,9 +715,12 @@ class RecorderManager(ManagerBase):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _prepare_terms(self):
         """Prepares a list of recorder terms."""
+        """编制记录器的项列表。"""
         # check if config is dict already
         if isinstance(self.cfg, dict):
             cfg_items = self.cfg.items()

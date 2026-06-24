@@ -50,6 +50,7 @@ predefined_ee_goals_and_ids = [
 @pytest.fixture(scope="class")
 def curobo_test_env() -> Generator[dict[str, Any], None, None]:
     """Set up the environment for the Curobo test and yield test-critical data."""
+    """设置Curobo测试环境，并提供测试关键数据。"""
     random.seed(SEED)
     torch.manual_seed(SEED)
 
@@ -105,10 +106,12 @@ def curobo_test_env() -> Generator[dict[str, Any], None, None]:
 
 class TestCuroboPlanner:
     """Test suite for the Curobo motion planner, focusing on obstacle avoidance."""
+    """测试套件为Curobo运动规划器，专注于避免障碍。"""
 
     @pytest.fixture(autouse=True)
     def setup(self, curobo_test_env) -> None:
         """Inject the test environment into the test class instance."""
+        """将测试环境注入测试类实例中。"""
         self.env: ManagerBasedEnv = curobo_test_env["env"]
         self.robot: Articulation = curobo_test_env["robot"]
         self.planner: CuroboPlanner = curobo_test_env["planner"]
@@ -117,6 +120,7 @@ class TestCuroboPlanner:
 
     def _visualize_goal_pose(self, pos: torch.Tensor, quat: torch.Tensor) -> None:
         """Visualize the goal pose using frame markers if not in headless mode."""
+        """设想目标姿势，使用框架标记，如果不是无头模式。"""
         if headless or self.goal_pose_visualizer is None:
             return
         pos_vis = pos.unsqueeze(0)
@@ -125,6 +129,7 @@ class TestCuroboPlanner:
 
     def _execute_current_plan(self) -> None:
         """Replay the waypoints of the current plan in the simulator for visualization."""
+        """在仿真器中重新播放当前计划的路线点进行可视化。"""
         if headless or self.planner.current_plan is None:
             return
         for q in self.planner.current_plan.position:
@@ -134,6 +139,7 @@ class TestCuroboPlanner:
 
     def _set_arm_positions(self, q: torch.Tensor) -> None:
         """Set the joint positions of the robot's arm, appending default gripper values if necessary."""
+        """设置机器人的手臂的关节位置，必要时添加默认的抓住值。"""
         if q.dim() == 1:
             q = q.unsqueeze(0)
         if q.shape[-1] == 7:  # Arm only
@@ -146,6 +152,7 @@ class TestCuroboPlanner:
     @pytest.mark.parametrize("goal_spec, goal_id", predefined_ee_goals_and_ids)
     def test_plan_to_predefined_goal(self, goal_spec, goal_id) -> None:
         """Test planning to a predefined goal, ensuring the planner can find a path around an obstacle."""
+        """测试规划到预定目标，确保规划者能找到绕过障碍的路径。"""
         print(f"Planning for goal: {goal_id}")
 
         # Reset robot to a known home position before each test

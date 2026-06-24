@@ -6,6 +6,7 @@
 """Utility functions for managing X11 forwarding in the docker container."""
 
 from __future__ import annotations
+"""运输器容器中的X11传输管理的实用功能。"""
 
 import os
 import shutil
@@ -36,6 +37,22 @@ def configure_x11(statefile: StateFile) -> dict[str, str]:
         - "__ISAACLAB_TMP_XAUTH": The path to the temporary .xauth file.
         - "__ISAACLAB_TMP_DIR": The path to the directory where the temporary .xauth file is stored.
 
+    """
+    """通过创建和管理临时.xauth文件来配置X11转发。
+
+    如果 xauth 没有安装，函数会打印一个错误信息，然后退出。
+    该消息指示用户安装xauth使用"apt install xauth"。
+
+    如果 .xauth文件不存在，函数会创建它并配置它与必要的xauthcookie。
+
+    参数：
+        statefile: 配置类的一个实例。
+
+    返回：
+        一个有两个关键值对的字典:
+
+        - "__ISAACLAB_TMP_XAUTH":暂时的 .xauth文件的路径。
+        - "__ISAACLAB_TMP_DIR":临时.xauth文件存储的目录的路径。
     """
     # check if xauth is installed
     if not shutil.which("xauth"):
@@ -78,6 +95,23 @@ def x11_check(statefile: StateFile) -> tuple[list[str], dict[str, str]] | None:
         - A dictionary containing the environment variables for the container.
 
         If X11 forwarding is disabled, the function returns None.
+    """
+    """根据用户输入和现有的状态检查和配置X11转发。
+
+    该函数检查配置文件中是否启用X11转发。
+    如果没有配置，该函数会要求用户启用或禁用X11转发。
+    如果启用X11转发，该函数将通过创建临时.xauth文件来配置X11转发。
+
+    参数：
+        statefile: 配置类的一个实例。
+
+    返回：
+        如果已启用X11转发，函数将返回包含以下内容的tuple:
+
+        - 包含docker-compose的x11.yaml文件配置选项的列表。
+        - 包含容器环境变量的字典。
+
+        如果禁用X11转发，函数将返回None。
     """
     # set the namespace to X11 for the statefile
     statefile.namespace = "X11"
@@ -129,6 +163,13 @@ def x11_cleanup(statefile: StateFile):
     Args:
         statefile: An instance of the configuration file class.
     """
+    """清理用于X11转发的临时.xauth文件。
+
+    如果 .xauth 文件存在，该函数会删除它，并删除相应的状态变量。
+
+    参数：
+        statefile: 配置类的一个实例。
+    """
     # set the namespace to X11 for the statefile
     statefile.namespace = "X11"
 
@@ -152,6 +193,16 @@ def create_x11_tmpfile(tmpfile: Path | None = None, tmpdir: Path | None = None) 
 
     Returns:
         The Path to the .xauth file.
+    """
+    """创建一个.xauth文件，以MIT-MAGIC-COOKIE从当前``DISPLAY``环境变量中衍生出来。
+
+    参数：
+        tmpfile: 一个向文件的路径，将填写正确的 .xauth信息。
+        tmpdir: 一个向目录的路径，将创建一个随机的tmp文件。
+                这是一个``--tmpdir arg``到``mktemp`` bash命令。
+
+    返回：
+        进入 .xauth文件的路径。
     """
     if tmpfile is None:
         if tmpdir is None:
@@ -195,6 +246,20 @@ def x11_refresh(statefile: StateFile):
 
     Args:
         statefile: An instance of the configuration file class.
+    """
+    """更新用于X11转发的临时.xauth文件。
+
+    如果启用x11，该函数将生成一个新的 .xauth文件，包含当前的MIT-MAGIC-COOKIE-1。
+    新的文件使用相同的文件名，使bind-mount和``XAUTHORITY`` var从构建时间仍然工作。
+
+    由于 envar ``DISPLAY` 通知MIT-MAGIC-COOKIE-1的内容，因此该容器内的值也需要更新到主机上的当前值。
+    目前，这是在:meth:`ContainerInterface.enter`方法中自动完成的。
+
+    如果启用X11转发，但暂时的 .xauth文件不存在，该函数会退出。
+    在这种情况下，用户必须重建容器。
+
+    参数：
+        statefile: 配置类的一个实例。
     """
     # set the namespace to X11 for the statefile
     statefile.namespace = "X11"

@@ -18,6 +18,8 @@ class RmpFlowGalbotLeftArmGripperCubeStackAbsMimicEnvCfg(RmpFlowGalbotLeftArmCub
     """
     Isaac Lab Mimic environment config class for Galbot Gripper Cube Stack IK Rel env.
     """
+    """艾萨克实验室仿真环境配置类为Galbot Gripper Cube Stack IK Rel env。
+    """
 
     def __post_init__(self):
         # post init of parents
@@ -143,6 +145,8 @@ class RmpFlowGalbotLeftArmGripperCubeStackAbsMimicEnvCfg(RmpFlowGalbotLeftArmCub
 class RmpFlowGalbotRightArmSuctionCubeStackAbsMimicEnvCfg(RmpFlowGalbotRightArmCubeStackEnvCfg, MimicEnvCfg):
     """
     Isaac Lab Mimic environment config class for Galbot Suction Gripper Cube Stack RmpFlow Abs env.
+    """
+    """艾萨克实验室仿真环境配置类，用于Galbot吸管抓式立方体堆RmpFlow Abs env。
     """
 
     def __post_init__(self):

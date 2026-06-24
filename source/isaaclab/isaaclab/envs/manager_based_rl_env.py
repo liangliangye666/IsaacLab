@@ -51,16 +51,34 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         in a vectorized environment.
 
     """
+    """基于管理器工作流的强化学习环境基类。
+
+    该类继承 :class:`ManagerBasedEnv`，实现强化学习环境所需的核心功能，并可与不同的 RL 库配合使用。
+    环境采用向量化实现，即同时并行运行多个子环境，子环境数量由 ``num_envs`` 指定。
+
+    环境返回的每组观测都包含所有子环境的批量数据，:meth:`step` 同样接收所有子环境的批量动作。
+
+    尽管该环境是向量化环境，但没有继承 :class:`gym.vector.VectorEnv`。后者包含本项目不需要的等待和
+    异步更新接口，而且不同 RL 库通常具有各自的向量环境定义。因此这里直接继承 :class:`gym.Env`，
+    由各 RL 库提供的 wrapper 完成适配。
+
+    说明：
+        对于向量化环境，建议只在环境创建后、第一次调用 :meth:`step` 之前调用一次 :meth:`reset`。
+        此后，:meth:`step` 会自动重置已终止的子环境。
+    """
 
     is_vector_env: ClassVar[bool] = True
     """Whether the environment is a vectorized environment."""
+    """环境是否是一个向量化环境。"""
     metadata: ClassVar[dict[str, Any]] = {
         "render_modes": [None, "human", "rgb_array"],
     }
     """Metadata for the environment."""
+    """对环境的元数据。"""
 
     cfg: ManagerBasedRLEnvCfg
     """Configuration for the environment."""
+    """对环境的配置。"""
 
     def __init__(self, cfg: ManagerBasedRLEnvCfg, render_mode: str | None = None, **kwargs):
         """Initialize the environment.
@@ -69,6 +87,12 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
             cfg: The configuration for the environment.
             render_mode: The render mode for the environment. Defaults to None, which
                 is similar to ``"human"``.
+        """
+        """初始化环境。
+
+        参数：
+            cfg: 环境的配置。
+            render_mode: 环境的渲染模式。默认为 None，其行为与 ``"human"`` 类似。
         """
         # -- counter for curriculum
         self.common_step_counter = 0
@@ -91,19 +115,25 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def max_episode_length_s(self) -> float:
         """Maximum episode length in seconds."""
+        """以秒为单位的最大回合长度。"""
         return self.cfg.episode_length_s
 
     @property
     def max_episode_length(self) -> int:
         """Maximum episode length in environment steps."""
+        """以环境步数表示的最大回合长度。"""
         return math.ceil(self.max_episode_length_s / self.step_dt)
 
     """
     Operations - Setup.
+    """
+    """操作 - 初始化。
     """
 
     def load_managers(self):
@@ -136,6 +166,7 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
 
     def setup_manager_visualizers(self):
         """Creates live visualizers for manager terms."""
+        """为各管理器项创建实时可视化器。"""
 
         self.manager_visualizers = {
             "action_manager": ManagerLiveVisualizer(manager=self.action_manager),
@@ -148,6 +179,8 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
 
     """
     Operations - MDP
+    """
+    """操作 - MDP。
     """
 
     def step(self, action: torch.Tensor) -> VecEnvStepReturn:
@@ -168,6 +201,24 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
 
         Returns:
             A tuple containing the observations, rewards, resets (terminated and truncated) and extras.
+        """
+        """执行一个环境时间步，并重置已经结束的环境。
+
+        与 :class:`ManagerBasedEnv.step` 不同，该函数依次执行：
+
+        1. 处理动作。
+        2. 推进物理仿真。
+        3. 在启用 GUI 或 RTX 传感器时执行渲染。
+        4. 更新环境计数器并计算奖励与终止信号。
+        5. 重置已经终止或超时的环境。
+        6. 计算观测。
+        7. 返回观测、奖励、终止信号、截断信号和附加信息。
+
+        参数：
+            action: 施加到环境的动作，形状为 ``(num_envs, action_dim)``。
+
+        返回：
+            包含观测、奖励、终止信号、截断信号和附加信息的元组。
         """
         # process actions
         self.action_manager.process_action(action.to(self.device))
@@ -262,6 +313,25 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
                 or ``RenderMode.FULL_RENDERING``.
             NotImplementedError: If an unsupported rendering mode is specified.
         """
+        """在不推进物理仿真的情况下执行渲染。
+
+        按照 Gymnasium 约定，不同模式的行为如下：
+
+        - **human**：渲染到当前显示设备，不返回图像，主要用于人工查看。
+        - **rgb_array**：返回形状为 ``(x, y, 3)`` 的 ``numpy.ndarray``，表示 RGB 图像，可用于生成视频。
+
+        参数：
+            recompute: 即使仿真器已经渲染过当前场景，是否仍强制重新渲染。默认为 False。
+
+        返回：
+            当模式为 ``"rgb_array"`` 时返回 NumPy 图像数组，否则返回 None。
+
+        异常：
+            RuntimeError: 当前仿真渲染模式不支持请求的 RGB 图像输出。
+                          此时仿真渲染模式必须为 ``RenderMode.PARTIAL_RENDERING`` 或
+                          ``RenderMode.FULL_RENDERING``。
+            NotImplementedError: 指定了不支持的渲染模式。
+        """
         # run a rendering step of the simulator
         # if we have rtx sensors, we do not need to render again sin
         if not self.sim.has_rtx_sensors() and not recompute:
@@ -317,9 +387,12 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _configure_gym_env_spaces(self):
         """Configure the action and observation spaces for the Gym environment."""
+        """为 Gym 环境配置动作空间和观测空间。"""
         # observation space (unbounded since we don't impose any limits)
         self.single_observation_space = gym.spaces.Dict()
         for group_name, group_term_names in self.observation_manager.active_terms.items():
@@ -351,6 +424,11 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
 
         Args:
             env_ids: List of environment ids which must be reset
+        """
+        """根据指定索引重置环境。
+
+        参数：
+            env_ids: 必须重置的环境 ID 列表。
         """
         # update the curriculum for environments that need a reset
         self.curriculum_manager.compute(env_ids=env_ids)

@@ -76,9 +76,43 @@ class Camera(SensorBase):
     .. _USDGeom Camera: https://graphics.pixar.com/usd/docs/api/class_usd_geom_camera.html
 
     """
+    """摄像头传感器用于获取视觉数据。
+
+    这类包裹了`UsdGeom Camera`_为提供一致的API获得视觉数据。
+    它确保相机遵循坐标系统的ROS规则。
+
+    从`replicator extension`_来总结，支持以下传感器类型:
+
+    - ``"rgb"``:一个3通道的彩色图像。
+    - ``"rgba"``:有4通道的色彩图像与阿尔法通道。
+    - ``"distance_to_camera"``:包含到相机光学中心的距离的图像。
+    - ``"distance_to_image_plane"``:包含3D点距离相机平面的图像，沿着相机的z轴。
+    - ``"depth"``: 同样的``"distance_to_image_plane"``。
+    - ``"normals"``:包含每个像素的本地表面正常向量的图像。
+    - ``"motion_vectors"``:包含每个像素的运动向量数据的图像。
+    - ``"semantic_segmentation"``:语义细分数据。
+    - ``"instance_segmentation_fast"``:实例细分数据。
+    - ``"instance_id_segmentation_fast"``:实例 id 分类数据。
+
+    .. 说明::
+        目前，以下传感器类型不支持"视频"格式:
+
+        - ``"instance_segmentation"``:实例细分数据。 请使用快速对应。
+        - ``"instance_id_segmentation"``:实例 id 分类数据.请使用快速对应。
+        - ``"bounding_box_2d_tight"``:紧密的2D边界框数据 (仅包含非封闭区域)。
+        - ``"bounding_box_2d_tight_fast"``:紧密的2D边界框数据 (仅包含非封闭区域)。
+        - ``"bounding_box_2d_loose"``:宽松的2D边界框数据 (包含封闭区域)。
+        - ``"bounding_box_2d_loose_fast"``:宽松的2D边界框数据 (包含封闭区域)。
+        - ``"bounding_box_3d"``: 3D显示空间界限框数据。
+        - ``"bounding_box_3d_fast"``: 3D显示空间界限框数据。
+
+    .. _replicator extension: https://docs.omniverse.nvidia.com/extensions/latest/ext_replicator/annotators_details.html#annotator-output
+    .. _USDGeom Camera: https://graphics.pixar.com/usd/docs/api/class_usd_geom_camera.html
+    """
 
     cfg: CameraCfg
     """The configuration parameters."""
+    """配置参数。"""
 
     UNSUPPORTED_TYPES: set[str] = {
         "instance_id_segmentation",
@@ -91,6 +125,7 @@ class Camera(SensorBase):
         "bounding_box_3d_fast",
     }
     """The set of sensor types that are not supported by the camera class."""
+    """不支持相机类型的传感器类型。"""
 
     def __init__(self, cfg: CameraCfg):
         """Initializes the camera sensor.
@@ -101,6 +136,15 @@ class Camera(SensorBase):
         Raises:
             RuntimeError: If no camera prim is found at the given path.
             ValueError: If the provided data types are not supported by the camera.
+        """
+        """启动摄像头传感器。
+
+        参数：
+            cfg: 配置参数。
+
+        异常：
+            RuntimeError: 如果在给定的路径上没有发现prim相机。
+            ValueError: 如果提供的数据类型不支持相机。
         """
         # check if sensor path is valid
         # note: currently we do not handle environment indices if there is a regex pattern in the leaf
@@ -163,6 +207,7 @@ class Camera(SensorBase):
 
     def __del__(self):
         """Unsubscribes from callbacks and detach from the replicator registry."""
+        """退出回调和脱离复制器注册表。"""
         # unsubscribe callbacks
         super().__del__()
         # delete from replicator registry
@@ -173,6 +218,7 @@ class Camera(SensorBase):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
         # message for class
         return (
             f"Camera @ '{self.cfg.prim_path}': \n"
@@ -189,6 +235,8 @@ class Camera(SensorBase):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def num_instances(self) -> int:
@@ -204,6 +252,7 @@ class Camera(SensorBase):
     @property
     def frame(self) -> torch.tensor:
         """Frame number when the measurement took place."""
+        """在测量时的框架号码。"""
         return self._frame
 
     @property
@@ -212,15 +261,22 @@ class Camera(SensorBase):
 
         This can be used via replicator interfaces to attach to writes or external annotator registry.
         """
+        """摄像机的 products渲染产品的路径。
+
+        这可以通过复制器接口用于添加到写作或外部注释器注册表。
+        """
         return self._render_product_paths
 
     @property
     def image_shape(self) -> tuple[int, int]:
         """A tuple containing (height, width) of the camera sensor."""
+        """包含摄像头传感器 (高度，宽度) 的图布。"""
         return (self.cfg.height, self.cfg.width)
 
     """
     Configuration
+    """
+    """配置
     """
 
     def set_intrinsic_matrices(
@@ -247,6 +303,30 @@ class Camera(SensorBase):
             focal_length: Perspective focal length (in cm) used to calculate pixel size. Defaults to None. If None,
                 focal_length will be calculated 1 / width.
             env_ids: A sensor ids to manipulate. Defaults to None, which means all sensor indices.
+        """
+        """设置USD相机的参数从其内在矩阵中。
+
+        用内在矩阵设置USD相机的以下参数:
+
+        - ``focal_length``摄像机的焦距。
+        - ``horizontal_aperture``:相机的水平开口。
+        - ``vertical_aperture``: 摄像机的垂直开口。
+        - ``horizontal_aperture_offset``:相机的水平偏移。
+        - ``vertical_aperture_offset``:摄像头的垂直偏移。
+
+        .. 警告::
+
+            由于Omniverse相机的局限性，我们需要假设相机是一个球状镜头，i.e.有方形像素，
+            如果输入内在矩阵中这种假设不确实，那么相机将无法正确设置。
+
+        参数：
+            matrices: 摄像机的内在矩阵。
+                      形状是 (N， 3， 3)。
+            focal_length: 用于计算像素大小的视角焦距 (在cm)。
+                          默认为 None。
+                          如果 None， focal_length将计算为 1/宽度。
+            env_ids: 一个传感器识别器来操纵。
+                     默认为 None，这意味着所有传感器索引。
         """
         # resolve env_ids
         if env_ids is None:
@@ -283,6 +363,8 @@ class Camera(SensorBase):
     """
     Operations - Set pose.
     """
+    """动作 - 设置姿势。
+    """
 
     def set_world_poses(
         self,
@@ -313,6 +395,35 @@ class Camera(SensorBase):
 
         Raises:
             RuntimeError: If the camera prim is not set. Need to call :meth:`initialize` method first.
+        """
+        """设置摄像头w.r.t的姿势。
+        根据规定的公约，
+
+        由于不同领域使用不同的相机定向公约，因此该方法允许用户设置相机姿势在指定公约中。
+        可能的会议是:
+
+        - 在OpenGL (Usd.Camera) 公约中，应用:obj:`"opengl"` - 前轴: -Z - 上轴 +Y - 抵消
+        - :obj:`"ros"`- 前向轴: +Z - 上向轴 -YROS公约
+        - 在"世界框架"公约中，应用:obj:`"world"` - 前轴:+X - 上轴 +Z - 偏移
+
+        See :麻:`isaaclab.sensors.camera.utils.convert_camera_frame_orientation_convention`更多详情
+        在会议上。
+
+        参数：
+            positions: 卡特西亚坐标 (以米)。
+                       形状是 (N， 3)。
+                       默认为 None，在这种情况下，摄像头位置没有改变。
+            orientations: 在 (w，x，y，z) 中的四元数方向。
+                          形状是 (N， 4)。
+                          默认为 None，在这种情况下，摄像头的方向没有改变。
+            env_ids: 一个传感器识别器来操纵。
+                     默认为 None，这意味着所有传感器索引。
+            convention: 在这个会议上，人们养姿势。
+                        默认的"ros"。
+
+        异常：
+            RuntimeError: 如果相机prim不设置。
+                          首先需要打电话给:meth:`initialize`方法。
         """
         # resolve env_ids
         if env_ids is None:
@@ -347,6 +458,21 @@ class Camera(SensorBase):
             RuntimeError: If the camera prim is not set. Need to call :meth:`initialize` method first.
             NotImplementedError: If the stage up-axis is not "Y" or "Z".
         """
+        """设置摄像头的姿势从眼睛的位置，
+
+        参数：
+            eyes: 摄像机的眼睛位置。
+                  形状是 (N， 3)。
+            targets: 目标地点要查看。
+                     形状是 (N， 3)。
+            env_ids: 一个传感器识别器来操纵。
+                     默认为 None，这意味着所有传感器索引。
+
+        异常：
+            RuntimeError: 如果相机prim不设置。
+                          首先需要打电话给:meth:`initialize`方法。
+            NotImplementedError: 如果阶段上轴不是"Y"或"Z"。
+        """
         # resolve env_ids
         if env_ids is None:
             env_ids = self._ALL_INDICES
@@ -358,6 +484,8 @@ class Camera(SensorBase):
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -380,6 +508,8 @@ class Camera(SensorBase):
     """
     Implementation.
     """
+    """执行。
+    """
 
     def _initialize_impl(self):
         """Initializes the sensor handles and internal buffers.
@@ -390,6 +520,15 @@ class Camera(SensorBase):
         Raises:
             RuntimeError: If the number of camera prims in the view does not match the number of environments.
             RuntimeError: If replicator was not found.
+        """
+        """启动传感器句柄和内部缓冲器。
+
+        这种功能创建了处理器，并将提供的数据类型与复制器登记器进行注册，以便能够从传感器访问数据。
+        它还启动内部缓冲器来存储数据。
+
+        异常：
+            RuntimeError: 如果视图中的prims摄像头数不匹配环境数。
+            RuntimeError: 如果没有找到复制器。
         """
         carb_settings_iface = carb.settings.get_settings()
         if not carb_settings_iface.get("/isaaclab/cameras_enabled"):
@@ -535,9 +674,12 @@ class Camera(SensorBase):
     """
     Private Helpers
     """
+    """个人助手
+    """
 
     def _check_supported_data_types(self, cfg: CameraCfg):
         """Checks if the data types are supported by the ray-caster camera."""
+        """检查数据类型是否支持射线摄像机。"""
         # check if there is any intersection in unsupported types
         # reason: these use np structured data types which we can't yet convert to torch tensor
         common_elements = set(cfg.data_types) & Camera.UNSUPPORTED_TYPES
@@ -558,6 +700,7 @@ class Camera(SensorBase):
 
     def _create_buffers(self):
         """Create buffers for storing data."""
+        """创建存储数据的缓冲器。"""
         # create the data object
         # -- pose of the cameras
         self._data.pos_w = torch.zeros((self._view.count, 3), device=self._device)
@@ -580,6 +723,16 @@ class Camera(SensorBase):
         Note:
             The calibration matrix projects points in the 3D scene onto an imaginary screen of the camera.
             The coordinates of points on the image plane are in the homogeneous representation.
+        """
+        """计算摄像机内在参数的矩阵。
+
+        也被称为校准矩阵。
+        这一矩阵适用于线性深度图像。
+        我们假设是方形像素。
+
+        说明：
+            校准矩阵在3D场景中投射到相机的想象屏幕。
+            图像平面上的点坐标均表示。
         """
         # iterate over all cameras
         for i in env_ids:
@@ -613,6 +766,14 @@ class Camera(SensorBase):
         Returns:
             A tuple of the position (in meters) and quaternion (w, x, y, z).
         """
+        """通过ROS公约计算了相机在世界框架中的姿势。
+
+        这种方法使用ROS公约来解决输入姿势。
+        在本公约中，我们假设相机前轴是+Z轴，上轴是 -Y轴。
+
+        返回：
+            位置 (以米) 和四元数 (w， x， y， z) 的元组。
+        """
         # check camera prim exists
         if len(self._sensor_prims) == 0:
             raise RuntimeError("Camera prim is None. Please call 'sim.play()' first.")
@@ -631,6 +792,13 @@ class Camera(SensorBase):
         shape is not known beforehand, we create a list of buffers and concatenate them later.
 
         This is an expensive operation and should be called only once.
+        """
+        """创建缓冲器来存储注释器数据。
+
+        我们为每个注释器创建一个缓冲区，
+        由于数据的形状是未知的，所以我们创建了一个缓冲器列表，
+
+        这是一个昂贵的操作，只需要一次调用。
         """
         # add data from the annotators
         for name, annotators in self._rep_registry.items():
@@ -666,6 +834,10 @@ class Camera(SensorBase):
         """Process the annotator output.
 
         This function is called after the data has been collected from all the cameras.
+        """
+        """处理注释器输出。
+
+        在所有相机收集数据后，这个函数被调用。
         """
         # extract info and data from the output
         if isinstance(output, dict):
@@ -713,9 +885,12 @@ class Camera(SensorBase):
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         # call parent
         super()._invalidate_initialize_callback(event)
         # set all existing views to None to invalidate them

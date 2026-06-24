@@ -6,6 +6,7 @@
 """Gamepad controller for SE(3) control."""
 
 from __future__ import annotations
+"""控制器用于SE(3) 控制器。"""
 
 import weakref
 from collections.abc import Callable
@@ -51,6 +52,30 @@ class Se3Gamepad(DeviceBase):
         The official documentation for the gamepad interface: `Carb Gamepad Interface <https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/input-devices/gamepad.html>`__.
 
     """
+    """一个用于发送SE(3) 的游戏盘控制器，以德尔塔姿势和二进制命令 (开/关)。
+
+    这一类是为具有抓住器的机器人手臂提供游戏盘控制器的。
+    它使用游戏盘接口来听取游戏盘事件并将它们映射到机器人的任务空间命令。
+
+    命令包括两个部分:
+
+    * 角定位:在米和半径中 (x，y，z，roll，pitch， yaw) 的六维向量。
+    * 抓住器:是打开或关闭抓住器的二进制命令。
+
+    Stick子和按绑定:
+    ====================================================================================================
+    ====================================================================================================
+    ====================================================================================================
+    ====================================================================================================
+    ====================================================================================================
+    ==========
+
+    ..
+    查看:
+
+        游戏板接口的官方文档:`Carb Gamepad Interface <https://docs.omniverse.nvidia.com/dev-guide/latest/programme
+        r_ref/input-devices/gamepad.html>`__。
+    """
 
     def __init__(
         self,
@@ -60,6 +85,11 @@ class Se3Gamepad(DeviceBase):
 
         Args:
             cfg: Configuration object for gamepad settings.
+        """
+        """启动游戏板层。
+
+        参数：
+            cfg: 游戏盘设置的配置对象。
         """
         # turn off simulator gamepad control
         carb_settings_iface = carb.settings.get_settings()
@@ -95,11 +125,13 @@ class Se3Gamepad(DeviceBase):
 
     def __del__(self):
         """Unsubscribe from gamepad events."""
+        """退出游戏pad事件的订阅。"""
         self._input.unsubscribe_to_gamepad_events(self._gamepad, self._gamepad_sub)
         self._gamepad_sub = None
 
     def __str__(self) -> str:
         """Returns: A string containing the information of joystick."""
+        """Returns: 包含玩具信息的字符串。"""
         msg = f"Gamepad Controller for SE(3): {self.__class__.__name__}\n"
         msg += f"\tDevice name: {self._input.get_gamepad_name(self._gamepad)}\n"
         msg += "\t----------------------------------------------\n"
@@ -114,6 +146,8 @@ class Se3Gamepad(DeviceBase):
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self):
@@ -132,6 +166,16 @@ class Se3Gamepad(DeviceBase):
             func: The function to call when key is pressed. The callback function should not
                 take any arguments.
         """
+        """添加额外的功能来绑定游戏板。
+
+        现有游戏pad键的列表在`carb documentation
+        <https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/input-devices/gamepad.html>`__。
+
+        参数：
+            key: 这是一个游戏板按。
+            func: 在键时调用的函数。
+                  召回函数不应进行任何争论。
+        """
         self._additional_callbacks[key] = func
 
     def advance(self) -> torch.Tensor:
@@ -141,6 +185,13 @@ class Se3Gamepad(DeviceBase):
             torch.Tensor: A 7-element tensor containing:
                 - delta pose: First 6 elements as [x, y, z, rx, ry, rz] in meters and radians.
                 - gripper command: Last element as a binary value (+1.0 for open, -1.0 for close).
+        """
+        """提供游戏pad事件状态的结果。
+
+        返回：
+            torch.Tensor: 一个含有:
+                - 德尔塔姿势:第6个元素以米和半径为 [x，y，z，rx， ry，rz]。
+                - 抓住器命令:最后一个元素作为二进制值 (+1.0为开放，-1.0为关闭)。
         """
         # -- resolve position command
         delta_pos = self._resolve_command_buffer(self._delta_pose_raw[:, :3])
@@ -159,12 +210,19 @@ class Se3Gamepad(DeviceBase):
     """
     Internal helpers.
     """
+    """内部助理。
+    """
 
     def _on_gamepad_event(self, event, *args, **kwargs):
         """Subscriber callback to when kit is updated.
 
         Reference:
             https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/input-devices/gamepad.html
+        """
+        """订阅者将在更新套件时回调。
+
+        Reference:
+            https://docs.omniverse.nvidia.com/dev-guide/最新programmer_ref/输入设备/gamepad.html
         """
         # check if the event is a button press
         cur_val = event.value
@@ -198,6 +256,7 @@ class Se3Gamepad(DeviceBase):
 
     def _create_key_bindings(self):
         """Creates default key binding."""
+        """创建默认键绑定。"""
         # map gamepad input to the element in self._delta_pose_raw
         #   the first index is the direction (0: positive, 1: negative)
         #   the second index is the axis (0: x, 1: y, 2: z, 3: roll, 4: pitch, 5: yaw)
@@ -244,6 +303,17 @@ class Se3Gamepad(DeviceBase):
         Returns:
             Resolved command. Shape is (3,)
         """
+        """解决命令缓冲器。
+
+        参数：
+            raw_command: 游戏板的原始命令。
+                         形状是 (2， 3) 这是一个2D阵列，因为游戏paddpad/stick返回两个值，相应于正面和负面方向。
+                         第一个索引是指向 (0:正， 1:负) 第二个索引是指令的值 (绝对)。
+
+        返回：
+            解决了命令。
+            形状是 (3，)
+        """
         # compare the positive and negative value decide the sign of the value
         #   if the positive value is larger, the sign is positive (i.e. False, 0)
         #   if the negative value is larger, the sign is positive (i.e. True, 1)
@@ -261,6 +331,7 @@ class Se3Gamepad(DeviceBase):
 @dataclass
 class Se3GamepadCfg(DeviceCfg):
     """Configuration for SE3 gamepad devices."""
+    """对于SE3游戏盘设备的配置。"""
 
     gripper_term: bool = True
     dead_zone: float = 0.01  # For gamepad devices

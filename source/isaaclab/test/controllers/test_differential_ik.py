@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -38,6 +40,7 @@ from isaaclab_assets import FRANKA_PANDA_HIGH_PD_CFG, UR10_CFG  # isort:skip
 @pytest.fixture
 def sim():
     """Create a simulation context for testing."""
+    """为测试创建仿真环境。"""
     # Wait for spawning
     stage = sim_utils.create_new_stage()
     # Constants
@@ -84,6 +87,7 @@ def sim():
 
 def test_franka_ik_pose_abs(sim):
     """Test IK controller for Franka arm with Franka hand."""
+    """试用弗兰卡手来测试弗兰卡手臂的IK控制器。"""
     sim_context, num_envs, ee_pose_b_des_set = sim
 
     # Create robot instance
@@ -102,6 +106,7 @@ def test_franka_ik_pose_abs(sim):
 
 def test_ur10_ik_pose_abs(sim):
     """Test IK controller for UR10 arm."""
+    """测试IK控制器UR10臂。"""
     sim_context, num_envs, ee_pose_b_des_set = sim
 
     # Create robot instance
@@ -136,6 +141,17 @@ def _run_ik_controller(
         sim (sim_utils.SimulationContext): The simulation context.
         num_envs (int): The number of environments.
         ee_pose_b_des_set (torch.Tensor): The set of desired end-effector poses.
+    """
+    """运行IK控制器，按照给出的参数。
+
+    参数：
+        robot (Articulation): 控制机器人。
+        diff_ik_controller (DifferentialIKController): 区别IK控制器。
+        ee_frame_name (str): 末端执行器框架的名称。
+        arm_joint_names (list[str]): 它们的名字。
+        sim (sim_utils.SimulationContext): 仿真环境。
+        num_envs (int): 环境的数量。
+        ee_pose_b_des_set (torch.Tensor): 想要的末端执行器姿势。
     """
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()

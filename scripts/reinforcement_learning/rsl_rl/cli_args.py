@@ -19,6 +19,11 @@ def add_rsl_rl_args(parser: argparse.ArgumentParser):
     Args:
         parser: The parser to add the arguments to.
     """
+    """在解析器中添加RSL-RL参数。
+
+    参数：
+        parser: 分析器将参数添加到。
+    """
     # create a new argument group
     arg_group = parser.add_argument_group("rsl_rl", description="Arguments for RSL-RL agent.")
     # -- experiment arguments
@@ -49,6 +54,15 @@ def parse_rsl_rl_cfg(task_name: str, args_cli: argparse.Namespace) -> RslRlBaseR
     Returns:
         The parsed configuration for RSL-RL agent based on inputs.
     """
+    """基于输入的RSL-RL代理解析配置。
+
+    参数：
+        task_name: 环境的名称。
+        args_cli: 命令行争论。
+
+    返回：
+        基于输入的RSL-RL代理的解析配置。
+    """
     from isaaclab_tasks.utils.parse_cfg import load_cfg_from_registry
 
     # load the default configuration
@@ -66,6 +80,15 @@ def update_rsl_rl_cfg(agent_cfg: RslRlBaseRunnerCfg, args_cli: argparse.Namespac
 
     Returns:
         The updated configuration for RSL-RL agent based on inputs.
+    """
+    """根据输入更新RSL-RL代理配置。
+
+    参数：
+        agent_cfg: RSL-RL代理的配置。
+        args_cli: 命令行争论。
+
+    返回：
+        基于输入的RSL-RL代理的更新配置。
     """
     # override the default configuration with CLI arguments
     if hasattr(args_cli, "seed") and args_cli.seed is not None:

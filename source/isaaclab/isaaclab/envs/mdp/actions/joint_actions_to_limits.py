@@ -41,15 +41,32 @@ class JointPositionToLimitsAction(ActionTerm):
 
     The processed actions are then sent as position commands to the articulation's joints.
     """
+    """关节位置动作项，将输入动作扩展到关节极限，并应用于关节。
+
+    这类类似于:class:`JointPositionAction`类。
+    然而，它还将输入操作重新扩展到执行器关节位置限制。
+
+    在处理动作时，它执行以下操作:
+
+    1. 基于:attr:`actions_cfg.JointPositionToLimitsActionCfg.scale`的原始动作应进行扩展。
+    2. 如果设置:attr:`actions_cfg.JointPositionToLimitsActionCfg.rescale_to_limits`为True，将扩展的操作裁剪到范围 [-1，
+       1]并重新扩展到联合限度。
+
+    然后将处理的操作作为位置命令发送到关节。
+    """
 
     cfg: actions_cfg.JointPositionToLimitsActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
     _asset: Articulation
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
     _scale: torch.Tensor | float
     """The scaling factor applied to the input action."""
+    """对输入操作所应用的扩展因素。"""
     _clip: torch.Tensor
     """The clip applied to the input action."""
+    """在输入操作中应用的裁剪。"""
 
     def __init__(self, cfg: actions_cfg.JointPositionToLimitsActionCfg, env: ManagerBasedEnv):
         # initialize the action term
@@ -103,6 +120,8 @@ class JointPositionToLimitsAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
@@ -130,6 +149,18 @@ class JointPositionToLimitsAction(ActionTerm):
         Returns:
             The IO descriptor of the action term.
         """
+        """动作项的IO描述符。
+
+        该描述符用于描述联合限制作用位置的作用项。
+        它将以下信息添加到基础描述符中:
+        - joint_names关节的名称。
+        - 规模:动作项的规模。
+        - 抵消:动作项的抵消。
+        - 动作项的裁剪。
+
+        返回：
+            动作项的IO描述符。
+        """
         super().IO_descriptor
         self._IO_descriptor.shape = (self.action_dim,)
         self._IO_descriptor.dtype = str(self.raw_actions.dtype)
@@ -149,6 +180,8 @@ class JointPositionToLimitsAction(ActionTerm):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def process_actions(self, actions: torch.Tensor):
@@ -204,9 +237,30 @@ class EMAJointPositionToLimitsAction(JointPositionToLimitsAction):
 
     On reset, the previous action is initialized to the current joint positions of the articulation's joints.
     """
+    """联合动作项，适用于指数移动平均值 (EMA) 作为关节位置指令处理的动作。
+
+    指数移动平均值 (EMA) 是一种移动平均值，给最近数据点的重量增加。
+    这种操作项将处理的操作作为移动平均位置操作命令。
+    移动平均值为:
+
+    .. math::
+
+        \text{applied action} =
+            \alpha \times \text{processed actions} +
+            (1 - \alpha) \times \text{previous applied action}
+
+    where :数学:`\alpha`是移动平均值的重量:`\text{processed actions}`是
+    通过处理的操作，和:math:`\text{previous action}`是之前的操作，
+
+    在小的情况下，在重量为1.0，操作项表现得完全像
+    the :类:`JointPositionToLimitsAction`类。
+
+    在重置时，先前的动作开始到关节关节的当前关节位置。
+    """
 
     cfg: actions_cfg.EMAJointPositionToLimitsActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     def __init__(self, cfg: actions_cfg.EMAJointPositionToLimitsActionCfg, env: ManagerBasedEnv):
         # initialize the action term
@@ -253,6 +307,19 @@ class EMAJointPositionToLimitsAction(JointPositionToLimitsAction):
 
         Returns:
             The IO descriptor of the action term.
+        """
+        """动作项的IO描述符。
+
+        这种描述符用于描述EMA关节位置限制作用的作用项。
+        它将以下信息添加到基础描述符中:
+        - joint_names关节的名称。
+        - 规模:动作项的规模。
+        - 抵消:动作项的抵消。
+        - 动作项的裁剪。
+        - 移动平均重量。
+
+        返回：
+            动作项的IO描述符。
         """
         super().IO_descriptor
         if isinstance(self._alpha, float):

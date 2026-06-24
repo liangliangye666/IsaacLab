@@ -23,6 +23,8 @@ from isaaclab.utils.assets import retrieve_file_path
 """
 Util Functions
 """
+"""使用功能
+"""
 
 
 def parse_cuda_version(version_string):
@@ -39,6 +41,17 @@ def parse_cuda_version(version_string):
        Example:
            "12.8.9" -> (12, 8, 9)
            "11.2" -> (11, 2, 0)
+    """
+    """解析CUDA版本字符串成可比较的元组 (大，小，补丁)。
+
+       参数：
+           version_string: 版本字符串如"12.8.9"或"11.2"
+
+       返回：
+           作为整数 (大，小，补丁) 的双倍，如果补丁默认为 0 如果不存在。
+
+       示例：
+           "12.8.9" -> (12, 8, 9) "11.2" -> (11, 2, 0)
     """
     parts = version_string.split(".")
     major = int(parts[0])
@@ -83,10 +96,13 @@ def get_gripper_open_width(obj_filepath):
 """
 Imitation Reward
 """
+"""模仿的回报
+"""
 
 
 def get_closest_state_idx(ref_traj, curr_ee_pos):
     """Find the index of the closest state in reference trajectory."""
+    """找出参考轨迹中最接近状态的索引。"""
 
     # ref_traj.shape = (num_trajs, traj_len, 3)
     traj_len = ref_traj.shape[1]
@@ -132,6 +148,7 @@ def get_reward_mask(ref_traj, curr_ee_pos, tolerance):
 
 def get_imitation_reward_from_dtw(ref_traj, curr_ee_pos, prev_ee_traj, criterion, device):
     """Get imitation reward based on dynamic time warping."""
+    """根据动态时间扭曲，获得模仿奖励。"""
 
     soft_dtw = torch.zeros((curr_ee_pos.shape[0]), device=device)
     prev_ee_pos = prev_ee_traj[:, 0, :]  # select the first ee pos in robot traj
@@ -166,10 +183,13 @@ def get_imitation_reward_from_dtw(ref_traj, curr_ee_pos, prev_ee_traj, criterion
 """
 Sampling-Based Curriculum (SBC)
 """
+"""基于样本的课程 (SBC)
+"""
 
 
 def get_new_max_disp(curr_success, cfg_task, curriculum_height_bound, curriculum_height_step, curr_max_disp):
     """Update max downward displacement of plug at beginning of episode, based on success rate."""
+    """根据成功率，更新回合开始时最大的插座下移。"""
 
     if curr_success > cfg_task.curriculum_success_thresh:
         # If success rate is above threshold, increase min downward displacement until max value
@@ -195,10 +215,13 @@ def get_new_max_disp(curr_success, cfg_task, curriculum_height_bound, curriculum
 """
 Bonus and Success Checking
 """
+"""奖金和成功检查
+"""
 
 
 def check_plug_close_to_socket(keypoints_plug, keypoints_socket, dist_threshold, progress_buf):
     """Check if plug is close to socket."""
+    """检查插座是否接近插座。"""
 
     # Compute keypoint distance between plug and socket
     keypoint_dist = torch.norm(keypoints_socket - keypoints_plug, p=2, dim=-1)
@@ -217,6 +240,7 @@ def check_plug_inserted_in_socket(
     plug_pos, socket_pos, disassembly_dist, keypoints_plug, keypoints_socket, close_error_thresh, progress_buf
 ):
     """Check if plug is inserted in socket."""
+    """检查插头是否插入插头。"""
 
     # Check if plug is within threshold distance of assembled state
     is_plug_below_insertion_height = plug_pos[:, 2] < socket_pos[:, 2] + disassembly_dist
@@ -242,6 +266,7 @@ def check_plug_inserted_in_socket(
 
 def get_curriculum_reward_scale(curr_max_disp, curriculum_height_bound):
     """Compute reward scale for SBC."""
+    """为SBC计算奖励规模。"""
 
     # Compute difference between max downward displacement at beginning of training (easiest condition)
     # and current max downward displacement (based on current curriculum stage)
@@ -260,6 +285,8 @@ def get_curriculum_reward_scale(curr_max_disp, curriculum_height_bound):
 
 """
 Warp Kernels
+"""
+"""变形核
 """
 
 

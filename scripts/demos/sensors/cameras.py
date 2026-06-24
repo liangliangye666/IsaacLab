@@ -15,8 +15,19 @@ This script demonstrates the different camera sensors that can be attached to a 
     ./isaaclab.sh -p scripts/demos/sensors/cameras.py --headless --enable_cameras
 
 """
+"""这本脚本展示了可以将不同的摄像头传感器连接到机器人。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/demos/sensors/cameras.py --enable_cameras
+
+    # Usage in headless mode
+    ./isaaclab.sh -p scripts/demos/sensors/cameras.py --headless --enable_cameras
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -36,6 +47,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 
@@ -61,6 +73,7 @@ from isaaclab_assets.robots.anymal import ANYMAL_C_CFG  # isort: skip
 @configclass
 class SensorsSceneCfg(InteractiveSceneCfg):
     """Design the scene with sensors on the robot."""
+    """用机器人的传感器设计场景。"""
 
     # ground plane
     ground = TerrainImporterCfg(
@@ -134,6 +147,22 @@ def save_images_grid(
         title: Title of the grid. Defaults to None, in which case no title is shown.
         filename: Path to save the figure. Defaults to None, in which case the figure is not saved.
     """
+    """保存图像在选项字幕和标题的格格中。
+
+    参数：
+        images: 图片的列表。
+                每个图像的形状应是 (H，W，C)。
+        cmap: 用于绘图的颜色地图。
+              在 None 中，默认颜色地图使用。
+        nrows: 在网格中排列数。
+               默认的1。
+        subtitles: 每个图片的字幕列表。
+                   在None中默认设置，在这种情况下没有字幕显示。
+        title: 电网的标题。
+               None的默认值，此时没有显示标题。
+        filename: 拯救这个人物的路径。
+                  默认对 None，在这种情况下，数字不会保存。
+    """
     # show images in a grid
     n_images = len(images)
     ncol = int(np.ceil(n_images / nrow))
@@ -170,6 +199,7 @@ def save_images_grid(
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     """Run the simulator."""
+    """运行仿真器。"""
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()
     sim_time = 0.0
@@ -279,6 +309,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.005, device=args_cli.device, use_fabric=not args_cli.disable_fabric)
     sim = sim_utils.SimulationContext(sim_cfg)

@@ -29,9 +29,15 @@ class PreTrainedPolicyAction(ActionTerm):
     The raw actions correspond to the commands for the pre-trained policy.
 
     """
+    """预先培训的策略动作项。
+
+    这种动作项推断了预先训练的策略，并对机器人应用相应的低级动作。
+    原始动作符合预训练策略的指令。
+    """
 
     cfg: PreTrainedPolicyActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     def __init__(self, cfg: PreTrainedPolicyActionCfg, env: ManagerBasedRLEnv) -> None:
         # initialize the action term
@@ -71,6 +77,8 @@ class PreTrainedPolicyAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
@@ -87,6 +95,8 @@ class PreTrainedPolicyAction(ActionTerm):
     """
     Operations.
     """
+    """操作。
+    """
 
     def process_actions(self, actions: torch.Tensor):
         self._raw_actions[:] = actions
@@ -102,6 +112,8 @@ class PreTrainedPolicyAction(ActionTerm):
 
     """
     Debug visualization.
+    """
+    """调整可视化。
     """
 
     def _set_debug_vis_impl(self, debug_vis: bool):
@@ -147,9 +159,12 @@ class PreTrainedPolicyAction(ActionTerm):
     """
     Internal helpers.
     """
+    """内部助理。
+    """
 
     def _resolve_xy_velocity_to_arrow(self, xy_velocity: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Converts the XY base velocity command to arrow direction rotation."""
+        """将XY基速度命令转换为箭头方向旋转。"""
         # obtain default scale of the marker
         default_scale = self.base_vel_goal_visualizer.cfg.markers["arrow"].scale
         # arrow-scale
@@ -172,18 +187,31 @@ class PreTrainedPolicyActionCfg(ActionTermCfg):
 
     See :class:`PreTrainedPolicyAction` for more details.
     """
+    """预先培训的策略动作项的配置。
+
+    See :分类:`PreTrainedPolicyAction` 详细信息。
+    """
 
     class_type: type[ActionTerm] = PreTrainedPolicyAction
     """ Class of the action term."""
+    """动作项的类。"""
     asset_name: str = MISSING
     """Name of the asset in the environment for which the commands are generated."""
+    """在环境中产生的指令的资产名称。"""
     policy_path: str = MISSING
     """Path to the low level policy (.pt files)."""
+    """进入低级策略的路径 (.pt文件)。"""
     low_level_decimation: int = 4
     """Decimation factor for the low level action term."""
+    """低水平动作项的化因素。"""
     low_level_actions: ActionTermCfg = MISSING
     """Low level action configuration."""
+    """低级动作配置。"""
     low_level_observations: ObservationGroupCfg = MISSING
     """Low level observation configuration."""
+    """低级观测配置。"""
     debug_vis: bool = True
     """Whether to visualize debug information. Defaults to False."""
+    """是否可视化调试信息。
+    默认为 False。
+    """

@@ -10,8 +10,15 @@ This script demonstrates how to use the contact sensor sensor in Isaac Lab.
 
     ./isaaclab.sh -p source/isaaclab/test/sensors/test_contact_sensor.py --num_robots 2
 """
+"""这本脚本展示了如何使用艾萨克实验室的接触传感器传感器。
+
+.. code-block:: bash
+
+    ./isaaclab.sh -p source/isaaclab/test/sensors/test_contact_sensor.py --num_robots 2
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -33,6 +40,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -53,10 +61,13 @@ from isaaclab_assets.robots.anymal import ANYMAL_C_CFG  # isort:skip
 """
 Helpers
 """
+"""助手
+"""
 
 
 def design_scene():
     """Add prims to the scene."""
+    """添加prims到场景。"""
     # Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
     cfg.func("/World/defaultGroundPlane", cfg)
@@ -68,10 +79,13 @@ def design_scene():
 """
 Main
 """
+"""主要
+"""
 
 
 def main():
     """Spawns the ANYmal robot and clones it using Isaac Sim Cloner API."""
+    """发育的ANYmal机器人使用Isaac Sim Cloner进行克隆API。"""
 
     # Load kit helper
     sim = SimulationContext(SimulationCfg(dt=0.005))

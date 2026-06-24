@@ -13,6 +13,13 @@ Optional arguments:
     --num_prompts            Number of prompts to generate (default: 1).
     --output_path            Path to the output file to write generated prompts (default: prompts.txt).
 """
+"""脚本是为了构建提示，控制宇宙模型的生成。
+
+需要的参数:--templates_path向包含提示模板的文件的路径。
+
+选择性参数: --num_prompts 需要生成的提示数 (默认: 1)。
+--output_path 输出文件的路径用于写生成提示 (默认:prompts.txt)。
+"""
 
 import argparse
 import json
@@ -21,6 +28,7 @@ import random
 
 def parse_args():
     """Parse command line arguments."""
+    """分析命令行参数。"""
     parser = argparse.ArgumentParser(description="Generate prompts for controlling Cosmos model's generation.")
     parser.add_argument(
         "--templates_path", type=str, required=True, help="Path to the JSON file containing prompt templates"
@@ -45,6 +53,16 @@ def generate_prompt(templates_path: str):
 
     Returns:
         str: Generated prompt string that specifies visual aspects to modify in the video.
+    """
+    """生成一个随机提示来控制宇宙模型的视觉增强。
+
+    提示描述了场景和所需的视觉变化，该模型用于引导增强过程，同时保留核心机器人操作。
+
+    参数：
+        templates_path (str): 包含提示模板的JSON文件的路径。
+
+    返回：
+        str: 在视频中修改的视觉方面。
     """
     try:
         with open(templates_path) as f:

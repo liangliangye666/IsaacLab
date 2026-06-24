@@ -30,12 +30,19 @@ class PinkInverseKinematicsAction(ActionTerm):
     This action term processes the action tensor and sets these setpoints in the pink IK framework.
     The action tensor is ordered in the order of the tasks defined in PinkIKControllerCfg.
     """
+    """粉红色反向动力学动作项。
+
+    这种动作项处理动作张量，并在粉红色IK框架中设置这些设置点。
+    动作张量按PinkIKControllerCfg中定义的任务顺序排列。
+    """
 
     cfg: pink_actions_cfg.PinkInverseKinematicsActionCfg
     """Configuration for the Pink Inverse Kinematics action term."""
+    """粉红色逆动力学动作项的配置。"""
 
     _asset: Articulation
     """The articulation asset to which the action term is applied."""
+    """动作项适用于的关节资产。"""
 
     def __init__(self, cfg: pink_actions_cfg.PinkInverseKinematicsActionCfg, env: ManagerBasedEnv):
         """Initialize the Pink Inverse Kinematics action term.
@@ -43,6 +50,12 @@ class PinkInverseKinematicsAction(ActionTerm):
         Args:
             cfg: The configuration for this action term.
             env: The environment in which the action term will be applied.
+        """
+        """开始使用"粉红色反动动力学"动作项。
+
+        参数：
+            cfg: 这个操作项的配置。
+            env: 动作项将应用于的环境。
         """
         super().__init__(cfg, env)
 
@@ -67,6 +80,7 @@ class PinkInverseKinematicsAction(ActionTerm):
 
     def _initialize_joint_info(self) -> None:
         """Initialize joint IDs and names based on configuration."""
+        """根据配置初始化联合IDs和名称。"""
         # Resolve pink controlled joints
         self._isaaclab_controlled_joint_ids, self._isaaclab_controlled_joint_names = self._asset.find_joints(
             self.cfg.pink_controlled_joint_names
@@ -84,6 +98,7 @@ class PinkInverseKinematicsAction(ActionTerm):
 
     def _initialize_ik_controllers(self) -> None:
         """Initialize Pink IK controllers for all environments."""
+        """启动所有环境的粉色IK控制器。"""
         assert self._env.num_envs > 0, "Number of environments specified are less than 1."
 
         self._ik_controllers = []
@@ -99,6 +114,7 @@ class PinkInverseKinematicsAction(ActionTerm):
 
     def _initialize_helper_tensors(self) -> None:
         """Pre-allocate tensors and cache values for performance optimization."""
+        """为优化性能预先分配子和缓存值。"""
         # Cache frequently used tensor versions of joint IDs to avoid repeated creation
         self._controlled_joint_ids_tensor = torch.tensor(self._controlled_joint_ids, device=self.device)
 
@@ -122,26 +138,31 @@ class PinkInverseKinematicsAction(ActionTerm):
     @property
     def hand_joint_dim(self) -> int:
         """Dimension for hand joint positions."""
+        """适用于手关键位置的尺寸。"""
         return self.cfg.controller.num_hand_joints
 
     @property
     def position_dim(self) -> int:
         """Dimension for position (x, y, z)."""
+        """位置的尺寸 (x，y，z)。"""
         return 3
 
     @property
     def orientation_dim(self) -> int:
         """Dimension for orientation (w, x, y, z)."""
+        """导向尺寸 (w，x，y，z)。"""
         return 4
 
     @property
     def pose_dim(self) -> int:
         """Total pose dimension (position + orientation)."""
+        """总姿势尺寸 (位置+方向)。"""
         return self.position_dim + self.orientation_dim
 
     @property
     def action_dim(self) -> int:
         """Dimension of the action space (based on number of tasks and pose dimension)."""
+        """动作空间的尺寸 (基于任务数量和姿势尺寸)。"""
         # Count only FrameTask instances in variable_input_tasks
         frame_tasks_count = sum(
             1 for task in self._ik_controllers[0].cfg.variable_input_tasks if isinstance(task, FrameTask)
@@ -151,11 +172,13 @@ class PinkInverseKinematicsAction(ActionTerm):
     @property
     def raw_actions(self) -> torch.Tensor:
         """Get the raw actions tensor."""
+        """得到原始的动作张量。"""
         return self._raw_actions
 
     @property
     def processed_actions(self) -> torch.Tensor:
         """Get the processed actions tensor."""
+        """得到处理的动作张量。"""
         return self._processed_actions
 
     @property
@@ -173,6 +196,20 @@ class PinkInverseKinematicsAction(ActionTerm):
 
         Returns:
             The IO descriptor of the action term.
+        """
+        """动作项的IO描述符。
+
+        这种描述符用于描述粉红色逆动力动力动力动力的作用项。
+        它将以下信息添加到基础描述符中:
+        - 规模:动作项的规模。
+        - 抵消:动作项的抵消。
+        - 动作项的裁剪。
+        - pink_controller_joint_names:粉红色控制器关节的名称。
+        - hand_joint_names:手关节的名称。
+        - controller_cfg:粉红色控制器的配置。
+
+        返回：
+            动作项的IO描述符。
         """
         super().IO_descriptor
         self._IO_descriptor.shape = (self.action_dim,)
@@ -192,6 +229,11 @@ class PinkInverseKinematicsAction(ActionTerm):
 
         Args:
             actions: The input actions tensor.
+        """
+        """处理输入动作，并为每个任务设定目标。
+
+        参数：
+            actions: 输入动作张量。
         """
         # Store raw actions
         self._raw_actions[:] = actions
@@ -214,6 +256,11 @@ class PinkInverseKinematicsAction(ActionTerm):
 
         Returns:
             Base link frame transformation matrix.
+        """
+        """获取基链框架转换矩阵。
+
+        返回：
+            基链框架转换矩阵
         """
         # Get base link frame pose in world origin using cached index
         articulation_data = self._env.scene[self.cfg.controller.articulation_name].data
@@ -243,6 +290,14 @@ class PinkInverseKinematicsAction(ActionTerm):
         Returns:
             Stacked controlled frame poses tensor.
         """
+        """从动作张量中提取控制框架姿势。
+
+        参数：
+            actions: 动作张量。
+
+        返回：
+            堆叠的控制框架呈现度。
+        """
         # Use pre-allocated tensor instead of list operations
         for task_index in range(self._num_frame_tasks):
             # Extract position and orientation for this task
@@ -270,6 +325,14 @@ class PinkInverseKinematicsAction(ActionTerm):
         Returns:
             Tuple of (positions, rotation_matrices) in base link frame.
         """
+        """从世界框架转换为基链框架。
+
+        参数：
+            poses: 在世界框架中姿势。
+
+        返回：
+            在基链框中 (位置，rotation_matrices) 的双倍。
+        """
         # Transform poses to base link frame
         base_link_inv = math_utils.pose_inv(self.base_link_frame_in_world_rf)
         transformed_poses = math_utils.pose_in_A_to_pose_in_B(poses, base_link_inv)
@@ -284,6 +347,11 @@ class PinkInverseKinematicsAction(ActionTerm):
 
         Args:
             transformed_poses: Tuple of (positions, rotation_matrices) in base link frame.
+        """
+        """在所有环境中设定所有任务的目标。
+
+        参数：
+            transformed_poses: 在基链框中 (位置，rotation_matrices) 的双倍。
         """
         positions, rotation_matrices = transformed_poses
 
@@ -306,6 +374,7 @@ class PinkInverseKinematicsAction(ActionTerm):
 
     def apply_actions(self) -> None:
         """Apply the computed joint positions based on the inverse kinematics solution."""
+        """根据反动动力学解决方案应用计算的关节位置。"""
         # Compute IK solutions for all environments
         ik_joint_positions = self._compute_ik_solutions()
 
@@ -322,6 +391,7 @@ class PinkInverseKinematicsAction(ActionTerm):
 
     def _apply_gravity_compensation(self) -> None:
         """Apply gravity compensation to arm joints if not disabled in props."""
+        """应对手臂关节的重力补偿，如果没有在道具中残疾。"""
         if not self._asset.cfg.spawn.rigid_props.disable_gravity:
             # Get gravity compensation forces using cached tensor
             if self._asset.is_fixed_base:
@@ -343,6 +413,11 @@ class PinkInverseKinematicsAction(ActionTerm):
         Returns:
             IK joint positions tensor for all environments.
         """
+        """为所有环境计算IK解决方案。
+
+        返回：
+            对于所有环境来说，IK联合定位光器。
+        """
         ik_solutions = []
 
         for env_index, ik_controller in enumerate(self._ik_controllers):
@@ -362,5 +437,11 @@ class PinkInverseKinematicsAction(ActionTerm):
 
         Args:
             env_ids: A list of environment IDs to reset. If None, all environments are reset.
+        """
+        """为指定环境重置操作时间。
+
+        参数：
+            env_ids: 设置环境 IDs的列表。
+                     如果None，所有环境都会重置。
         """
         self._raw_actions[env_ids] = torch.zeros(self.action_dim, device=self.device)

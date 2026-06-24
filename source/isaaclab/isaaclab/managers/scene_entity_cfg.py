@@ -6,6 +6,7 @@
 """Configuration terms for different managers."""
 
 from __future__ import annotations
+"""对于不同管理器来说，配置项。"""
 
 from dataclasses import MISSING
 from typing import TYPE_CHECKING
@@ -24,11 +25,21 @@ class SceneEntityCfg:
     This class is used to specify the name of the scene entity that is queried from the
     :class:`InteractiveScene` and passed to the manager's term function.
     """
+    """管理器使用的场景实体配置
+
+    这个类用于指定从:class:`InteractiveScene`中查询到管理器的项函数的场景实体名称。
+    """
 
     name: str = MISSING
     """The name of the scene entity.
 
     This is the name defined in the scene configuration file. See the :class:`InteractiveSceneCfg`
+    class for more details.
+    """
+    """场景实体的名称。
+
+    这就是场景配置文件中定义的名称。
+    看看:class:`InteractiveSceneCfg`
     class for more details.
     """
 
@@ -40,6 +51,13 @@ class SceneEntityCfg:
     These are converted to joint indices on initialization of the manager and passed to the term
     function as a list of joint indices under :attr:`joint_ids`.
     """
+    """场景实体的关节名称。
+    默认为 None。
+
+    这些名字可以是共同名字或与共同名字相匹配的普通表达式。
+
+    管理器初始化后将这些转换为联合索引，并将其转移到:attr:`joint_ids`下的联合索引列表。
+    """
 
     joint_ids: list[int] | slice = slice(None)
     """The indices of the joints from the asset required by the term. Defaults to slice(None), which means
@@ -47,6 +65,12 @@ class SceneEntityCfg:
 
     If :attr:`joint_names` is specified, this is filled in automatically on initialization of the
     manager.
+    """
+    """按期所要求的资产的结合索引。
+    缺陷切割 ((None)，即资产中的所有关节 (如果存在)。
+
+    If :吸引:`joint_names`在启动时，该数据自动填写。
+    管理器。
     """
 
     fixed_tendon_names: str | list[str] | None = None
@@ -57,6 +81,13 @@ class SceneEntityCfg:
     These are converted to fixed tendon indices on initialization of the manager and passed to the term
     function as a list of fixed tendon indices under :attr:`fixed_tendon_ids`.
     """
+    """场景实体的固定节点名称。
+    默认为 None。
+
+    这些名字可以是共同名字或与共同名字相匹配的普通表达式。
+
+    在管理器初始化时，这些将转换为固定索引，并将其转移到项函数，作为:attr:`fixed_tendon_ids`下的固定索引列表。
+    """
 
     fixed_tendon_ids: list[int] | slice = slice(None)
     """The indices of the fixed tendons from the asset required by the term. Defaults to slice(None), which means
@@ -64,6 +95,12 @@ class SceneEntityCfg:
 
     If :attr:`fixed_tendon_names` is specified, this is filled in automatically on initialization of the
     manager.
+    """
+    """按该项所要求的资产的固定的索引。
+    缺陷切割 ((None)，即所有固定的 asset在资产中 (如果存在)。
+
+    If :吸引:`fixed_tendon_names`在启动时，该数据自动填写。
+    管理器。
     """
 
     body_names: str | list[str] | None = None
@@ -74,6 +111,13 @@ class SceneEntityCfg:
     These are converted to body indices on initialization of the manager and passed to the term
     function as a list of body indices under :attr:`body_ids`.
     """
+    """在该项所要求的资产中所述机构名称。
+    默认为 None。
+
+    这些名字可以是身体名字或与身体名字相匹配的普通表达式。
+
+    管理器初始化后将这些转换为体索引，并将其转换为:attr:`body_ids`下的体索引列表。
+    """
 
     body_ids: list[int] | slice = slice(None)
     """The indices of the bodies from the asset required by the term. Defaults to slice(None), which means
@@ -81,6 +125,12 @@ class SceneEntityCfg:
 
     If :attr:`body_names` is specified, this is filled in automatically on initialization of the
     manager.
+    """
+    """根据该项所要求的资产的机构索引。
+    缺陷切割 ((None)，这意味着资产中的所有物体。
+
+    If :吸引:`body_names`在启动时，该数据自动填写。
+    管理器。
     """
 
     object_collection_names: str | list[str] | None = None
@@ -91,12 +141,24 @@ class SceneEntityCfg:
     These are converted to object indices on initialization of the manager and passed to the term
     function as a list of object indices under :attr:`object_collection_ids`.
     """
+    """按这个项所要求的硬体集合中的物体名称。
+    默认为 None。
+
+    名称可以是名称或是与集合中的物体名称相匹配的正则表达式。
+
+    在管理器初始化时，这些将转换为对象索引，并将其传递到:attr:`object_collection_ids`下的项函数，作为对象索引列表。
+    """
 
     object_collection_ids: list[int] | slice = slice(None)
     """The indices of the objects from the rigid object collection required by the term. Defaults to slice(None),
     which means all the objects in the collection.
 
     If :attr:`object_collection_names` is specified, this is filled in automatically on initialization of the manager.
+    """
+    """该项所要求的来自硬体集合的物体索引。
+    默认的切片 ((None)，这意味着集合中的所有对象。
+
+    If :attr:`object_collection_names`是指定的，在管理器初始化时自动填写。
     """
 
     preserve_order: bool = False
@@ -113,6 +175,17 @@ class SceneEntityCfg:
         This attribute is only used when :attr:`joint_names`, :attr:`body_names`, or :attr:`object_collection_names`
         are specified.
 
+    """
+    """保存与指定关节，体体或物体集合名称的索引一致的索引。
+    默认为 False。
+
+    如果False，索引的排序是以上升顺序排序的 (i.e.是对象集合中的实体的关节，体或对象的排序)。
+    其他情况下，索引按指定关节，体或物体集合名称顺序保存。
+
+    详细见:meth:`isaaclab.utils.string.resolve_matching_names`函数。
+
+    .. 说明::
+        这种属性仅用于指定:attr:`joint_names`，:attr:`body_names`或:attr:`object_collection_names`时。
     """
 
     def resolve(self, scene: InteractiveScene):
@@ -132,6 +205,21 @@ class SceneEntityCfg:
             ValueError: If both ``body_names`` and ``body_ids`` are specified and are not consistent.
             ValueError: If both ``object_collection_names`` and ``object_collection_ids`` are specified and
                 are not consistent.
+        """
+        """解决场景实体，并将关节和体名转换为索引。
+
+        这项函数从:class:`InteractiveScene`中检查场景实体，并解决关节和身体的索引和名称。
+        这是一个昂贵的操作，因为它解决了正则表达式，
+
+        参数：
+            scene: 交互场景实例。
+
+        异常：
+            ValueError: 如果未找到场景实体。
+            ValueError: 如果``joint_names``和``joint_ids``都指定，并且不一致。
+            ValueError: 如果``fixed_tendon_names``和``fixed_tendon_ids``都指定，并且不一致。
+            ValueError: 如果``body_names``和``body_ids``都指定，并且不一致。
+            ValueError: 如果``object_collection_names``和``object_collection_ids``都指定，并且不一致。
         """
         # check if the entity is valid
         if self.name not in scene.keys():

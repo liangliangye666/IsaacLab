@@ -11,8 +11,16 @@ This script shows how to use the ray caster from the Isaac Lab framework.
     # Usage
     ./isaaclab.sh -p source/isaaclab/test/sensors/test_ray_caster.py --headless
 """
+"""这本脚本展示了如何使用来自艾萨克实验室的射线器。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p source/isaaclab/test/sensors/test_ray_caster.py --headless
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -38,6 +46,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -56,6 +65,7 @@ from isaaclab.utils.timer import Timer
 
 def design_scene(sim: SimulationContext, num_envs: int = 2048):
     """Design the scene."""
+    """设计场景。"""
     # Create interface to clone the scene
     cloner = GridCloner(spacing=2.0)
     cloner.define_base_env("/World/envs")
@@ -86,6 +96,7 @@ def design_scene(sim: SimulationContext, num_envs: int = 2048):
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     sim = SimulationContext(SimulationCfg())
     # Set main camera

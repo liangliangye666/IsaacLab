@@ -22,6 +22,7 @@ from isaaclab_assets.robots.openarm import OPENARM_BI_HIGH_PD_CFG
 @configclass
 class OpenArmReachEnvCfg(ReachEnvCfg):
     """Configuration for the Bimanual OpenArm Reach Environment."""
+    """双手动OpenArm Reach环境的配置。"""
 
     def __post_init__(self):
         # post init of parent

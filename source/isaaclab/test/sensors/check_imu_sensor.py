@@ -8,8 +8,11 @@ Visual test script for the imu sensor from the Orbit framework.
 """
 
 from __future__ import annotations
+"""视觉测试脚本来自轨道框架的图像传感器。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -34,6 +37,7 @@ simulation_app = SimulationApp(config)
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import logging
 import traceback
@@ -61,6 +65,7 @@ logger = logging.getLogger(__name__)
 
 def design_scene(sim: SimulationContext, num_envs: int = 2048) -> RigidObject:
     """Design the scene."""
+    """设计场景。"""
     # Handler for terrains importing
     terrain_importer_cfg = terrain_gen.TerrainImporterCfg(
         prim_path="/World/ground",
@@ -117,6 +122,7 @@ def design_scene(sim: SimulationContext, num_envs: int = 2048) -> RigidObject:
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # Load kit helper
     sim = SimulationContext(SimulationCfg())

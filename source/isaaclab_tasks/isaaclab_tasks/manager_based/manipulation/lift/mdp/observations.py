@@ -23,6 +23,7 @@ def object_position_in_robot_root_frame(
     object_cfg: SceneEntityCfg = SceneEntityCfg("object"),
 ) -> torch.Tensor:
     """The position of the object in the robot's root frame."""
+    """机器人根框架中的物体位置。"""
     robot: RigidObject = env.scene[robot_cfg.name]
     object: RigidObject = env.scene[object_cfg.name]
     object_pos_w = object.data.root_pos_w[:, :3]

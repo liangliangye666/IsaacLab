@@ -49,6 +49,7 @@ def single_mesh(trimesh_box, device):
 
 def test_raycast_multi_cubes(device, trimesh_box, rays):
     """Test raycasting against two cubes."""
+    """测试对两个立方体的射线。"""
     ray_starts, ray_directions, _ = rays
 
     trimesh_1 = trimesh_box.copy()
@@ -105,6 +106,7 @@ def test_raycast_multi_cubes(device, trimesh_box, rays):
 
 def test_raycast_single_cube(device, single_mesh, rays):
     """Test raycasting against a single cube."""
+    """测试射线与单个立方体。"""
     ray_starts, ray_directions, expected_ray_hits = rays
     _, single_mesh_id = single_mesh
 
@@ -159,6 +161,10 @@ def test_raycast_moving_cube(device, single_mesh, rays, num_samples):
     |-------------|
 
     """
+    """测试射线与不同距离的单个立方体。
+    |-------------| |\ | | \ | | \ 8 | | \ | | \ x_1 | | \ | | \ | | \ | | \ | | \ | | 3 x_2 \ | | \ | |
+    \| |-------------|
+    """
     ray_starts, ray_directions, expected_ray_hits = rays
     _, single_mesh_id = single_mesh
 
@@ -190,6 +196,9 @@ def test_raycast_moving_cube(device, single_mesh, rays, num_samples):
 
 def test_raycast_rotated_cube(device, single_mesh, rays):
     """Test raycasting against a single cube with different 90deg. orientations."""
+    """测试射线与单个立方体不同90度。
+    方向。
+    """
     ray_starts, ray_directions, expected_ray_hits = rays
     _, single_mesh_id = single_mesh
 
@@ -213,6 +222,7 @@ def test_raycast_rotated_cube(device, single_mesh, rays):
 @pytest.mark.parametrize("num_random", [10])
 def test_raycast_random_cube(device, trimesh_box, single_mesh, rays, num_random):
     """Test raycasting against a single cube with random poses."""
+    """测试射线与单个立方体随机姿势。"""
     ray_starts, ray_directions, _ = rays
     _, single_mesh_id = single_mesh
 

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest  # noqa: E402
 import torch  # noqa: E402
@@ -28,6 +30,7 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR  # noqa: E402
 @pytest.fixture(autouse=True)
 def test_setup_teardown():
     """Create a blank new stage for each test."""
+    """创建一个空白的新阶段。"""
     # Setup: Create a new stage
     sim_utils.create_new_stage()
     sim_utils.update_stage()
@@ -43,10 +46,13 @@ def test_setup_teardown():
 """
 Helper functions.
 """
+"""辅助函数。
+"""
 
 
 def _prepare_indices(index_type, target_indices, num_prims, device):
     """Helper function to prepare indices based on type."""
+    """根据类型准备索引的辅助功能。"""
     if index_type == "list":
         return target_indices, target_indices
     elif index_type == "torch_tensor":
@@ -59,6 +65,7 @@ def _prepare_indices(index_type, target_indices, num_prims, device):
 
 def _skip_if_backend_unavailable(backend: str, device: str):
     """Skip tests when the requested backend is unavailable."""
+    """如果要求的后端不可使用时，跳过测试。"""
     if device.startswith("cuda") and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
     if backend == "fabric" and device == "cpu":
@@ -67,11 +74,13 @@ def _skip_if_backend_unavailable(backend: str, device: str):
 
 def _prim_type_for_backend(backend: str) -> str:
     """Return a prim type that is compatible with the backend."""
+    """返回与后端兼容的prim类型。"""
     return "Camera" if backend == "fabric" else "Xform"
 
 
 def _create_view(pattern: str, device: str, backend: str) -> XformPrimView:
     """Create an XformPrimView for the requested backend."""
+    """为所需的后端创建XformPrimView。"""
     if backend == "fabric":
         sim_utils.SimulationContext(sim_utils.SimulationCfg(dt=0.01, device=device, use_fabric=True))
     return XformPrimView(pattern, device=device)
@@ -80,11 +89,14 @@ def _create_view(pattern: str, device: str, backend: str) -> XformPrimView:
 """
 Tests - Initialization.
 """
+"""测试 - 启动。
+"""
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_xform_prim_view_initialization_single_prim(device):
     """Test XformPrimView initialization with a single prim."""
+    """测试XformPrimView初始化使用单个prim。"""
     # check if CUDA is available
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
@@ -106,6 +118,7 @@ def test_xform_prim_view_initialization_single_prim(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_xform_prim_view_initialization_multiple_prims(device):
     """Test XformPrimView initialization with multiple prims using pattern matching."""
+    """测试XformPrimView初始化与多个prims使用模式匹配。"""
     # check if CUDA is available
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
@@ -136,6 +149,13 @@ def test_xform_prim_view_initialization_multiple_prims_order(device):
 
     The test creates prims in a deliberately non-alphabetical order (1, 0, A, a, 2) and verifies
     that they are retrieved in creation order, not sorted order (0, 1, 2, A, a).
+    """
+    """测试XformPrimView初始化与多个prims，使用每prim的多个对象匹配模式。
+
+    该测试验证实XformPrimView遵守USD阶段穿越顺序，该顺序基于创建顺序 (深度首次搜索)，NOT字母/字典分类。
+    这是一个重要的边缘案例，确保确定性prim顺序匹配USD的内部表示。
+
+    测试以故意非字母顺序 (1， 0， A， a， 2) 创建prims，并验证它们以创建顺序而不是分类顺序 (0， 1， 2， A， a) 来获取。
     """
     # check if CUDA is available
     if device == "cuda" and not torch.cuda.is_available():
@@ -202,6 +222,7 @@ def test_xform_prim_view_initialization_multiple_prims_order(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_xform_prim_view_initialization_invalid_prim(device):
     """Test XformPrimView initialization fails for non-xformable prims."""
+    """测试XformPrimView初始化失败于非prims。"""
     # check if CUDA is available
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
@@ -219,6 +240,7 @@ def test_xform_prim_view_initialization_invalid_prim(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_xform_prim_view_initialization_empty_pattern(device):
     """Test XformPrimView initialization with pattern that matches no prims."""
+    """测试XformPrimView初始化，使用不匹配prims的模式。"""
     # check if CUDA is available
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
@@ -236,12 +258,15 @@ def test_xform_prim_view_initialization_empty_pattern(device):
 """
 Tests - Getters.
 """
+"""测试 - 测试
+"""
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_get_world_poses(device, backend):
     """Test getting world poses from XformPrimView."""
+    """测试得到来自XformPrimView的世界姿势。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -282,6 +307,7 @@ def test_get_world_poses(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_get_local_poses(device, backend):
     """Test getting local poses from XformPrimView."""
+    """测试得到来自XformPrimView的本地姿势。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -329,6 +355,7 @@ def test_get_local_poses(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_get_scales(device, backend):
     """Test getting scales from XformPrimView."""
+    """测试从XformPrimView获得秤。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -356,6 +383,7 @@ def test_get_scales(device, backend):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_get_visibility(device):
     """Test getting visibility when all prims are visible."""
+    """在所有prims可见时，测试可见性。"""
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
 
@@ -381,12 +409,15 @@ def test_get_visibility(device):
 """
 Tests - Setters.
 """
+"""测试 - 设置器
+"""
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_set_world_poses(device, backend):
     """Test setting world poses in XformPrimView."""
+    """在XformPrimView中测试世界设置。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -433,6 +464,7 @@ def test_set_world_poses(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_set_world_poses_only_positions(device, backend):
     """Test setting only positions, leaving orientations unchanged."""
+    """测试只设置位置，保持方向不变。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -472,6 +504,7 @@ def test_set_world_poses_only_positions(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_set_world_poses_only_orientations(device, backend):
     """Test setting only orientations, leaving positions unchanged."""
+    """测试只设定方向，保持位置不变。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -511,6 +544,7 @@ def test_set_world_poses_only_orientations(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_set_world_poses_with_hierarchy(device, backend):
     """Test setting world poses correctly handles parent transformations."""
+    """测试设置世界正确处理父母的转变。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -552,6 +586,7 @@ def test_set_world_poses_with_hierarchy(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_set_local_poses(device, backend):
     """Test setting local poses in XformPrimView."""
+    """在XformPrimView中设置本地姿势。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -597,6 +632,7 @@ def test_set_local_poses(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_set_local_poses_only_translations(device, backend):
     """Test setting only local translations."""
+    """测试设置只有本地翻译。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -642,6 +678,7 @@ def test_set_local_poses_only_translations(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_set_scales(device, backend):
     """Test setting scales in XformPrimView."""
+    """在XformPrimView中测试设置秤。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -672,6 +709,7 @@ def test_set_scales(device, backend):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_set_visibility(device):
     """Test toggling visibility multiple times."""
+    """测试转换可见度多次。"""
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
 
@@ -708,6 +746,8 @@ def test_set_visibility(device):
 """
 Tests - Index Handling.
 """
+"""测试 - 索引处理
+"""
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
@@ -715,6 +755,7 @@ Tests - Index Handling.
 @pytest.mark.parametrize("method", ["world_poses", "local_poses", "scales", "visibility"])
 def test_index_types_get_methods(device, index_type, method):
     """Test that getter methods work with different index types."""
+    """测试是否使用不同类型的索引。"""
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
 
@@ -791,6 +832,7 @@ def test_index_types_get_methods(device, index_type, method):
 @pytest.mark.parametrize("method", ["world_poses", "local_poses", "scales", "visibility"])
 def test_index_types_set_methods(device, index_type, method):
     """Test that setter methods work with different index types."""
+    """测试设置方法是否与不同的索引类型工作。"""
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
 
@@ -887,6 +929,7 @@ def test_index_types_set_methods(device, index_type, method):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_indices_single_element(device, backend):
     """Test with a single index."""
+    """测试一个索引。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -921,6 +964,7 @@ def test_indices_single_element(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_indices_out_of_order(device, backend):
     """Test with indices provided in non-sequential order."""
+    """测试以非序列顺序提供的索引。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -956,6 +1000,7 @@ def test_indices_out_of_order(device, backend):
 @pytest.mark.parametrize("backend", ["usd", "fabric"])
 def test_indices_with_only_positions_or_orientations(device, backend):
     """Test indices work correctly when setting only positions or only orientations."""
+    """测试指标只设置位置或仅设定方向时运行正确。"""
     _skip_if_backend_unavailable(backend, device)
 
     stage = sim_utils.get_current_stage()
@@ -1021,6 +1066,7 @@ def test_indices_with_only_positions_or_orientations(device, backend):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_index_type_none_equivalent_to_all(device):
     """Test that indices=None is equivalent to getting/setting all prims."""
+    """测试索引=None等于获得/设置所有prims。"""
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
 
@@ -1076,11 +1122,14 @@ def test_index_type_none_equivalent_to_all(device):
 """
 Tests - Integration.
 """
+"""试验 - 整合
+"""
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_with_franka_robots(device):
     """Test XformPrimView with real Franka robot USD assets."""
+    """测试XformPrimView我和真正的弗兰卡机器人USD资产。"""
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
 
@@ -1135,6 +1184,7 @@ def test_with_franka_robots(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_with_nested_targets(device):
     """Test with nested frame/target structure similar to Isaac Sim tests."""
+    """用嵌套框架/目标结构的测试类似于艾萨克·西姆测试。"""
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
 
@@ -1172,6 +1222,7 @@ def test_with_nested_targets(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_visibility_with_hierarchy(device):
     """Test visibility with parent-child hierarchy and inheritance."""
+    """测试可见性与父母-孩子等级和遗产。"""
     if device == "cuda" and not torch.cuda.is_available():
         pytest.skip("CUDA not available")
 
@@ -1234,10 +1285,13 @@ def test_visibility_with_hierarchy(device):
 """
 Tests - Comparison with Isaac Sim Implementation.
 """
+"""测试与艾萨克·西姆实现的比较。
+"""
 
 
 def test_compare_get_world_poses_with_isaacsim():
     """Compare get_world_poses with Isaac Sim's implementation."""
+    """相比较get_world_poses随着艾萨克·西姆的实施。"""
     stage = sim_utils.get_current_stage()
 
     # Check if Isaac Sim is available
@@ -1285,6 +1339,7 @@ def test_compare_get_world_poses_with_isaacsim():
 
 def test_compare_set_world_poses_with_isaacsim():
     """Compare set_world_poses with Isaac Sim's implementation."""
+    """相比较set_world_poses随着艾萨克·西姆的实施。"""
     stage = sim_utils.get_current_stage()
 
     # Check if Isaac Sim is available
@@ -1330,6 +1385,7 @@ def test_compare_set_world_poses_with_isaacsim():
 
 def test_compare_get_local_poses_with_isaacsim():
     """Compare get_local_poses with Isaac Sim's implementation."""
+    """相比较get_local_poses随着艾萨克·西姆的实施。"""
     stage = sim_utils.get_current_stage()
 
     # Check if Isaac Sim is available
@@ -1374,6 +1430,7 @@ def test_compare_get_local_poses_with_isaacsim():
 
 def test_compare_set_local_poses_with_isaacsim():
     """Compare set_local_poses with Isaac Sim's implementation."""
+    """相比较set_local_poses随着艾萨克·西姆的实施。"""
     stage = sim_utils.get_current_stage()
 
     # Check if Isaac Sim is available
@@ -1423,11 +1480,14 @@ def test_compare_set_local_poses_with_isaacsim():
 """
 Tests - Fabric Operations.
 """
+"""实验 - 织物运营
+"""
 
 
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_fabric_initialization(device):
     """Test XformPrimView initialization with Fabric enabled."""
+    """测试XformPrimView启动，使用Fabric启用。"""
     _skip_if_backend_unavailable("fabric", device)
 
     stage = sim_utils.get_current_stage()
@@ -1454,6 +1514,13 @@ def test_fabric_usd_consistency(device):
     for write-first workflows. Instead, it tests that:
     1. Fabric write→read round-trip works correctly
     2. This matches Isaac Sim's Fabric behavior
+    """
+    """测试Fabric回路 (写→阅读) 是一致的，符合Isaac Sim的设计。
+
+    Note: 这样做NOT测试， Fabric vs USD 在初始化上读取，
+    for write-first workflows. Instead, it tests that:
+    1. 织物写→阅读回路工作正确
+    2. 这与艾萨克·西姆的"布"行为相匹配
     """
     _skip_if_backend_unavailable("fabric", device)
 

@@ -94,9 +94,70 @@ class Multirotor(Articulation):
         - :class:`MultirotorData`: Data container for multirotor state
         - :class:`~isaaclab_contrib.actuators.Thruster`: Thruster actuator model
     """
+    """一个多发动机关联资产类别。
+
+    该类扩展了:class:`~isaaclab.assets.Articulation`基级，以支持多动机车辆 (如四旋翼，六旋翼和八旋翼) 与推进驱动器在特定车身位置施加力量。
+    它是基于:cit:t:`kulkarni2025aerialgym`的实施。
+
+    与使用联合控制的标准关节不同，多旋转机通过单个旋转机/螺旋机生成的推力来控制。
+    这类提供专业功能
+    for managing multiple thruster actuators, computing combined wrenches from individual thrusts,
+    并且将它们应用到多轮机的基链上。
+
+    主要特征:
+        - **基于杆的控制**:用于现实的旋转动态仿真而使用:class:`~isaaclab_contrib.actuators.Thruster`动机代替联合动机。
+        - **力分配**:支持分配矩阵，以将单个推进力转换为组合的车身钥匙 (力和扭矩)。
+        - **不对称动力**:推动器驱动器可以仿真反映实际运动行为的不对称上降动力。
+        - **灵活配置**:通过基于regex的推进器命名模式支持任意的推进器数量和安排。
+
+    使用例:
+        .. code-block:: python
+
+            import isaaclab.sim as sim_utils
+            from isaaclab_contrib.assets import MultirotorCfg
+            from isaaclab_contrib.actuators import ThrusterCfg
+
+            # Define thruster actuator configuration
+            thruster_cfg = ThrusterCfg(
+                thruster_names_expr=["rotor_[0-3]"],  # Match rotors 0-3
+                thrust_range=(0.0, 10.0),  # Min and max thrust in Newtons
+                rise_time_constant=0.1,  # Time constant for thrust increase
+                fall_time_constant=0.2,  # Time constant for thrust decrease
+            )
+
+            # Create multirotor configuration
+            multirotor_cfg = MultirotorCfg(
+                prim_path="/World/envs/env_.*/Robot",
+                spawn=sim_utils.UsdFileCfg(usd_path="path/to/quadcopter.usd"),
+                actuators={"thrusters": thruster_cfg},
+                allocation_matrix=[  # 6x4 matrix for quadcopter (6 DOF, 4 thrusters)
+                    [1.0, 1.0, 1.0, 1.0],  # Total vertical force
+                    [0.0, 0.0, 0.0, 0.0],  # Lateral force (x)
+                    [0.0, 0.0, 0.0, 0.0],  # Lateral force (y)
+                    [0.0, 0.1, 0.0, -0.1],  # Roll torque
+                    [-0.1, 0.0, 0.1, 0.0],  # Pitch torque
+                    [0.01, -0.01, 0.01, -0.01],  # Yaw torque
+                ],
+            )
+
+            # Create the multirotor instance
+            multirotor = multirotor_cfg.class_type(multirotor_cfg)
+
+    .. 说明::
+        分配矩阵将单个推进力用于6D关 (3力+3扭矩) 对基链应用。
+        矩阵尺寸应是 (6，num_thrusters)。
+
+    ..
+    查看:
+        - :class:`~isaaclab.assets.Articulation`:基础关节类
+        - :class:`MultirotorCfg`:多轮机配置类
+        - :class:`MultirotorData`:多轮机状态数据容器
+        - :class:`~isaaclab_contrib.actuators.Thruster`:推动器驱动器模型
+    """
 
     cfg: MultirotorCfg
     """Configuration instance for the multirotor."""
+    """对于多轮机的配置实例。"""
 
     actuators: dict[str, Thruster]
     """Dictionary of thruster actuator instances for the multirotor.
@@ -105,6 +166,12 @@ class Multirotor(Articulation):
     are initialized based on the actuator configurations specified in the :attr:`MultirotorCfg.actuators`
     attribute. They are used to compute the thruster commands during the :meth:`write_data_to_sim` function.
     """
+    """动力驱动器的字典
+
+    关键是执行器名称，值是执行器实例。
+    根据:attr:`MultirotorCfg.actuators`属性所指定的执行器配置，执行器实例启动。
+    在:meth:`write_data_to_sim`函数期间，它们用于计算推进器命令。
+    """
 
     def __init__(self, cfg: MultirotorCfg):
         """Initialize the multirotor articulation.
@@ -112,10 +179,17 @@ class Multirotor(Articulation):
         Args:
             cfg: A configuration instance.
         """
+        """启动多机关关。
+
+        参数：
+            cfg: 一个配置实例。
+        """
         super().__init__(cfg)
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -131,6 +205,19 @@ class Multirotor(Articulation):
 
         Raises:
             ValueError: If a non-thruster actuator is found in the multirotor actuators.
+        """
+        """在多发动机中的推进器的名字。
+
+        这种属性集成了所有配置的驱动器执行器组中的驱动器名称
+        for the multirotor. The names are ordered according to their array indices, which is
+        对于设定推力目标和解释推力数据来说很重要。
+
+        返回：
+            按顺序列出推进器名称。
+            如果动机尚未启动，返回空清单。
+
+        异常：
+            ValueError: 如果在多轮动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力动力。
         """
         if not hasattr(self, "actuators") or not self.actuators:
             return []
@@ -151,6 +238,11 @@ class Multirotor(Articulation):
         Returns:
             Total number of thrusters across all actuator groups.
         """
+        """在多发动机中的推进器数量。
+
+        返回：
+            所有动机组的推进器总数
+        """
         return len(self.thruster_names)
 
     @property
@@ -168,10 +260,24 @@ class Multirotor(Articulation):
         Returns:
             Allocation matrix as a torch tensor on the device.
         """
+        """控制分配的分配矩阵
+
+        分配矩阵将单个推进力映射到6D关向量 (3力+3扭矩) 对基链应用。
+        这允许将每驱动器命令转换成结果的体格框架力量和时刻。
+
+        矩阵有形状 (6，num_thrusters)，其中:
+            - 0-2行:体格框架中的力量贡献 (Fx， Fy， Fz)
+            - 排3-5:车身框架中的扭矩贡献 (Tx， Ty， Tz)
+
+        返回：
+            配置矩阵作为设备上的火。
+        """
         return torch.tensor(self.cfg.allocation_matrix, device=self.device, dtype=torch.float32)
 
     """
     Operations
+    """
+    """运营
     """
 
     def set_thrust_target(
@@ -197,6 +303,38 @@ class Multirotor(Articulation):
                 Can be a sequence of integers or None.
 
         Example:
+            .. code-block:: python
+
+                # Set thrust for all thrusters in all environments
+                multirotor.set_thrust_target(torch.ones(num_envs, 4) * 5.0)
+
+                # Set thrust for specific thrusters
+                multirotor.set_thrust_target(
+                    torch.tensor([[5.0, 6.0]]),  # Different thrust for 2 thrusters
+                    thruster_ids=[0, 2],  # Apply to thrusters 0 and 2
+                    env_ids=[0],  # Only in environment 0
+                )
+        """
+        """设置推进器的目标推力值。
+
+        这种方法为特定环境中的特定推进器设定了所需的推进值。
+        推进目标被推进驱动器驱动器模型在
+        the :麻:`write_data_to_sim`打电话。
+             动机模型可能采用动态 (/时间)
+        与这些目标的限制 (推力限制)。
+
+        参数：
+            target: 目标推力值。
+                    形状是 (num_envs，num_thrusters) 或 (num_envs，)。
+                    这些值通常在推进器执行器 (e.g.，强力为牛顿，或RPS为秒旋转) 中配置的单位中。
+            thruster_ids: 引擎的指标要设置。
+                          在None (所有推进器) 上默认设置。
+                          可以是整数序列，片段或None。
+            env_ids: 环境索引设置。
+                     在 None (所有环境) 中默认设置。
+                     可以是整数序列或None。
+
+        示例：
             .. code-block:: python
 
                 # Set thrust for all thrusters in all environments
@@ -237,6 +375,18 @@ class Multirotor(Articulation):
             The default thruster state is set via the :attr:`MultirotorCfg.init_state.rps`
             configuration parameter.
         """
+        """设置多驱动器重置为默认状态。
+
+        这种方法将基点关节状态 (位置，速度) 和多旋转特定状态 (推进器目标) 重置到配置中指定的默认值。
+
+        参数：
+            env_ids: 环境索引要重置。
+                     在 None (所有环境) 中默认设置。
+                     可以是整数序列或None。
+
+        说明：
+            通过:attr:`MultirotorCfg.init_state.rps`配置参数设置了默认推进器状态。
+        """
         # call parent reset
         super().reset(env_ids)
 
@@ -272,6 +422,21 @@ class Multirotor(Articulation):
             This method overrides the base class implementation because multirotors use thrust-based
             control rather than joint-based control.
         """
+        """写下推力和扭矩命令。
+
+        该方法按顺序执行以下操作:
+
+        1. **应用动机模型**:通过动机动机模型处理推力目标，以考虑动态 (上/下时间) 和约束 (推力限制) 计算实际推力值。
+
+        2. **组合推力成钥匙**:使用分配矩阵将单个推力力转换为组合6Dren钥匙 (力 +扭矩) 矢量。
+
+        3. **应用于仿真**:在PhysX仿真中，将结合钥匙应用于多轮机的基链。
+
+        在:meth:`set_thrust_target`设置推力目标后和在仿真开始之前应调用此方法。
+
+        说明：
+            这种方法取消了基类实现，因为多轮机使用基于推力的控制而不是基于联合的控制。
+        """
         self._apply_actuator_model()
         # apply thruster forces at individual locations
         self._apply_combined_wrench()
@@ -279,9 +444,12 @@ class Multirotor(Articulation):
     """
     Internal methods
     """
+    """内部方法
+    """
 
     def _initialize_impl(self):
         """Initialize the multirotor implementation."""
+        """启动多机器实现。"""
         # call parent initialization
         super()._initialize_impl()
 
@@ -302,6 +470,7 @@ class Multirotor(Articulation):
 
     def _create_thruster_buffers(self):
         """Create thruster buffers with correct size."""
+        """创建正确尺寸的推进缓冲器。"""
         num_instances = self.num_instances
         num_thrusters = self._count_thrusters_from_config()
 
@@ -336,6 +505,17 @@ class Multirotor(Articulation):
         Raises:
             ValueError: If no thrusters are found in the configuration.
         """
+        """根据执行器配置计算推进器的总数。
+
+        在启动之前，该方法分析所有动机配置，以确定推进器的总数。
+        它使用推进器名称表达式在USD prim中找到匹配的机体。
+
+        返回：
+            所有动机组的推进器总数
+
+        异常：
+            ValueError: 如果配置中没有推进器。
+        """
         total_thrusters = 0
 
         for actuator_name, actuator_cfg in self.cfg.actuators.items():
@@ -356,12 +536,14 @@ class Multirotor(Articulation):
 
     def _process_actuators_cfg(self):
         """Override parent method to do nothing - we handle thrusters separately."""
+        """我们把推进器分别处理。"""
         # Do nothing - we handle thruster processing in _process_thruster_cfg() otherwise this
         # gives issues with joint name expressions
         pass
 
     def _process_cfg(self):
         """Post processing of multirotor configuration parameters."""
+        """后处理多轮机配置参数。"""
         # Handle root state (like parent does)
         default_root_state = (
             tuple(self.cfg.init_state.pos)
@@ -385,6 +567,7 @@ class Multirotor(Articulation):
 
     def _process_thruster_cfg(self):
         """Process and apply multirotor thruster properties."""
+        """处理和应用多轮驱动器性能。"""
         # create actuators
         self.actuators = dict()
         self._has_implicit_actuators = False
@@ -472,6 +655,23 @@ class Multirotor(Articulation):
             - :attr:`_data.computed_thrust`: Thrust before saturation
             - :attr:`_data.applied_thrust`: Final thrust after saturation
         """
+        """通过将其转发到执行器来处理驱动器命令。
+
+        这种内部方法通过所有推动器执行器组进行代，并将其各自的执行器模型应用于推动目标。
+        动机模型仿真现实动力动力，包括:
+
+        - 对不对称反应的上/下时间常数
+        - 压力和切断到物理极限
+        - 时间内引擎动态的整合
+
+        计算的推力值存储在内部缓冲器中，以便进行后续 w钥匙计算。
+
+        说明：
+            这种方法更新了:
+            - :attr:`_thrust_target_sim`:经动机模型后处理的推力值
+            - :attr:`_data.computed_thrust`:在和之前的推力
+            - :attr:`_data.applied_thrust`:和后的最后推力
+        """
 
         # process thruster actions per group
         for actuator in self.actuators.values():
@@ -505,6 +705,13 @@ class Multirotor(Articulation):
         The forces and torques are applied through PhysX's force/torque API, which integrates
         them during the physics step to produce accelerations and velocities.
         """
+        """将组合钥匙应用于基链。
+
+        这种内部方法将6D匙 (由:meth:`_combine_thrusts`计算) 应用到多轮机的基链上。
+        在本地机体框架中，把锁放在基链的质量中心。
+
+        通过PhysX的强力/扭矩API来运行这些力和扭矩，在物理步骤中将它们集成起来，产生加速和速度。
+        """
         # Combine individual thrusts into a wrench vector
         self._combine_thrusts()
 
@@ -531,6 +738,17 @@ class Multirotor(Articulation):
             wrench = allocation_matrix @ thrusts
             where wrench = [Fx, Fy, Fz, Tx, Ty, Tz]^T
         """
+        """结合单个推力成一个ren门向量。
+
+        这种内部方法使用分配矩阵将单个推进力转换为车身框架中的6Dren引向量 (3D力+3D扭矩)。
+        然后把钥匙分配给基链 (体内索引0)，用于仿真。
+
+        配置矩阵编码了推进器的几何配置，包括它们与质量中心相对的位置和方向。
+
+        数学操作:
+            wrench = allocation_matrix @ thrusts
+            在哪里钥匙 = [Fx， Fy， Fz， Tx， Ty， Tz]^T
+        """
         thrusts = self._thrust_target_sim
         self._internal_wrench_target_sim = (self.allocation_matrix @ thrusts.T).T
         # Apply forces to base link (body index 0) only
@@ -543,6 +761,12 @@ class Multirotor(Articulation):
         Note:
             This function should be called only after the configuration has been processed and the buffers have been
             created. Otherwise, some settings that are altered during processing may not be validated.
+        """
+        """处理后验证多轮机配置。
+
+        说明：
+            在配置已处理并创建缓冲器后才应调用此函数。
+            否则，在加工过程中改变的某些设置可能无法验证。
         """
         # Only validate if actuators have been created
         if hasattr(self, "actuators") and self.actuators:
@@ -560,6 +784,7 @@ class Multirotor(Articulation):
 
     def _log_multirotor_info(self):
         """Log multirotor-specific information."""
+        """记录多轮机特定信息。"""
         logger.info(f"Multirotor initialized with {self.num_thrusters} thrusters")
         logger.info(f"Thruster names: {self.thruster_names}")
         logger.info(f"Thruster force direction: {self.cfg.thruster_force_direction}")

@@ -8,6 +8,7 @@
 
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -15,6 +16,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import ctypes
 from typing import Literal
@@ -59,6 +61,18 @@ def generate_cubes_scene(
         A tuple containing the rigid object representing the cubes and the origins of the cubes.
 
     """
+    """创建一个场景，提供数量的立方体。
+
+    参数：
+        num_cubes: 需要生成的立方体数量。
+        height: 立方体的高度。
+        api: 这种API应该有。
+        kinematic_enabled: 立方体是否是动态的。
+        device: 用于仿真的设备。
+
+    返回：
+        包含代表立方体和立方体起源的硬体。
+    """
     origins = torch.tensor([(i * 1.0, 0, height) for i in range(num_cubes)]).to(device)
     # Create Top-level Xforms, one for each cube
     for i, origin in enumerate(origins):
@@ -100,6 +114,7 @@ def generate_cubes_scene(
 @pytest.mark.isaacsim_ci
 def test_initialization(num_cubes, device):
     """Test initialization for prim with rigid body API at the provided prim path."""
+    """在提供 prim 路径上对prim进行硬体API测试初始化。"""
     with build_simulation_context(device=device, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         # Generate cubes scene
@@ -134,6 +149,7 @@ def test_initialization(num_cubes, device):
 @pytest.mark.isaacsim_ci
 def test_initialization_with_kinematic_enabled(num_cubes, device):
     """Test that initialization for prim with kinematic flag enabled."""
+    """测试为prim的初始化，"""
     with build_simulation_context(device=device, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         # Generate cubes scene
@@ -170,6 +186,7 @@ def test_initialization_with_kinematic_enabled(num_cubes, device):
 @pytest.mark.isaacsim_ci
 def test_initialization_with_no_rigid_body(num_cubes, device):
     """Test that initialization fails when no rigid body is found at the provided prim path."""
+    """测试在提供的prim路径上没有发现硬体时初始化失败。"""
     with build_simulation_context(device=device, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         # Generate cubes scene
@@ -188,6 +205,7 @@ def test_initialization_with_no_rigid_body(num_cubes, device):
 @pytest.mark.isaacsim_ci
 def test_initialization_with_articulation_root(num_cubes, device):
     """Test that initialization fails when an articulation root is found at the provided prim path."""
+    """测试在提供 prim 路径上发现关节根时初始化失败。"""
     with build_simulation_context(device=device, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         # Generate cubes scene
@@ -208,6 +226,11 @@ def test_external_force_buffer(device):
 
     In this test, we apply a non-zero force, then a zero force, then finally a non-zero force
     to an object. We check if the force buffer is properly updated at each step.
+    """
+    """测试是否对外力缓冲正确更新的力值是零案例。
+
+    在这个测试中，我们将一个非零力，然后一个零力，然后最后一个非零力应用于对象。
+    我们检查每一步都是否更新了强力缓冲器。
     """
 
     # Generate cubes scene
@@ -280,6 +303,14 @@ def test_external_force_on_single_body(num_cubes, device):
     we do not apply any force and check that it falls down.
 
     We validate that this works when we apply the force in the global frame and in the local frame.
+    """
+    """试验对物体底部施加外部力。
+
+    在这个测试中，我们将一个对象的基础上应用一个等于对象的重量的力量。
+    我们检查物体没有移动。
+    对于另一个物体来说，我们不会使用任何力量，
+
+    我们证实，当我们在全球框架和本地框架中应用力量时，
     """
     # Generate cubes scene
     with build_simulation_context(device=device, add_ground_plane=True, auto_add_lighting=True) as sim:
@@ -354,6 +385,13 @@ def test_external_force_on_single_body_at_position(num_cubes, device):
     For the other object, we do not apply any force and check that it falls down.
 
     We validate that this works when we apply the force in the global frame and in the local frame.
+    """
+    """测试对物体的底部在特定位置施加外部力。
+
+    在这个测试中，我们将一个对象的重量等于对象的重量在Y方向的1m的基础上，
+    对于另一个物体来说，我们不会使用任何力量，
+
+    我们证实，当我们在全球框架和本地框架中应用力量时，
     """
     # Generate cubes scene
     with build_simulation_context(device=device, add_ground_plane=True, auto_add_lighting=True) as sim:
@@ -458,6 +496,11 @@ def test_set_rigid_object_state(num_cubes, device):
     that the object is in that state after simulation. We set gravity to zero as
     we don't want any external forces acting on the object to ensure state remains static.
     """
+    """测试设置硬体状态。
+
+    在这个测试中，我们将硬体状态设置为随机状态，
+    我们将重力设置为零，因为我们不希望任何外部力量对物体作用，
+    """
     # Turn off gravity for this test as we don't want any external forces acting on the object
     # to ensure state remains static
     with build_simulation_context(device=device, gravity_enabled=False, auto_add_lighting=True) as sim:
@@ -520,6 +563,7 @@ def test_set_rigid_object_state(num_cubes, device):
 @pytest.mark.isaacsim_ci
 def test_reset_rigid_object(num_cubes, device):
     """Test resetting the state of the rigid object."""
+    """测试重置硬体状态。"""
     with build_simulation_context(device=device, gravity_enabled=True, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         # Generate cubes scene
@@ -562,6 +606,7 @@ def test_reset_rigid_object(num_cubes, device):
 @pytest.mark.isaacsim_ci
 def test_rigid_body_set_material_properties(num_cubes, device):
     """Test getting and setting material properties of rigid object."""
+    """测试获得和设置硬物体的材料性能。"""
     with build_simulation_context(
         device=device, gravity_enabled=True, add_ground_plane=True, auto_add_lighting=True
     ) as sim:
@@ -601,6 +646,7 @@ def test_rigid_body_set_material_properties(num_cubes, device):
 @pytest.mark.isaacsim_ci
 def test_rigid_body_no_friction(num_cubes, device):
     """Test that a rigid object with no friction will maintain it's velocity when sliding across a plane."""
+    """测试一个没有摩擦的硬物体在飞机上滑动时保持速度。"""
     with build_simulation_context(device=device, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         # Generate cubes scene
@@ -664,6 +710,13 @@ def test_rigid_body_with_static_friction(num_cubes, device):
     mu (coefficient of static friction) value set for the object. We set the static friction to be non-zero and
     apply a force to the object. When the force applied is below mu, the object should not move. When the force
     applied is above mu, the object should move.
+    """
+    """测试对硬物体的静态摩擦是否按预期工作。
+
+    这种测试通过向对象施加力并根据对象设定的mu (静态摩擦系数) 值检查对象是否移动。
+    我们将静态摩擦设置为不为零，
+    当施加的力量低于mu时，物体不应移动。
+    当施加的力超过mu时，物体应该移动。
     """
     with build_simulation_context(device=device, dt=0.01, add_ground_plane=False, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
@@ -748,6 +801,13 @@ def test_rigid_body_with_restitution(num_cubes, device):
     When the restitution is 0, the block should not bounce. When the restitution is between 0 and 1, the block
     should bounce with less energy.
     """
+    """检验这种回报，当应用到硬物件的运行预期。
+
+    这种测试通过从一个高度下降一个块，并根据对象所设定的回归值检查该块是否反弹。
+    我们设置退款为不为零，
+    当回报为0时，块不应该跳转。
+    当回报在0到1之间时，
+    """
     for expected_collision_type in "partially_elastic", "inelastic":
         with build_simulation_context(device=device, add_ground_plane=False, auto_add_lighting=True) as sim:
             sim._app_control_on_stop_handle = None
@@ -822,6 +882,7 @@ def test_rigid_body_with_restitution(num_cubes, device):
 @pytest.mark.isaacsim_ci
 def test_rigid_body_set_mass(num_cubes, device):
     """Test getting and setting mass of rigid object."""
+    """测试获得和设置固体质量。"""
     with build_simulation_context(
         device=device, gravity_enabled=False, add_ground_plane=True, auto_add_lighting=True
     ) as sim:
@@ -865,6 +926,7 @@ def test_rigid_body_set_mass(num_cubes, device):
 @pytest.mark.isaacsim_ci
 def test_gravity_vec_w(num_cubes, device, gravity_enabled):
     """Test that gravity vector direction is set correctly for the rigid object."""
+    """测试对硬体的重力向量方向是否正确设置。"""
     with build_simulation_context(device=device, gravity_enabled=gravity_enabled) as sim:
         sim._app_control_on_stop_handle = None
         # Create a scene with random cubes
@@ -906,6 +968,7 @@ def test_gravity_vec_w(num_cubes, device, gravity_enabled):
 @flaky(max_runs=3, min_passes=1)
 def test_body_root_state_properties(num_cubes, device, with_offset):
     """Test the root_com_state_w, root_link_state_w, body_com_state_w, and body_link_state_w properties."""
+    """测试root_com_state_w，root_link_state_w，body_com_state_w和body_link_state_w属性。"""
     with build_simulation_context(device=device, gravity_enabled=False, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         # Create a scene with random cubes
@@ -1011,6 +1074,7 @@ def test_body_root_state_properties(num_cubes, device, with_offset):
 @pytest.mark.isaacsim_ci
 def test_write_root_state(num_cubes, device, with_offset, state_location):
     """Test the setters for root_state using both the link frame and center of mass as reference frame."""
+    """测试root_state的设置器，使用链接框架和质量中心作为参考框架。"""
     with build_simulation_context(device=device, gravity_enabled=False, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         # Create a scene with random cubes
@@ -1073,6 +1137,7 @@ def test_write_root_state(num_cubes, device, with_offset, state_location):
 @pytest.mark.isaacsim_ci
 def test_write_state_functions_data_consistency(num_cubes, device, with_offset, state_location):
     """Test the setters for root_state using both the link frame and center of mass as reference frame."""
+    """测试root_state的设置器，使用链接框架和质量中心作为参考框架。"""
     with build_simulation_context(device=device, gravity_enabled=False, auto_add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
         # Create a scene with random cubes

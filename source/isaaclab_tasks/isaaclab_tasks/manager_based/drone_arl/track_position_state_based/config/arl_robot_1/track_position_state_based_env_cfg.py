@@ -31,6 +31,7 @@ import isaaclab_tasks.manager_based.drone_arl.mdp as mdp
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
     """Configuration for the terrain scene with a flying robot."""
+    """机器人飞行场景的配置。"""
 
     # robots
     robot: MultirotorCfg = MISSING
@@ -53,6 +54,7 @@ class MySceneCfg(InteractiveSceneCfg):
 @configclass
 class CommandsCfg:
     """Command specifications for the MDP."""
+    """对MDP的命令规格。"""
 
     target_pose = mdp.DroneUniformPoseCommandCfg(
         asset_name="robot",
@@ -73,6 +75,7 @@ class CommandsCfg:
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     thrust_command = mdp.ThrustActionCfg(
         asset_name="robot",
@@ -92,10 +95,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # observation terms (order preserved)
         base_link_position = ObsTerm(func=mdp.root_pos_w, noise=Unoise(n_min=-0.1, n_max=0.1))
@@ -115,6 +120,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     # reset
 
@@ -145,6 +151,7 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     distance_to_goal_exp = RewTerm(
         func=mdp.distance_to_goal_exp,
@@ -187,6 +194,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     crash = DoneTerm(func=mdp.root_height_below_minimum, params={"minimum_height": -3.0})
@@ -200,6 +208,7 @@ class TerminationsCfg:
 @configclass
 class TrackPositionNoObstaclesEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the state-based drone pose-control environment."""
+    """设置为国家无人机姿势控制环境。"""
 
     # Scene settings
     scene: MySceneCfg = MySceneCfg(num_envs=4096, env_spacing=2.5)
@@ -214,6 +223,7 @@ class TrackPositionNoObstaclesEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 10
         self.episode_length_s = 5.0

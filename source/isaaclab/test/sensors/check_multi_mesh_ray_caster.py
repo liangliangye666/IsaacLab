@@ -13,8 +13,16 @@ This script shows how to use the multi-mesh ray caster from the Isaac Lab framew
     ./isaaclab.sh -p source/isaaclab/test/sensors/check_multi_mesh_ray_caster.py --headless
 
 """
+"""这本脚本展示了如何使用来自Isaac Lab框架的多网格射线射线器。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p source/isaaclab/test/sensors/check_multi_mesh_ray_caster.py --headless
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -41,6 +49,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import random
 
@@ -62,6 +71,7 @@ from isaaclab.utils.timer import Timer
 
 def design_scene(sim: SimulationContext, num_envs: int = 2048):
     """Design the scene."""
+    """设计场景。"""
     # Create interface to clone the scene
     cloner = GridCloner(spacing=10.0)
     cloner.define_base_env("/World/envs")
@@ -110,6 +120,7 @@ def design_scene(sim: SimulationContext, num_envs: int = 2048):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim = SimulationContext(SimulationCfg())
     # Set main camera

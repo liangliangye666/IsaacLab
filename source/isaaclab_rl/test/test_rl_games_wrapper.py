@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +14,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 
@@ -61,6 +63,7 @@ def registered_tasks():
 
 def test_random_actions(registered_tasks):
     """Run random actions and check environments return valid signals."""
+    """运行随机操作，检查环境返回有效信号。"""
     # common parameters
     num_envs = 64
     device = "cuda"
@@ -116,6 +119,8 @@ def test_random_actions(registered_tasks):
 """
 Helper functions.
 """
+"""辅助函数。
+"""
 
 
 @staticmethod
@@ -127,6 +132,14 @@ def _check_valid_tensor(data: torch.Tensor | dict) -> bool:
 
     Returns:
         True if the data is valid.
+    """
+    """检查给出的数据是否没有损坏值。
+
+    参数：
+        data: 数据缓冲器。
+
+    返回：
+        True 如果数据是有效的。
     """
     if isinstance(data, torch.Tensor):
         return not torch.any(torch.isnan(data))

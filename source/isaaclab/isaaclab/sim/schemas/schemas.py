@@ -32,6 +32,8 @@ logger = logging.getLogger(__name__)
 """
 Constants.
 """
+"""总数。
+"""
 
 # Mapping from string names to USD/PhysX tokens for mesh collision approximation
 # Refer to omniverse documentation
@@ -68,6 +70,8 @@ USD_MESH_COLLISION_CFGS = [
 """
 Articulation root properties.
 """
+"""关节根的特性。
+"""
 
 
 def define_articulation_root_properties(
@@ -86,6 +90,20 @@ def define_articulation_root_properties(
     Raises:
         ValueError: When the prim path is not valid.
         TypeError: When the prim already has conflicting API schemas.
+    """
+    """将关节根图应用于输入 prim，并设置其属性。
+
+    See :功能:`modify_articulation_root_properties` 详细说明如何设置属性。
+
+    参数：
+        prim_path: 运用关节根方案的prim路径。
+        cfg: 关节根的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    异常：
+        ValueError: 当prim路径不有效时。
+        TypeError: 当prim已经有冲突的API方案。
     """
     # get stage handle
     if stage is None:
@@ -145,6 +163,43 @@ def modify_articulation_root_properties(
 
     Raises:
         NotImplementedError: When the root prim is not a rigid body and a fixed joint is to be created.
+    """
+    """修改对关节根 prim 的PhysX参数。
+
+    在`articulation root`标志着关节树的根。
+    对于浮动关节，这应该是根部。
+    对于固定关节，这个API可以在固定到世界的根关节的直接或间接母体上。
+
+    该方案包括属于`ArticulationRootAPI`_和`PhysxArticulationAPI`_的属性。
+    计划。
+    后者包含关节根的PhysX参数。
+
+    这些特性应用于关节根prim。
+    常见的特性 (如溶剂位置和速度回复数量，睡眠门，稳定门) 在关节中的所有硬体上优先于硬体方案中规定的特性。
+
+    .. 谨慎::
+        当属性:attr:`schemas_cfg.ArticulationRootPropertiesCfg.fix_root_link`设置为True时，根链接和世界框架之间会创建一个固定的关节
+        (如果它还没有存在)。
+        然而，为了应对物理解析器的局限性，关节根图需要应用于根链的母体。
+
+    .. 说明::
+        这个函数是用:func:`apply_nested`装饰的，这些函数在输入prim路径下设置了所有prims的属性 (这些函数上应用了方案)。
+
+    .. _articulation root: https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/docs/Articulations.html
+    .. _ArticulationRootAPI: https://openusd.org/dev/api/class_usd_physics_articulation_root_a_p_i.html
+    .. _PhysxArticulationAPI: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_articulation_a_p_i.html
+
+    参数：
+        prim_path: 关节根的prim路径。
+        cfg: 关节根的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        如果设置性能成功，True，否则False。
+
+    异常：
+        NotImplementedError: 当根prim不是硬体，并且要创建固定关节时。
     """
     # get stage handle
     if stage is None:
@@ -230,6 +285,8 @@ def modify_articulation_root_properties(
 """
 Rigid body properties.
 """
+"""固体特性。
+"""
 
 
 def define_rigid_body_properties(
@@ -248,6 +305,20 @@ def define_rigid_body_properties(
     Raises:
         ValueError: When the prim path is not valid.
         TypeError: When the prim already has conflicting API schemas.
+    """
+    """运用硬体方案在输入 prim 上，设置其属性。
+
+    See :功能:`modify_rigid_body_properties` 详细说明如何设置属性。
+
+    参数：
+        prim_path: 运用硬体方案的prim路径。
+        cfg: 硬体的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    异常：
+        ValueError: 当prim路径不有效时。
+        TypeError: 当prim已经有冲突的API方案。
     """
     # get stage handle
     if stage is None:
@@ -296,6 +367,35 @@ def modify_rigid_body_properties(
     Returns:
         True if the properties were successfully set, False otherwise.
     """
+    """修改PhysX参数，以适用于硬体prim。
+
+    `rigid body`_是一个单体，可以通过PhysX仿真。
+    它可以是动态或动态。
+    一个动态的身体应对力量和碰撞。
+    用户可以移动`kinematic body`_，但不响应力。
+    它们类似于可以移动的静态体。
+
+    该方案包括属于`RigidBodyAPI`_和`PhysxRigidBodyAPI`_的属性。
+    计划。
+    后者包含了硬体的PhysX参数。
+
+    .. 说明::
+        这个函数是用:func:`apply_nested`装饰的，它设置了所有prims的属性 (它们上应用了方案) 在输入prim路径下。
+
+    .. _rigid body: https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/docs/RigidBodyOverview.html
+    .. _kinematic body: https://openusd.org/release/wp_rigid_body_physics.html#kinematic-bodies
+    .. _RigidBodyAPI: https://openusd.org/dev/api/class_usd_physics_rigid_body_a_p_i.html
+    .. _PhysxRigidBodyAPI: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_rigid_body_a_p_i.html
+
+    参数：
+        prim_path: 走向硬体的prim路径。
+        cfg: 硬体的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        如果设置性能成功，True，否则False。
+    """
     # get stage handle
     if stage is None:
         stage = get_current_stage()
@@ -328,6 +428,8 @@ def modify_rigid_body_properties(
 """
 Collision properties.
 """
+"""碰撞性能。
+"""
 
 
 def define_collision_properties(
@@ -345,6 +447,19 @@ def define_collision_properties(
 
     Raises:
         ValueError: When the prim path is not valid.
+    """
+    """应对输入 prim 的碰撞方案，并设置其属性。
+
+    See :功能:`modify_collision_properties` 详细说明如何设置属性。
+
+    参数：
+        prim_path: 运用硬体方案的prim路径。
+        cfg: 碰撞机的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    异常：
+        ValueError: 当prim路径不有效时。
     """
     # get stage handle
     if stage is None:
@@ -391,6 +506,30 @@ def modify_collision_properties(
     Returns:
         True if the properties were successfully set, False otherwise.
     """
+    """修改碰撞机prim的PhysX性能。
+
+    这些属性基于`UsdPhysics.CollisionAPI`_和`PhysxSchema.PhysxCollisionAPI`_方案。
+    更多关于房地产的信息请参阅官方文件。
+
+    调整这些参数影响了硬体的接触行为。
+    更多关于调整它们及其对仿真的影响的信息请参阅`PhysX documentation
+    <https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/docs/AdvancedCollisionDetection.html>`__。
+
+    .. 说明::
+        这个函数是用:func:`apply_nested`装饰的，它设置了所有prims的属性 (它们上应用了方案) 在输入prim路径下。
+
+    .. _UsdPhysics.CollisionAPI: https://openusd.org/dev/api/class_usd_physics_collision_a_p_i.html
+    .. _PhysxSchema.PhysxCollisionAPI: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_collision_a_p_i.html
+
+    参数：
+        prim_path: 父母的prim路径。
+        cfg: 碰撞机的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        如果设置性能成功，True，否则False。
+    """
     # get stage handle
     if stage is None:
         stage = get_current_stage()
@@ -423,6 +562,8 @@ def modify_collision_properties(
 """
 Mass properties.
 """
+"""大量物质。
+"""
 
 
 def define_mass_properties(prim_path: str, cfg: schemas_cfg.MassPropertiesCfg, stage: Usd.Stage | None = None):
@@ -438,6 +579,19 @@ def define_mass_properties(prim_path: str, cfg: schemas_cfg.MassPropertiesCfg, s
 
     Raises:
         ValueError: When the prim path is not valid.
+    """
+    """将质量方案应用于输入 prim，并设置其属性。
+
+    See :功能:`modify_mass_properties` 详细说明如何设置属性。
+
+    参数：
+        prim_path: 运用硬体方案的prim路径。
+        cfg: 对质量特性的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    异常：
+        ValueError: 当prim路径不有效时。
     """
     # get stage handle
     if stage is None:
@@ -485,6 +639,34 @@ def modify_mass_properties(prim_path: str, cfg: schemas_cfg.MassPropertiesCfg, s
     Returns:
         True if the properties were successfully set, False otherwise.
     """
+    """固体体质量prim的特性设定。
+
+    这些属性基于`UsdPhysics.MassAPI`方案。
+    如果质量未定义，则使用密度来计算质量。
+    然而，在这种情况下，用于计算密度使用硬体的碰撞接近。
+    更多关于房地产的信息请参阅`documentation
+    <https://openusd.org/release/wp_rigid_body_physics.html#body-mass-properties>`__。
+
+    .. 谨慎::
+
+        对象的质量可以以多种方式指定，并且有多种矛盾的设置，这些设置根据优先级得到解决。
+        在使用此产品之前，请确保您了解优先权规则。
+
+    .. 说明::
+        这个函数是用:func:`apply_nested`装饰的，它设置了所有prims的属性 (它们上应用了方案) 在输入prim路径下。
+
+    ..
+    UsdPhysics.MassAPI: https://openusd.org/dev/api/class_usd_physics_mass_a_p_i.html
+
+    参数：
+        prim_path: 硬体的prim路径。
+        cfg: 对质量特性的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        如果设置性能成功，True，否则False。
+    """
     # get stage handle
     if stage is None:
         stage = get_current_stage()
@@ -510,6 +692,8 @@ def modify_mass_properties(prim_path: str, cfg: schemas_cfg.MassPropertiesCfg, s
 """
 Contact sensor.
 """
+"""接触传感器。
+"""
 
 
 def activate_contact_sensors(prim_path: str, threshold: float = 0.0, stage: Usd.Stage = None):
@@ -528,6 +712,23 @@ def activate_contact_sensors(prim_path: str, threshold: float = 0.0, stage: Usd.
     Raises:
         ValueError: If the input prim path is not valid.
         ValueError: If there are no rigid bodies under the prim path.
+    """
+    """在指定的prim路径下激活所有硬体的接触传感器。
+
+    该函数将PhysX接触报告API添加到指定prim路径下的所有硬体中。
+    它还设定了接触传感器报告接触的强力门。
+    接触报告API只可添加到硬体中。
+
+    参数：
+        prim_path: 检查和准备接触传感器的prim路径。
+        threshold: 接触传感器的门。
+                   默认为0.0。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    异常：
+        ValueError: 如果输入prim路径不有效。
+        ValueError: 如果prim路径下面没有硬体。
     """
     # get stage handle
     if stage is None:
@@ -579,6 +780,8 @@ def activate_contact_sensors(prim_path: str, threshold: float = 0.0, stage: Usd.
 """
 Joint drive properties.
 """
+"""联合驱动性能。
+"""
 
 
 @apply_nested
@@ -615,6 +818,35 @@ def modify_joint_drive_properties(
 
     Raises:
         ValueError: If the input prim path is not valid.
+    """
+    """修改PhysX参数，用于联合prim。
+
+    这种函数检查输入 prim 是不是一个 revolu体或转换组合，并对其应用了联合驱动方案。
+    如果关节是一个子 (i.e.，它上应用`PhysxTendonAxisAPI`_图案)，则不应用关节驱动图案。
+
+    根据配置，这种方法修改了联合驱动的性能。
+    这些属性基于`UsdPhysics.DriveAPI`_方案。
+    更多关于房地产的信息请参阅官方文件。
+
+    .. 谨慎::
+
+        我们强烈建议通过:mod:`isaaclab.actuators`模块的功能来修改关节的关节特性。
+        这里的方法仅用于设置仿真低级属性。
+
+    .. _UsdPhysics.DriveAPI: https://openusd.org/dev/api/class_usd_physics_drive_a_p_i.html
+    .. _PhysxTendonAxisAPI: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_tendon_axis_a_p_i.html
+
+    参数：
+        prim_path: 运行联合驱动方案的prim路径。
+        cfg: 联合驱动器的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        如果设置性能成功，True，否则False。
+
+    异常：
+        ValueError: 如果输入prim路径不有效。
     """
     # get stage handle
     if stage is None:
@@ -686,6 +918,8 @@ def modify_joint_drive_properties(
 """
 Fixed tendon properties.
 """
+"""固定的肌肉特性。
+"""
 
 
 @apply_nested
@@ -719,6 +953,31 @@ def modify_fixed_tendon_properties(
     Raises:
         ValueError: If the input prim path is not valid.
     """
+    """修改固定部附带prim的PhysX参数。
+
+    通过长度和限制限制，可以使用`fixed tendon`_来连接关节自由的多个程度。
+    例如，它可以用来设置驱动和被动转动关节之间的平等约束。
+
+    该方案包含属于`PhysxTendonAxisRootAPI`_方案的属性。
+
+    .. 说明::
+        这个函数是用:func:`apply_nested`装饰的，它设置了所有prims的属性 (它们上应用了方案) 在输入prim路径下。
+
+    .. _fixed tendon: https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/_api_build/classPxArticulationFixedTendon.html
+    .. _PhysxTendonAxisRootAPI: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_tendon_axis_root_a_p_i.html
+
+    参数：
+        prim_path: X子附带的prim路径。
+        cfg: 部的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        如果设置性能成功，True，否则False。
+
+    异常：
+        ValueError: 如果输入prim路径不有效。
+    """
     # get stage handle
     if stage is None:
         stage = get_current_stage()
@@ -750,6 +1009,8 @@ def modify_fixed_tendon_properties(
 
 """
 Spatial tendon properties.
+"""
+"""空间的特性。
 """
 
 
@@ -785,6 +1046,33 @@ def modify_spatial_tendon_properties(
 
     Raises:
         ValueError: If the input prim path is not valid.
+    """
+    """修改PhysX参数，用于空间门附带prim。
+
+    通过长度和限制限制，可以使用`spatial tendon`_来连接关节自由的多个程度。
+    例如，它可以用来设置驱动和被动转动关节之间的平等约束。
+
+    该方案包含属于`PhysxTendonAxisRootAPI`_方案的属性。
+
+    .. 说明::
+        这个函数是用:func:`apply_nested`装饰的，它设置了所有prims的属性 (它们上应用了方案) 在输入prim路径下。
+
+    .. _spatial tendon: https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/_api_build/classPxArticulationSpatialTendon.html
+    .. _PhysxTendonAxisRootAPI: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_tendon_axis_root_a_p_i.html
+    .. _PhysxTendonAttachmentRootAPI: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_tendon_attachment_root_a_p_i.html
+    .. _PhysxTendonAttachmentLeafAPI: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_tendon_attachment_leaf_a_p_i.html
+
+    参数：
+        prim_path: X子附带的prim路径。
+        cfg: 部的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        如果设置性能成功，True，否则False。
+
+    异常：
+        ValueError: 如果输入prim路径不有效。
     """
     # obtain stage
     if stage is None:
@@ -822,6 +1110,8 @@ def modify_spatial_tendon_properties(
 """
 Deformable body properties.
 """
+"""可变形的身体特性。
+"""
 
 
 def define_deformable_body_properties(
@@ -845,6 +1135,25 @@ def define_deformable_body_properties(
     Raises:
         ValueError: When the prim path is not valid.
         ValueError: When the prim has no mesh or multiple meshes.
+    """
+    """将可变化体格式应用于输入 prim，并设置其属性。
+
+    See :功能:`modify_deformable_body_properties` 详细说明如何设置属性。
+
+    .. 说明::
+        如果输入prim不是网格，则这个函数将穿过prim并找到其下面的第一个网格。
+        如果没有网格或多个网格，则会出现错误。
+        这就是因为可变化体格式只能应用于单个网格。
+
+    参数：
+        prim_path: 运行可变体方案的prim路径。
+        cfg: 变形机身的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    异常：
+        ValueError: 当prim路径不有效时。
+        ValueError: 当prim没有网格或多个网格时。
     """
     # get stage handle
     if stage is None:
@@ -922,6 +1231,45 @@ def modify_deformable_body_properties(
     Returns:
         True if the properties were successfully set, False otherwise.
     """
+    """修改可变形体prim的PhysX参数。
+
+    一个`deformable body`_是一个单体可以通过PhysX仿真。
+    与硬体不同，可变形体支持网格中的节点的相对运动。
+    因此，它们可以用来仿真在应用的力量下发生变形。
+
+    PhysX软体仿真采用有限元素分析 (FEA) 来仿真网格的变形。
+    它使用两个四面形网格来代表可变形的身体:
+
+    1. **仿真网**:该网用于仿真，是溶剂扭曲的网。
+    2. **碰撞网**:该网只需要与仿真网的表面相匹配，用于碰撞检测。
+
+    在大多数应用中，我们假设上述两个网格是从可变化体的"发射网格"计算的。
+    渲染网是场景可见的网，用于渲染目的。
+    它由三角形组成，是基于PhysX料计算上述网格的。
+
+    该方案包含属于`PhysxDeformableBodyAPI`_的属性。
+    包含可变化机体的PhysX参数的方案。
+
+    .. 谨慎::
+        变形的身体方案仍在全宇宙团队开发中。
+        目前的实施与以赛克·西姆4.0.0后的PhysX方案合作。
+        在未来的版本中可能会发生变化。
+
+    .. 说明::
+        这个函数是用:func:`apply_nested`装饰的，它设置了所有prims的属性 (它们上应用了方案) 在输入prim路径下。
+
+    .. _deformable body: https://nvidia-omniverse.github.io/PhysX/physx/5.4.1/docs/SoftBodies.html
+    .. _PhysxDeformableBodyAPI: https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/class_physx_schema_physx_deformable_a_p_i.html
+
+    参数：
+        prim_path: 形体的prim路径。
+        cfg: 变形机身的配置。
+        stage: 在哪里找到prim。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        如果设置性能成功，True，否则False。
+    """
     # get stage handle
     if stage is None:
         stage = get_current_stage()
@@ -982,6 +1330,8 @@ def modify_deformable_body_properties(
 """
 Collision mesh properties.
 """
+"""碰撞网格性能
+"""
 
 
 def extract_mesh_collision_api_and_attrs(
@@ -997,6 +1347,17 @@ def extract_mesh_collision_api_and_attrs(
 
     Raises:
         ValueError: When neither USD nor PhysX API can be determined to be used.
+    """
+    """从配置中提取网格碰撞API函数和定制属性。
+
+    参数：
+        cfg: 网格碰撞性能的配置。
+
+    返回：
+        包含使用的API函数和定制属性字典的图布。
+
+    异常：
+        ValueError: 当不能确定使用USD或PhysX API。
     """
     # We use the number of user set attributes outside of the API function
     # to determine which API to use in ambiguous cases, so collect them here
@@ -1049,6 +1410,16 @@ def define_mesh_collision_properties(
     Raises:
         ValueError: When the prim path is not valid.
     """
+    """将网格碰撞方案应用于输入prim，并设置其属性。
+    See :功能:`modify_collision_mesh_properties` 详细说明如何设置属性。
+    参数：
+        prim_path : 应用网格碰撞方案的prim路径。
+        cfg : 网格碰撞性能的配置。
+        stage : 在哪里找到prim。
+                在 None 上默认设置，此时使用当前阶段。
+    异常：
+        ValueError: 当prim路径不有效时。
+    """
     # obtain stage
     if stage is None:
         stage = get_current_stage()
@@ -1086,6 +1457,24 @@ def modify_mesh_collision_properties(
         True if the properties were successfully set, False otherwise.
     Raises:
         ValueError: When the mesh approximation name is invalid.
+    """
+    """设置prim的网格碰撞特性。
+    这些特性基于`Phsyx the `UsdPhysics.MeshCollisionAPI`方案。
+    .. 说明::
+        这个函数是用:func:`apply_nested`装饰的，它设置了所有prims的属性 (它们上应用了方案) 在输入prim路径下。
+        ..
+        UsdPhysics.MeshCollisionAPI:
+        https://openusd.org/release/api/class_usd_physics_mesh_collision_a_p_i.html
+    参数：
+        prim_path : 硬体的prim路径。
+                    这个prim应该是 Mesh prim。
+        cfg : 网格碰撞性能的配置。
+        stage : 在哪里找到prim。
+                在 None 上默认设置，此时使用当前阶段。
+    返回：
+        如果设置性能成功，True，否则False。
+    异常：
+        ValueError: 如果网格近似名称是无效的。
     """
     # obtain stage
     if stage is None:

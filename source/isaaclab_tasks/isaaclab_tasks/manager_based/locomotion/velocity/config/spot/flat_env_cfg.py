@@ -48,6 +48,7 @@ COBBLESTONE_ROAD_CFG = terrain_gen.TerrainGeneratorCfg(
 @configclass
 class SpotActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=0.2, use_default_offset=True)
 
@@ -55,6 +56,7 @@ class SpotActionsCfg:
 @configclass
 class SpotCommandsCfg:
     """Command specifications for the MDP."""
+    """对MDP的命令规格。"""
 
     base_velocity = mdp.UniformVelocityCommandCfg(
         asset_name="robot",
@@ -72,10 +74,12 @@ class SpotCommandsCfg:
 @configclass
 class SpotObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # `` observation terms (order preserved)
         base_lin_vel = ObsTerm(
@@ -109,6 +113,7 @@ class SpotObservationsCfg:
 @configclass
 class SpotEventCfg:
     """Configuration for randomization."""
+    """配置为随机化。"""
 
     # startup
     physics_material = EventTerm(
@@ -280,6 +285,7 @@ class SpotRewardsCfg:
 @configclass
 class SpotTerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
     body_contact = DoneTerm(
@@ -296,6 +302,7 @@ class SpotTerminationsCfg:
 @configclass
 class SpotFlatEnvCfg(LocomotionVelocityRoughEnvCfg):
     """Configuration for the Spot robot in a flat environment."""
+    """在平坦环境中配置Spot机器人。"""
 
     # Basic settings
     observations: SpotObservationsCfg = SpotObservationsCfg()

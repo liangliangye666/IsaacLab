@@ -9,6 +9,11 @@ The UI elements are used to control the environment and visualize the state of t
 This includes functionalities such as tracking a robot in the simulation,
 toggling different debug visualization tools, and other user-defined functionalities.
 """
+"""为环境提供UI窗口实现的子模块。
+
+UI元素用于控制环境和可视化环境状态。
+这包括在仿真中跟踪机器人，切换不同的调试可视化工具和其他用户定义的功能等功能。
+"""
 
 from .base_env_window import BaseEnvWindow
 from .empty_window import EmptyWindow

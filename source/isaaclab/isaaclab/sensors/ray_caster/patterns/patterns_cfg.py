@@ -6,6 +6,7 @@
 """Configuration for the ray-cast sensor."""
 
 from __future__ import annotations
+"""射线传感器的配置。"""
 
 from collections.abc import Callable, Sequence
 from dataclasses import MISSING
@@ -21,12 +22,18 @@ from . import patterns
 @configclass
 class PatternBaseCfg:
     """Base configuration for a pattern."""
+    """为图案的基础配置。"""
 
     func: Callable[[PatternBaseCfg, str], tuple[torch.Tensor, torch.Tensor]] = MISSING
     """Function to generate the pattern.
 
     The function should take in the configuration and the device name as arguments. It should return
     the pattern's starting positions and directions as a tuple of torch.Tensor.
+    """
+    """函数生成模式。
+
+    函数应将配置和设备名称作为参数。
+    它应该作为torch.Tensor的图پل返回模式的起始位置和方向。
     """
 
 
@@ -40,17 +47,29 @@ class GridPatternCfg(PatternBaseCfg):
         The points are ordered based on the :attr:`ordering` attribute.
 
     """
+    """对于射线casting的网格格格的配置。
+
+    定义传感器坐标中的2D射线网格。
+
+    .. 注意::
+        这些点是根据:attr:`ordering`属性进行排序的。
+    """
 
     func: Callable = patterns.grid_pattern
 
     resolution: float = MISSING
     """Grid resolution (in meters)."""
+    """电网分辨率 (以米)。"""
 
     size: tuple[float, float] = MISSING
     """Grid size (length, width) (in meters)."""
+    """电网尺寸 (长度，宽度) (以米)。"""
 
     direction: tuple[float, float, float] = (0.0, 0.0, -1.0)
     """Ray direction. Defaults to (0.0, 0.0, -1.0)."""
+    """雷的方向。
+    在 (0.0， 0.0， -1.0) 之前的默认值。
+    """
 
     ordering: Literal["xy", "yx"] = "xy"
     """Specifies the ordering of points in the generated grid. Defaults to ``"xy"``.
@@ -67,6 +86,21 @@ class GridPatternCfg(PatternBaseCfg):
     * "xy" ordering: :math:`[(0, 3), (1, 3), (2, 3), (1, 4), (2, 4), (2, 4)]`
     * "yx" ordering: :math:`[(0, 3), (0, 4), (1, 3), (1, 4), (2, 3), (2, 4)]`
     """
+    """指定生成的网格中的点排序。
+    在``"xy"``上默认。
+
+    考虑一个有点的网格图案:math:`(x， y)`，其中:math:`x`和:math:`y`是网格索引。
+    点的排序可以指定为"xy"或"yx"。
+    这决定了在网格点上代时的内部和外部循环顺序。
+
+    * 如果选择"xy"，则分点由"x"上内部循环和"y"上外部循环排列。
+    * 如果选出"yx"，则分点由"y"上内部循环和"x"上外部循环排列。
+
+    例如，网格图案的点是:math:`X = (0， 1， 2)`和:math:`Y = (3， 4)`:
+
+    * "xy"序列:`[(0， 3)， (1， 3)， (2， 3)， (1， 4)， (2， 4)， (2， 4)]`
+    * "yx"顺序:`[(0， 3)， (0， 4)， (1， 3)， (1， 4)， (2， 3)， (2， 4)]`
+    """
 
 
 @configclass
@@ -78,6 +112,14 @@ class PinholeCameraPatternCfg(PatternBaseCfg):
         world unit is meters, so all of these values are in cm. For more information, please check:
         https://docs.omniverse.nvidia.com/materials-and-rendering/latest/cameras.html
     """
+    """为射线投射的 camera孔摄像头深度图像模式的配置。
+
+    .. 谨慎::
+        焦点长度以及开口大小和偏移设定为世界单位的十分之一。
+        在我们的例子中，世界单位是米，所以所有这些值都是cm。
+        更多信息请查看:
+        https://docs.omniverse.nvidia.com/材料和渲染/最新cameras.html
+    """
 
     func: Callable = patterns.pinhole_camera_pattern
 
@@ -85,6 +127,11 @@ class PinholeCameraPatternCfg(PatternBaseCfg):
     """Perspective focal length (in cm). Defaults to 24.0cm.
 
     Longer lens lengths narrower FOV, shorter lens lengths wider FOV.
+    """
+    """视角焦距 (在cm中)。
+    在24厘米之前。
+
+    更长的镜头长度较窄FOV，更短的镜头长度较宽FOV。
     """
 
     horizontal_aperture: float = 20.955
@@ -94,6 +141,14 @@ class PinholeCameraPatternCfg(PatternBaseCfg):
 
     Note:
         The default value is the horizontal aperture of a 35 mm spherical projector.
+    """
+    """水平开口 (厘米)。
+    默认值为20955厘米。
+
+    在相机上仿真传感器/片幅。
+
+    说明：
+        默认值是35mm圆形投影机的水平开口。
     """
     vertical_aperture: float | None = None
     r"""Vertical aperture (in cm). Defaults to None.
@@ -105,18 +160,36 @@ class PinholeCameraPatternCfg(PatternBaseCfg):
     .. math::
         \text{vertical aperture} = \text{horizontal aperture} \times \frac{\text{height}}{\text{width}}
     """
+    """垂直开口 (厘米)。
+    默认为 None。
+
+    在相机上仿真传感器/电影高度。
+    如果是None，则垂直开口是根据水平开口和图像的视角比计算的，以保持像素的平方。
+    在这种情况下，垂直开口计算为:
+
+    .. math::
+        \text{vertical aperture} = \text{horizontal aperture} \times \frac{\text{height}}{\text{width}}
+    """
 
     horizontal_aperture_offset: float = 0.0
     """Offsets Resolution/Film gate horizontally. Defaults to 0.0."""
+    """Off平地抵消分辨率/电影门。
+    默认为0.0。
+    """
 
     vertical_aperture_offset: float = 0.0
     """Offsets Resolution/Film gate vertically. Defaults to 0.0."""
+    """垂直抵消分辨率/电影门。
+    默认为0.0。
+    """
 
     width: int = MISSING
     """Width of the image (in pixels)."""
+    """图像宽度 (在像素中)。"""
 
     height: int = MISSING
     """Height of the image (in pixels)."""
+    """图像的高度 (在像素中)。"""
 
     @classmethod
     def from_intrinsic_matrix(
@@ -151,6 +224,33 @@ class PinholeCameraPatternCfg(PatternBaseCfg):
         Returns:
             An instance of the :class:`PinholeCameraPatternCfg` class.
         """
+        """从内在矩阵创建:class:`PinholeCameraPatternCfg`类实例。
+
+        内在矩阵是一个3x3矩阵，它定义了3D世界坐标和2D图像之间的映射。
+        矩阵定义为:
+
+        .. math::
+            I_{cam} = \begin{bmatrix}
+            f_x & 0 & c_x \\
+            0 & f_y & c_y \\
+            0 & 0 & 1
+            \end{bmatrix},
+
+        where :数学:`f_x`和:math:`f_y`是沿 x和y方向的焦距，而
+        :math:`c_x`和:数学:`c_y`是分别沿 x 和 y 方向的主要点偏移。
+
+        参数：
+            intrinsic_matrix: 摄像头的内在矩阵在线大格式。
+                              矩阵定义为 [f_x， 0， c_x， 0， f_y， c_y， 0， 0， 1]。
+                              形状是 (9，)。
+            width: 图像宽度 (在像素中)。
+            height: 图像的高度 (在像素中)。
+            focal_length: 摄像机的焦点长度 (厘米)。
+                          默认值为24.0厘米。
+
+        返回：
+            一个:class:`PinholeCameraPatternCfg`类的例子。
+        """
         # extract parameters from matrix
         f_x = intrinsic_matrix[0]
         c_x = intrinsic_matrix[2]
@@ -176,14 +276,21 @@ class PinholeCameraPatternCfg(PatternBaseCfg):
 @configclass
 class BpearlPatternCfg(PatternBaseCfg):
     """Configuration for the Bpearl pattern for ray-casting."""
+    """对于射线casting的BPearl模式的配置。"""
 
     func: Callable = patterns.bpearl_pattern
 
     horizontal_fov: float = 360.0
     """Horizontal field of view (in degrees). Defaults to 360.0."""
+    """视野水平 (在度)。
+    默认为360.0。
+    """
 
     horizontal_res: float = 10.0
     """Horizontal resolution (in degrees). Defaults to 10.0."""
+    """水平分辨率 (在度)。
+    默认调到10.0。
+    """
 
     # fmt: off
     vertical_ray_angles: Sequence[float] = [
@@ -198,22 +305,36 @@ class BpearlPatternCfg(PatternBaseCfg):
         We manually set the vertical ray angles to match the Bpearl sensor. The ray-angles
         are not evenly spaced.
     """
+    """垂直射线角 (在度)。
+    在32个角的列表中默认设置。
+
+    说明：
+        我们手动设置垂直射线角度，
+        射线角没有均的距离。
+    """
 
 
 @configclass
 class LidarPatternCfg(PatternBaseCfg):
     """Configuration for the LiDAR pattern for ray-casting."""
+    """对于射线casting的LiDAR模式的配置。"""
 
     func: Callable = patterns.lidar_pattern
 
     channels: int = MISSING
     """Number of Channels (Beams). Determines the vertical resolution of the LiDAR sensor."""
+    """频道数量 (束)。
+    确定LiDAR传感器的垂直分辨率。
+    """
 
     vertical_fov_range: tuple[float, float] = MISSING
     """Vertical field of view range in degrees."""
+    """垂直视野在度范围内。"""
 
     horizontal_fov_range: tuple[float, float] = MISSING
     """Horizontal field of view range in degrees."""
+    """水平视野在度范围内。"""
 
     horizontal_res: float = MISSING
     """Horizontal resolution (in degrees)."""
+    """水平分辨率 (在度)。"""

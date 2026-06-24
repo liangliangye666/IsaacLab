@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Tests for version comparison utilities."""
+"""版本比较工具的测试。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 from packaging.version import Version
@@ -22,6 +25,7 @@ from isaaclab.utils.version import compare_versions, get_isaac_sim_version
 
 def test_get_isaac_sim_version():
     """Test that get_isaac_sim_version returns cached Version object."""
+    """测试get_isaac_sim_version返回缓存版本对象。"""
     # Call twice to ensure caching works
     version1 = get_isaac_sim_version()
     version2 = get_isaac_sim_version()
@@ -42,6 +46,7 @@ def test_get_isaac_sim_version():
 
 def test_get_isaac_sim_version_format():
     """Test that get_isaac_sim_version returns correct format."""
+    """测试get_isaac_sim_version是否返回正确的格式。"""
     isaac_version = get_isaac_sim_version()
 
     # Should be able to convert to string
@@ -60,6 +65,7 @@ def test_get_isaac_sim_version_format():
 
 def test_version_caching_performance():
     """Test that caching improves performance for version checks."""
+    """测试缓存可以提高版本检查的性能。"""
     # First call (will cache)
     version1 = get_isaac_sim_version()
 
@@ -72,6 +78,7 @@ def test_version_caching_performance():
 
 def test_version_comparison_operators():
     """Test that Version objects support natural comparisons."""
+    """测试版本对象是否支持自然比较。"""
     isaac_version = get_isaac_sim_version()
 
     # Should support comparison operators
@@ -127,11 +134,13 @@ def test_version_comparison_operators():
 )
 def test_version_comparisons(v1, v2, expected):
     """Test version comparisons with various scenarios."""
+    """测试版本与各种场景进行比较。"""
     assert compare_versions(v1, v2) == expected
 
 
 def test_symmetry():
     """Test anti-symmetric property: if v1 < v2, then v2 > v1."""
+    """测试反对称性:如果v1 <v2，则v2 >v1。"""
     test_pairs = [("1.0.0", "2.0.0"), ("1.5.3", "1.4.9"), ("1.0.0", "1.0.0")]
 
     for v1, v2 in test_pairs:
@@ -146,6 +155,7 @@ def test_symmetry():
 
 def test_transitivity():
     """Test transitive property: if v1 < v2 < v3, then v1 < v3."""
+    """测试过渡性属性:如果v1 <v2 <v3，则v1 <v3。"""
     v1, v2, v3 = "1.0.0", "2.0.0", "3.0.0"
     assert compare_versions(v1, v2) == -1
     assert compare_versions(v2, v3) == -1

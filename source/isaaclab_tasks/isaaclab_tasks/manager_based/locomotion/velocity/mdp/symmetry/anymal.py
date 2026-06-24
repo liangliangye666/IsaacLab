@@ -7,6 +7,7 @@
 """Functions to specify the symmetry in the observation and action space for ANYmal."""
 
 from __future__ import annotations
+"""为了指定ANYmal的观测和动作空间的对称性。"""
 
 from typing import TYPE_CHECKING
 
@@ -40,6 +41,21 @@ def compute_symmetric_states(
 
     Returns:
         Augmented observations and actions tensors, or None if the respective input was None.
+    """
+    """通过应用对称变化来增加给定的观测和动作。
+
+    这种函数通过应用四个对称变化来创建所提供的观测和动作的增强版本:原始，左向右，前向后和横向。
+    对称性转型为强化学习任务有利，因为它们提供了额外的多元化数据，而不需要额外的数据收集。
+
+    参数：
+        env: 环境情况。
+        obs: 观测数字典的原始版本。
+             默认为 None。
+        actions: 原始的动作张量。
+                 默认为 None。
+
+    返回：
+        增强的观测和动作张量，或None，如果各自的输入是None。
     """
 
     # observations
@@ -86,6 +102,8 @@ def compute_symmetric_states(
 """
 Symmetry functions for observations.
 """
+"""对称函数用于观测。
+"""
 
 
 def _transform_policy_obs_left_right(env: ManagerBasedRLEnv, obs: torch.Tensor) -> torch.Tensor:
@@ -104,6 +122,20 @@ def _transform_policy_obs_left_right(env: ManagerBasedRLEnv, obs: torch.Tensor) 
 
     Returns:
         The transformed observation tensor with left-right symmetry applied.
+    """
+    """应对观测张量进行左向右对称转换。
+
+    这个函数通过应用对左-右轴的对称性表示转换来修改给定的观测张量。
+    这包括否定线性和角的速度，预测重力，速度命令，并翻转关节位置，关节速度和最后的动作的某些组件
+    for the ANYmal robot. Additionally, if height-scan data is present, it is flipped
+    在相关的维度上。
+
+    参数：
+        env: 观测得到的环境实例。
+        obs: 需要转换的观测张量。
+
+    返回：
+        转换的观测张量与左-右对称应用。
     """
     # copy observation tensor
     obs = obs.clone()
@@ -146,6 +178,19 @@ def _transform_policy_obs_front_back(env: ManagerBasedRLEnv, obs: torch.Tensor) 
     Returns:
         The transformed observation tensor with front-back symmetry applied.
     """
+    """应用前后对称性转换到观测张量。
+
+    这项函数通过应用对前后轴的对称性表示转换来修改给定的观测度。
+    这包括否定线性和角的速度，预测重力，速度指令的某些组件，并翻转关节位置，关节速度和ANYmal机器人的最后动作。
+    此外，如果有高度扫描数据，则将其翻向相关维度。
+
+    参数：
+        env: 观测得到的环境实例。
+        obs: 需要转换的观测张量。
+
+    返回：
+        转换的观测张量与前后对称应用。
+    """
     # copy observation tensor
     obs = obs.clone()
     device = obs.device
@@ -174,6 +219,8 @@ def _transform_policy_obs_front_back(env: ManagerBasedRLEnv, obs: torch.Tensor) 
 """
 Symmetry functions for actions.
 """
+"""对象函数为动作。
+"""
 
 
 def _transform_actions_left_right(actions: torch.Tensor) -> torch.Tensor:
@@ -189,6 +236,17 @@ def _transform_actions_left_right(actions: torch.Tensor) -> torch.Tensor:
 
     Returns:
         The transformed actions tensor with left-right symmetry applied.
+    """
+    """应用左向右对称转换到动作张量。
+
+    这个函数通过应用对左-右轴的对称性表示转换来修改给定的动作张量。
+    这包括转换关节位置，关节速度和ANYmal机器人最后的操作。
+
+    参数：
+        actions: 动作张量要转换。
+
+    返回：
+        转换的动作张量与左-右对称应用。
     """
     actions = actions.clone()
     actions[:] = _switch_anymal_joints_left_right(actions[:])
@@ -208,6 +266,17 @@ def _transform_actions_front_back(actions: torch.Tensor) -> torch.Tensor:
 
     Returns:
         The transformed actions tensor with front-back symmetry applied.
+    """
+    """应用前后对称性转换到动作张量。
+
+    这种函数通过应用对前后轴的对称性表示转换来修改给定的动作张量。
+    这包括转换关节位置，关节速度和ANYmal机器人最后的操作。
+
+    参数：
+        actions: 动作张量要转换。
+
+    返回：
+        转换的动作张量与前后对称应用。
     """
     actions = actions.clone()
     actions[:] = _switch_anymal_joints_front_back(actions[:])
@@ -231,10 +300,23 @@ Correspondingly, the joint ordering for the ANYmal robot is:
 * RF = right front --> [2, 6, 10]
 * RH = right hind --> [3, 7, 11]
 """
+"""辅助函数为对称。
+
+在Isaac Sim中，联合序列是如下: ["LF_HAA"，"LH_HAA"，"RF_HAA"，"RH_HAA"，"LF_HFE"，"LH_HFE"，"RF_HFE"，"RH_HFE"，"LF_KF
+E"，"LH_KFE"，"RF_KFE"，"RH_KFE" ]
+
+相应，ANYmal机器人的联合订单是:
+
+* LF现在，我们要做什么?
+* LH后面的左侧
+* RF在前面的右侧 --> [2， 6， 10]
+* RH现在，我们要做什么?
+"""
 
 
 def _switch_anymal_joints_left_right(joint_data: torch.Tensor) -> torch.Tensor:
     """Applies a left-right symmetry transformation to the joint data tensor."""
+    """应用左向右对称转换到联合数据子。"""
     joint_data_switched = torch.zeros_like(joint_data)
     # left <-- right
     joint_data_switched[..., [0, 4, 8, 1, 5, 9]] = joint_data[..., [2, 6, 10, 3, 7, 11]]
@@ -249,6 +331,7 @@ def _switch_anymal_joints_left_right(joint_data: torch.Tensor) -> torch.Tensor:
 
 def _switch_anymal_joints_front_back(joint_data: torch.Tensor) -> torch.Tensor:
     """Applies a front-back symmetry transformation to the joint data tensor."""
+    """应用前后对称性转换到联合数据子。"""
     joint_data_switched = torch.zeros_like(joint_data)
     # front <-- hind
     joint_data_switched[..., [0, 4, 8, 2, 6, 10]] = joint_data[..., [1, 5, 9, 3, 7, 11]]

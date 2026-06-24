@@ -12,8 +12,16 @@ This script demonstrates how to run IsaacSim via the AppLauncher
     ./isaaclab.sh -p scripts/tutorials/00_sim/launch_app.py
 
 """
+"""这个脚本展示了如何通过AppLauncher运行IsaacSim
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/00_sim/launch_app.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 '''
 AppLauncher 是 Isaac Lab 对 Isaac Sim 的 SimulationApp 做的一层包装。
@@ -83,12 +91,14 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import isaaclab.sim as sim_utils
 
 
 def design_scene():
     """Designs the scene by spawning ground plane, light, objects and meshes from usd files."""
+    """通过从USD文件中生成地面平面，光，物体和网格来设计场景。"""
     # Ground-plane
     cfg_ground = sim_utils.GroundPlaneCfg()
     cfg_ground.func("/World/defaultGroundPlane", cfg_ground)
@@ -111,6 +121,7 @@ def design_scene():
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.01, device=args_cli.device)

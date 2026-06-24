@@ -43,6 +43,11 @@ class FixedBaseUpperBodyIKG1SceneCfg(InteractiveSceneCfg):
     allowing only arm manipulation while the base remains stationary. The robot is
     controlled using upper body IK.
     """
+    """用G1机器人固定基层上部IK环境的场景配置。
+
+    这种配置设置了G1的人类型机器人，有固定的骨盆和腿部，只允许手臂操纵，
+    机器人使用上部IK进行控制。
+    """
 
     # Table
     packing_table = AssetBaseCfg(
@@ -81,6 +86,7 @@ class FixedBaseUpperBodyIKG1SceneCfg(InteractiveSceneCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # Set the robot to fixed base
         self.robot.spawn.articulation_props.fix_root_link = True
 
@@ -88,6 +94,7 @@ class FixedBaseUpperBodyIKG1SceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     upper_body_ik = G1_UPPER_BODY_IK_ACTION_CFG
 
@@ -97,10 +104,14 @@ class ObservationsCfg:
     """Observation specifications for the MDP.
     This class is required by the environment configuration but not used in this implementation
     """
+    """对MDP的观测规格。
+    这个类是环境配置所要求的，但不是在这个实现中使用的
+    """
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group with state values."""
+        """对国家价值观的策略组的观测。"""
 
         actions = ObsTerm(func=manip_mdp.last_action)
         robot_joint_pos = ObsTerm(
@@ -137,6 +148,7 @@ class ObservationsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=locomanip_mdp.time_out, time_out=True)
 
@@ -159,6 +171,11 @@ class FixedBaseUpperBodyIKG1EnvCfg(ManagerBasedRLEnvCfg):
     This environment is designed for manipulation tasks where the G1 humanoid robot
     has a fixed pelvis and legs, allowing only arm and hand movements for manipulation. The robot is
     controlled using upper body IK.
+    """
+    """对G1固定底部上部IK环境的配置。
+
+    这种环境是为操纵任务而设计的，其中G1人形机器人有一个固定的盆地和腿部，只允许手臂和手动进行操纵。
+    机器人使用上部IK进行控制。
     """
 
     # Scene settings
@@ -183,6 +200,7 @@ class FixedBaseUpperBodyIKG1EnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 4
         self.episode_length_s = 20.0

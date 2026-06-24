@@ -14,8 +14,18 @@ The camera sensor is based on using Warp kernels which do ray-casting against st
     ./isaaclab.sh -p scripts/tutorials/04_sensors/run_ray_caster_camera.py
 
 """
+"""这本脚本展示了如何使用来自Isaac Lab框架的射线摄像头传感器。
+
+摄像头的传感器基于使用Warp核，
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/04_sensors/run_ray_caster_camera.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -34,6 +44,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 
@@ -50,6 +61,7 @@ from isaaclab.utils.math import project_points, unproject_depth
 
 def define_sensor() -> RayCasterCamera:
     """Defines the ray-cast camera sensor to add to the scene."""
+    """定义射线摄像头传感器，"""
     # Camera base frames
     # In contras to the USD camera, we associate the sensor to the prims at these locations.
     # This means that parent prim of the sensor is the prim at this location.
@@ -95,6 +107,7 @@ def design_scene():
 
 def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
     """Run the simulator."""
+    """运行仿真器。"""
     # extract entities for simplified notation
     camera: RayCasterCamera = scene_entities["camera"]
 
@@ -162,6 +175,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg()
     sim = sim_utils.SimulationContext(sim_cfg)

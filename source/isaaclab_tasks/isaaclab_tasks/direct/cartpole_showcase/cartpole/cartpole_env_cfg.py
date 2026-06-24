@@ -38,6 +38,14 @@ class BoxBoxEnvCfg(CartpoleEnvCfg):
         0    Cart DOF effort scale: [-1, 1]
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.Box``形状 (4，))
+
+        === === Idx观测 === === 0 极 DOF位置 1 极 DOF速度 2 车 DOF位置 3 车 DOF速度 === ===
+
+    * 动作空间 (``~gymnasium.spaces.Box``形状 (1，))
+
+        === === Idx 动作 === === 0 卡车 DOF 努力规模: [-1， 1] === ===
+    """
 
     observation_space = spaces.Box(low=float("-inf"), high=float("inf"), shape=(4,))  # or for simplicity: 4 or [4]
     action_space = spaces.Box(low=-1.0, high=1.0, shape=(1,))  # or for simplicity: 1 or [1]
@@ -66,6 +74,14 @@ class BoxDiscreteEnvCfg(CartpoleEnvCfg):
         1    Negative maximum cart DOF effort
         2    Positive maximum cart DOF effort
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Box``形状 (4，))
+
+        === === Idx观测 === === 0 极 DOF位置 1 极 DOF速度 2 车 DOF位置 3 车 DOF速度 === ===
+
+    * 动作空间 (``~gymnasium.spaces.Discrete``有3个元素)
+
+        === === N 动作 === === 0 零行车DOF 努力 1 负最大行车DOF 努力 2 积极最大行车DOF 努力 === ===
     """
 
     observation_space = spaces.Box(low=float("-inf"), high=float("inf"), shape=(4,))  # or for simplicity: 4 or [4]
@@ -102,6 +118,16 @@ class BoxMultiDiscreteEnvCfg(CartpoleEnvCfg):
         0    Negative effort (one side)
         1    Positive effort (other side)
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Box``形状 (4，))
+
+        === === Idx观测 === === 0 极 DOF位置 1 极 DOF速度 2 车 DOF位置 3 车 DOF速度 === ===
+
+    * 动作空间 (``~gymnasium.spaces.MultiDiscrete``有2个分离空间)
+
+        === === N 动作 (分别0) === 0 零行车DOF 努力 1 半个最大行车DOF 努力 2 最大行车DOF 努力 === ===
+
+        === === N 动作 (分别1) === === 0 负面努力 (一边) 1 积极努力 (另一边) === ===
     """
 
     observation_space = spaces.Box(low=float("-inf"), high=float("inf"), shape=(4,))  # or for simplicity: 4 or [4]
@@ -147,6 +173,16 @@ class DiscreteBoxEnvCfg(CartpoleEnvCfg):
         0    Cart DOF effort scale: [-1, 1]
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.Discrete``含16个元素)
+
+        === === N 观测 (值标志:极位置，车位，极速，车速) === === 0 - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        - - - - - - - - -
+
+    * 动作空间 (``~gymnasium.spaces.Box``形状 (1，))
+
+        === === Idx 动作 === === 0 卡车 DOF 努力规模: [-1， 1] === ===
+    """
 
     observation_space = spaces.Discrete(16)  # or for simplicity: {16}
     action_space = spaces.Box(low=-1.0, high=1.0, shape=(1,))  # or for simplicity: 1 or [1]
@@ -187,6 +223,16 @@ class DiscreteDiscreteEnvCfg(CartpoleEnvCfg):
         1    Negative maximum cart DOF effort
         2    Positive maximum cart DOF effort
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Discrete``含16个元素)
+
+        === === N 观测 (值标志:极位置，车位，极速，车速) === === 0 - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        - - - - - - - - -
+
+    * 动作空间 (``~gymnasium.spaces.Discrete``有3个元素)
+
+        === === N 动作 === === 0 零行车DOF 努力 1 负最大行车DOF 努力 2 积极最大行车DOF 努力 === ===
     """
 
     observation_space = spaces.Discrete(16)  # or for simplicity: {16}
@@ -235,6 +281,18 @@ class DiscreteMultiDiscreteEnvCfg(CartpoleEnvCfg):
         0    Negative effort (one side)
         1    Positive effort (other side)
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Discrete``含16个元素)
+
+        === === N 观测 (值标志:极位置，车位，极速，车速) === === 0 - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
+        - - - - - - - - -
+
+    * 动作空间 (``~gymnasium.spaces.MultiDiscrete``有2个分离空间)
+
+        === === N 动作 (分别0) === 0 零行车DOF 努力 1 半个最大行车DOF 努力 2 最大行车DOF 努力 === ===
+
+        === === N 动作 (分别1) === === 0 负面努力 (一边) 1 积极努力 (另一边) === ===
     """
 
     observation_space = spaces.Discrete(16)  # or for simplicity: {16}
@@ -287,6 +345,20 @@ class MultiDiscreteBoxEnvCfg(CartpoleEnvCfg):
         0    Cart DOF effort scale: [-1, 1]
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.MultiDiscrete``有4个离散空间)
+
+        === === N 观测 (分别0) === === 0 负极位置 (-) 1 零或正极位置 (+) === ===
+
+        === === N 观测 (分别1) === === 0 负货车位置 (-) 1 零或正货车位置 (+) === ===
+
+        === === N观测 (分别2) === === 0 负极速 (-) 1 零或正极速 (+) === ===
+
+        === === N观测 (分别3) === === 0 负车速 (-) 1 零或正车速 (+) === ===
+
+    * 动作空间 (``~gymnasium.spaces.Box``形状 (1，))
+
+        === === Idx 动作 === === 0 卡车 DOF 努力规模: [-1， 1] === ===
+    """
 
     observation_space = spaces.MultiDiscrete([2, 2, 2, 2])  # or for simplicity: [{2}, {2}, {2}, {2}]
     action_space = spaces.Box(low=-1.0, high=1.0, shape=(1,))  # or for simplicity: 1 or [1]
@@ -334,6 +406,20 @@ class MultiDiscreteDiscreteEnvCfg(CartpoleEnvCfg):
         1    Negative maximum cart DOF effort
         2    Positive maximum cart DOF effort
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.MultiDiscrete``有4个离散空间)
+
+        === === N 观测 (分别0) === === 0 负极位置 (-) 1 零或正极位置 (+) === ===
+
+        === === N 观测 (分别1) === === 0 负货车位置 (-) 1 零或正货车位置 (+) === ===
+
+        === === N观测 (分别2) === === 0 负极速 (-) 1 零或正极速 (+) === ===
+
+        === === N观测 (分别3) === === 0 负车速 (-) 1 零或正车速 (+) === ===
+
+    * 动作空间 (``~gymnasium.spaces.Discrete``有3个元素)
+
+        === === N 动作 === === 0 零行车DOF 努力 1 负最大行车DOF 努力 2 积极最大行车DOF 努力 === ===
     """
 
     observation_space = spaces.MultiDiscrete([2, 2, 2, 2])  # or for simplicity: [{2}, {2}, {2}, {2}]
@@ -390,6 +476,22 @@ class MultiDiscreteMultiDiscreteEnvCfg(CartpoleEnvCfg):
         1    Positive effort (other side)
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.MultiDiscrete``有4个离散空间)
+
+        === === N 观测 (分别0) === === 0 负极位置 (-) 1 零或正极位置 (+) === ===
+
+        === === N 观测 (分别1) === === 0 负货车位置 (-) 1 零或正货车位置 (+) === ===
+
+        === === N观测 (分别2) === === 0 负极速 (-) 1 零或正极速 (+) === ===
+
+        === === N观测 (分别3) === === 0 负车速 (-) 1 零或正车速 (+) === ===
+
+    * 动作空间 (``~gymnasium.spaces.MultiDiscrete``有2个分离空间)
+
+        === === N 动作 (分别0) === 0 零行车DOF 努力 1 半个最大行车DOF 努力 2 最大行车DOF 努力 === ===
+
+        === === N 动作 (分别1) === === 0 负面努力 (一边) 1 积极努力 (另一边) === ===
+    """
 
     observation_space = spaces.MultiDiscrete([2, 2, 2, 2])  # or for simplicity: [{2}, {2}, {2}, {2}]
     action_space = spaces.MultiDiscrete([3, 2])  # or for simplicity: [{3}, {2}]
@@ -419,6 +521,14 @@ class DictBoxEnvCfg(CartpoleEnvCfg):
         ===  ===
         0    Cart DOF effort scale: [-1, 1]
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Dict``有2个组成空间)
+
+        关键观测 关键观测DOF位置关节速度DOF快速的速度
+
+    * 动作空间 (``~gymnasium.spaces.Box``形状 (1，))
+
+        === === Idx 动作 === === 0 卡车 DOF 努力规模: [-1， 1] === ===
     """
 
     observation_space = spaces.Dict(
@@ -451,6 +561,14 @@ class DictDiscreteEnvCfg(CartpoleEnvCfg):
         1    Negative maximum cart DOF effort
         2    Positive maximum cart DOF effort
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Dict``有2个组成空间)
+
+        关键观测 关键观测DOF位置关节速度DOF快速的速度
+
+    * 动作空间 (``~gymnasium.spaces.Discrete``有3个元素)
+
+        === === N 动作 === === 0 零行车DOF 努力 1 负最大行车DOF 努力 2 积极最大行车DOF 努力 === ===
     """
 
     observation_space = spaces.Dict(
@@ -491,6 +609,16 @@ class DictMultiDiscreteEnvCfg(CartpoleEnvCfg):
         1    Positive effort (other side)
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.Dict``有2个组成空间)
+
+        关键观测 关键观测DOF位置关节速度DOF快速的速度
+
+    * 动作空间 (``~gymnasium.spaces.MultiDiscrete``有2个分离空间)
+
+        === === N 动作 (分别0) === 0 零行车DOF 努力 1 半个最大行车DOF 努力 2 最大行车DOF 努力 === ===
+
+        === === N 动作 (分别1) === === 0 负面努力 (一边) 1 积极努力 (另一边) === ===
+    """
 
     observation_space = spaces.Dict(
         {
@@ -526,6 +654,14 @@ class TupleBoxEnvCfg(CartpoleEnvCfg):
         0    Cart DOF effort scale: [-1, 1]
         ===  ===
     """
+    """* 观测空间 (``~gymnasium.spaces.Tuple``有2个组成空间)
+
+        现在，我们要做什么?DOF位置1DOF速度
+
+    * 动作空间 (``~gymnasium.spaces.Box``形状 (1，))
+
+        === === Idx 动作 === === 0 卡车 DOF 努力规模: [-1， 1] === ===
+    """
 
     observation_space = spaces.Tuple(
         (
@@ -557,6 +693,14 @@ class TupleDiscreteEnvCfg(CartpoleEnvCfg):
         1    Negative maximum cart DOF effort
         2    Positive maximum cart DOF effort
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Tuple``有2个组成空间)
+
+        现在，我们要做什么?DOF位置1DOF速度
+
+    * 动作空间 (``~gymnasium.spaces.Discrete``有3个元素)
+
+        === === N 动作 === === 0 零行车DOF 努力 1 负最大行车DOF 努力 2 积极最大行车DOF 努力 === ===
     """
 
     observation_space = spaces.Tuple(
@@ -596,6 +740,16 @@ class TupleMultiDiscreteEnvCfg(CartpoleEnvCfg):
         0    Negative effort (one side)
         1    Positive effort (other side)
         ===  ===
+    """
+    """* 观测空间 (``~gymnasium.spaces.Tuple``有2个组成空间)
+
+        现在，我们要做什么?DOF位置1DOF速度
+
+    * 动作空间 (``~gymnasium.spaces.MultiDiscrete``有2个分离空间)
+
+        === === N 动作 (分别0) === 0 零行车DOF 努力 1 半个最大行车DOF 努力 2 最大行车DOF 努力 === ===
+
+        === === N 动作 (分别1) === === 0 负面努力 (一边) 1 积极努力 (另一边) === ===
     """
 
     observation_space = spaces.Tuple(

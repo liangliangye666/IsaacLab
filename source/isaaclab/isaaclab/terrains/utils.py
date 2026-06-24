@@ -32,6 +32,23 @@ def color_meshes_by_height(meshes: list[trimesh.Trimesh], **kwargs) -> trimesh.T
     Returns:
         A trimesh object with the vertices colored based on the z-coordinate (height) of each vertex.
     """
+    """根据每个顶点的z坐标 (高度) 颜色，使用Turbo色图。
+    如果z坐标都是相同的，顶点将会有颜色
+    with a single color.
+
+    参数：
+        meshes: 一个排列三的物体。
+
+    关键字参数：
+        color: 在范围 [0，255] 中列出3个整数，代表网格的RGB颜色。
+               当所有顶点的z坐标相同时使用。
+               在 [172， 216， 230] 里默认设置。
+        color_map: 使用的颜色地图名称。
+                   默认的"turbo"。
+
+    返回：
+        基于每个顶点的z坐标 (高度) 进行彩色的顶点。
+    """
     # Combine all meshes into a single mesh
     mesh = trimesh.util.concatenate(meshes)
     # Get the z-coordinates of each vertex
@@ -77,6 +94,30 @@ def create_prim_from_mesh(prim_path: str, mesh: trimesh.Trimesh, **kwargs):
         orientation: The orientation of the terrain. Defaults to None.
         visual_material: The visual material to apply. Defaults to None.
         physics_material: The physics material to apply. Defaults to None.
+    """
+    """创建一个USDprim，由顶点和三角形定义的网格。
+
+    函数创建了一个USD prim，由顶点和三角形定义的网格。
+    它执行以下步骤:
+
+    - 在路径:obj:`prim_path`上创建USDXX形式prim。
+    - 创建一个USD prim，由路径:obj:`{prim_path}/mesh`的输入顶点和三角形定义的网格。
+    - 在路径:obj:`{prim_path}/physicsMaterial`上将物理材料分配给网格。
+    - 在路径:obj:`{prim_path}/visualMaterial`上将视觉材料分配到网格上。
+
+    参数：
+        prim_path: 创建的原始之路。
+        mesh: 在原始物件中使用的网格
+
+    关键字参数：
+        translation: 翻译了地形。
+                     默认为 None。
+        orientation: 土地的方向。
+                     默认为 None。
+        visual_material: 应用的视觉材料。
+                         默认为 None。
+        physics_material: 应用物理材料。
+                          默认为 None。
     """
     # need to import these here to prevent isaacsim launching when importing this module
     from pxr import UsdGeom
@@ -173,6 +214,41 @@ def find_flat_patches(
     Raises:
         RuntimeError: If the function fails to find valid patches. This can happen if the input parameters
             are not suitable for finding valid patches and maximum number of iterations is reached.
+    """
+    """在输入网格中找到给定的半径的平面斑点。
+
+    该函数根据输入范围所定义的搜索空间找到给定的半径的平坦补丁。
+    搜索空间由网格框架中的起源，以及x，y和z范围来特征。
+    采用 x 和 y 范围来样本取出原点周围 2D 区域的点，采用 z 范围用于根据点的高度过补丁。
+
+    函数执行拒绝样本查找补丁，基于以下步骤:
+
+    1. 在原产物周围的二维区域的样本补丁位置。
+    2. 定义每个补丁位置周围的点环，以使用射线casting查询点的高度。
+    3. 拒绝在 z 范围之外的贴片或高度差异太大。
+    4. 在所有补丁有效之前继续采样。
+
+    参数：
+        wp_mesh: 变形网，找到补丁。
+        num_patches: 要找到所需的补丁数量。
+        patch_radius: 半径用来形成斑点。
+                      如果提供列表，则检查多个补丁尺寸。
+                      这可用于处理网格中的洞或其他文物。
+        origin: 搜索空间的中心定义的起源。
+                这是在网格框架中指定的。
+        x_range: 取样的X坐标范围。
+        y_range: 取样的Y坐标范围。
+        z_range: 用于过补丁的有效Z坐标范围。
+        max_height_diff: 补丁上最低点和最高点之间的最大允许距离，以使其被视为有效。
+                         如果差异大于此值，补丁将被拒绝。
+
+    返回：
+        一个包含平面补丁的形状张量 (num_patches，3)。
+        在网格框架中定义了补丁。
+
+    异常：
+        RuntimeError: 如果函数找不到有效的补丁。
+                      如果输入参数不适合寻找有效补丁，并且达到最大的代数，这可能发生。
     """
     # set device to warp mesh device
     device = wp.device_to_torch(wp_mesh.device)

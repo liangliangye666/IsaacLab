@@ -6,6 +6,7 @@
 """Sub-module containing command generators for 3D orientation goals for objects."""
 
 from __future__ import annotations
+"""包含对物体3D导向目标命令生成器的子模块。"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -38,9 +39,23 @@ class InHandReOrientationCommand(CommandTerm):
     reaches the goal orientation. The goal orientation is considered to be reached when the
     orientation error is below a certain threshold.
     """
+    """在手中操纵任务中生成3D姿势命令的命令项。
+
+    这个命令项为对象生成3D导向命令。
+    从3D导向空间中均采样导向命令。
+    位置命令是对象的默认根状态。
+
+    常定位置命令是鼓励物体在任务中不移动。
+    例如，物体不应该从机器人的手掌下落。
+
+    与典型的命令项不同，目标根据时间重新样本，这个命令项不会根据时间重新样本目标。
+    而是在目标方向达到时，
+    如果导向错误低于某个门值，则将视为实现目标导向。
+    """
 
     cfg: InHandReOrientationCommandCfg
     """Configuration for the command term."""
+    """命令项的配置。"""
 
     def __init__(self, cfg: InHandReOrientationCommandCfg, env: ManagerBasedRLEnv):
         """Initialize the command term class.
@@ -48,6 +63,12 @@ class InHandReOrientationCommand(CommandTerm):
         Args:
             cfg: The configuration parameters for the command term.
             env: The environment object.
+        """
+        """启动命令项类。
+
+        参数：
+            cfg: 命令项的配置参数。
+            env: 环境对象。
         """
         # initialize the base class
         super().__init__(cfg, env)
@@ -82,14 +103,21 @@ class InHandReOrientationCommand(CommandTerm):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def command(self) -> torch.Tensor:
         """The desired goal pose in the environment frame. Shape is (num_envs, 7)."""
+        """在环境框架中设置所需的目标。
+        形状是 (num_envs， 7)。
+        """
         return torch.cat((self.pos_command_e, self.quat_command_w), dim=-1)
 
     """
     Implementation specific functions.
+    """
+    """具体执行功能。
     """
 
     def _update_metrics(self):

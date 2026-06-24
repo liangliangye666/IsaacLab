@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """This sub-module contains the functions that are specific to the humanoid environment."""
+"""这一子模块包含了对人形环境特有的功能。"""
 
 from isaaclab.envs.mdp import *  # noqa: F401, F403
 

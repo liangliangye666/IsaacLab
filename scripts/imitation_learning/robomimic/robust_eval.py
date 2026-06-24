@@ -23,8 +23,28 @@ Args:
     norm_factor_max: If provided, maximum value of the action space normalization factor.
     disable_fabric: Whether to disable fabric and use USD I/O operations.
 """
+"""在多个评估设置中评估从robomimic训练有素的策略。
+
+这种脚本将加载一个训练有素的机器人化策略，并在艾萨克实验室环境中评估它在多个评估设置 (照明，纹理等) 和种子中。
+它将结果保存到指定输出目录中。
+
+参数：
+    task: 环境名称。
+    input_dir: 包含评估的模型检查点的目录。
+    horizon: 每个部署的步骤视野。
+    num_rollouts: 每个模型，每一个设置的推出数量。
+    num_seeds: 随机种子数量进行评估。
+    seeds: 选择性使用特定种子，而不是随机种子。
+    log_dir: 编写结果的目录。
+    log_file: 输出文件的名称
+    output_vis_file: 输出录制的事件的文件路径。
+    norm_factor_min: 如果提供，操作空间正常化因子的最小值。
+    norm_factor_max: 如果提供，操作空间正常化因子的最大值。
+    disable_fabric: 否禁用布料和使用USD I/O操作。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -75,6 +95,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import copy
 import os
@@ -102,6 +123,19 @@ def rollout(policy, env: gym.Env, success_term, horizon: int, device: torch.devi
     Returns:
         terminated: Whether the rollout terminated successfully.
         traj: The trajectory of the rollout.
+    """
+    """执行环境策略的单一推广。
+
+    参数：
+        policy: 我们需要评估机器人化策略。
+        env: 评估的环境。
+        horizon: 每个部署的步骤水平。
+        device: 这种设备可以运行保险。
+        args_cli: 包含正常化因素的命令行参数。
+
+    返回：
+        terminated: 发射是否成功结束。
+        traj: 部署的轨迹。
     """
     policy.start_episode()
     obs_dict, _ = env.reset()
@@ -178,6 +212,20 @@ def evaluate_model(
     Returns:
         float: Success rate of the model
     """
+    """在多个部署中评估一个模型检查点。
+
+    参数：
+        model_path: 走向模型检查站。
+        env: 评估的环境。
+        device: 这种设备可以运行保险。
+        num_rollouts: 执行的部署数量。
+        horizon: 每个部署的步骤视野。
+        seed: 随机种子使用。
+        output_file: 文件可以写出结果。
+
+    返回：
+        float: 模型成功率
+    """
     # Set seed
     torch.manual_seed(seed)
     env.seed(seed)
@@ -219,6 +267,7 @@ def evaluate_model(
 
 def main() -> None:
     """Run evaluation of trained policies from robomimic with Isaac Lab environment."""
+    """运行与艾萨克实验室环境的训练有素策略评估。"""
     # Parse configuration
     env_cfg = parse_env_cfg(args_cli.task, device=args_cli.device, num_envs=1, use_fabric=not args_cli.disable_fabric)
 

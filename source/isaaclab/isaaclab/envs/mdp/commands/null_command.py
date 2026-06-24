@@ -6,6 +6,7 @@
 """Sub-module containing command generator that does nothing."""
 
 from __future__ import annotations
+"""没有任何操作的命令生成器。"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -22,9 +23,15 @@ class NullCommand(CommandTerm):
     This command generator does not generate any commands. It is used for environments that do not
     require any commands.
     """
+    """命令发电器什么都不做。
+
+    这种命令生成器不会生成任何命令。
+    它用于不需要任何命令的环境。
+    """
 
     cfg: NullCommandCfg
     """Configuration for the command generator."""
+    """命令生成器的配置。"""
 
     def __str__(self) -> str:
         msg = "NullCommand:\n"
@@ -35,6 +42,8 @@ class NullCommand(CommandTerm):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def command(self):
@@ -43,10 +52,18 @@ class NullCommand(CommandTerm):
         Raises:
             RuntimeError: No command is generated. Always raises this error.
         """
+        """没有命令。
+
+        异常：
+            RuntimeError: 没有命令。
+                          总是提起这个错误。
+        """
         raise RuntimeError("NullCommandTerm does not generate any commands.")
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
@@ -57,6 +74,8 @@ class NullCommand(CommandTerm):
 
     """
     Implementation specific functions.
+    """
+    """具体执行功能。
     """
 
     def _update_metrics(self):

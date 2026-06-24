@@ -10,6 +10,7 @@ import isaacsim.core.utils.torch as torch_utils
 
 def get_random_prop_gains(default_values, noise_levels, num_envs, device):
     """Helper function to randomize controller gains."""
+    """随机调控器获益的辅助功能。"""
     c_param_noise = torch.rand((num_envs, default_values.shape[1]), dtype=torch.float32, device=device)
     c_param_noise = c_param_noise @ torch.diag(torch.tensor(noise_levels, dtype=torch.float32, device=device))
     c_param_multiplier = 1.0 + c_param_noise
@@ -23,6 +24,7 @@ def get_random_prop_gains(default_values, noise_levels, num_envs, device):
 
 def change_FT_frame(source_F, source_T, source_frame, target_frame):
     """Convert force/torque reading from source to target frame."""
+    """转换从源到目标框架的力/扭矩读数。"""
     # Modern Robotics eq. 3.95
     source_frame_inv = torch_utils.tf_inverse(source_frame[0], source_frame[1])
     target_T_source_quat, target_T_source_pos = torch_utils.tf_combine(

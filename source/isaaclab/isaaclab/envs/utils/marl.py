@@ -42,6 +42,26 @@ def multi_agent_to_single_agent(env: DirectMARLEnv, state_as_observation: bool =
         AssertionError: If the environment state cannot be used as observation since it was explicitly defined
             as unconstructed (:attr:`DirectMARLEnvCfg.state_space`).
     """
+    """将多代理环境实例转换为单代理环境实例。
+
+    转换的环境将是单代理环境界面类 (:class:`DirectRLEnv`) 的实例。
+    在转换过程中，执行以下操作:
+
+    * 如果环境状态被定义为观测，则它会返回正确的状态。
+    * 在原始多代理环境中的所有代理的终止和停机时间被乘以 (``AND``操作) 来构成相应的单代理值。
+    * 在原始多代理环境中的所有代理人的奖励被总结为单代理奖励。
+    * 一个代理所采取的动作被分为组建每个代理在原始多代理环境中的动作，然后进入它。
+
+    参数：
+        env: 转换的环境。
+        state_as_observation: 使用多代理环境状态作为单代理观测的天气。
+
+    返回：
+        一个代理环境实例。
+
+    异常：
+        AssertionError: 如果环境状态不能作为观测，因为它被明确定义为未构成 (:attr:`DirectMARLEnvCfg.state_space`)。
+    """
 
     class Env(DirectRLEnv):
         def __init__(self, env: DirectMARLEnv) -> None:
@@ -161,6 +181,26 @@ def multi_agent_with_one_agent(env: DirectMARLEnv, state_as_observation: bool = 
     Raises:
         AssertionError: If the environment state cannot be used as observation since it was explicitly defined
             as unconstructed (:attr:`DirectMARLEnvCfg.state_space`).
+    """
+    """将多代理环境实例转换为只使用一个代理的多代理环境实例。
+
+    转换的环境将是多代理环境界面类 (:class:`DirectMARLEnv`) 的实例，但只有一个代理可用 (ID:``"single-agent"``)。
+    在转换过程中，执行以下操作:
+
+    * 如果环境状态被定义为观测，则它会返回正确的状态。
+    * 在原始多代理环境中的所有代理的终止和停机时间被乘以 (``AND``操作) 来构成相应的代理值。
+    * 在原始多代理环境中的所有代理人的奖励被总结成代理奖励。
+    * 代理所采取的动作被分为组建每个代理在原始多代理环境中的动作，然后进入它。
+
+    参数：
+        env: 转换的环境。
+        state_as_observation: 气象使用多代理环境状态作为代理观测。
+
+    返回：
+        只有一个代理。
+
+    异常：
+        AssertionError: 如果环境状态不能作为观测，因为它被明确定义为未构成 (:attr:`DirectMARLEnvCfg.state_space`)。
     """
 
     class Env(DirectMARLEnv):

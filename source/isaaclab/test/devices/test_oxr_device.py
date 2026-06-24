@@ -37,12 +37,14 @@ from isaaclab.utils import configclass
 
 class NoOpRetargeter(RetargeterBase):
     """A no-op retargeter that requests hand and head tracking but returns empty tensor."""
+    """一个没有操作的重定位器，要求手头跟踪，但返回空调。"""
 
     def __init__(self, cfg: RetargeterCfg):
         super().__init__(cfg)
 
     def get_requirements(self) -> list[RetargeterBase.Requirement]:
         """Request hand and head tracking to trigger data collection."""
+        """要求手头跟踪，以触发数据收集。"""
         return [
             RetargeterBase.Requirement.HAND_TRACKING,
             RetargeterBase.Requirement.HEAD_TRACKING,
@@ -50,12 +52,14 @@ class NoOpRetargeter(RetargeterBase):
 
     def retarget(self, data):
         """Return empty tensor."""
+        """返回空。"""
         return torch.tensor([], device=self._sim_device)
 
 
 @configclass
 class EmptyManagerCfg:
     """Empty manager."""
+    """一个空的管理器。"""
 
     pass
 
@@ -63,6 +67,7 @@ class EmptyManagerCfg:
 @configclass
 class EmptySceneCfg(InteractiveSceneCfg):
     """Configuration for an empty scene."""
+    """设置为空场景。"""
 
     pass
 
@@ -70,6 +75,7 @@ class EmptySceneCfg(InteractiveSceneCfg):
 @configclass
 class EmptyEnvCfg(ManagerBasedEnvCfg):
     """Configuration for the empty test environment."""
+    """对于空试环境的配置。"""
 
     scene: EmptySceneCfg = EmptySceneCfg(num_envs=1, env_spacing=1.0)
     actions: EmptyManagerCfg = EmptyManagerCfg()
@@ -77,6 +83,7 @@ class EmptyEnvCfg(ManagerBasedEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         self.decimation = 5
         self.episode_length_s = 30.0
         self.sim.dt = 0.01  # 100Hz
@@ -86,6 +93,7 @@ class EmptyEnvCfg(ManagerBasedEnvCfg):
 @pytest.fixture
 def mock_xrcore(mocker):
     """Set up a mock for XRCore and related classes."""
+    """设置XRCore和相关类的仿真。"""
     # Create mock for XRCore and XRPoseValidityFlags
     xr_core_mock = mocker.MagicMock()
     xr_pose_validity_flags_mock = mocker.MagicMock()
@@ -159,6 +167,7 @@ def mock_xrcore(mocker):
 @pytest.fixture
 def empty_env():
     """Fixture to create and cleanup an empty environment."""
+    """建立和清理空白环境的固定装置。"""
     # Create a new stage
     omni.usd.get_context().new_stage()
     # Create environment with config
@@ -174,6 +183,7 @@ def empty_env():
 @pytest.mark.isaacsim_ci
 def test_xr_anchor(empty_env, mock_xrcore):
     """Test XR anchor creation and configuration."""
+    """测试XR杆创建和配置。"""
     env, env_cfg = empty_env
     env_cfg.xr = XrCfg(anchor_pos=(1, 2, 3), anchor_rot=(0, 1, 0, 0))
 
@@ -197,6 +207,7 @@ def test_xr_anchor(empty_env, mock_xrcore):
 @pytest.mark.isaacsim_ci
 def test_xr_anchor_default(empty_env, mock_xrcore):
     """Test XR anchor creation with default configuration."""
+    """测试XR结的设置设置。"""
     env, _ = empty_env
     # Create a proper config object with default values
     device = OpenXRDevice(OpenXRDeviceCfg())
@@ -219,6 +230,7 @@ def test_xr_anchor_default(empty_env, mock_xrcore):
 @pytest.mark.isaacsim_ci
 def test_xr_anchor_multiple_devices(empty_env, mock_xrcore):
     """Test XR anchor behavior with multiple devices."""
+    """用多个设备测试XR定行为。"""
     env, _ = empty_env
     # Create proper config objects with default values
     device_1 = OpenXRDevice(OpenXRDeviceCfg())
@@ -243,6 +255,7 @@ def test_xr_anchor_multiple_devices(empty_env, mock_xrcore):
 @pytest.mark.isaacsim_ci
 def test_get_raw_data(empty_env, mock_xrcore):
     """Test the _get_raw_data method returns correctly formatted tracking data."""
+    """测试 _get_raw_data方法返回正确格式化的跟踪数据。"""
     env, _ = empty_env
     # Create a proper config object with default values and a no-op retargeter to trigger data collection
     retargeter = NoOpRetargeter(RetargeterCfg())

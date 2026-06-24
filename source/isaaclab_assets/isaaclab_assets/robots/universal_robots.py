@@ -14,6 +14,16 @@ The following configuration parameters are available:
 
 Reference: https://github.com/ros-industrial/universal_robot
 """
+"""为宇宙机器人配置。
+
+下列配置参数可用:
+
+* :obj:`UR10_CFG`其他:UR10没有抓住的手臂。
+* :obj:`UR10E_ROBOTIQ_GRIPPER_CFG`:UR10E手臂，具有Robotiq_2f_140抓住器。
+* :obj:`UR10e_ROBOTIQ_2F_85_CFG`:UR10E手臂，具有Robotiq 2F-85抓住器。
+
+Reference: https://github.com/ros-industrial/universal_robot
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -104,6 +114,7 @@ UR10e_CFG = ArticulationCfg(
 )
 
 """Configuration of UR-10 arm using implicit actuator models."""
+"""使用隐含执行器模型的UR-10臂配置。"""
 
 UR10_LONG_SUCTION_CFG = UR10_CFG.copy()
 UR10_LONG_SUCTION_CFG.spawn.usd_path = f"{ISAAC_NUCLEUS_DIR}/Robots/UniversalRobots/ur10/ur10.usd"
@@ -119,14 +130,17 @@ UR10_LONG_SUCTION_CFG.init_state.joint_pos = {
 }
 
 """Configuration of UR10 arm with long suction gripper."""
+"""设置UR10手臂，用长吸管。"""
 
 UR10_SHORT_SUCTION_CFG = UR10_LONG_SUCTION_CFG.copy()
 UR10_SHORT_SUCTION_CFG.spawn.variants = {"Gripper": "Short_Suction"}
 
 """Configuration of UR10 arm with short suction gripper."""
+"""设置UR10手臂，使用短吸收。"""
 
 UR10e_ROBOTIQ_GRIPPER_CFG = UR10e_CFG.copy()
 """Configuration of UR10e arm with Robotiq_2f_140 gripper."""
+"""使用Robotiq_2f_140抓住器配置UR10e臂。"""
 UR10e_ROBOTIQ_GRIPPER_CFG.spawn.variants = {"Gripper": "Robotiq_2f_140"}
 UR10e_ROBOTIQ_GRIPPER_CFG.spawn.rigid_props.disable_gravity = True
 UR10e_ROBOTIQ_GRIPPER_CFG.init_state.joint_pos["finger_joint"] = 0.0
@@ -167,6 +181,7 @@ UR10e_ROBOTIQ_GRIPPER_CFG.actuators["gripper_passive"] = ImplicitActuatorCfg(
 
 UR10e_ROBOTIQ_2F_85_CFG = UR10e_CFG.copy()
 """Configuration of UR-10E arm with Robotiq_2f_140 gripper."""
+"""采用Robtiq_2f_140抓紧器的UR-10E臂配置。"""
 UR10e_ROBOTIQ_2F_85_CFG.spawn.variants = {"Gripper": "Robotiq_2f_85"}
 UR10e_ROBOTIQ_2F_85_CFG.spawn.rigid_props.disable_gravity = True
 UR10e_ROBOTIQ_2F_85_CFG.init_state.joint_pos["finger_joint"] = 0.0
@@ -205,3 +220,4 @@ UR10e_ROBOTIQ_2F_85_CFG.actuators["gripper_passive"] = ImplicitActuatorCfg(
 )
 
 """Configuration of UR-10E arm with Robotiq 2F-85 gripper."""
+"""配置UR-10E臂，使用Robotiq 2F-85抓住器。"""

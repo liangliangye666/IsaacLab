@@ -37,8 +37,40 @@ Output from the above commands:
 ```
 
 """
+"""这本脚本使用克隆器API来检查资产是否被正确实例化。
+
+使用不同输入 (分别替换`<Asset-Path>`和`<Asset-Path-Instanced>`以原始资产和实例资产的路径):
+
+```bash
+./isaaclab.sh  -p source/tools/check_instanceable.py <Asset-Path> -n 4096 --headless --physics
+./isaaclab.sh  -p source/tools/check_instanceable.py <Asset-Path-Instanced> -n 4096 --headless --physics
+./isaaclab.sh  -p source/tools/check_instanceable.py <Asset-Path> -n 4096 --headless
+./isaaclab.sh  -p source/tools/check_instanceable.py <Asset-Path-Instanced> -n 4096 --headless
+```
+
+上述命令的输出:
+
+```bash
+>>> Cloning time (cloner.clone): 0.648198 seconds
+>>> Setup time (sim.reset): : 5.843589 seconds
+[#clones: 4096, physics: True] Asset: <Asset-Path-Instanced> : 6.491870 seconds
+
+>>> Cloning time (cloner.clone): 0.693133 seconds
+>>> Setup time (sim.reset): 50.860526 seconds
+[#clones: 4096, physics: True] Asset: <Asset-Path> : 51.553743 seconds
+
+>>> Cloning time (cloner.clone) : 0.687201 seconds
+>>> Setup time (sim.reset) : 6.302215 seconds
+[#clones: 4096, physics: False] Asset: <Asset-Path-Instanced> : 6.989500 seconds
+
+>>> Cloning time (cloner.clone) : 0.678150 seconds
+>>> Setup time (sim.reset) : 52.854054 seconds
+[#clones: 4096, physics: False] Asset: <Asset-Path> : 53.532287 seconds
+```
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import contextlib
@@ -62,6 +94,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 from isaacsim.core.cloner import GridCloner
@@ -74,6 +107,7 @@ from isaaclab.utils.assets import check_file_path
 
 def main():
     """Spawns the USD asset robot and clones it using Isaac Gym Cloner API."""
+    """发育的USD使用艾萨克Gym克隆机器人和克隆它API。"""
     # check valid file path
     if not check_file_path(args_cli.input):
         raise ValueError(f"Invalid file path: {args_cli.input}")

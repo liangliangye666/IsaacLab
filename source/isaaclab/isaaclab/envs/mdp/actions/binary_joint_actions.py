@@ -41,13 +41,30 @@ class BinaryJointAction(ActionTerm):
     helps in devising a mimicking mechanism for the gripper, since in simulation it is often not possible to
     add such constraints to the gripper.
     """
+    """双元联合动作的基类。
+
+    这个动作项将二进制动作映射到 *开放*或 *关闭*联合配置。
+    这些配置通过:class:`BinaryJointActionCfg`对象进行指定。
+    如果输入动作是浮动向量，则根据动作值的标志，该动作被认为是二进制的。
+
+    基于上述，我们遵循以下二进制作用的惯例:
+
+    1. 开放动作:1 (bool) 或正值 (float)。
+    2. 接近作用:0 (bool) 或负值 (float)。
+
+    动作项主要可用于抓住器操作，在抓住器是开放或关闭的。
+    这有助于设计仿真机器的机制，因为在仿真中，往往无法将这种限制添加到抓住机上。
+    """
 
     cfg: actions_cfg.BinaryJointActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
     _asset: Articulation
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
     _clip: torch.Tensor
     """The clip applied to the input action."""
+    """在输入操作中应用的裁剪。"""
 
     def __init__(self, cfg: actions_cfg.BinaryJointActionCfg, env: ManagerBasedEnv) -> None:
         # initialize the action term
@@ -102,6 +119,8 @@ class BinaryJointAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
@@ -127,6 +146,8 @@ class BinaryJointAction(ActionTerm):
     """
     Operations.
     """
+    """操作。
+    """
 
     def process_actions(self, actions: torch.Tensor):
         # store the raw actions
@@ -151,9 +172,11 @@ class BinaryJointAction(ActionTerm):
 
 class BinaryJointPositionAction(BinaryJointAction):
     """Binary joint action that sets the binary action into joint position targets."""
+    """双元联合动作，将双元动作设置为共同位置目标。"""
 
     cfg: actions_cfg.BinaryJointPositionActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     def apply_actions(self):
         self._asset.set_joint_position_target(self._processed_actions, joint_ids=self._joint_ids)
@@ -161,9 +184,11 @@ class BinaryJointPositionAction(BinaryJointAction):
 
 class BinaryJointVelocityAction(BinaryJointAction):
     """Binary joint action that sets the binary action into joint velocity targets."""
+    """双向联合动作，将双向动作设置为关节速度目标。"""
 
     cfg: actions_cfg.BinaryJointVelocityActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     def apply_actions(self):
         self._asset.set_joint_velocity_target(self._processed_actions, joint_ids=self._joint_ids)
@@ -188,9 +213,26 @@ class AbsBinaryJointPositionAction(BinaryJointAction):
     4. Setting the target joint positions to either the open or close configuration
 
     """
+    """绝对二元联合动作，将二元动作设置为关节位置目标。
+
+    这类扩展到BinaryJointAction以接受绝对位置控制
+    for gripper joints. It converts continuous input actions into binary open/close commands
+    使用可配置的门机制。
+
+    根据BinaryJointAction的关键区别是，
+    - 接收绝对关节位置操作，用于控制抓住器
+    - 实施基于门的决策系统，以确定开放/关闭状态
+
+    动作处理由:
+    1. 采用连续输入动作值
+    2. 与配置的门值进行比较
+    3. 基于门比较和positive_threshold标志，确定是否打开或关闭
+    4. 设置目标关键位置为开放或关闭配置
+    """
 
     cfg: actions_cfg.AbsBinaryJointPositionActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     def process_actions(self, actions: torch.Tensor):
         # store the raw actions

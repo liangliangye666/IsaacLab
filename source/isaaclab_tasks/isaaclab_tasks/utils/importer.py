@@ -6,6 +6,7 @@
 """Sub-module with utility for importing all modules in a package recursively."""
 
 from __future__ import annotations
+"""一个子模块，可用于递归地进口一个包装中的所有模块。"""
 
 import importlib
 import pkgutil
@@ -31,6 +32,23 @@ def import_packages(package_name: str, blacklist_pkgs: list[str] | None = None):
         blacklist_pkgs: The list of blacklisted packages to skip. Defaults to None,
             which means no packages are blacklisted.
     """
+    """一个包装中的所有子包装进行递归进口。
+
+    使用此功能来递归地进口一包中的所有子包装，比手动地进口每个子包装更容易。
+
+    它取代了每个包的``__init__.py``文件顶部的以下代码摘录:
+
+    .. code-block:: python
+
+        import .locomotion.velocity
+        import .manipulation.reach
+        import .manipulation.lift
+
+    参数：
+        package_name: 包装名称。
+        blacklist_pkgs: 黑名单上列的包裹列表。
+                        默认为 None，这意味着没有包被列入黑名单。
+    """
     # Default blacklist
     if blacklist_pkgs is None:
         blacklist_pkgs = []
@@ -43,6 +61,8 @@ def import_packages(package_name: str, blacklist_pkgs: list[str] | None = None):
 
 """
 Internal helpers.
+"""
+"""内部助理。
 """
 
 
@@ -60,12 +80,20 @@ def _walk_packages(
         ``pkgutil.walk_packages`` function for more details.
 
     """
+    """在路径上的所有模块的收益率为ModuleInfo，或者，如果路径是None，所有可访问的模块。
+
+    说明：
+        这个函数是原始``pkgutil.walk_packages``函数的修改版本。
+        它添加了``blacklist_pkgs``参数来跳过黑名单的包裹。
+        请参阅原始``pkgutil.walk_packages``函数以了解更多细节。
+    """
     # Default blacklist
     if blacklist_pkgs is None:
         blacklist_pkgs = []
 
     def seen(p: str, m: dict[str, bool] = {}) -> bool:
         """Check if a package has been seen before."""
+        """检查是否曾见过包裹。"""
         if p in m:
             return True
         m[p] = True

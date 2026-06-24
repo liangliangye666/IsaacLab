@@ -14,6 +14,7 @@ def upper_body_last_action(
     asset_cfg: SceneEntityCfg = SceneEntityCfg("robot"),
 ) -> torch.Tensor:
     """Extract the last action of the upper body."""
+    """提取身体上部的最后动作。"""
     asset = env.scene[asset_cfg.name]
     joint_pos_target = asset.data.joint_pos_target
 

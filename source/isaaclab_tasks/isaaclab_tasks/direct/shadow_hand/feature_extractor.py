@@ -16,6 +16,7 @@ from isaaclab.utils import configclass
 
 class FeatureExtractorNetwork(nn.Module):
     """CNN architecture used to regress keypoint positions of the in-hand cube from image data."""
+    """CNN架构用于从图像数据中退回手中的立方体的关键点位置。"""
 
     def __init__(self):
         super().__init__()
@@ -58,15 +59,25 @@ class FeatureExtractorNetwork(nn.Module):
 @configclass
 class FeatureExtractorCfg:
     """Configuration for the feature extractor model."""
+    """功能提取器模型的配置。"""
 
     train: bool = True
     """If True, the feature extractor model is trained during the rollout process. Default is False."""
+    """如果True，特征提取器模型在推出过程中训练。
+    默认是False。
+    """
 
     load_checkpoint: bool = False
     """If True, the feature extractor model is loaded from a checkpoint. Default is False."""
+    """如果True，则从检查点上装载特征提取器模型。
+    默认是False。
+    """
 
     write_image_to_file: bool = False
     """If True, the images from the camera sensor are written to file. Default is False."""
+    """如果True，摄像头传感器的图像将被写成文件。
+    默认是False。
+    """
 
 
 class FeatureExtractor:
@@ -74,6 +85,11 @@ class FeatureExtractor:
 
     It uses a CNN to regress keypoint positions from normalized RGB, depth, and segmentation images.
     If the train flag is set to True, the CNN is trained during the rollout process.
+    """
+    """从图像数据中提取特征的类。
+
+    它使用CNN从正常化的RGB，深度和细分图像中退回关键点位置。
+    如果列车旗设置为True，则CNN在部署过程中训练。
     """
 
     def __init__(self, cfg: FeatureExtractorCfg, device: str, log_dir: str | None = None):
@@ -84,6 +100,14 @@ class FeatureExtractor:
             device: Device to run the model on.
             log_dir: Directory to save checkpoints. Default is None, which uses the local
                 "logs" folder resolved relative to this file.
+        """
+        """启动特征提取模型。
+
+        参数：
+            cfg: 功能提取器模型的配置。
+            device: 运行模型的设备。
+            log_dir: 保存检查点的目录。
+                     默认是None，它使用本地"日志"文件对此文件进行解决。
         """
 
         self.cfg = cfg
@@ -128,6 +152,19 @@ class FeatureExtractor:
         Returns:
             tuple[torch.Tensor, torch.Tensor, torch.Tensor]: Preprocessed RGB, depth, and segmentation
         """
+        """预处理输入图像。
+
+        参数：
+            rgb_img (torch.Tensor): RGB图像光器。
+                                    形状: (N，H，W，3)
+            depth_img (torch.Tensor): 深度图像子。
+                                      形状: (N，H，W，1)
+            segmentation_img (torch.Tensor): 细分图像子。
+                                             形状: (N，H，W，3)
+
+        返回：
+            元组[torch.Tensor，torch.Tensor，torch.Tensor]:预加工 RGB，深度和细分
+        """
         rgb_img = rgb_img / 255.0
         # process depth image
         depth_img[depth_img == float("inf")] = 0
@@ -147,6 +184,16 @@ class FeatureExtractor:
             depth_img (torch.Tensor): Depth image tensor. Shape: (N, H, W, 1).
             segmentation_img (torch.Tensor): Segmentation image tensor. Shape: (N, H, W, 3).
         """
+        """编写图像缓冲文件。
+
+        参数：
+            rgb_img (torch.Tensor): RGB图像光器。
+                                    形状: (N，H，W，3)
+            depth_img (torch.Tensor): 深度图像子。
+                                      形状: (N，H，W，1)
+            segmentation_img (torch.Tensor): 细分图像子。
+                                             形状: (N，H，W，3)
+        """
         save_images_to_file(rgb_img, "shadow_hand_rgb.png")
         save_images_to_file(depth_img, "shadow_hand_depth.png")
         save_images_to_file(segmentation_img, "shadow_hand_segmentation.png")
@@ -164,6 +211,21 @@ class FeatureExtractor:
 
         Returns:
             tuple[torch.Tensor, torch.Tensor]: Pose loss and predicted pose.
+        """
+        """使用图像提取特征，如果火车旗设置为True，则将模型列车。
+
+        参数：
+            rgb_img (torch.Tensor): RGB图像光器。
+                                    形状: (N，H，W，3)
+            depth_img (torch.Tensor): 深度图像子。
+                                      形状: (N，H，W，1)
+            segmentation_img (torch.Tensor): 细分图像子。
+                                             形状: (N，H，W，3)
+            gt_pose (torch.Tensor): 地面真相呈现度 (位置和角落)。
+                                    形状: (N，27)。
+
+        返回：
+            双重[torch.Tensor，torch.Tensor]: 姿势损失和预测姿势。
         """
 
         rgb_img, depth_img, segmentation_img = self._preprocess_images(rgb_img, depth_img, segmentation_img)

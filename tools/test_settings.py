@@ -6,14 +6,18 @@
 """
 This file contains the settings for the tests.
 """
+"""本文件包含测试的设置。
+"""
 
 import os
 
 ISAACLAB_PATH = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 """Path to the root directory of the Isaac Lab repository."""
+"""路径到艾萨克实验室的根目录。"""
 
 DEFAULT_TIMEOUT = 300
 """The default timeout for each test in seconds."""
+"""每次测试的默认截止时间为几秒钟。"""
 
 PER_TEST_TIMEOUTS = {
     "test_articulation.py": 500,
@@ -41,6 +45,10 @@ PER_TEST_TIMEOUTS = {
 
 Note: Any tests not listed here will use the default timeout.
 """
+"""一个测试的字典，
+
+Note: 任何未列出的测试都将使用默认的时间限。
+"""
 
 TESTS_TO_SKIP = [
     # lab
@@ -54,6 +62,7 @@ TESTS_TO_SKIP = [
     "test_tiled_camera_env.py",  # Need to improve the logic
 ]
 """A list of tests to skip by run_tests.py"""
+"""一份必须跳过的测试列表run_tests.py"""
 
 TEST_RL_ENVS = [
     # classic control
@@ -70,3 +79,4 @@ TEST_RL_ENVS = [
     "Isaac-Velocity-Rough-G1-v0",
 ]
 """A list of RL environments to test training on by run_train_envs.py"""
+"""列表RL试验培训的环境run_train_envs.py"""

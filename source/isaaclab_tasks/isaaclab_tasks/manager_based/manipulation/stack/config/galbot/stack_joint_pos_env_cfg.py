@@ -35,6 +35,7 @@ from isaaclab_assets.robots.galbot import GALBOT_ONE_CHARLIE_CFG  # isort: skip
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_all = EventTerm(func=mdp.reset_scene_to_default, mode="reset", params={"reset_joint_targets": True})
 
@@ -57,10 +58,12 @@ class EventCfg:
 @configclass
 class ObservationGalbotLeftArmGripperCfg:
     """Observations for the Galbot Left Arm Gripper."""
+    """对于Galbot左臂抓手的观测。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group with state values."""
+        """对国家价值观的策略组的观测。"""
 
         actions = ObsTerm(func=mdp.last_action)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
@@ -106,6 +109,7 @@ class ObservationGalbotLeftArmGripperCfg:
     @configclass
     class SubtaskCfg(ObservationsCfg.SubtaskCfg):
         """Observations for subtask group."""
+        """部分任务组的观测。"""
 
         grasp_1 = ObsTerm(
             func=mdp.object_grasped,
@@ -138,6 +142,7 @@ class ObservationGalbotLeftArmGripperCfg:
     @configclass
     class RGBCameraPolicyCfg(ObsGroup):
         """Observations for policy group with RGB images."""
+        """策略群体的观测以RGB图像。"""
 
         table_cam = ObsTerm(
             func=mdp.image, params={"sensor_cfg": SceneEntityCfg("table_cam"), "data_type": "rgb", "normalize": False}

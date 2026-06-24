@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Base class for data generator."""
+"""数据生成器的基础类。"""
 
 import asyncio
 import copy
@@ -48,6 +49,16 @@ def transform_source_data_segment_using_delta_object_pose(
     Returns:
         transformed_eef_poses: transformed pose sequence (shape [T, 4, 4])
     """
+    """转换一个源数据段 (从源示范中进行对象中心子任务段) 使用多角对象姿势。
+
+    参数：
+        src_eef_poses: 对最终效应控制姿势的序列 (形状 [T， 4， 4])
+            from the source demonstration
+        delta_obj_pose: 4x4 delta对象姿势
+
+    返回：
+        transformed_eef_poses: 转型姿势序列 (形状 [T， 4， 4])
+    """
     return PoseUtils.pose_in_A_to_pose_in_B(
         pose_in_A=src_eef_poses,
         pose_A_in_B=delta_obj_pose[None],
@@ -73,6 +84,18 @@ def transform_source_data_segment_using_object_pose(
 
     Returns:
         transformed_eef_poses: transformed pose sequence (shape [T, 4, 4])
+    """
+    """转换一个源数据段 (从源示范中以对象为中心的子任务段)，使目标eef姿势框架和对象框架之间的相对姿势保持。
+    请记住，每个对象中心的子任务段都对应一个对象，并且由目标eef姿势的序列组成。
+
+    参数：
+        obj_pose: 在当前场景中4×4物体姿势
+        src_eef_poses: 对最终效应控制姿势的序列 (形状 [T， 4， 4])
+            from the source demonstration
+        src_obj_pose: 来源示范中的4×4物体姿势
+
+    返回：
+        transformed_eef_poses: 转型姿势序列 (形状 [T， 4， 4])
     """
 
     # Transform source end effector poses to be relative to source object frame
@@ -104,6 +127,16 @@ def get_delta_pose_with_scheme(
 
     Returns:
         delta_pose: 4x4 delta pose
+    """
+    """通过给定的协调方案来获得三角形姿势。
+
+    参数：
+        src_obj_pose: 4x4物体在源场景中姿势
+        cur_obj_pose: 在当前场景中4×4物体姿势
+        task_constraint: 任务限制字典
+
+    返回：
+        delta_pose: 4x4 达尔塔姿势
     """
     coord_transform_scheme = task_constraint["coordination_scheme"]
     device = src_obj_pose.device
@@ -144,6 +177,13 @@ class DataGenerator:
     segment according to the new scene's context, stitching them into a coherent trajectory for a robotic
     end-effector to execute.
     """
+    """从源数据集中生成新的轨迹的主要数据生成器类。
+
+    数据生成器，MimicGen根据人类收集的几个源头示范，可以生成新的数据集。
+
+    数据生成器通过分析示范，将其分为对象中心的子任务段，存储在:class:`DataGenInfoPool`中。
+    然后通过根据新场景的背景改变每个段落来将这些子任务段调整到新的场景中，将它们编织成一个连贯的轨迹，
+    """
 
     def __init__(
         self,
@@ -159,6 +199,13 @@ class DataGenerator:
             dataset_path: path to hdf5 dataset to use for generation
             demo_keys: list of demonstration keys to use in file. If not provided,
                 all demonstration keys will be used.
+        """
+        """参数：
+            env: 用于数据生成的环境
+            src_demo_datagen_info_pool: 来源示范数据集
+            dataset_path: 用于生成的hdf5数据集的路径
+            demo_keys: 在文件中使用的示范键列表。
+                       如果没有提供，将使用所有示范键。
         """
         self.env = env
         self.env_cfg = env.cfg
@@ -184,6 +231,7 @@ class DataGenerator:
 
     def __repr__(self):
         """Pretty print this object."""
+        """这个物体很漂亮。"""
         msg = str(self.__class__.__name__)
         msg += f" (\n\tdataset_path={self.dataset_path}\n\tdemo_keys={self.demo_keys}\n)"
         return msg
@@ -193,6 +241,10 @@ class DataGenerator:
 
         Recall that each demonstration is segmented into a set of subtask segments, and the
         end index (and start index when skillgen is enabled) of each subtask can have a random offset.
+        """
+        """根据任务规范，将随机抵消应用到样本子子任务边界。
+
+        请记住，每个示范都被划分为一组子任务段，每个子任务的终端索引 (以及启动时的启动索引) 可以有随机的抵消。
         """
 
         randomized_subtask_boundaries = {}
@@ -272,6 +324,20 @@ class DataGenerator:
 
         Returns:
             The selected source demo index
+        """
+        """运行源子任务段选择的辅助方法。
+
+        参数：
+            eef_name: 终端有效者的名称
+            eef_pose: 终端效应的当前姿势
+            object_pose: 为此子任务的当前对象姿势
+            src_demo_current_subtask_boundaries: 在原始形状示范中的子任务段的起始和终索引 (N，2)
+            subtask_object_name: 本子任务的参考对象名称
+            selection_strategy_name: 选择战略名称
+            selection_strategy_kwargs: 执行选择策略的额外kwargs
+
+        返回：
+            选择的源示范索引
         """
         if subtask_object_name is None:
             # no reference object - only random selection is supported
@@ -365,6 +431,32 @@ class DataGenerator:
 
         Returns:
             WaypointTrajectory: The transformed trajectory for the selected subtask segment.
+        """
+        """构建一个转换的路线点轨迹，用于单个子任务的最终效应。
+
+        这种方法选择了指定的子任务的源示范段，使用随机的子任务边界切割相应的EEF姿势/目标/抓住动作，可选地预定第一个机器人EEF姿势 (进行回合)
+        from the robot pose instead of the first target), applies an object/coordination
+        基于转换到姿势序列，并返回结果为`WaypointTrajectory`。
+
+        选择和转换:
+
+        - 来源演示选择由`SubTaskConfig.selection_strategy` (和kwargs)
+          和`datagen_config.generation_select_src_per_subtask` / `generation_select_src_per_arm`控制。
+        - 对于协调约束，该方法在同时的子任务中重复使用/设置选定的源演示 ID，计算 `synchronous_steps`，并存储用于确保任务之间的相对运动一致的姿势 `transform`。
+        - 姿势转换是从对象姿势 (`object_ref`) 或通过由同时任务/协调方案提供的三角姿势计算的。
+
+
+        参数：
+            env_id: 环境索引用于查询当前机器人/物体姿势。
+            eef_name: 终端效应键，其子任务轨迹正在生成。
+            subtask_ind: 在 `subtask_configs[eef_name]` 中的子任务索引。
+            all_randomized_subtask_boundaries: 对于每一个EEF，每一个子任务的每一个示范随机索引 (开始，结束)。
+            runtime_subtask_constraints_dict: 运行时间字段的进/出字典
+                for constraints (e.g., selected source ID, delta transform, synchronous steps).
+            selected_src_demo_inds: 目前选择的源演示索引的每EEF映射 (如果配置，可在各臂上重复使用)。
+
+        返回：
+            WaypointTrajectory: 选择的子任务段的转换轨迹。
         """
         subtask_configs = self.env_cfg.subtask_configs[eef_name]
         # name of object for this subtask
@@ -575,6 +667,32 @@ class DataGenerator:
             The full sequence of waypoints to execute (initial interpolation segment followed by the subtask segment),
             with the temporary initial waypoint removed.
         """
+        """融合一个子任务轨迹到一个可执行的轨迹，用于机器人最终效应器。
+
+        这是在创建一个新的`WaypointTrajectory`，首先创建一个初始的插孔段，然后将提供的`subtask_trajectory`合并到它上。
+        最初的段落从前次任务的最后执行目标路线点 (如果配置) 或从机器人的当前终端效果器姿势开始。
+
+        Behavior:
+
+        - 如果`datagen_config.generation_interpolate_from_last_target_pose`是True，而不是第一个子任务，则插射从`prev_executed_
+          traj`的最后路线点开始。
+        - 否则，插射从当前的机器人EEF姿势开始 (从env要求) 并使用第一步点的抓住器操作和子任务的操作噪音。
+        - 合并使用`num_interpolation_steps`，`num_fixed_steps`，并从相应的`SubTaskConfig`中选择
+          `apply_noise_during_interpolation`。
+        - 在返回之前，将用于实现插射的临时初始路线点移除。
+
+        参数：
+            env_id: 在需要时，查询当前机器人EEF姿势。
+            eef_name: 结合轨迹的末端执行器名称/关键。
+            subtask_index: 在 `subtask_configs[eef_name]` 驱动插孔参数内的子任务索引。
+            prev_executed_traj: 之前执行的轨迹用于从最后一个目标路线点开始插射。
+                                需要在启用最后目标中断时，而这不是第一个子任务。
+            subtask_trajectory: 目前的子任务轨迹段，将在最初的插射段后合并。
+
+        返回：
+            执行的通路点的完整序列 (初始插图段，随后是子任务段)，
+            with the temporary initial waypoint removed.
+        """
         is_first_subtask = subtask_index == 0
         # We will construct a WaypointTrajectory instance to keep track of robot control targets
         # and then execute it once we have the trajectory.
@@ -646,6 +764,28 @@ class DataGenerator:
                 - src_demo_inds (list): list of selected source demonstration indices for each subtask
                 - src_demo_labels (np.array): same as @src_demo_inds, but repeated to have a label for
                   each timestep of the trajectory.
+        """
+        """试图产生新的示范。
+
+        参数：
+            env_id: 环境 ID
+            success_term: 成功函数检查任务是否成功
+            env_reset_queue: 排列存储环境 IDs重置
+            env_action_queue: 排队存储每个环境的操作
+            pause_subtask: 是否暂停子任务生成
+            export_demo: 是否出口示范
+            motion_planner: 运动规划器用于运动规划
+
+        返回：
+            包含以下内容的字典:
+                - initial_state (dict):执行轨迹的初始仿真器状态
+                - 状态 (列表):每个时间步骤的仿真器状态
+                - 观测 (列表):每一步的观测字典
+                - datagen_infos (列表):每个时间步骤 datagen_info
+                - 动作 (np.array):每一步执行的动作
+                - 成功 (bool):轨迹是否成功解决任务
+                - src_demo_inds (列表):每个子任务所选择的源示范索引列表
+                - src_demo_labels (np.array):与 @src_demo_inds相同，但重复为轨道的每一步都有标签。
         """
         # With skillgen, a motion planner is required to generate collision-free transitions between subtasks.
         if self.env_cfg.datagen_config.use_skillgen and motion_planner is None:
@@ -1019,6 +1159,18 @@ class DataGenerator:
 
         Returns:
             list[Waypoint]: Sequence of waypoints corresponding to the planned trajectory.
+        """
+        """(技能) 将运动规划器的输出轨迹转化为Waypoint对象列表。
+
+        运动规划器提供了计划的4×4姿势。
+        这种方法将每个姿势包装成`Waypoint`，将其与提供的`gripper_action`和从规划器配置 (`motion_noise_scale`) 来源的可选每步噪音值结合。
+
+        参数：
+            motion_planner: 规划器实例暴露`get_planned_poses()`和可选`config.motion_noise_scale`浮动。
+            gripper_action: 按动作，与每个计划的姿势相结合。
+
+        返回：
+            列表[路线点]:符合计划轨迹的路线点序列。
         """
         # Get motion noise scale from the planner's configuration
         motion_noise_scale = getattr(motion_planner.config, "motion_noise_scale", 0.0)

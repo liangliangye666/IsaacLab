@@ -48,9 +48,33 @@ class MeshConverter(AssetConverterBase):
         process or an offset can be added within the config in Isaac Lab.
 
     """
+    """转换OBJ / STL / FBX格式的网格文件为USD文件。
+
+    这个类包围`omni.kit.asset_converter`_扩展以提供惰的实现
+    for mesh to USD conversion. It stores the output USD file in an instanceable format since that is
+    在所有学习相关应用中通常使用。
+
+    为了使资产可以实例化，我们必须遵循一个特定的结构， 根据USD场景图实例化和物理的运行。
+    每个实例必须添加硬体组件，而不是引用的资产 (i.e.原型prim本身)。
+    这就是因为硬体组件定义为每个实例的特征，不能在引用资产下共享。
+    更多信息请查看`documentation <https://docs.isaacsim.omniverse.nvidia.com/latest/physics/simulation_fundamen
+    tals.html#rigid-body>`_。
+
+    由于上述情况，我们遵循以下结构:
+
+    * ``{prim_path}`` - 根 prim 是一个X形式，如果配置，则具有硬体和质量 APIs。
+    * ``{prim_path}/geometry`` - 包含网格和选项材料的prim，如果配置.如果启用实例化，这个prim将是原型prim的实例化参考。
+
+    .. _omni.kit.asset_converter: https://docs.omniverse.nvidia.com/extensions/latest/ext_asset-converter.html
+
+    .. 谨慎::
+        在转换STL文件时，假设Z-up公约，尽管这不是许多CAD出口程序的默认。
+        资产导向公约可以直接在CAD程序的出口过程中进行修改，或者可以在Isaac Lab的配置中添加偏移。
+    """
 
     cfg: MeshConverterCfg
     """The configuration instance for mesh to USD conversion."""
+    """网络转换到USD的配置实例。"""
 
     def __init__(self, cfg: MeshConverterCfg):
         """Initializes the class.
@@ -58,10 +82,17 @@ class MeshConverter(AssetConverterBase):
         Args:
             cfg: The configuration instance for mesh to USD conversion.
         """
+        """开始课程。
+
+        参数：
+            cfg: 网络转换到USD的配置实例。
+        """
         super().__init__(cfg=cfg)
 
     """
     Implementation specific methods.
+    """
+    """具体实施方法。
     """
 
     def _convert_asset(self, cfg: MeshConverterCfg):
@@ -80,6 +111,22 @@ class MeshConverter(AssetConverterBase):
 
         Raises:
             RuntimeError: If the conversion using the Omniverse asset converter fails.
+        """
+        """从OBJ，STL或FBX生成USD。
+
+        USD文件具有Y-up轴，并被扩展到米。
+        资产层次结构如下:
+
+        .. code-block:: none
+            mesh_file_basename (default prim)
+                |- /geometry/Looks
+                |- /geometry/mesh
+
+        参数：
+            cfg: 将网格转换为USD的配置。
+
+        异常：
+            RuntimeError: 如果使用Omniverse资产转换器的转换失败。
         """
         # resolve mesh name and format
         mesh_file_basename, mesh_file_format = os.path.basename(cfg.asset_path).split(".")
@@ -197,6 +244,8 @@ class MeshConverter(AssetConverterBase):
     """
     Helper methods.
     """
+    """帮助方法。
+    """
 
     @staticmethod
     async def _convert_mesh_to_usd(in_file: str, out_file: str, load_materials: bool = True) -> bool:
@@ -216,6 +265,23 @@ class MeshConverter(AssetConverterBase):
 
         Returns:
             True if the conversion succeeds.
+        """
+        """从支持的文件类型转换为USD。
+
+        这个函数使用Omniverse Asset Converter扩展来将网格文件转换为USD。
+        它是一个异步函数，应使用`asyncio.get_event_loop().run_until_complete()`来调用。
+
+        转换的资产存储在指定输出文件中的USD格式。
+        USD文件具有Y-up轴，并且扩展到cm。
+
+        参数：
+            in_file: 转换的文件。
+            out_file: 输出文件存储的路径。
+            load_materials: 设置为True，以便将输入文件中定义的材料连接到生成的USD网格。
+                            默认为 True。
+
+        返回：
+            True如果转换成功。
         """
         enable_extension("omni.kit.asset_converter")
 

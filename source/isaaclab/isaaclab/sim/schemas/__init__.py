@@ -31,6 +31,32 @@ Locally, the schemas are defined in the following files:
 * ``_isaac_sim/extsPhysics/omni.usd.schema.physx/plugins/PhysxSchema/resources/generatedSchema.usda``
 
 """
+"""包含Omniverse中使用的方案的公用工具的子模块。
+
+我们将PhysX和USD物理的USD方案包装成一个更方便的API，
+这样，配置对象可以定义设置的方案属性，并使物理参数更容易调节，而不需要打开Omniverse Kit，并手动设置参数到各自的USD属性中。
+
+.. 谨慎::
+
+    prims是原型的方案属性不能应用于，因为它们只能读取prims。
+    这特别影响了一些prims (通常是视觉和碰撞网格) 的实例资产，以便实例化能够高效地进行。
+
+    在这种情况下，假设原型具有无需修改的sim准备性质。
+    试图将属性设置在原型中会发出警告说prim是原型，
+
+方案在以下链接中定义:
+
+* `UsdPhysics schema <https://openusd.org/dev/api/usd_physics_page_front.html>`_
+* `PhysxSchema schema
+  <https://docs.omniverse.nvidia.com/kit/docs/omni_usd_schema_physics/104.2/index.html>`_
+
+在本地范围内，方案在以下文件中定义:
+
+* ``_isaac_sim/extsPhysics/omni.usd.schema.physics/plugins/UsdPhysics/resources/UsdPhysics/schema.us
+  da``
+* ``_isaac_sim/extsPhysics/omni.usd.schema.physx/plugins/PhysxSchema/resources/generatedSchema.usda`
+  `
+"""
 
 from .schemas import (
     MESH_APPROXIMATION_TOKENS,

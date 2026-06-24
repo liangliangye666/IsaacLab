@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -23,6 +25,7 @@ import isaaclab.utils.noise as noise
 @pytest.mark.parametrize("op", ["add", "scale", "abs"])
 def test_gaussian_noise(device, noise_device, op):
     """Test guassian_noise function."""
+    """测试guassian_noise功能。"""
 
     # create random data set
     data = torch.rand(10000, 3, device=device)
@@ -54,6 +57,7 @@ def test_gaussian_noise(device, noise_device, op):
 @pytest.mark.parametrize("op", ["add", "scale", "abs"])
 def test_uniform_noise(device, noise_device, op):
     """Test uniform_noise function."""
+    """测试uniform_noise功能。"""
     # create random data set
     data = torch.rand(10000, 3, device=device)
     # define uniform minimum and maximum
@@ -88,6 +92,7 @@ def test_uniform_noise(device, noise_device, op):
 @pytest.mark.parametrize("op", ["add", "scale", "abs"])
 def test_constant_noise(device, noise_device, op):
     """Test constant_noise"""
+    """测试 constant_noise"""
     # create random data set
     data = torch.rand(10000, 3, device=device)
     # define a bias

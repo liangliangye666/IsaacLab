@@ -46,6 +46,27 @@ def compute_tactile_shear_image(
     Returns:
         Image visualizing the tactile shear forces. Shape: (H * resolution, W * resolution, 3).
     """
+    """设想触觉切割场。
+
+    这种函数创建了触觉力量的可视化，使用箭头来表示切割力和颜色编码来表示正常力。
+    norma值用于正常化视觉化力量，经验选择以提供清晰的视觉表示。
+
+    参数：
+        tactile_normal_force: 触觉正常力量的阵列。
+                              形状:
+        tactile_shear_force: 触觉切割力阵列。
+                             形状: (H，W，2)
+        normal_force_threshold: 通常的力量可视化门。
+                                默认到0.00008。
+        shear_force_threshold: 切割力可视化的门。
+                               默认为0.0005。
+        resolution: 视觉化的分辨率。
+                    默认到30
+
+    返回：
+        图像可视化触觉切割力。
+        形状: (H *分辨率，W *分辨率，3)
+    """
     nrows = tactile_normal_force.shape[0]
     ncols = tactile_normal_force.shape[1]
 
@@ -85,6 +106,22 @@ def compute_penetration_depth(
     Returns:
         Upsampled image visualizing the penetration depth. Shape: (H * resolution, W * resolution).
     """
+    """设想透深度。
+
+    参数：
+        penetration_depth_img: 透深度图像
+                               形状:
+        resolution: 每个像素扩展到一个 (res x res) 区块。
+                    默认为5。
+        depth_multiplier: 为深度值的乘法。
+                          默认值为300.0 (尺度~3.3mm到1.0)。
+                          (e.g.典型的Gelsight传感器具有最大透深度 <
+                          2.5mm，见https://dspace.mit.edu/handle/1721.1/114627)。
+
+    返回：
+        显示透深度。
+        形状: (H *分辨率，W *分辨率)。
+    """
     # penetration_depth_img_upsampled = penetration_depth.repeat(resolution, 0).repeat(resolution, 1)
     penetration_depth_img_upsampled = np.kron(penetration_depth_img, np.ones((resolution, resolution)))
     penetration_depth_img_upsampled = np.clip(penetration_depth_img_upsampled, 0.0, 1.0) * depth_multiplier
@@ -99,6 +136,14 @@ class GelsightRender:
         tactile sensors. IEEE Robotics and Automation Letters, 7(2), 2361-2368.
         https://arxiv.org/abs/2109.04027
     """
+    """类处理GelSight渲染使用Taxim基于例子的方法从:cite:t:`si2022taxim`。
+
+    Reference: 西，Z.，和元，W。
+               (2022).
+               塔克西姆:为GelSight触觉传感器的基于示例的仿真模型。
+               IEEE机器人和自动化信件， 7(2)， 2361-2368。
+        https://arxiv.org/abs/2109.04027
+    """
 
     def __init__(self, cfg: GelSightRenderCfg, device: str | torch.device):
         """Initialize the GelSight renderer.
@@ -110,6 +155,16 @@ class GelsightRender:
         Raises:
             ValueError: If :attr:`GelSightRenderCfg.mm_per_pixel` is zero or negative.
             FileNotFoundError: If render data files cannot be retrieved.
+        """
+        """启动GelSight渲染器。
+
+        参数：
+            cfg: 为GelSight传感器的配置对象。
+            device: 使用的设备 ("cpu"或"cuda")。
+
+        异常：
+            ValueError: 如果:attr:`GelSightRenderCfg.mm_per_pixel`是零或负
+            FileNotFoundError: 如果无法检索 data渲染数据文件。
         """
         self.cfg = cfg
         self.device = device
@@ -174,6 +229,16 @@ class GelsightRender:
         Returns:
             Rendered image tensor. Shape is (N, H, W, 3).
         """
+        """使用GelSight传感器提供高度地图。
+
+        参数：
+            height_map: 输入高度地图子。
+                        形状是 (N，H，W)。
+
+        返回：
+            渲染图像光器。
+            形状是 (N，H，W，3)。
+        """
         height_map = height_map.clone()
         height_map[torch.abs(height_map) < 1e-6] = 0  # remove minor artifact
         height_map = height_map * -1000.0
@@ -213,6 +278,8 @@ class GelsightRender:
     """
     Internal Helpers.
     """
+    """内部助理。
+    """
 
     def _get_render_data(self, data_dir: str, file_name: str) -> str:
         """Gets the path for the GelSight render data file.
@@ -226,6 +293,18 @@ class GelsightRender:
 
         Raises:
             FileNotFoundError: If the file is not found locally or on Nucleus.
+        """
+        """得到了GelSight data渲染数据文件的路径。
+
+        参数：
+            data_dir: 包含渲染数据的数据目录名称。
+            file_name: 检索的特定文件名称。
+
+        返回：
+            地方通往文件的路径。
+
+        异常：
+            FileNotFoundError: 如果文件没有在本地或在Nucleus上找到。
         """
         # Construct path using the configured base path
         file_path = os.path.join(self.cfg.base_data_path, data_dir, file_name)
@@ -244,6 +323,16 @@ class GelsightRender:
 
         Returns:
             Tuple containing gradient magnitude tensor and gradient direction tensor. Shape: (N, H, W).
+        """
+        """生成高度地图的梯度大小和方向。
+
+        参数：
+            img: 输入高度地图子。
+                 形状: (N，H，W)。
+
+        返回：
+            含有梯度大小和梯度方向。
+            形状: (N，H，W)。
         """
         img_grad = torch.gradient(img, dim=(1, 2))
         dzdx, dzdy = img_grad
@@ -270,6 +359,18 @@ class GelsightRender:
         Returns:
             Filtering kernel. Shape is (kernel_size, kernel_size).
         """
+        """创建一个高斯过核。
+
+        对于内核衍生，见https://cecas.clemson.edu/~stb/ece847/internal/cvbook/ch03_filtering.pdf
+
+        参数：
+            kernel_size: 核的尺寸。
+                         默认为5。
+
+        返回：
+            过核。
+            形状是 (kernel_size，kernel_size)。
+        """
         filter_1D = scipy.special.binom(kernel_size - 1, np.arange(kernel_size))
         filter_1D /= filter_1D.sum()
         filter_1D = filter_1D[..., None]
@@ -286,6 +387,18 @@ class GelsightRender:
 
         Returns:
             Filtered image tensor. Shape is (N, H, W, 1).
+        """
+        """在输入图像子上应用高斯过。
+
+        参数：
+            img: 输入图像子。
+                 形状为 (N，H，W，1)。
+            kernel: 选核电压器。
+                    形状是 (K，K)。
+
+        返回：
+            过的图像子。
+            形状为 (N，H，W，1)。
         """
         img_output = torch.nn.functional.conv2d(
             img.permute(0, 3, 1, 2), kernel.unsqueeze(0).unsqueeze(0), stride=1, padding="same"

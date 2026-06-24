@@ -11,6 +11,14 @@ clients. Some of these require the extensions to be loaded in a specific order, 
 fault occurs. The launched :class:`isaacsim.simulation_app.SimulationApp` instance is accessible via the
 :attr:`AppLauncher.app` property.
 """
+"""用于配置:class:`isaacsim.simulation_app.SimulationApp`的工具类。
+
+The :类:`AppLauncher`分析环境变量和输入CLI参数，以启动仿真器在
+其他方式。
+这包括使用 GUI 或没有 GUI 和不同 Omniverse 远程客户端之间的交换。
+其中一些要求扩展器按特定顺序加载，否则会发生分区错误。
+启动的:class:`isaacsim.simulation_app.SimulationApp`实例可以通过:attr:`AppLauncher.app`属性访问。
+"""
 
 import argparse
 import contextlib
@@ -32,6 +40,7 @@ logger = logging.getLogger(__name__)
 
 class ExplicitAction(argparse.Action):
     """Custom action to track if an argument was explicitly passed by the user."""
+    """用户明确通过参数时进行定制操作。"""
 
     def __call__(self, parser, namespace, values, option_string=None):
         # Set the parameter value
@@ -59,6 +68,21 @@ class AppLauncher:
         ``LIVESTREAM`` is used.
 
     """
+    """基于命令行参数和环境变量启动Isaac Sim应用程序的实用类。
+
+    该类解决通过环境变量，命令行参数 (CLI) 或作为输入关键字参数出现的仿真应用程序设置。
+    基于这些设置，它启动了仿真应用程序，并配置扩展进行加载 (作为启动后设置的一部分)。
+
+    给类提供的输入参数优先于设定的值
+    from the corresponding environment variables. This provides flexibility to deal with different
+    用户的偏好。
+
+    .. 说明::
+        显然定义的参数只有当其值设置在默认配置之外时才优先。
+        例如，``livestream``的参数默认是 -1
+        只有当设置``livestream``参数为>-1时，它只会覆盖``LIVESTREAM``环境变量。
+        换句话说，如果``livestream=-1``，则使用环境变量``LIVESTREAM``的值。
+    """
 
     def __init__(self, launcher_args: argparse.Namespace | dict | None = None, **kwargs):
         """Create a `SimulationApp`_ instance based on the input settings.
@@ -78,6 +102,25 @@ class AppLauncher:
                 that are needed by the AppLauncher to resolve the desired app configuration.
             ValueError: If incompatible or undefined values are assigned to relevant environment values,
                 such as ``LIVESTREAM``.
+
+        .. _argparse.Namespace: https://docs.python.org/3/library/argparse.html?highlight=namespace#argparse.Namespace
+        .. _SimulationApp: https://docs.isaacsim.omniverse.nvidia.com/latest/py/source/extensions/isaacsim.simulation_app/docs/index.html#isaacsim.simulation_app.SimulationApp
+        """
+        """根据输入设置创建`SimulationApp`_实例。
+
+        参数：
+            launcher_args: 输入参数以使用AppLauncher进行分析，并设置为SimulationApp。
+                           默认为 None，相当于通过空白字典。
+                           在`SimulationApp`_文档中可详细描述可能的参数。
+            **kwargs : 其他关键词参数将被合并到:attr:`launcher_args`。
+                       它们是那些想要通过 argparse 接口和其他直接进入 AppLauncher 的争论的人的便利。
+                       复制参数
+                the :吸引:`launcher_args`将提高一个ValueError。
+
+        异常：
+            ValueError: 如果``launcher_args``和``kwargs``之间存在常见/重复的参数。
+            ValueError: 如果``launcher_args``和``kwargs``的组合缺乏AppLauncher需要解决所需的应用程序配置的必要参数。
+            ValueError: 如果对相关环境值，如``LIVESTREAM``，分配了不兼容或未定义的值。
 
         .. _argparse.Namespace: https://docs.python.org/3/library/argparse.html?highlight=namespace#argparse.Namespace
         .. _SimulationApp: https://docs.isaacsim.omniverse.nvidia.com/latest/py/source/extensions/isaacsim.simulation_app/docs/index.html#isaacsim.simulation_app.SimulationApp
@@ -165,10 +208,13 @@ class AppLauncher:
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def app(self) -> SimulationApp:
         """The launched SimulationApp."""
+        """发射的SimulationApp。"""
         if self._app is not None:
             return self._app
         else:
@@ -176,6 +222,8 @@ class AppLauncher:
 
     """
     Operations.
+    """
+    """操作。
     """
 
     @staticmethod
@@ -235,6 +283,49 @@ class AppLauncher:
 
         Args:
             parser: An argument parser instance to be extended with the AppLauncher specific options.
+        """
+        """配置AppLauncher参数与现有参数解析器对象的实用函数。
+
+        这个函数采用``argparse.ArgumentParser``对象并对SimulationApp的吞现有参数进行一些审核。
+        然后将与SimulationApp相关的自定义命令行参数添加到输入:class:`argparse.ArgumentParser`实例中。
+        这允许使用命令行参数对环境变量进行过失。
+
+        目前，它将以下参数添加到 argparser 对象中:
+
+        * ``headless`` (bool):如果True，应用程序将在无头 (无gui)
+          模式下启动.值地图与``HEADLESS``环境变量相同.如果False，则无头模式由``HEADLESS``环境变量决定。
+        * ``livestream`` (int):如果是{1，
+          2}之一，则启用直播和无头模式.值地图与``LIVESTREAM``环境变量相同.如果是:obj:`-1`，则直播由``LIVESTREAM``环境变量决定.有效的选项是:
+
+          - ``0``:残疾
+          - ``1``: `WebRTC`_通过公共网络
+          - 地方/私人网络的``2``:`WebRTC`_
+
+        * ``enable_cameras`` (bool):如果True，应用程序将启用摄像头传感器并将它们呈现，即使在无头模式下.如果环境中包含任何摄像头传感器，则该旗必须设置为True.值地图与``E
+          NABLE_CAMERAS``环境变量相同.如果False，则enable_cameras模式由``ENABLE_CAMERAS``环境变量决定。
+        * ``device`` (str):将仿真运行的设备.有效的选项是:
+
+          - ``cpu``使用:CPU。
+          - ``cuda``:使用GPU与设备ID ``0``。
+          - ``cuda:N``:使用GPU，其中N是设备ID。 例如"，cuda:0"。
+
+        * ``experience`` (str):在启动SimulationApp时需要加载的体验文件.如果提供相对路径，则与Isaac Sim和Isaac Lab中的``apps``文件相对得到解决。
+
+          如果提供为空串，则基于命令行标志确定体验文件:
+
+          * 如果无头和enable_cameras是True，则体验文件设置为``isaaclab.python.headless.rendering.kit``。
+          * 如果无头是False，enable_cameras是True，则体验文件设置为``isaaclab.python.rendering.kit``。
+          * 如果无头和enable_cameras是False，则体验文件设置为``isaaclab.python.kit``。
+          * 如果无头是True，enable_cameras是False，则体验文件设置为``isaaclab.python.headless.kit``。
+
+        * ``kit_args`` (str):可选的命令行参数将直接传输到Omniverse Kit.参数应结合成一个单个字符串，由空间分开.示例使用:--kit_args
+          "--ext-folder=/path/to/ext1 --ext-folder=/path/to/ext2"
+
+
+        .. _`WebRTC`: https://docs.isaacsim.omniverse.nvidia.com/latest/installation/manual_livestream_clients.html#isaac-sim-short-webrtc-streaming-client
+
+        参数：
+            parser: 一个参数解析器实例将用AppLauncher特定选项扩展。
         """
         # If the passed parser has an existing _HelpAction when passed,
         # we here remove the options which would invoke it,
@@ -380,6 +471,8 @@ class AppLauncher:
     """
     Internal functions.
     """
+    """内部功能。
+    """
 
     _APPLAUNCHER_CFG_INFO: dict[str, tuple[list[type], Any]] = {
         "headless": ([bool], False),
@@ -396,6 +489,14 @@ class AppLauncher:
     for arguments passed to the :class:`AppLauncher` class as well as for type checking.
 
     They have corresponding environment variables as detailed in the documentation.
+    """
+    """用:meth:`AppLauncher.add_app_launcher_args`方法手动添加的论点字典。
+
+    值是预期类型和默认值的两倍。
+    这用于检查名称碰撞
+    for arguments passed to the :class:`AppLauncher` class as well as for type checking.
+
+    它们有相应的环境变量，如文档详细说明。
     """
 
     # TODO: Find some internally managed NVIDIA list of these types.
@@ -432,6 +533,11 @@ class AppLauncher:
     as well as for type checking. It corresponds closely to the :attr:`SimulationApp.DEFAULT_LAUNCHER_CONFIG`,
     but specifically denotes where None types are allowed.
     """
+    """包含向SimulationApp传递的参数类型的字典。
+
+    这用于检查向:class:`AppLauncher`类传递的参数以及类型检查的名称碰撞。
+    它与:attr:`SimulationApp.DEFAULT_LAUNCHER_CONFIG`密切相匹配，但具体表示None类型允许的地方。
+    """
 
     @staticmethod
     def _check_argparser_config_params(config: dict) -> None:
@@ -452,6 +558,21 @@ class AppLauncher:
                 should be added by calling the :meth:`AppLauncher.add_app_launcher_args.
             ValueError: If keys corresponding to those used to initialize SimulationApp
                 (as found in :attr:`_SIM_APP_CFG_TYPES`) are of the wrong value type.
+        """
+        """检查输入 argparser 对象具有没有名称冲突的有效设置参数。
+
+        首先，我们检查字典，ArgParser对象不试图添加参数，该参数应通过调用:meth:`AppLauncher.add_app_launcher_args`。
+
+        然后，我们检查，如果键符合SimulationApp预期的配置设置，那么该键的值类型与SimulationApp预期的类型相符。
+        如果它通过检查，函数将打印出设置与将传递到SimulationApp。
+        否则，我们会提出ValueError例外。
+
+        参数：
+            config: 配置参数将传递到SimulationApp构造器。
+
+        异常：
+            ValueError: 如果一个键是配置参数中已经存在的字段，但应该通过调用:meth:`AppLauncher.add_app_launcher_args来添加。
+            ValueError: 如果对应SimulationApp初始化使用的键 (如:attr:`_SIM_APP_CFG_TYPES`中发现的) 是错误的值类型。
         """
         # check that no config key conflicts with AppLauncher config names
         applauncher_keys = set(AppLauncher._APPLAUNCHER_CFG_INFO.keys())
@@ -483,6 +604,11 @@ class AppLauncher:
         Args:
             launcher_args: A dictionary of all input arguments passed to the class object.
         """
+        """解决输入参数和环境变量。
+
+        参数：
+            launcher_args: 一个将所有输入参数传递到类对象的字典。
+        """
         # Handle core settings
         livestream_arg, livestream_env = self._resolve_livestream_settings(launcher_args)
         self._resolve_headless_settings(launcher_args, livestream_arg, livestream_env)
@@ -511,6 +637,7 @@ class AppLauncher:
 
     def _resolve_livestream_settings(self, launcher_args: dict) -> tuple[int, int]:
         """Resolve livestream related settings."""
+        """解决与直播相关的设置。"""
         livestream_env = int(os.environ.get("LIVESTREAM", 0))
         livestream_arg = launcher_args.pop("livestream", AppLauncher._APPLAUNCHER_CFG_INFO["livestream"][1])
         livestream_valid_vals = {0, 1, 2}
@@ -567,6 +694,7 @@ class AppLauncher:
 
     def _resolve_headless_settings(self, launcher_args: dict, livestream_arg: int, livestream_env: int):
         """Resolve headless related settings."""
+        """解决无头相关设置。"""
         # Resolve headless execution of simulation app
         # HEADLESS is initially passed as an int instead of
         # the bool of headless_arg to avoid messy string processing,
@@ -604,6 +732,7 @@ class AppLauncher:
 
     def _resolve_camera_settings(self, launcher_args: dict):
         """Resolve camera related settings."""
+        """解决相机相关设置。"""
         enable_cameras_env = int(os.environ.get("ENABLE_CAMERAS", 0))
         enable_cameras_arg = launcher_args.get("enable_cameras", AppLauncher._APPLAUNCHER_CFG_INFO["enable_cameras"][1])
         enable_cameras_valid_vals = {0, 1}
@@ -623,6 +752,7 @@ class AppLauncher:
 
     def _resolve_xr_settings(self, launcher_args: dict):
         """Resolve XR related settings."""
+        """解决XR相关设置。"""
         xr_env = int(os.environ.get("XR", 0))
         xr_arg = launcher_args.get("xr", AppLauncher._APPLAUNCHER_CFG_INFO["xr"][1])
         xr_valid_vals = {0, 1}
@@ -636,6 +766,7 @@ class AppLauncher:
 
     def _resolve_viewport_settings(self, launcher_args: dict):
         """Resolve viewport related settings."""
+        """解决视频端相关设置。"""
         # Check if we can disable the viewport to improve performance
         #   This should only happen if we are running headless and do not require livestreaming or video recording
         #   This is different from offscreen_render because this only affects the default viewport and
@@ -654,6 +785,7 @@ class AppLauncher:
 
     def _resolve_device_settings(self, launcher_args: dict):
         """Resolve simulation GPU device related settings."""
+        """解决仿真GPU设备相关设置。"""
         self.device_id = 0
         device = launcher_args.get("device", AppLauncher._APPLAUNCHER_CFG_INFO["device"][1])
 
@@ -706,6 +838,7 @@ class AppLauncher:
 
     def _resolve_experience_file(self, launcher_args: dict):
         """Resolve experience file related settings."""
+        """解决与经验文件相关的设置。"""
         # Check if input keywords contain an 'experience' file setting
         # Note: since experience is taken as a separate argument by Simulation App, we store it separately
         self._sim_experience_file = launcher_args.pop("experience", "")
@@ -765,6 +898,7 @@ class AppLauncher:
 
     def _resolve_anim_recording_settings(self, launcher_args: dict):
         """Resolve animation recording settings."""
+        """解决动画录音设置。"""
 
         # Enable omni.physx.pvd extension if recording is enabled
         recording_enabled = launcher_args.get("anim_recording_enabled", False)
@@ -779,6 +913,7 @@ class AppLauncher:
 
     def _resolve_kit_args(self, launcher_args: dict):
         """Resolve additional arguments passed to Kit."""
+        """解决向基特传递的额外争论。"""
         # Resolve additional arguments passed to Kit
         self._kit_args = []
         if "kit_args" in launcher_args:
@@ -787,6 +922,7 @@ class AppLauncher:
 
     def _create_app(self):
         """Launch and create the SimulationApp based on the parsed simulation config."""
+        """启动和创建基于解析仿真配置的SimulationApp。"""
         # Initialize SimulationApp
         # hack sys module to make sure that the SimulationApp is initialized correctly
         # this is to avoid the warnings from the simulation app about not ok modules
@@ -839,6 +975,7 @@ class AppLauncher:
 
     def _rendering_enabled(self) -> bool:
         """Check if rendering is required by the app."""
+        """检查应用程序是否需要渲染。"""
         # Indicates whether rendering is required by the app.
         # Extensions required for rendering bring startup and simulation costs, so we do not
         # enable them if not required.
@@ -846,6 +983,7 @@ class AppLauncher:
 
     def _load_extensions(self):
         """Load correct extensions based on AppLauncher's resolved config member variables."""
+        """根据AppLauncher的解决配置成员变量进行正确扩展。"""
         # These have to be loaded after SimulationApp is initialized
         import carb
 
@@ -880,6 +1018,11 @@ class AppLauncher:
         For standalone executions, having a stop button is confusing since it invalidates the whole simulation.
         Thus, we hide the button so that users don't accidentally click it.
         """
+        """在工具中隐藏停止按。
+
+        对于单独执行，有一个停止按是困惑的，因为它无效整个仿真。
+        因此，我们隐藏了按，
+        """
         # when we are truly headless, then we can't import the widget toolbar
         # thus, we only hide the stop button when we are not headless (i.e. GUI is enabled)
         if self._livestream >= 1 or not self._headless:
@@ -895,6 +1038,7 @@ class AppLauncher:
 
     def _set_rendering_mode_settings(self, launcher_args: dict) -> None:
         """Store RTX rendering mode in carb settings."""
+        """在碳水化合物设置中存储RTX渲染模式。"""
         import carb
 
         rendering_mode = launcher_args.get("rendering_mode")
@@ -911,6 +1055,7 @@ class AppLauncher:
 
     def _set_animation_recording_settings(self, launcher_args: dict) -> None:
         """Store animation recording settings in carb settings."""
+        """在碳水化合物设置中存储动画记录设置。"""
         import carb
 
         # check if recording is enabled
@@ -937,6 +1082,7 @@ class AppLauncher:
 
     def _interrupt_signal_handle_callback(self, signal, frame):
         """Handle the interrupt signal from the keyboard."""
+        """控制键盘的中断信号。"""
         # close the app
         self._app.close()
         # raise the error for keyboard interrupt
@@ -972,6 +1118,10 @@ class AppLauncher:
         This is used if the timeline is stopped by a GUI action like "save as" to not allow the user to
         resume the timeline afterwards.
         """
+        """在工具中隐藏/解除播放按。
+
+        如果使用 GUI 操作停止时间线，例如"保存为"以防止用户随后恢复时间线。
+        """
         # when we are truly headless, then we can't import the widget toolbar
         # thus, we only hide the play button when we are not headless (i.e. GUI is enabled)
         if self._livestream >= 1 or not self._headless:
@@ -985,6 +1135,7 @@ class AppLauncher:
 
     def _abort_signal_handle_callback(self, signal, frame):
         """Handle the abort/segmentation/kill signals."""
+        """处理中断/细分/杀死信号。"""
         # close the app
         self._app.close()
 

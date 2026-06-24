@@ -3,8 +3,10 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 """Script to replay demonstrations with Isaac Lab environments."""
+"""脚本将与艾萨克实验室环境进行演示。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -62,6 +64,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import contextlib
 import os
@@ -104,6 +107,17 @@ def compare_states(state_from_dataset, runtime_state, runtime_env_index) -> (boo
         bool: True if states match, False otherwise.
         str: Log message if states don't match.
     """
+    """比较数据集和运行时间的状态。
+
+    参数：
+        state_from_dataset: 从数据集中的状态。
+        runtime_state: 报警时间。
+        runtime_env_index: 在运行时间状态中环境索引进行比较。
+
+    返回：
+        bool: 如果状态一致，则True，否则False。
+        str: 如果各州不匹配，则记录信息。
+    """
     states_matched = True
     output_log = ""
     for asset_type in ["articulation", "rigid_object"]:
@@ -124,6 +138,7 @@ def compare_states(state_from_dataset, runtime_state, runtime_env_index) -> (boo
 
 def main():
     """Replay episodes loaded from a file."""
+    """从一个文件中重新播放的回合。"""
     global is_paused
 
     # Load dataset

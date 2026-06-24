@@ -13,6 +13,17 @@ Args:
     figure_size: Size of the generated figures (width, height).
     demo_filter: If provided, only visualize specific demo(s). Can be a single demo name or comma-separated list.
 """
+"""脚本可可视化导航数据集。
+
+载入导航数据集并生成显示路径，姿势和障碍的图表。
+
+参数：
+    dataset: 记录示范的HDF5数据集文件的路径。
+    output_dir: 将保存可视化图片的目录路径。
+    figure_size: 产生的数字的尺寸 (宽度，高度)。
+    demo_filter: 如果提供，只需查看具体的示范。
+                 可能是单个演示名字或逗号分开的列表。
+"""
 
 import argparse
 import os
@@ -23,6 +34,7 @@ import matplotlib.pyplot as plt
 
 def main():
     """Main function to process dataset and generate visualizations."""
+    """主要功能是处理数据集和生成可视化。"""
     # add argparse arguments
     parser = argparse.ArgumentParser(
         description="Visualize navigation dataset from locomanipulation sdg demonstrations."

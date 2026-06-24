@@ -73,9 +73,44 @@ class MultiMeshRayCaster(RayCaster):
         )
 
     """
+    """一个多射射线传感器。
+
+    射线器使用一组射线来检测场景的网格。
+    在传感器的本地坐标框架中定义了射线。
+    传感器可以配置以对某种射线模式的网格进行射线。
+
+    在配置中提供的原始路径列表中分析了网格。
+    然后将它们转换为变形网，并存储在:attr:`meshes`列表中。
+    然后射线器使用配置中提供的射线模式对这些扭曲网格射射。
+
+    与默认RayCaster相比，MultiMeshRayCaster提供了额外的功能和灵活性，作为默认RayCaster的扩展，并提供了以下增强:
+
+    - 针对多个目标类型的射线:支持原始形状 (球体，立方体等) 以及任意的网格。
+    - 动态网格跟踪: 追踪指定网格，使其能够对移动部件 (e.g.，机器人链接，关节体或动态障碍物) 进行射射。
+    - 缓存效率:通过在环境中重复使用网格数据来避免冗余的记忆使用。
+
+    对机器人的视觉网格进行射线的示例使用 (e.g。 ANYmal):
+
+    .. code-block:: python
+
+        ray_caster_cfg = MultiMeshRayCasterCfg(
+            prim_path="{ENV_REGEX_NS}/Robot",
+            mesh_prim_paths=[
+                "/World/Ground",
+                MultiMeshRayCasterCfg.RaycastTargetCfg(prim_expr="{ENV_REGEX_NS}/Robot/LF_.*/visuals"),
+                MultiMeshRayCasterCfg.RaycastTargetCfg(prim_expr="{ENV_REGEX_NS}/Robot/RF_.*/visuals"),
+                MultiMeshRayCasterCfg.RaycastTargetCfg(prim_expr="{ENV_REGEX_NS}/Robot/LH_.*/visuals"),
+                MultiMeshRayCasterCfg.RaycastTargetCfg(prim_expr="{ENV_REGEX_NS}/Robot/RH_.*/visuals"),
+                MultiMeshRayCasterCfg.RaycastTargetCfg(prim_expr="{ENV_REGEX_NS}/Robot/base/visuals"),
+            ],
+            ray_alignment="world",
+            pattern_cfg=patterns.GridPatternCfg(resolution=0.02, size=(2.5, 2.5), direction=(0, 0, -1)),
+        )
+    """
 
     cfg: MultiMeshRayCasterCfg
     """The configuration parameters."""
+    """配置参数。"""
 
     mesh_offsets: dict[str, tuple[torch.Tensor, torch.Tensor]] = {}
 
@@ -84,12 +119,21 @@ class MultiMeshRayCaster(RayCaster):
 
     The keys correspond to the prim path for the mesh views, and values are the corresponding view objects.
     """
+    """一个用于存储射线视图的字典，用于所有实例。
+
+    键为网格视图的prim路径，值为相应的视图对象。
+    """
 
     def __init__(self, cfg: MultiMeshRayCasterCfg):
         """Initializes the ray-caster object.
 
         Args:
             cfg: The configuration parameters.
+        """
+        """启动射线物体。
+
+        参数：
+            cfg: 配置参数。
         """
         # Initialize base class
         super().__init__(cfg)
@@ -98,6 +142,9 @@ class MultiMeshRayCaster(RayCaster):
         self._num_meshes_per_env: dict[str, int] = {}
         """Keeps track of the number of meshes per env for each ray_cast target.
            Since we allow regex indexing (e.g. env_*/object_*) they can differ
+        """
+        """追踪每个网格的数量env每个ray_cast目标。
+        由于我们允许regex索引 (e.g。 env_*/object_*) 它们可以不同
         """
 
         self._raycast_targets_cfg: list[MultiMeshRayCasterCfg.RaycastTargetCfg] = []
@@ -117,6 +164,7 @@ class MultiMeshRayCaster(RayCaster):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
 
         return (
             f"Ray-caster @ '{self.cfg.prim_path}': \n"
@@ -131,6 +179,8 @@ class MultiMeshRayCaster(RayCaster):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def data(self) -> MultiMeshRayCasterData:
@@ -141,6 +191,8 @@ class MultiMeshRayCaster(RayCaster):
 
     """
     Implementation.
+    """
+    """执行。
     """
 
     def _initialize_warp_meshes(self):
@@ -161,6 +213,22 @@ class MultiMeshRayCaster(RayCaster):
             - No supported mesh prims are found under a matched prim.
             - Multiple mesh prims are found but merging is disabled.
 
+        """
+        """解析网格prim表达式，构建 (或重复使用) 变形网格和每env网格IDs的缓存。
+
+        高级步骤 (每个目标表达):
+
+        1. 通过regex/path表达式解决匹配 prims。
+        2. 收集支持的网格儿童prims；如果配置，将其融合成单个网格。
+        3. 减复相同的顶点缓冲器 (精确匹配)，以避免将重复文件上传到Warp。
+        4. 按全球共享的环境或标志，分区网 IDs。
+        5. 选择创建物理视图 (关节 / 硬体 / 倒退 XForm) 和缓存本地偏移。
+
+        Exceptions: 增加一个RuntimeError如果:
+
+            - 没有prims符合所提供的表达式。
+            - 在匹配的prim下没有支持的网格prims。
+            - 发现了多个网格prims，但并并不能合并。
         """
         multi_mesh_ids: dict[str, list[list[int]]] = {}
         for target_cfg in self._raycast_targets_cfg:
@@ -354,6 +422,11 @@ class MultiMeshRayCaster(RayCaster):
         Args:
             env_ids: The environment ids to update.
         """
+        """填充传感器数据的缓冲器。
+
+        参数：
+            env_ids: 环境 ID更新。
+        """
 
         self._update_ray_infos(env_ids)
 
@@ -407,6 +480,8 @@ class MultiMeshRayCaster(RayCaster):
 """
 Helper functions
 """
+"""助理功能
+"""
 
 
 def _registered_points_idx(points: np.ndarray, registered_points: list[np.ndarray | None]) -> int:
@@ -418,6 +493,15 @@ def _registered_points_idx(points: np.ndarray, registered_points: list[np.ndarra
 
     Returns:
         The index of the registered points if found, otherwise -1.
+    """
+    """检查这些点是否已在注册点列表中注册。
+
+    参数：
+        points: 我们要检查。
+        registered_points: 登记点列表
+
+    返回：
+        如果发现，注册点的索引，否则 -1。
     """
     for idx, reg_points in enumerate(registered_points):
         if reg_points is None:

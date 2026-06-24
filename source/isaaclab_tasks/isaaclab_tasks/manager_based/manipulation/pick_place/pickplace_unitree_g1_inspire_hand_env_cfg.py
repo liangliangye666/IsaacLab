@@ -41,6 +41,7 @@ from isaaclab_assets.robots.unitree import G1_INSPIRE_FTP_CFG  # isort: skip
 @configclass
 class ObjectTableSceneCfg(InteractiveSceneCfg):
     """Configuration for the Unitree G1 Inspire Hand Pick Place Base Scene."""
+    """单元树G1启发手动选择位置基地场景的配置。"""
 
     # Table
     packing_table = AssetBaseCfg(
@@ -123,6 +124,7 @@ class ObjectTableSceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     pink_ik_cfg = PinkInverseKinematicsActionCfg(
         pink_controlled_joint_names=[
@@ -219,10 +221,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group with state values."""
+        """对国家价值观的策略组的观测。"""
 
         actions = ObsTerm(func=mdp.last_action)
         robot_joint_pos = ObsTerm(
@@ -258,6 +262,7 @@ class ObservationsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -271,6 +276,7 @@ class TerminationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_all = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
 
@@ -291,6 +297,7 @@ class EventCfg:
 @configclass
 class PickPlaceG1InspireFTPEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the GR1T2 environment."""
+    """对GR1T2环境的配置。"""
 
     # Scene settings
     scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=1, env_spacing=2.5, replicate_physics=True)
@@ -364,6 +371,7 @@ class PickPlaceG1InspireFTPEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 6
         self.episode_length_s = 20.0

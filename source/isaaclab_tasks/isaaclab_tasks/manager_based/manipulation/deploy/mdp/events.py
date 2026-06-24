@@ -6,6 +6,7 @@
 """Class-based event terms specific to the gear assembly manipulation environments."""
 
 from __future__ import annotations
+"""基于类型的事件项，具体用于轮组装操纵环境。"""
 
 import random
 from typing import TYPE_CHECKING
@@ -29,6 +30,12 @@ class randomize_gear_type(ManagerTermBase):
     from gear type names to indices. It serves as the central manager for gear type state
     that other MDP terms depend on.
     """
+    """随机化和管理用于每个环境的轮类型。
+
+    这类存储每个环境的当前轮胎类型并提供映射
+    from gear type names to indices. It serves as the central manager for gear type state
+    其他MDP项取决于。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the gear type randomization term.
@@ -36,6 +43,12 @@ class randomize_gear_type(ManagerTermBase):
         Args:
             cfg: Event term configuration
             env: Environment instance
+        """
+        """启动轮胎类型随机化项。
+
+        参数：
+            cfg: 事件项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -74,6 +87,13 @@ class randomize_gear_type(ManagerTermBase):
             env_ids: Environment IDs to randomize
             gear_types: List of available gear types to choose from
         """
+        """随机对特定环境进行轮类型。
+
+        参数：
+            env: 包含资产的环境
+            env_ids: 环境 IDs 随机化
+            gear_types: 可供选择的可用设备类型列表
+        """
         # Randomly select gear type for each environment
         # Use the parameter passed to __call__ (not self.gear_types) to allow runtime overrides
         for env_id in env_ids.tolist():
@@ -83,10 +103,12 @@ class randomize_gear_type(ManagerTermBase):
 
     def get_gear_type(self, env_id: int) -> str:
         """Get the current gear type for a specific environment."""
+        """给一个特定的环境提供当前的设备类型。"""
         return self._current_gear_type[env_id]
 
     def get_all_gear_types(self) -> list[str]:
         """Get current gear types for all environments."""
+        """获得所有环境的当前设备类型。"""
         return self._current_gear_type
 
     def get_all_gear_type_indices(self) -> torch.Tensor:
@@ -94,6 +116,11 @@ class randomize_gear_type(ManagerTermBase):
 
         Returns:
             Tensor of shape (num_envs,) with gear type indices (0=small, 1=medium, 2=large)
+        """
+        """作为一个子，为所有环境提供当前的轮类型索引。
+
+        返回：
+            形状紧张 (num_envs，) 具有变速类型索引 (0=小，1=中，2=大)
         """
         return self._current_gear_type_indices
 
@@ -104,6 +131,10 @@ class set_robot_to_grasp_pose(ManagerTermBase):
     This class-based term caches all required tensors and gear offsets during initialization,
     avoiding repeated allocations and lookups during execution.
     """
+    """设置机器人抓住姿势使用IK通过预先存储的光器。
+
+    这种基于类的项在启动过程中缓存所有所需的子和变速偏移，避免执行过程中重复分配和搜索。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the set robot to grasp pose term.
@@ -111,6 +142,12 @@ class set_robot_to_grasp_pose(ManagerTermBase):
         Args:
             cfg: Event term configuration
             env: Environment instance
+        """
+        """启动设置机器人，以把握姿势项。
+
+        参数：
+            cfg: 事件项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -233,6 +270,17 @@ class set_robot_to_grasp_pose(ManagerTermBase):
             rot_threshold: Rotation convergence threshold
             max_iterations: Maximum IK iterations
             pos_randomization_range: Optional position randomization range
+        """
+        """设置机器人用IK来抓住姿势。
+
+        参数：
+            env: 环境实例
+            env_ids: 环境 IDs 重置
+            robot_asset_cfg: 机器人资产配置 (未使用，保存为兼容性)
+            pos_threshold: 位置融合门
+            rot_threshold: 旋转缩门
+            max_iterations: 最多的IK代
+            pos_randomization_range: 选择位置随机化范围
         """
         # Check if gear type manager exists
         if not hasattr(env, "_gear_type_manager"):
@@ -373,6 +421,10 @@ class randomize_gears_and_base_pose(ManagerTermBase):
 
     This class-based term pre-caches all tensors needed for randomization.
     """
+    """随机定制 base轮基姿势和单个轮姿势。
+
+    这种基于类的项预先缓存了随机化所需的所有子。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the randomize gears and base pose term.
@@ -380,6 +432,12 @@ class randomize_gears_and_base_pose(ManagerTermBase):
         Args:
             cfg: Event term configuration
             env: Environment instance
+        """
+        """开始随机轮和基础姿势。
+
+        参数：
+            cfg: 事件项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -407,6 +465,15 @@ class randomize_gears_and_base_pose(ManagerTermBase):
             pose_range: Pose randomization range for base and all gears
             velocity_range: Velocity randomization range
             gear_pos_range: Additional position randomization for selected gear only
+        """
+        """随机调整 base轮基和轮姿势。
+
+        参数：
+            env: 环境实例
+            env_ids: 环境 IDs 随机化
+            pose_range: 设置基和所有轮的随机定位范围
+            velocity_range: 速度随机化范围
+            gear_pos_range: 仅为选定的设备进行额外位置随机定位
         """
         if not hasattr(env, "_gear_type_manager"):
             raise RuntimeError(

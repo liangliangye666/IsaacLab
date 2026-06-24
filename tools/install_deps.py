@@ -26,6 +26,27 @@ For more information, please check the `documentation`_.
 
 .. _documentation: https://isaac-sim.github.io/IsaacLab/source/setup/developer.html#extension-dependency-management
 """
+"""这个脚本是安装扩展的extension.toml文件中提到的依赖性。
+
+剧本中有两个论点:
+
+1. 类型:要安装的依赖性类型。 它可以是以下一个: ['all'， 'apt'， 'rosdep']。
+2. extensions_dir:我们搜索扩展的目录的路径。
+
+脚本将在extensions_dir中搜索所有扩展，然后在每个扩展的配置目录中搜索extension.toml文件。
+如果extension.toml文件存在，脚本将在 [isaac_lab_settings] 部分寻找以下键:
+
+* **apt_deps**:适合安装的包表。
+* **ros_ws**:扩展中的ROS工作空间的路径.如果路径不是绝对的，脚本假设路径与扩展根相对，并相应地解决。
+
+如果类型是"全部"，脚本将安装 apt 和 rosdep 包。
+如果类型是'apt'，脚本只会安装apt包。
+如果类型是"rosdep"，脚本只会安装rosdep包。
+
+更多信息请查看`documentation`_。
+
+.. _documentation: https://isaac-sim.github.io/IsaacLab/source/setup/developer.html#extension-dependency-management
+"""
 
 import argparse
 import os
@@ -54,6 +75,19 @@ def install_apt_packages(paths: list[str]):
 
     Raises:
         SystemError: If 'apt' is not a known command. This is a system error.
+    """
+    """安装在extension.toml文件中列出的适用包，用于Isaac Lab扩展。
+
+    在输入路径列表中的每个路径，函数在``{path}/config/extension.toml``中查看``[isaac_lab_settings][apt_deps]``键。
+    然后它试图安装在关键值中列出的包。
+    函数出于未能阻止构建过程继续，尽管缺乏依赖性。
+
+    参数：
+        paths: 扩展的根路径列表。
+
+    异常：
+        SystemError: 如果"apt"不是一个已知的命令。
+                     这是系统错误。
     """
     for path in paths:
         if shutil.which("apt"):
@@ -97,6 +131,26 @@ def install_rosdep_packages(paths: list[str], ros_distro: str = "humble"):
     Raises:
         FileNotFoundError: If a valid ROS workspace is not found while installing ROS dependencies.
         SystemError: If 'rosdep' is not a known command. This is raised if 'rosdep' is not installed on the system.
+    """
+    """在extension.toml文件中列出的ROS依赖性安装为Isaac Lab扩展。
+
+    在输入路径列表中的每个路径，函数在``{path}/config/extension.toml``中查看``[isaac_lab_settings][ros_ws]``键。
+    然后它试图在关键值中列出的工作空间下安装ROS依赖性。
+    函数出于未能阻止构建过程继续，尽管缺乏依赖性。
+
+    如果 ROS 工作空间的路径不是绝对的，则函数假设路径与扩展根相对，并相应解决。
+    在继续安装ROS依赖之前，该函数还检查ROS工作空间是否存在。
+    如果ROS工作空间不存在，函数会产生错误。
+
+    参数：
+        path: 扩展根的路径列表。
+        ros_distro: 用于rosdep的ROS分布。
+                    默认是"谦虚"。
+
+    异常：
+        FileNotFoundError: 如果在安装ROS依赖时没有找到有效的ROS工作空间。
+        SystemError: 如果"rosdep"不是已知的命令。
+                     如果在系统上没有安装"rosdep"，则会出现这种情况。
     """
     for path in paths:
         if shutil.which("rosdep"):
@@ -153,6 +207,13 @@ def run_and_print(args: list[str]):
 
     Args:
         args: A list of arguments to pass to Popen.
+    """
+    """运行一个子进程，然后将输出打印到stdout。
+
+    这个函数将Popen包裹起来，并将输出打印到实时。
+
+    参数：
+        args: 一份要向Popen传递的论点列表。
     """
     print(f'Running "{args}"')
     with Popen(args, stdout=PIPE, stderr=STDOUT, env=os.environ) as p:

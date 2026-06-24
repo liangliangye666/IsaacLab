@@ -18,6 +18,11 @@ class AgileTeacherPolicyObservationsCfg(ObsGroup):
     The lower body command portion is appended to the observation tensor in the action term, as that
     is where the environment has access to those commands.
     """
+    """对敏捷下体策略的观测规范。
+
+    Note: 这种配置只定义了对敏捷下体策略的观测输入的一部分。
+    在动作项中，下部部部的命令部分附加到观测张量中，因为这是环境可以访问这些命令的地方。
+    """
 
     base_lin_vel = ObsTerm(
         func=mdp.base_lin_vel,

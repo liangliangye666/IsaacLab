@@ -23,6 +23,7 @@ MOTIONS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "motions"
 @configclass
 class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     """Humanoid AMP environment config (base class)."""
+    """人类AMP环境配置 (基类)。"""
 
     # env
     episode_length_s = 10.0
@@ -46,6 +47,12 @@ class HumanoidAmpEnvCfg(DirectRLEnvCfg):
     * default: pose and joint states are set to the initial state of the asset.
     * random: pose and joint states are set by sampling motions at random, uniform times.
     * random-start: pose and joint states are set by sampling motion at the start (time zero).
+    """
+    """每个环境重置时应遵循的战略 (人体姿势和联合状态)。
+
+    * 违约:投资和合资状态设置为资产的初始状态。
+    * 随机:随机，均时间的样本运动设置姿势和关节状态。
+    * 随机启动:在启动时采样运动 (零时间) 设置姿势和关节状态。
     """
 
     # simulation

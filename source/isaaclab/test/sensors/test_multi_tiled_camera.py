@@ -7,6 +7,7 @@
 # pyright: reportPrivateUsage=none
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -14,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import copy
 import random
@@ -34,6 +36,7 @@ from isaaclab.sensors.camera import TiledCamera, TiledCameraCfg
 @pytest.fixture()
 def setup_camera():
     """Create a blank new stage for each test."""
+    """创建一个空白的新阶段。"""
     camera_cfg = TiledCameraCfg(
         height=128,
         width=256,
@@ -70,6 +73,7 @@ def setup_camera():
 @pytest.mark.isaacsim_ci
 def test_multi_tiled_camera_init(setup_camera):
     """Test initialization of multiple tiled cameras."""
+    """测试启动多个片相机。"""
     camera_cfg, sim, dt = setup_camera
     num_tiled_cameras = 3
     num_cameras_per_tiled_camera = 7
@@ -152,6 +156,7 @@ def test_multi_tiled_camera_init(setup_camera):
 @pytest.mark.isaacsim_ci
 def test_all_annotators_multi_tiled_camera(setup_camera):
     """Test initialization of multiple tiled cameras with all supported annotators."""
+    """使用所有支持的注释器测试多个式摄像头的初始化。"""
     camera_cfg, sim, dt = setup_camera
     all_annotator_types = [
         "rgb",
@@ -265,6 +270,7 @@ def test_all_annotators_multi_tiled_camera(setup_camera):
 @pytest.mark.isaacsim_ci
 def test_different_resolution_multi_tiled_camera(setup_camera):
     """Test multiple tiled cameras with different resolutions."""
+    """测试不同分辨率的多个 cam片相机。"""
     camera_cfg, sim, dt = setup_camera
     num_tiled_cameras = 2
     num_cameras_per_tiled_camera = 6
@@ -337,6 +343,7 @@ def test_different_resolution_multi_tiled_camera(setup_camera):
 @pytest.mark.isaacsim_ci
 def test_frame_offset_multi_tiled_camera(setup_camera):
     """Test frame offset issue with multiple tiled cameras"""
+    """测试框架抵消问题与多个片相机"""
     camera_cfg, sim, dt = setup_camera
     num_tiled_cameras = 4
     num_cameras_per_tiled_camera = 4
@@ -403,6 +410,7 @@ def test_frame_offset_multi_tiled_camera(setup_camera):
 @pytest.mark.isaacsim_ci
 def test_frame_different_poses_multi_tiled_camera(setup_camera):
     """Test multiple tiled cameras placed at different poses render different images."""
+    """测试在不同的姿势上放置的多个 cam式摄像头，"""
     camera_cfg, sim, dt = setup_camera
     num_tiled_cameras = 3
     num_cameras_per_tiled_camera = 4
@@ -470,10 +478,13 @@ def test_frame_different_poses_multi_tiled_camera(setup_camera):
 """
 Helper functions.
 """
+"""辅助函数。
+"""
 
 
 def _populate_scene():
     """Add prims to the scene."""
+    """添加prims到场景。"""
     # TODO: this causes hang with Kit 107.3???
     # # Ground-plane
     # cfg = sim_utils.GroundPlaneCfg()

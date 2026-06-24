@@ -10,6 +10,12 @@ The following configuration parameters are available:
 
 * :obj:`SPOT_CFG`: The Spot robot with delay PD and remote PD actuators.
 """
+"""波士顿动力学机器人配置。
+
+下列配置参数可用:
+
+* :obj:`SPOT_CFG`:具有延迟PD和远程PD执行器的Spot机器人。
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import DelayedPDActuatorCfg, RemotizedPDActuatorCfg
@@ -125,6 +131,11 @@ joint_parameter_lookup = [
 This table describes the relationship between the joint angle (rad), the transmission ratio (in/out),
 and the output torque (N*m). It is used to interpolate the output torque based on the joint angle.
 """
+"""波士顿动态点机器人膝关节参数的查找表。
+
+本表描述了关节角 (rad)，输送比 (进/出) 和输出扭矩 (N*m) 的关系。
+它用于基于合角的输出扭矩进行回合。
+"""
 
 ##
 # Configuration
@@ -180,3 +191,4 @@ SPOT_CFG = ArticulationCfg(
     },
 )
 """Configuration for the Boston Dynamics Spot robot."""
+"""波士顿动态点机器人配置。"""

@@ -6,6 +6,7 @@
 """Class-based termination terms specific to the gear assembly manipulation environments."""
 
 from __future__ import annotations
+"""类型式终止项，具体用于轮组装操纵环境。"""
 
 from typing import TYPE_CHECKING
 
@@ -28,6 +29,10 @@ class reset_when_gear_dropped(ManagerTermBase):
 
     This class-based term pre-caches all required tensors and gear offsets.
     """
+    """检查设备是否掉下来，然后重置旗。
+
+    这种基于类的项预先缓存所有所需的子和变速抵消。
+    """
 
     def __init__(self, cfg: TerminationTermCfg, env: ManagerBasedEnv):
         """Initialize the reset when gear dropped term.
@@ -35,6 +40,12 @@ class reset_when_gear_dropped(ManagerTermBase):
         Args:
             cfg: Termination term configuration
             env: Environment instance
+        """
+        """当轮胎停产时，启动重置。
+
+        参数：
+            cfg: 终止项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -142,6 +153,16 @@ class reset_when_gear_dropped(ManagerTermBase):
         Returns:
             Boolean tensor indicating which environments should be reset
         """
+        """检查设备是否下降，然后返回重置旗。
+
+        参数：
+            env: 环境实例
+            distance_threshold: 轮抓点和抓杆之间的最大允许距离
+            robot_asset_cfg: 机器人资产的配置 (未使用，保存在兼容性)
+
+        返回：
+            显示哪些环境应该重置的布尔紧缩器
+        """
         # Reset flags
         self.reset_flags.fill_(False)
 
@@ -198,6 +219,10 @@ class reset_when_gear_orientation_exceeds_threshold(ManagerTermBase):
 
     This class-based term pre-caches all required tensors and thresholds.
     """
+    """检查设备与抓住器的方向是否超过门值。
+
+    这种基于类的项预先缓存所有所需的度和门。
+    """
 
     def __init__(self, cfg: TerminationTermCfg, env: ManagerBasedEnv):
         """Initialize the reset when gear orientation exceeds threshold term.
@@ -205,6 +230,12 @@ class reset_when_gear_orientation_exceeds_threshold(ManagerTermBase):
         Args:
             cfg: Termination term configuration
             env: Environment instance
+        """
+        """如果变速方向超过门项，将重置启动。
+
+        参数：
+            cfg: 终止项配置
+            env: 环境实例
         """
         super().__init__(cfg, env)
 
@@ -277,6 +308,18 @@ class reset_when_gear_orientation_exceeds_threshold(ManagerTermBase):
 
         Returns:
             Boolean tensor indicating which environments should be reset
+        """
+        """检查变速方向是否超过门值和重置标志。
+
+        参数：
+            env: 环境实例
+            roll_threshold_deg: 在度中最大允许的滚角偏差
+            pitch_threshold_deg: 在度中最大允许的角偏差
+            yaw_threshold_deg: 在度中最大允许的角偏差
+            robot_asset_cfg: 机器人资产的配置 (未使用，保存在兼容性)
+
+        返回：
+            显示哪些环境应该重置的布尔紧缩器
         """
         # Reset flags
         self.reset_flags.fill_(False)

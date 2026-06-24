@@ -11,6 +11,14 @@ The following configurations are available:
 
 Reference: https://github.com/UMich-BipedLab/Cassie_Model/blob/master/urdf/cassie.urdf
 """
+"""对于敏捷机器人的配置。
+
+下列配置可用:
+
+* :obj:`CASSIE_CFG`:敏捷卡西机器人，具有简单的腿部PD控制器
+
+Reference: https://github.com/UMich-BipedLab/Cassie_Model/blob/master/urdf/cassie.urdf
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg

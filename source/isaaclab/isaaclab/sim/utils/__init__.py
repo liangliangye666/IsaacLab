@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Utilities built around USD operations."""
+"""在USD运营中建立的公共设施。"""
 
 from .legacy import *  # noqa: F401, F403
 from .prims import *  # noqa: F401, F403

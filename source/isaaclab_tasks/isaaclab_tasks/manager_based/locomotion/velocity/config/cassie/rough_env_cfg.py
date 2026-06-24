@@ -49,6 +49,7 @@ class CassieRewardsCfg(RewardsCfg):
 @configclass
 class CassieRoughEnvCfg(LocomotionVelocityRoughEnvCfg):
     """Cassie rough environment configuration."""
+    """卡西的环境配置。"""
 
     rewards: CassieRewardsCfg = CassieRewardsCfg()
 

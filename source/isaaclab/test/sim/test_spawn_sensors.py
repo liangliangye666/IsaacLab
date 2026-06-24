@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 import pytest
@@ -26,6 +28,7 @@ from isaaclab.utils.string import to_camel_case
 @pytest.fixture
 def sim():
     """Create a simulation context."""
+    """创建一个仿真环境。"""
     sim_utils.create_new_stage()
     dt = 0.1
     sim = SimulationContext(SimulationCfg(dt=dt))
@@ -40,10 +43,13 @@ def sim():
 """
 Basic spawning.
 """
+"""基本的繁殖。
+"""
 
 
 def test_spawn_pinhole_camera(sim):
     """Test spawning a pinhole camera."""
+    """测试了 camera孔摄像头。"""
     cfg = sim_utils.PinholeCameraCfg(
         focal_length=5.0, f_stop=10.0, clipping_range=(0.1, 1000.0), horizontal_aperture=10.0
     )
@@ -58,6 +64,7 @@ def test_spawn_pinhole_camera(sim):
 
 def test_spawn_fisheye_camera(sim):
     """Test spawning a fisheye camera."""
+    """测试了 camera鱼眼镜。"""
     cfg = sim_utils.FisheyeCameraCfg(
         projection_type="fisheyePolynomial",
         focal_length=5.0,
@@ -79,6 +86,8 @@ def test_spawn_fisheye_camera(sim):
 """
 Helper functions.
 """
+"""辅助函数。
+"""
 
 
 def _validate_properties_on_prim(prim: Usd.Prim, cfg: object, custom_attr: dict):
@@ -88,6 +97,13 @@ def _validate_properties_on_prim(prim: Usd.Prim, cfg: object, custom_attr: dict)
         prim: The prim.
         cfg: The configuration object.
         custom_attr: The custom attributes for sensor.
+    """
+    """验证prim的特性。
+
+    参数：
+        prim: 这是一辆prim。
+        cfg: 配置对象。
+        custom_attr: 传感器的定制属性。
     """
     # delete custom attributes in the config that are not USD parameters
     non_usd_cfg_param_names = [

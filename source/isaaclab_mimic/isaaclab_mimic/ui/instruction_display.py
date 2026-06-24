@@ -9,6 +9,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Module for handling instruction displays in Isaac Lab environments."""
+"""在艾萨克实验室环境中处理指令显示器的模块。"""
 
 from typing import Any
 
@@ -19,6 +20,7 @@ from isaaclab.envs.mimic_env_cfg import MimicEnvCfg
 
 class InstructionDisplay:
     """Handles instruction display for different teleop devices."""
+    """处理不同电话设备的指示显示器。"""
 
     def __init__(self, xr: bool):
         self.xr = xr
@@ -40,15 +42,18 @@ class InstructionDisplay:
 
     def set_labels(self, subtask_label, demo_label):
         """Set the instruction labels for non-handtracking displays."""
+        """设置非手跟踪显示器的指示标签。"""
         self.subtask_label = subtask_label
         self.demo_label = demo_label
 
     def show_subtask(self, text):
         """Display subtask instruction."""
+        """显示子任务说明。"""
         self._display_subtask(text)
 
     def show_demo(self, text):
         """Display demo completion message."""
+        """显示演示完成消息。"""
         self._display_demo(text)
 
 
@@ -63,6 +68,14 @@ def show_subtask_instructions(
         prev_subtasks: Previous subtask terms
         obv: Current observation with subtask terms
         env_cfg: Environment configuration containing subtask descriptions
+    """
+    """检测子任务的变化，并显示变化。
+
+    参数：
+        instruction_display: 显示指令的显示处理器
+        prev_subtasks: 之前的子任务项
+        obv: 目前的观测与子任务项
+        env_cfg: 包含子任务描述的环境配置
     """
     if not isinstance(env_cfg, MimicEnvCfg):
         return

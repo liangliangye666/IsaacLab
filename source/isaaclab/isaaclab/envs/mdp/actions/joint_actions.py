@@ -45,17 +45,39 @@ class JointAction(ActionTerm):
     units and dimensions. The child classes of this action term can then map the output action to a specific
     desired command of the articulation's joints (e.g. position, velocity, etc.).
     """
+    """联合动作的基层。
+
+    这种操作项采用类似变化 (规模和抵消) 来预处理原始动作。
+    这些变化可以配置用于关节的子组。
+
+    在数学上，动作项定义为:
+
+    .. math::
+
+       \text{action} = \text{offset} + \text{scaling} \times \text{input action}
+
+    where :数学:`\text{action}`是发送到关节的动力关节的动作，`\text{offset}`
+    是对输入操作应用的偏移， :math:`\text{scaling}` 是对输入操作应用的规模， 和 :math:`\text{input action}` 是用户的输入操作。
+
+    基于上述情况，这种动作转换确保输入和输出动作在相同的单位和尺寸中。
+    然后，该动作项的子类可以将输出动作映射到关节的特定要求命令 (e.g.位置，速度等)。
+    """
 
     cfg: actions_cfg.JointActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
     _asset: Articulation
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
     _scale: torch.Tensor | float
     """The scaling factor applied to the input action."""
+    """对输入操作所应用的扩展因素。"""
     _offset: torch.Tensor | float
     """The offset applied to the input action."""
+    """对输入操作所应用的抵消。"""
     _clip: torch.Tensor
     """The clip applied to the input action."""
+    """在输入操作中应用的裁剪。"""
 
     def __init__(self, cfg: actions_cfg.JointActionCfg, env: ManagerBasedEnv) -> None:
         # initialize the action term
@@ -114,6 +136,8 @@ class JointAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
@@ -141,6 +165,18 @@ class JointAction(ActionTerm):
         Returns:
             The IO descriptor of the action term.
         """
+        """动作项的IO描述符。
+
+        该描述符用于描述联合动作的动作项。
+        它将以下信息添加到基础描述符中:
+        - joint_names关节的名称。
+        - 规模:动作项的规模。
+        - 抵消:动作项的抵消。
+        - 动作项的裁剪。
+
+        返回：
+            动作项的IO描述符。
+        """
         super().IO_descriptor
         self._IO_descriptor.shape = (self.action_dim,)
         self._IO_descriptor.dtype = str(self.raw_actions.dtype)
@@ -165,6 +201,8 @@ class JointAction(ActionTerm):
     """
     Operations.
     """
+    """操作。
+    """
 
     def process_actions(self, actions: torch.Tensor):
         # store the raw actions
@@ -183,9 +221,11 @@ class JointAction(ActionTerm):
 
 class JointPositionAction(JointAction):
     """Joint action term that applies the processed actions to the articulation's joints as position commands."""
+    """联合动作项，将处理的动作应用于关节的关节作为位置命令。"""
 
     cfg: actions_cfg.JointPositionActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     def __init__(self, cfg: actions_cfg.JointPositionActionCfg, env: ManagerBasedEnv):
         # initialize the action term
@@ -214,9 +254,23 @@ class RelativeJointPositionAction(JointAction):
 
     where :math:`\text{current joint positions}` are the current joint positions of the articulation's joints.
     """
+    """联合动作项，将处理的动作应用于关节的关节，作为相对位置命令。
+
+    Unlike :类:`JointPositionAction`，本操作项将处理的操作作为相对位置命令。
+    这意味着处理的操作在作为位置命令发送之前添加到关节关节的当前关节位置。
+
+    这意味着每一步都需要采取以下措施:
+
+    .. math::
+
+         \text{applied action} = \text{current joint positions} + \text{processed actions}
+
+    where :数学:`\text{current joint positions}`是关节关节的当前关节位置。
+    """
 
     cfg: actions_cfg.RelativeJointPositionActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     def __init__(self, cfg: actions_cfg.RelativeJointPositionActionCfg, env: ManagerBasedEnv):
         # initialize the action term
@@ -234,9 +288,11 @@ class RelativeJointPositionAction(JointAction):
 
 class JointVelocityAction(JointAction):
     """Joint action term that applies the processed actions to the articulation's joints as velocity commands."""
+    """联合动作项，将处理的动作应用于关节的关节作为速度命令。"""
 
     cfg: actions_cfg.JointVelocityActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     def __init__(self, cfg: actions_cfg.JointVelocityActionCfg, env: ManagerBasedEnv):
         # initialize the action term
@@ -252,9 +308,11 @@ class JointVelocityAction(JointAction):
 
 class JointEffortAction(JointAction):
     """Joint action term that applies the processed actions to the articulation's joints as effort commands."""
+    """联合动作项，将处理的动作应用于关节作为努力命令。"""
 
     cfg: actions_cfg.JointEffortActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
 
     def __init__(self, cfg: actions_cfg.JointEffortActionCfg, env: ManagerBasedEnv):
         super().__init__(cfg, env)

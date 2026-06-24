@@ -13,6 +13,7 @@ from isaaclab.app import AppLauncher
 @pytest.mark.usefixtures("mocker")
 def test_livestream_launch_with_env_vars(mocker):
     """Test launching with environment variables."""
+    """用环境变量进行测试。"""
     # Mock the environment variables
     mocker.patch.dict(os.environ, {"LIVESTREAM": "1", "HEADLESS": "1"})
     # everything defaults to None

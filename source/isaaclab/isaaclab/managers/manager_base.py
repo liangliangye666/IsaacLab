@@ -57,6 +57,31 @@ class ManagerTermBase(ABC):
         my_manager = ManagerBase(cfg=ManagerCfg(), env=env)
 
     """
+    """管理器项的基类。
+
+    manager term 可以由函数或类实现。若采用类实现，该类应继承本基类并实现所需方法。
+
+    每一种管理器都继承 :class:`ManagerBase`，并具有对应的配置类来声明管理器包含的各个配置项。
+    每个配置项都应为 :class:`ManagerTermBaseCfg` 或其子类的实例。
+
+    创建管理器的伪代码如下：
+
+    .. code-block:: python
+
+        from isaaclab.utils import configclass
+        from isaaclab.utils.mdp import ManagerBase, ManagerTermBaseCfg
+
+
+        @configclass
+        class MyManagerCfg:
+            my_term_1: ManagerTermBaseCfg = ManagerTermBaseCfg(...)
+            my_term_2: ManagerTermBaseCfg = ManagerTermBaseCfg(...)
+            my_term_3: ManagerTermBaseCfg = ManagerTermBaseCfg(...)
+
+
+        # define manager instance
+        my_manager = ManagerBase(cfg=ManagerCfg(), env=env)
+    """
 
     def __init__(self, cfg: ManagerTermBaseCfg, env: ManagerBasedEnv):
         """Initialize the manager term.
@@ -65,6 +90,12 @@ class ManagerTermBase(ABC):
             cfg: The configuration object.
             env: The environment instance.
         """
+        """初始化管理器项。
+
+        参数：
+            cfg: 配置对象。
+            env: 环境实例。
+        """
         # store the inputs
         self.cfg = cfg
         self._env = env
@@ -72,24 +103,31 @@ class ManagerTermBase(ABC):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def num_envs(self) -> int:
         """Number of environments."""
+        """环境数量"""
         return self._env.num_envs
 
     @property
     def device(self) -> str:
         """Device on which to perform computations."""
+        """用于执行计算的设备。"""
         return self._env.device
 
     @property
     def __name__(self) -> str:
         """Return the name of the class or subclass."""
+        """返回类或子类的名称。"""
         return self.__class__.__name__
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> None:
@@ -99,10 +137,16 @@ class ManagerTermBase(ABC):
             env_ids: The environment ids. Defaults to None, in which case
                 all environments are considered.
         """
+        """重置管理器项。
+
+        参数：
+            env_ids: 要重置的环境 ID。默认为 None，表示处理所有环境。
+        """
         pass
 
     def serialize(self) -> dict:
         """General serialization call. Includes the configuration dict."""
+        """执行通用序列化，并包含该项的配置字典。"""
         return {"cfg": class_to_dict(self.cfg)}
 
     def __call__(self, *args) -> Any:
@@ -125,11 +169,27 @@ class ManagerTermBase(ABC):
         Returns:
             The value of the term.
         """
+        """返回管理器所需的该项计算结果。
+
+        对于类形式的实现，管理器会调用此方法获取该项的值。传入参数由项配置中的
+        :attr:`ManagerTermBaseCfg.params` 指定。
+
+        .. 注意::
+            为了与无状态函数项的内存行为保持一致，建议在返回可变对象前先进行复制。
+            例如，若返回 Tensor，应返回原 Tensor 的 clone，避免管理器持有引用并意外修改原数据。
+
+        参数：
+            *args: 可变长度参数列表。
+
+        返回：
+            该项的计算结果。
+        """
         raise NotImplementedError("The method '__call__' should be implemented by the subclass.")
 
 
 class ManagerBase(ABC):
     """Base class for all managers."""
+    """所有管理器的基类。"""
 
     def __init__(self, cfg: object, env: ManagerBasedEnv):
         """Initialize the manager.
@@ -144,6 +204,17 @@ class ManagerBase(ABC):
         Args:
             cfg: The configuration object. If None, the manager is initialized without any terms.
             env: The environment instance.
+        """
+        """初始化管理器。
+
+        该函数负责解析配置对象并创建各个 manager term。
+
+        如果仿真尚未开始播放，则不会立即解析场景实体，而是将解析过程延迟到仿真开始时。
+        如果创建管理器时仿真已经处于播放状态，则会在准备配置项时直接解析场景实体。
+
+        参数：
+            cfg: 配置对象。若为 None，则初始化一个不包含任何项的管理器。
+            env: 环境实例。
         """
         # store the inputs
         self.cfg = copy.deepcopy(cfg)
@@ -178,6 +249,7 @@ class ManagerBase(ABC):
 
     def __del__(self):
         """Delete the manager."""
+        """删除管理器。"""
         if self._resolve_terms_handle:
             self._resolve_terms_handle.unsubscribe()
             self._resolve_terms_handle = None
@@ -185,25 +257,32 @@ class ManagerBase(ABC):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def num_envs(self) -> int:
         """Number of environments."""
+        """环境数量"""
         return self._env.num_envs
 
     @property
     def device(self) -> str:
         """Device on which to perform computations."""
+        """用于执行计算的设备。"""
         return self._env.device
 
     @property
     @abstractmethod
     def active_terms(self) -> list[str] | dict[str, list[str]]:
         """Name of active terms."""
+        """当前启用项的名称。"""
         raise NotImplementedError
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
@@ -215,6 +294,14 @@ class ManagerBase(ABC):
 
         Returns:
             Dictionary containing the logging information.
+        """
+        """重置管理器，并返回当前时间步的日志信息。
+
+        参数：
+            env_ids: 需要重置并记录数据的环境 ID。默认为 None，表示全部环境。
+
+        返回：
+            包含记录信息的字典。
         """
         return {}
 
@@ -233,6 +320,17 @@ class ManagerBase(ABC):
 
         Returns:
             A list of term names that match the input keys.
+        """
+        """按名称查找管理器中的项。
+
+        ``name_keys`` 可以是一个正则表达式，也可以是正则表达式列表；匹配范围为管理器当前启用的项。
+        名称匹配规则请参阅 :meth:`~isaaclab.utils.string_utils.resolve_matching_names`。
+
+        参数：
+            name_keys: 用于匹配项名称的正则表达式或正则表达式列表。
+
+        返回：
+            与输入表达式匹配的项名称列表。
         """
         # resolve search keys
         if isinstance(self.active_terms, dict):
@@ -253,25 +351,41 @@ class ManagerBase(ABC):
         Returns:
             The active terms.
         """
+        """以可迭代元组序列返回当前启用的项。
+
+        每个元组的第一个元素是项名称，第二个元素是该项的原始值。
+
+        返回：
+            当前启用的项。
+        """
         raise NotImplementedError
 
     """
     Implementation specific.
     """
+    """具体实现。
+    """
 
     @abstractmethod
     def _prepare_terms(self):
         """Prepare terms information from the configuration object."""
+        """根据配置对象准备各项信息。"""
         raise NotImplementedError
 
     """
     Internal callbacks.
+    """
+    """内部回调。
     """
 
     def _resolve_terms_callback(self, event):
         """Resolve configurations of terms once the simulation starts.
 
         Please check the :meth:`_process_term_cfg_at_play` method for more information.
+        """
+        """在仿真开始播放后解析各项配置。
+
+        更多信息请参阅 :meth:`_process_term_cfg_at_play`。
         """
         # check if scene entities have been resolved
         if self._is_scene_entities_resolved:
@@ -296,6 +410,8 @@ class ManagerBase(ABC):
 
     """
     Internal functions.
+    """
+    """内部功能。
     """
 
     def _resolve_common_term_cfg(self, term_name: str, term_cfg: ManagerTermBaseCfg, min_argc: int = 1):
@@ -328,6 +444,31 @@ class ManagerBase(ABC):
             ValueError: If the scene entity defined in the term configuration does not exist.
             AttributeError: If the term function is not callable.
             ValueError: If the term function's arguments are not matched by the parameters.
+        """
+        """解析 manager term 配置的通用属性。
+
+        该方法通常由 :meth:`_prepare_terms` 调用，主要完成：
+
+        * 解析项函数，并检查其是否可调用；
+        * 校验项函数的参数是否与配置中的 ``params`` 匹配；
+        * 解析 ``asset_cfg``、``sensor_cfg`` 等场景实体配置；
+        * 如果项由类实现，则实例化该项。
+
+        后两步依赖已经初始化的仿真场景，因此只能在仿真开始播放后完成。
+
+        默认情况下，项函数至少接收环境对象这一个参数。某些管理器还要求额外的固定参数，例如第二个参数
+        ``env_ids``。此时可通过 ``min_argc`` 指定管理器调用该函数所需的最少固定参数数量。
+
+        参数：
+            term_name: 项名称。
+            term_cfg: 项配置。
+            min_argc: 管理器正确调用项函数所需的最少固定参数数量。
+
+        异常：
+            TypeError: 项配置不是 :class:`ManagerTermBaseCfg` 类型。
+            ValueError: 项配置中声明的场景实体不存在。
+            AttributeError: 项函数不可调用。
+            ValueError: 项函数参数与配置参数不匹配。
         """
         # check if the term is a valid term config
         if not isinstance(term_cfg, ManagerTermBaseCfg):
@@ -393,6 +534,19 @@ class ManagerBase(ABC):
         Args:
             term_name: The name of the term.
             term_cfg: The term configuration.
+        """
+        """在仿真运行时处理项配置。
+
+        该函数在仿真开始播放时调用，主要完成：
+
+        * 解析该项引用的场景实体配置；
+        * 如果项由类实现，则实例化该项。
+
+        这些步骤依赖 PhysX 对仿真场景的解析结果，因此会延迟到仿真开始播放后执行。
+
+        参数：
+            term_name: 项名称。
+            term_cfg: 项配置。
         """
         for key, value in term_cfg.params.items():
             if isinstance(value, SceneEntityCfg):

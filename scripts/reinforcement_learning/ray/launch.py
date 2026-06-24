@@ -25,6 +25,23 @@ Usage:
     --num_workers 1 2 --num_clusters 1 \
     --worker_accelerator nvidia-l4 nvidia-tesla-t4 --gpu_per_worker 1 2 4
 """
+"""这个脚本可以帮助创建一个或多个KubeRay集群。
+
+Usage:
+
+.. code-block:: bash
+    # If the head node is stuck on container creating, make sure to create a secret
+    python3 scripts/reinforcement_learning/ray/launch.py -h
+
+    # Examples
+
+    # The following creates 8 GPUx1 nvidia l4 workers
+    python3 scripts/reinforcement_learning/ray/launch.py --cluster_host google_cloud     --namespace <NAMESPACE> --image <YOUR_ISAAC_RAY_IMAGE>     --num_workers 8 --num_clusters 1 --worker_accelerator nvidia-l4 --gpu_per_worker 1
+
+    # The following creates 1 GPUx1 nvidia l4 worker, 2 GPUx2 nvidia-tesla-t4 workers,
+    # and 2 GPUx4 nvidia-tesla-t4 GPU workers
+    python3 scripts/reinforcement_learning/ray/launch.py --cluster_host google_cloud     --namespace <NAMESPACE> --image <YOUR_ISAAC_RAY_IMAGE>     --num_workers 1 2 --num_clusters 1     --worker_accelerator nvidia-l4 nvidia-tesla-t4 --gpu_per_worker 1 2 4
+"""
 
 import argparse
 import pathlib
@@ -48,6 +65,12 @@ def apply_manifest(args: argparse.Namespace) -> None:
 
     Args:
         args: Possible arguments concerning cluster parameters.
+    """
+    """如果一个Jinja模板 ray.io/v1alpha1文件，填写参数并创建集群。
+    另外，要创建一个库伯网容器，
+
+    参数：
+        args: 关于集群参数的可能参数。
     """
     # Load Kubernetes configuration
     config.load_kube_config()
@@ -93,6 +116,11 @@ def parse_args() -> argparse.Namespace:
 
     Returns:
         argparse.Namespace: Parsed command-line arguments.
+    """
+    """解析 Kubernetes 部署脚本的命令行参数。
+
+    返回：
+        argparse.Namespace: 分析命令行参数。
     """
     arg_parser = argparse.ArgumentParser(
         description="Script to apply manifests to create Kubernetes objects for Ray clusters.",

@@ -29,6 +29,17 @@ def approach_ee_handle(env: ManagerBasedRLEnv, threshold: float) -> torch.Tensor
         \end{cases}
 
     """
+    """通过反正方形法来奖励机器人。
+
+    机器人可以使用一块的函数来奖励机器人。
+
+    .. math::
+
+        reward = \begin{cases}
+            2 * (1 / (1 + distance^2))^2 & \text{if } distance \leq threshold \\
+            (1 / (1 + distance^2))^2 & \text{otherwise}
+        \end{cases}
+    """
     ee_tcp_pos = env.scene["ee_frame"].data.target_pos_w[..., 0, :]
     handle_pos = env.scene["cabinet_frame"].data.target_pos_w[..., 0, :]
 
@@ -52,6 +63,18 @@ def align_ee_handle(env: ManagerBasedRLEnv) -> torch.Tensor:
 
     where :math:`align_z` is the dot product of the z direction of the gripper and the -x direction of the handle
     and :math:`align_x` is the dot product of the x direction of the gripper and the -y direction of the handle.
+    """
+    """奖励对最终效应器和句柄进行配合。
+
+    奖励取决于抓住器与句柄的配合。
+    它的计算方式如下:
+
+    .. math::
+
+        reward = 0.5 * (align_z^2 + align_x^2)
+
+    where :数学:`align_z`是抓住器的z方向和句柄的 -x方向的点产量
+    and :数学:`align_x`是抓住器的x方向和句柄的 -y方向的点分数。
     """
     ee_tcp_quat = env.scene["ee_frame"].data.target_quat_w[..., 0, :]
     handle_quat = env.scene["cabinet_frame"].data.target_quat_w[..., 0, :]
@@ -78,6 +101,10 @@ def align_grasp_around_handle(env: ManagerBasedRLEnv) -> torch.Tensor:
 
     The correct hand orientation is when the left finger is above the handle and the right finger is below the handle.
     """
+    """奖金是对手指的方向。
+
+    右手指在句柄下面，左手指在句柄上。
+    """
     # Target object position: (num_envs, 3)
     handle_pos = env.scene["cabinet_frame"].data.target_pos_w[..., 0, :]
     # Fingertips position: (num_envs, n_fingertips, 3)
@@ -97,6 +124,11 @@ def approach_gripper_handle(env: ManagerBasedRLEnv, offset: float = 0.04) -> tor
 
     This function returns the distance of fingertips to the handle when the fingers are in a grasping orientation
     (i.e., the left finger is above the handle and the right finger is below the handle). Otherwise, it returns zero.
+    """
+    """让机器人按正确的姿势来接到抽句柄。
+
+    当手指在抓取方向时，这个函数返回手指尖到句柄的距离 (i.e.，左手指位于句柄之上，右手指位于句柄之下)。
+    否则，它会返回零。
     """
     # Target object position: (num_envs, 3)
     handle_pos = env.scene["cabinet_frame"].data.target_pos_w[..., 0, :]
@@ -126,6 +158,14 @@ def grasp_handle(
     Note:
         It is assumed that zero joint position corresponds to the fingers being closed.
     """
+    """在句柄附近闭上手指的奖励。
+
+    The :attr:`threshold`是指头应该关闭的距离。
+    The :attr:`open_joint_pos`是指公开时的关节位置。
+
+    说明：
+        假设零关节位置是指关闭的。
+    """
     ee_tcp_pos = env.scene["ee_frame"].data.target_pos_w[..., 0, :]
     handle_pos = env.scene["cabinet_frame"].data.target_pos_w[..., 0, :]
     gripper_joint_pos = env.scene[asset_cfg.name].data.joint_pos[:, asset_cfg.joint_ids]
@@ -141,6 +181,11 @@ def open_drawer_bonus(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -> torc
 
     The bonus is given when the drawer is open. If the grasp is around the handle, the bonus is doubled.
     """
+    """开放抽的奖金是抽的关节位置所给出的。
+
+    奖金是当抽开放时给予的。
+    如果抓住句柄，奖金将翻倍。
+    """
     drawer_pos = env.scene[asset_cfg.name].data.joint_pos[:, asset_cfg.joint_ids[0]]
     is_graspable = align_grasp_around_handle(env).float()
 
@@ -152,6 +197,11 @@ def multi_stage_open_drawer(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg) -
 
     Depending on the drawer's position, the reward is given in three stages: easy, medium, and hard.
     This helps the agent to learn to open the drawer in a controlled manner.
+    """
+    """开放抽的多阶段奖金。
+
+    根据抽的位置，奖励分为三个阶段:简单，中等和硬。
+    这将帮助代理人学习以控制的方式打开抽。
     """
     drawer_pos = env.scene[asset_cfg.name].data.joint_pos[:, asset_cfg.joint_ids[0]]
     is_graspable = align_grasp_around_handle(env).float()

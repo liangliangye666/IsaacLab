@@ -6,6 +6,8 @@
 """
 AMP Humanoid locomotion environment.
 """
+"""AMP人类运动环境。
+"""
 
 import gymnasium as gym
 

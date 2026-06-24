@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -12,6 +13,7 @@ app_launcher = AppLauncher(headless=True, enable_cameras=True)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 
@@ -26,6 +28,7 @@ from env_test_utils import _check_random_actions, setup_environment  # isort: sk
 @pytest.mark.isaacsim_ci
 def test_factory_environments(task_name, num_envs, device):
     """Run all factory environments and check environments return valid signals."""
+    """运行所有工厂环境，检查环境返回有效信号。"""
     print(f">>> Running test for environment: {task_name}")
     _check_random_actions(task_name, device, num_envs)
     print(f">>> Closing environment: {task_name}")

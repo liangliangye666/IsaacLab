@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to train RL agent with RSL-RL."""
+"""剧本要训练RL代理用RSL-RL。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import sys
@@ -52,6 +54,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Check for minimum supported RSL-RL version."""
+"""检查支持的最小RSL-RL版本。"""
 
 import importlib.metadata as metadata
 import platform
@@ -74,6 +77,7 @@ if version.parse(installed_version) < version.parse(RSL_RL_VERSION):
     exit(1)
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import logging
 import os
@@ -114,6 +118,7 @@ torch.backends.cudnn.benchmark = False
 @hydra_task_config(args_cli.task, args_cli.agent)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlBaseRunnerCfg):
     """Train with RSL-RL agent."""
+    """搭乘RSL-RL代理。"""
     # override configurations with non-hydra CLI arguments
     agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
     env_cfg.scene.num_envs = args_cli.num_envs if args_cli.num_envs is not None else env_cfg.scene.num_envs

@@ -3,6 +3,7 @@
 #
 # SPDX-License-Identifier: BSD-3-Clause
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -10,6 +11,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows from here."""
+"""休息，从这里开始。"""
 
 import pytest
 import torch
@@ -20,6 +22,7 @@ from isaaclab.utils.datasets import EpisodeData
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_is_empty(device):
     """Test checking whether the episode is empty."""
+    """测试检查该事件是否空。"""
     episode = EpisodeData()
     assert episode.is_empty()
 
@@ -30,6 +33,7 @@ def test_is_empty(device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_add_tensors(device):
     """Test appending tensor data to the episode."""
+    """测试将 data光数据添加到事件中。"""
     dummy_data_0 = torch.tensor([0], device=device)
     dummy_data_1 = torch.tensor([1], device=device)
     expected_added_data = torch.cat((dummy_data_0.unsqueeze(0), dummy_data_1.unsqueeze(0)))
@@ -67,6 +71,7 @@ def test_add_tensors(device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_add_dict_tensors(device):
     """Test appending dict data to the episode."""
+    """测试将数据添加到事件中。"""
     dummy_dict_data_0 = {
         "key_0": torch.tensor([0], device=device),
         "key_1": {"key_1_0": torch.tensor([1], device=device), "key_1_1": torch.tensor([2], device=device)},
@@ -114,6 +119,7 @@ def test_add_dict_tensors(device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_get_initial_state(device):
     """Test getting the initial state of the episode."""
+    """测试得到事件的初始状态。"""
     dummy_initial_state = torch.tensor([1, 2, 3], device=device)
     episode = EpisodeData()
 
@@ -126,6 +132,7 @@ def test_get_initial_state(device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_get_next_action(device):
     """Test getting next actions."""
+    """测试下一步动作。"""
     # dummy actions
     action1 = torch.tensor([1, 2, 3], device=device)
     action2 = torch.tensor([4, 5, 6], device=device)

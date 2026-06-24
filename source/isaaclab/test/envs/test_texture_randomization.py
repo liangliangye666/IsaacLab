@@ -6,8 +6,11 @@
 """
 This script tests the functionality of texture randomization applied to the cartpole scene.
 """
+"""这种脚本测试了对车杆场景应用的纹理随机化的功能。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -16,6 +19,7 @@ app_launcher = AppLauncher(headless=True, enable_cameras=True)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 
@@ -39,6 +43,7 @@ from isaaclab_tasks.manager_based.classic.cartpole.cartpole_env_cfg import Cartp
 @configclass
 class ActionsCfg:
     """Action specifications for the environment."""
+    """环境动作规范"""
 
     joint_efforts = mdp.JointEffortActionCfg(asset_name="robot", joint_names=["slider_to_cart"], scale=5.0)
 
@@ -46,10 +51,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the environment."""
+    """对环境的观测规范。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # observation terms (order preserved)
         joint_pos_rel = ObsTerm(func=mdp.joint_pos_rel)
@@ -66,6 +73,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     # on prestartup apply a new set of textures
     # note from @mayank: Changed from 'reset' to 'prestartup' to make test pass.
@@ -131,6 +139,7 @@ class EventCfg:
 @configclass
 class EventCfgFallback:
     """Configuration for events that tests the fallback mechanism."""
+    """测试倒退机制的事件配置。"""
 
     # Test fallback when /visuals pattern doesn't match
     test_fallback_texture_randomizer = EventTerm(
@@ -161,6 +170,7 @@ class EventCfgFallback:
 @configclass
 class CartpoleEnvCfg(ManagerBasedEnvCfg):
     """Configuration for the cartpole environment."""
+    """适用于车杆环境的配置。"""
 
     # Scene settings
     scene = CartpoleSceneCfg(env_spacing=2.5)
@@ -172,6 +182,7 @@ class CartpoleEnvCfg(ManagerBasedEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # viewer settings
         self.viewer.eye = [4.5, 0.0, 6.0]
         self.viewer.lookat = [0.0, 0.0, 2.0]
@@ -184,6 +195,7 @@ class CartpoleEnvCfg(ManagerBasedEnvCfg):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_texture_randomization(device):
     """Test texture randomization for cartpole environment."""
+    """测试 cart纹随机化，用于车杆环境。"""
     # Create a new stage
     omni.usd.get_context().new_stage()
 
@@ -217,6 +229,7 @@ def test_texture_randomization(device):
 
 def test_texture_randomization_failure_replicate_physics():
     """Test texture randomization failure when replicate physics is set to True."""
+    """当复制物理设置为True时，测试纹理随机化失败。"""
     # Create a new stage
     omni.usd.get_context().new_stage()
 

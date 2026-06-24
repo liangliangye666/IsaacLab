@@ -12,8 +12,16 @@ This script demonstrates how to use the ray-caster sensor.
     ./isaaclab.sh -p scripts/tutorials/04_sensors/run_ray_caster.py
 
 """
+"""这本脚本展示了如何使用射线传感器。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/04_sensors/run_ray_caster.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -30,6 +38,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -42,6 +51,7 @@ from isaaclab.utils.timer import Timer
 
 def define_sensor() -> RayCaster:
     """Defines the ray-caster sensor to add to the scene."""
+    """定义了射线传感器，"""
     # Create a ray-caster sensor
     ray_caster_cfg = RayCasterCfg(
         prim_path="/World/Origin.*/ball",
@@ -57,6 +67,7 @@ def define_sensor() -> RayCaster:
 
 def design_scene() -> dict:
     """Design the scene."""
+    """设计场景。"""
     # Populate scene
     # -- Rough terrain
     cfg = sim_utils.UsdFileCfg(usd_path=f"{ISAAC_NUCLEUS_DIR}/Environments/Terrains/rough_plane.usd")
@@ -92,6 +103,7 @@ def design_scene() -> dict:
 
 def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
     """Run the simulator."""
+    """运行仿真器。"""
     # Extract scene_entities for simplified notation
     ray_caster: RayCaster = scene_entities["ray_caster"]
     balls: RigidObject = scene_entities["balls"]
@@ -127,6 +139,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene_entities: dict):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load simulation context
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
     sim = sim_utils.SimulationContext(sim_cfg)

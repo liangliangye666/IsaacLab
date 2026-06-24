@@ -27,8 +27,26 @@ The rest of the environment is similar to the previous tutorials.
 """
 
 from __future__ import annotations
+"""这种脚本创建了一个简单的环境，
+立方体由PD控制器控制，以追踪任意的目标位置。
+
+在阅读这本教程时，我们建议您注意如何定义一个定制动作项。
+动作项负责处理原始动作并将其应用于场景实体。
+
+我们还定义了一个称为"randomize_scale"的事件项，
+这种事件项有"预启动"模式，这意味着它在仿真开始之前在USD阶段应用。
+此外，旗"replicate_physics"设置为False，这意味着立方体不会在多个环境中复制，而是每个环境都会获得自己的立方体实例。
+
+其余的环境与之前的教程相似。
+
+.. code-block:: bash
+
+    # Run the script
+    ./isaaclab.sh -p scripts/tutorials/03_envs/create_cube_base_env.py --num_envs 32
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -49,6 +67,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -85,9 +104,23 @@ class CubeActionTerm(ActionTerm):
     The processed actions are then applied to the cube asset by implementing a PD controller to
     track the target position.
     """
+    """简单的操作项，实现PD控制器来跟踪目标位置。
+
+    动作项适用于立方资产。
+    这包括两个步骤:
+
+    1. **处理原始动作**:通常包括任何原始动作的变化，需要将它们映射到所需的空间。
+    2. **应用处理动作**:此步骤将处理动作应用于资产。
+
+    在这种情况下，动作项仅仅适用于原产品的立方资产。
+    原动作是环境框架中的立方体所需的目标位置。
+    预处理步骤简单地将原始动作复制到加工操作中，因为不需要额外的处理。
+    然后通过实施PD控制器来跟踪目标位置，将处理的操作应用于立方资产。
+    """
 
     _asset: RigidObject
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
 
     def __init__(self, cfg: CubeActionTermCfg, env: ManagerBasedEnv):
         # call super constructor
@@ -102,6 +135,8 @@ class CubeActionTerm(ActionTerm):
 
     """
     Properties.
+    """
+    """属性。
     """
 
     @property
@@ -118,6 +153,8 @@ class CubeActionTerm(ActionTerm):
 
     """
     Operations
+    """
+    """运营
     """
 
     def process_actions(self, actions: torch.Tensor):
@@ -138,14 +175,18 @@ class CubeActionTerm(ActionTerm):
 @configclass
 class CubeActionTermCfg(ActionTermCfg):
     """Configuration for the cube action term."""
+    """立方形动作项的配置。"""
 
     class_type: type = CubeActionTerm
     """The class corresponding to the action term."""
+    """与动作项相应的类。"""
 
     p_gain: float = 5.0
     """Proportional gain of the PD controller."""
+    """控制器PD的比例增长。"""
     d_gain: float = 0.5
     """Derivative gain of the PD controller."""
+    """PD控制器的衍生收益。"""
 
 
 ##
@@ -155,6 +196,7 @@ class CubeActionTermCfg(ActionTermCfg):
 
 def base_position(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
     """Root linear velocity in the asset's root frame."""
+    """在资产的根框架中的根线性速度。"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_pos_w - env.scene.env_origins
@@ -170,6 +212,10 @@ class MySceneCfg(InteractiveSceneCfg):
     """Example scene configuration.
 
     The scene comprises of a ground plane, light source and floating cubes (gravity disabled).
+    """
+    """例如场景配置。
+
+    场景包括地面平面，光源和浮动立方体 (重力禁用)。
     """
 
     # add terrain
@@ -203,6 +249,7 @@ class MySceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     joint_pos = CubeActionTermCfg(asset_name="cube")
 
@@ -210,10 +257,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # cube velocity
         position = ObsTerm(func=base_position, params={"asset_cfg": SceneEntityCfg("cube")})
@@ -229,6 +278,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     # This event term resets the base position of the cube.
     # The mode is set to 'reset', which means that the base position is reset whenever
@@ -283,6 +333,7 @@ class EventCfg:
 @configclass
 class CubeEnvCfg(ManagerBasedEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
+    """机动速度跟踪环境的配置。"""
 
     # Scene settings
     # The flag 'replicate_physics' is set to False, which means that the cube is not replicated
@@ -297,6 +348,7 @@ class CubeEnvCfg(ManagerBasedEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 2
         # simulation settings
@@ -311,6 +363,7 @@ class CubeEnvCfg(ManagerBasedEnvCfg):
 
 def main():
     """Main function."""
+    """主要功能。"""
 
     # setup base environment
     env_cfg = CubeEnvCfg()

@@ -85,13 +85,68 @@ class TerrainGenerator:
         completely reproducible.
 
     """
+    """用于处理不同的地形生成功能。
+
+    面积的形象是网格。
+    它们是从高度田中得到的，或者是通过使用`trimesh <https://trimsh.org/trimesh.html>`库
+    高度字段表示更灵活，但计算和记忆效率低于trimesh表示。
+
+    所有地形生成函数都采用:obj:`difficulty`参数，它决定了地形的复杂性。
+    难度是0到1之间的数字，0是最容易的，1是最难的。
+    在大多数情况下，难度用于不同地形参数之间的线性插图。
+    例如，在金字塔楼梯地形上，阶梯高度是指定的最低和最高阶梯高度之间的回合。
+
+    每个地下都有相应的配置类，可用于指定地形参数。
+    配置类是继承 :class:`SubTerrainBaseCfg` 类的，其中包含所有地形的共同参数。
+
+    如果使用课程，则根据其难度参数生成地形。
+    难度在行数 (i.e.沿 x) 上有线性变化，小巧值增加了难度，以确保具有相同的地下类型的列不完全相同。
+    在给定的行上，一个地下面的难度参数计算为:
+
+    .. math::
+
+        \text{difficulty} =
+            \frac{\text{row_id} + \eta}{\text{num_rows}} \times (\text{upper} - \text{lower}) + \text{lower}
+
+    where :数学:`\eta\sim\mathcal{U}(0， 1)`是难度的随机扰乱，
+    :math:`(\text{lower}， \text{upper})`是使用以下标准的难度参数范围
+    :attr:`~TerrainGeneratorCfg.difficulty_range`参数。
+
+    如果没有使用课程，地形会随机生成。
+    在这种情况下，难度参数从指定范围中随机取样，由:attr:`~TerrainGeneratorCfg.difficulty_range`给出
+    parameter:
+
+    .. math::
+
+        \text{difficulty} \sim \mathcal{U}(\text{lower}, \text{upper})
+
+    如果 :attr:`~TerrainGeneratorCfg.flat_patch_sampling` 指定为地下区域，则在地形上采样平坦的斑点。
+    它们可以用于繁殖机器人，目标等。
+    采样补丁存储在:obj:`flat_patches`字典中。
+    键指定了平面贴片的目的，值为每个地下区域的平面贴片的子。
+
+    如果标志:attr:`~TerrainGeneratorCfg.use_cache`设置为True，则根据其地下配置进行缓存。
+    这意味着如果使用相同的地下配置多次，地形只会产生一次，然后再使用。
+    这在产生长时间的复杂地下产生时很有用。
+
+    .. 注意::
+
+        土地产量有自己的种子参数。
+        设置使用:attr:`TerrainGeneratorCfg.seed`参数。
+        如果种子未设置，缓存被禁用，地形生成可能无法完全复制。
+    """
 
     terrain_mesh: trimesh.Trimesh
     """A single trimesh.Trimesh object for all the generated sub-terrains."""
+    """一个单个trimesh.Trimesh对所有生成的地表。"""
     terrain_meshes: list[trimesh.Trimesh]
     """List of trimesh.Trimesh objects for all the generated sub-terrains."""
+    """对于所有生成的地下物体的trimesh.Trimesh物体列表。"""
     terrain_origins: np.ndarray
     """The origin of each sub-terrain. Shape is (num_rows, num_cols, 3)."""
+    """每个地下区域的起源。
+    形状是 (num_rows，num_cols， 3)。
+    """
     flat_patches: dict[str, torch.Tensor]
     """A dictionary of sampled valid (flat) patches for each sub-terrain.
 
@@ -102,6 +157,15 @@ class TerrainGenerator:
     For instance, the key "root_spawn" maps to a tensor containing the flat patches for spawning an asset.
     Similarly, the key "target_spawn" maps to a tensor containing the flat patches for setting targets.
     """
+    """每个地下区域的有效 (平面) 补丁样本字典。
+
+    字典键是平面补丁采样配置的名称。
+    这将每一个地下区域的平面斑块包含在一个度。
+    子的形状是 (num_rows，num_cols，num_patches，3)。
+
+    例如"，root_spawn"键将包含产物产生的平面补丁的子映射到一个子上。
+    同样，关键"target_spawn"对包含目标设置平面补丁的子进行映射。
+    """
 
     def __init__(self, cfg: TerrainGeneratorCfg, device: str = "cpu"):
         """Initialize the terrain generator.
@@ -109,6 +173,12 @@ class TerrainGenerator:
         Args:
             cfg: Configuration for the terrain generator.
             device: The device to use for the flat patches tensor.
+        """
+        """启动地形发电机。
+
+        参数：
+            cfg: 土地发电机的配置。
+            device: 用于平面补丁度的设备。
         """
         # check inputs
         if len(cfg.sub_terrains) == 0:
@@ -192,6 +262,7 @@ class TerrainGenerator:
 
     def __str__(self):
         """Return a string representation of the terrain generator."""
+        """返回地形生成器的字符串表示。"""
         msg = "Terrain Generator:"
         msg += f"\n\tSeed: {self.cfg.seed}"
         msg += f"\n\tNumber of rows: {self.cfg.num_rows}"
@@ -210,9 +281,12 @@ class TerrainGenerator:
     """
     Terrain generator functions.
     """
+    """土地发电器功能。
+    """
 
     def _generate_random_terrains(self):
         """Add terrains based on randomly sampled difficulty parameter."""
+        """根据随机采样难度参数添加地形。"""
         # normalize the proportions of the sub-terrains
         proportions = np.array([sub_cfg.proportion for sub_cfg in self.cfg.sub_terrains.values()])
         proportions /= np.sum(proportions)
@@ -234,6 +308,7 @@ class TerrainGenerator:
 
     def _generate_curriculum_terrains(self):
         """Add terrains based on the difficulty parameter."""
+        """根据难度参数添加地形。"""
         # normalize the proportions of the sub-terrains
         proportions = np.array([sub_cfg.proportion for sub_cfg in self.cfg.sub_terrains.values()])
         proportions /= np.sum(proportions)
@@ -268,9 +343,12 @@ class TerrainGenerator:
     """
     Internal helper functions.
     """
+    """内部助理功能。
+    """
 
     def _add_terrain_border(self):
         """Add a surrounding border over all the sub-terrains into the terrain meshes."""
+        """在地形网格中，将所有地下面的周边边界加上。"""
         # border parameters
         border_size = (
             self.cfg.num_rows * self.cfg.size[0] + 2 * self.cfg.border_width,
@@ -304,6 +382,17 @@ class TerrainGenerator:
             origin: The origin of the sub-terrain.
             row: The row index of the sub-terrain.
             col: The column index of the sub-terrain.
+        """
+        """增加输入地下地在地下地列表中。
+
+        该函数将输入地下网加入地下网的列表，并更新地下网的起源。
+        如果确定的，它还会采样平面补丁。
+
+        参数：
+            mesh: 在地下的网格。
+            origin: 地下地区的起源。
+            row: 地下区域的行列索引。
+            col: 在地底的列索引。
         """
         # sample flat patches if specified
         if sub_terrain_cfg.flat_patch_sampling is not None:
@@ -355,6 +444,21 @@ class TerrainGenerator:
 
         Returns:
             The sub-terrain mesh and origin.
+        """
+        """根据输入难度参数生成地下网格。
+
+        如果启用缓存，地下区域将被缓存并从缓存中加载，如果存在。
+        缓存存储在配置中指定的缓存目录中。
+
+        ..
+        注意:这个函数将网格的2D中心和其指定的起源集中，使2D中心成为:math:`(0， 0)`而不是:math:`(size[0] / 2，大小[1] / 2)。
+
+        参数：
+            difficulty: 难度参数。
+            cfg: 地下地区的配置。
+
+        返回：
+            地下网格和来源。
         """
         # copy the configuration
         cfg = cfg.copy()

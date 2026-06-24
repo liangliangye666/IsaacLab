@@ -51,6 +51,39 @@ class DifferentialIKController:
        by Samuel R. Buss (University of California, San Diego)
 
     """
+    """变化逆动力 (IK) 控制器。
+
+    这种控制器基于差异逆动力学[1， 2]的概念，这是计算关联位置的变化方法，从而产生所需的姿势变化。
+
+    .. math::
+
+        \Delta \mathbf{q} &= \mathbf{J}^{\dagger} \Delta \mathbf{x} \\
+        \mathbf{q}_{\text{desired}} &= \mathbf{q}_{\text{current}} + \Delta \mathbf{q}
+
+    where :数学:`\mathbf{J}^{\dagger}`是雅哥比亚矩阵的伪逆:`\mathbf{J}`，
+    :math:`\Delta \mathbf{x}`是所需的姿势变化，`\mathbf{q}_{\text{current}}`
+    是目前的联合立场。
+
+    为了处理Jacobian中的单一性，用于Jacobian的计算逆，支持以下方法:
+
+    - "pinv":摩尔-罗斯伪逆
+    - "svd":适应单值分解 (SVD)
+    - "trans":矩阵的转移
+    - "dls":摩尔-宾罗斯伪逆 (也称为莱文伯格-马卡尔特) 的化版本
+
+
+    .. 谨慎::
+        控制器不假设任何关于电流和所需的末端执行器姿势的框架，或联合空间速度的东西。
+        用户必须确保这些量以正确的格式提供。
+
+    Reference:
+
+    1. `Robot Dynamics Lecture Notes <https://ethz.ch/content/dam/ethz/special-interest/mavt/robotics-n-
+       intelligent-systems/rsl-dam/documents/RobotDynamics2017/RD_HS2017script.pdf>`马可·哈特 (ETH苏黎世
+    2. `Introduction to Inverse Kinematics
+       <https://www.cs.cmu.edu/~15464-s13/lectures/lecture6/iksurvey.pdf>`通过Samuel R。 Buss
+       (加利福尼亚大学，圣地亚哥)
+    """
 
     def __init__(self, cfg: DifferentialIKControllerCfg, num_envs: int, device: str):
         """Initialize the controller.
@@ -59,6 +92,13 @@ class DifferentialIKController:
             cfg: The configuration for the controller.
             num_envs: The number of environments.
             device: The device to use for computations.
+        """
+        """启动控制器。
+
+        参数：
+            cfg: 控制器的配置。
+            num_envs: 环境的数量。
+            device: 用于计算的设备。
         """
         # store inputs
         self.cfg = cfg
@@ -73,10 +113,13 @@ class DifferentialIKController:
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
         """Dimension of the controller's input command."""
+        """控制器输入命令的尺寸。"""
         if self.cfg.command_type == "position":
             return 3  # (x, y, z)
         elif self.cfg.command_type == "pose" and self.cfg.use_relative_mode:
@@ -87,12 +130,20 @@ class DifferentialIKController:
     """
     Operations.
     """
+    """操作。
+    """
 
     def reset(self, env_ids: torch.Tensor = None):
         """Reset the internals.
 
         Args:
             env_ids: The environment indices to reset. If None, then all environments are reset.
+        """
+        """重置内部。
+
+        参数：
+            env_ids: 环境索引要重置。
+                     如果是None，则所有环境都会重置。
         """
         pass
 
@@ -116,6 +167,24 @@ class DifferentialIKController:
             ValueError: If the command type is ``position_*`` and :attr:`ee_quat` is None.
             ValueError: If the command type is ``position_rel`` and :attr:`ee_pos` is None.
             ValueError: If the command type is ``pose_rel`` and either :attr:`ee_pos` or :attr:`ee_quat` is None.
+        """
+        """设置目标末端执行器姿势命令。
+
+        基于配置命令类型和相对模式，该方法计算了所需的末端执行器姿势。
+        用户必须确保命令是在正确的框架中进行。
+        如果命令类型是``position_rel``或``pose_rel``，则该方法只适用于相对模式。
+
+        参数：
+            command: 输入命令的形状 (N， 3) 或 (N， 6) 或 (N， 7)。
+            ee_pos: 目前末端执行器的形状位置 (N， 3)。
+                    如果命令类型是``position_rel``或``pose_rel``，只需要这样做。
+            ee_quat: 目前的末端执行器方向 (w， x， y， z) 形状 (N， 4)。
+                     如果命令类型是``position_*``或``pose_rel``，只需要这样做。
+
+        异常：
+            ValueError: 如果命令类型是``position_*``，:attr:`ee_quat`是None。
+            ValueError: 如果命令类型是``position_rel``，:attr:`ee_pos`是None。
+            ValueError: 如果命令类型是``pose_rel``，则:attr:`ee_pos`或:attr:`ee_quat`是None。
         """
         # store command
         self._command[:] = command
@@ -160,6 +229,17 @@ class DifferentialIKController:
         Returns:
             The target joint positions commands in shape (N, num_joints).
         """
+        """计算目标关节位置，将产生所需的最终效果剂姿势。
+
+        参数：
+            ee_pos: 目前末端执行器的形状位置 (N， 3)。
+            ee_quat: 目前的终端效应的形状方向 (N， 4)。
+            jacobian: 形状的几何雅可比矩阵 (N，6，num_joints)。
+            joint_pos: 现在的形状结合位置 (N，num_joints)。
+
+        返回：
+            目标关键位置以形状 (N，num_joints) 命令。
+        """
         # compute the delta in joint-space
         if "position" in self.cfg.command_type:
             position_error = self.ee_pos_des - ee_pos
@@ -177,6 +257,8 @@ class DifferentialIKController:
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _compute_delta_joint_pos(self, delta_pose: torch.Tensor, jacobian: torch.Tensor) -> torch.Tensor:
         """Computes the change in joint position that yields the desired change in pose.
@@ -191,6 +273,18 @@ class DifferentialIKController:
 
         Returns:
             The desired delta in joint space. Shape is (N, num-jointsß).
+        """
+        """计算关节位置的变化，从而产生所需的姿势变化。
+
+        这种方法使用Jacobian地图绘制，从关联空间速度到末端执行器速度，以计算在关联空间中的多角变化，使机器人接近所需的末端执行器位置。
+
+        参数：
+            delta_pose: 想要的三角形姿势 (N， 3) 或 (N， 6)
+            jacobian: 形状的几何雅可比矩阵 (N， 3， num_joints) 或 (N， 6， num_joints)。
+
+        返回：
+            在关节空间中。
+            形状是 (N， num-jointsß)。
         """
         if self.cfg.ik_params is None:
             raise RuntimeError(f"Inverse-kinematics parameters for method '{self.cfg.ik_method}' is not defined!")

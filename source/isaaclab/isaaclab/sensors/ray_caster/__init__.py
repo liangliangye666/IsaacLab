@@ -14,6 +14,17 @@ The sub-module contains two implementations of the ray-cast sensor:
 Corresponding camera implementations are also provided for each of the sensor implementations. Internally, they perform
 the same ray-casting operations as the sensor implementations, but return the results as images.
 """
+"""基于光射线传感器的子模块。
+
+该子模块包含射线传感器的两个实现:
+
+- :class:`isaaclab.sensors.ray_caster.RayCaster`:一种基本射线传感器，可用于射线与单个网格。
+- :class:`isaaclab.sensors.ray_caster.MultiMeshRayCaster`:一个多网射线射线传感器，可用于射线射线与多个网.对于这些网，它跟踪他们的变化，并相应
+  地更新扭曲网。
+
+对于每个传感器实现，也提供相应的摄像头实现。
+在内部，它们执行与传感器实现相同的射线运行，但返回结果作为图像。
+"""
 
 from . import patterns
 from .multi_mesh_ray_caster import MultiMeshRayCaster

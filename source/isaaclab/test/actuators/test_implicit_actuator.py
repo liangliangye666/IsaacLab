@@ -11,6 +11,7 @@ HEADLESS = True
 simulation_app = AppLauncher(headless=HEADLESS).app
 
 """Rest of imports follows"""
+"""剩下的进口"""
 
 import pytest
 import torch
@@ -22,6 +23,7 @@ from isaaclab.sim import build_simulation_context
 @pytest.fixture
 def sim(request):
     """Create simulation context with the specified device."""
+    """使用指定设备创建仿真环境。"""
     device = request.getfixturevalue("device")
     with build_simulation_context(device=device) as sim:
         sim._app_control_on_stop_handle = None
@@ -34,6 +36,7 @@ def sim(request):
 @pytest.mark.parametrize("usd_default", [False, True])
 def test_implicit_actuator_init_minimum(sim, num_envs, num_joints, device, usd_default):
     """Test initialization of implicit actuator with minimum configuration."""
+    """测试暗动器初始化，最小配置。"""
 
     joint_names = [f"joint_{d}" for d in range(num_joints)]
     joint_ids = [d for d in range(num_joints)]
@@ -106,6 +109,7 @@ def test_implicit_actuator_init_minimum(sim, num_envs, num_joints, device, usd_d
 @pytest.mark.parametrize("effort_lim_sim", [None, 400, 200])
 def test_implicit_actuator_init_effort_limits(sim, num_envs, num_joints, device, effort_lim, effort_lim_sim):
     """Test initialization of implicit actuator with effort limits."""
+    """测试隐含动机的初始化，具有功耗限制。"""
     effort_limit_default = 5000
 
     joint_names = [f"joint_{d}" for d in range(num_joints)]
@@ -180,6 +184,10 @@ def test_implicit_actuator_init_velocity_limits(sim, num_envs, num_joints, devic
     """Test initialization of implicit actuator with velocity limits.
 
     Note implicit actuators do no use velocity limits in computation, they are passed to physics via articulations.
+    """
+    """测试隐含动机的启动速度限制。
+
+    注意隐含动机在计算中不使用速度限制，它们通过关节传递到物理学中。
     """
     velocity_limit_default = 1000
     joint_names = [f"joint_{d}" for d in range(num_joints)]

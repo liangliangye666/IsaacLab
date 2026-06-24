@@ -6,6 +6,8 @@
 """
 Python module serving as a project/extension template.
 """
+"""作为项目/扩展模板的Python模块。
+"""
 
 # Register Gym environments.
 from .tasks import *

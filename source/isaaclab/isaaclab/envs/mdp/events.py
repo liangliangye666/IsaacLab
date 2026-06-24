@@ -13,6 +13,13 @@ the event introduced by the function.
 """
 
 from __future__ import annotations
+"""共同的函数，可用于实现不同的事件。
+
+事件包括任何与仿真状态的改变相关的东西。
+这包括改变物理材料，应用外部力量，并重置资产状态。
+
+函数可以传递到:class:`isaaclab.managers.EventTermCfg`对象，以实现函数引入的事件。
+"""
 
 import logging
 import math
@@ -73,6 +80,32 @@ def randomize_rigid_body_scale(
         When randomizing the scale of individual assets, please make sure to set
         :attr:`isaaclab.scene.InteractiveSceneCfg.replicate_physics` to False. This ensures that physics
         parser will parse the individual asset properties separately.
+    """
+    """在USD阶段，随机定制硬体资产的规模。
+
+    这项函数修改了所有对资产的prims的"xformOp:scale"属性。
+
+    这需要一个图普或字典来测量范围。
+    如果它是元组，则沿着单个轴进行的扩展均。
+    如果是字典，那么每个维度的尺度是独立的。
+    字典的键是``x``，``y``和``z``。
+    这些值是表格``(min， max)``的双倍。
+
+    如果字典没有关键，则设置该轴的范围为一个。
+
+    可以使用相对儿童路径来随机定制特定儿童prim的资产规模。
+    例如，如果prim路径表达式``/World/envs/env_.*/Object``的资产有一个孩子
+    with the path ``/World/envs/env_.*/Object/mesh``, then the relative child path should be ``mesh`` or
+    ``/mesh``。
+
+    .. 注意::
+        由于这个函数在仿真启动后修改了物理引擎分析的USD属性，所以该项应仅在仿真开始播放之前使用。
+        这与"usd"命名的事件模式相符。
+        在仿真时使用它，可能导致不可预测的行为。
+
+    .. 说明::
+        在随机化个人资产规模时，请确保设置:attr:`isaaclab.scene.InteractiveSceneCfg.replicate_physics`到False。
+        这确保物理解析器将单独分析个别资产属性。
     """
     # check if sim is running
     if env.sim.is_playing():
@@ -179,6 +212,33 @@ class randomize_rigid_body_material(ManagerTermBase):
         limit, the simulation will crash. Due to this reason, we sample the materials only once during initialization.
         Afterwards, these materials are randomly assigned to the geometries of the asset.
     """
+    """随机对所有物体的几何进行物理材料。
+
+    这个函数创建了一个随机静态摩擦，动态摩擦和恢复值的物理材料集。
+    材料数量由``num_buckets``指定。
+    这些材料由从给定的范围中抽取统一的随机值来生成。
+
+    然后将材料属性分配给资产的几何。
+    通过创建一个随机整数形状张量 (num_instances，max_num_shapes)
+    来进行分配，其中``num_instances``是产生的资产数量，``max_num_shapes``是资产中最大数量的形状 (在所有体上)。
+    整数值作为索引用于从材料桶中选择材料属性。
+
+    如果标志``make_consistent``设置为``True``，则动态摩擦设置为不到或等于静态摩擦。
+    这符合摩擦值的物理约束。
+    然而，对于申请可能并不总是必要的。
+    因此，旗默认设置为``False``。
+
+    .. 注意::
+        这个函数使用CPU子分配材料属性。
+        建议仅在环境初始化期间使用此功能。
+        否则可能会导致显著的业绩总费。
+
+    .. 说明::
+        在场景，PhysX只允许64000个独特的物理材料。
+        如果材料数量超过这个限度，仿真将崩。
+        由于这个原因，我们在初始化过程中只采样材料一次。
+        后，这些材料被随机分配到资产的几何。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the term.
@@ -189,6 +249,15 @@ class randomize_rigid_body_material(ManagerTermBase):
 
         Raises:
             ValueError: If the asset is not a RigidObject or an Articulation.
+        """
+        """开始这个词。
+
+        参数：
+            cfg: 事件时间的配置。
+            env: 环境情况。
+
+        异常：
+            ValueError: 如果资产不是RigidObject或 Articulation。
         """
         super().__init__(cfg, env)
 
@@ -299,6 +368,20 @@ class randomize_rigid_body_mass(ManagerTermBase):
         This function uses CPU tensors to assign the body masses. It is recommended to use this function
         only during the initialization of the environment.
     """
+    """通过添加，扩展或设置随机值来随机定位体积。
+
+    这种函数允许随机对资产体质量进行排序。
+    函数从给定的分布参数中抽取随机值，并根据操作添加，量度或设置值在物理仿真中。
+
+    如果:attr:`recompute_inertia`标志设置为:obj:`True`，则在设置质量后，函数重新计算体体的惯性子。
+    这在质量显著变化时是有用的，因为惯性子取决于质量。
+    它假设身体是一个均密度的物体。
+    如果身体不是一个均密度的对象，则惰性子可能不准确。
+
+    .. 提示::
+        这个函数使用CPU子分配体质量。
+        建议仅在环境初始化期间使用此功能。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the term.
@@ -312,6 +395,18 @@ class randomize_rigid_body_mass(ManagerTermBase):
             ValueError: If the operation is not supported.
             ValueError: If the lower bound is negative or zero when not allowed.
             ValueError: If the upper bound is less than the lower bound.
+        """
+        """开始这个词。
+
+        参数：
+            cfg: 事件时间的配置。
+            env: 环境情况。
+
+        异常：
+            TypeError: 如果`params`不是两个数字的。
+            ValueError: 如果操作不支持。
+            ValueError: 如果下限是负值或零值，如果不允许。
+            ValueError: 如果上限小于下限。
         """
         super().__init__(cfg, env)
 
@@ -409,6 +504,12 @@ def randomize_rigid_body_com(
         This function uses CPU tensors to assign the CoM. It is recommended to use this function
         only during the initialization of the environment.
     """
+    """通过从给定的范围中抽取的随机值添加，随机定制硬体质量中心 (CoM)。
+
+    .. 说明::
+        这个函数使用CPU子分配CoM。
+        建议仅在环境初始化期间使用此功能。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # resolve environment ids
@@ -460,6 +561,21 @@ def randomize_rigid_body_collider_offsets(
     .. tip::
         This function uses CPU tensors to assign the collision properties. It is recommended to use this function
         only during the initialization of the environment.
+    """
+    """通过添加，扩展或设置随机值来随机定位在资产中固体的碰撞参数。
+
+    这种函数允许随机化资产的碰撞器参数，例如休息和接触抵消。
+    这些与对撞检查影响的物理发动机碰撞器性能相匹配。
+
+    函数从给定的分布参数中抽取随机值，并将操作应用于碰撞器属性。
+    然后它将值设置在物理仿真中。
+    如果分配参数不为特定属性提供，函数不会改变属性。
+
+    目前，分布参数被应用为绝对值。
+
+    .. 提示::
+        这个函数使用CPU子来分配碰撞属性。
+        建议仅在环境初始化期间使用此功能。
     """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject | Articulation = env.scene[asset_cfg.name]
@@ -518,6 +634,20 @@ def randomize_physics_scene_gravity(
     .. tip::
         This function uses CPU tensors to assign gravity.
     """
+    """通过添加，扩展或设置随机值来随机调整重力。
+
+    这个函数允许随机化物理场景的重力。
+    函数从给定的分布参数中抽取随机值，并根据操作添加，量度或设置值在物理仿真中。
+
+    分布参数是两个元素的列表，每个元素代表重力向量的x，y和z组件的分布的下和上边界。
+    函数独立对每个组件进行随机测量。
+
+    .. 注意::
+        这种函数对所有环境都应用相同的重力。
+
+    .. 提示::
+        这个函数使用CPU子分配重力。
+    """
     # get the current gravity
     gravity = torch.tensor(env.sim.cfg.gravity, device="cpu").unsqueeze(0)
     dist_param_0 = torch.tensor(gravity_distribution_params[0], device="cpu")
@@ -551,6 +681,18 @@ class randomize_actuator_gains(ManagerTermBase):
         For implicit actuators, this function uses CPU tensors to assign the actuator gains into the simulation.
         In such cases, it is recommended to use this function only during the initialization of the environment.
     """
+    """通过添加，扩展或设置随机值来随机调整动机在关节中的收益。
+
+    这种函数允许随机化执行器的硬度和缩增长。
+
+    函数从给定的分布参数中抽取随机值，并将操作应用于联合属性。
+    然后它将值设置在执行器模型中。
+    如果分配参数不为特定属性提供，函数不会改变属性。
+
+    .. 提示::
+        对于隐含执行器，该函数使用CPU子将执行器的收益分配到仿真中。
+        在这种情况下，建议仅在环境启动期间使用此功能。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the term.
@@ -564,6 +706,18 @@ class randomize_actuator_gains(ManagerTermBase):
             ValueError: If the operation is not supported.
             ValueError: If the lower bound is negative or zero when not allowed.
             ValueError: If the upper bound is less than the lower bound.
+        """
+        """开始这个词。
+
+        参数：
+            cfg: 事件时间的配置。
+            env: 环境情况。
+
+        异常：
+            TypeError: 如果`params`不是两个数字的。
+            ValueError: 如果操作不支持。
+            ValueError: 如果下限是负值或零值，如果不允许。
+            ValueError: 如果上限小于下限。
         """
         super().__init__(cfg, env)
 
@@ -664,6 +818,20 @@ class randomize_joint_parameters(ManagerTermBase):
         This function uses CPU tensors to assign the joint properties. It is recommended to use this function
         only during the initialization of the environment.
     """
+    """通过添加，扩展或设置随机值来随机定制一个关节的仿真关节参数。
+
+    这种函数允许随机化资产的联合参数。
+    这些与物理引擎关节特性相符，影响关节行为。
+    这些特性包括联合摩擦系数， armature和关节位置限制。
+
+    函数从给定的分布参数中抽取随机值，并将操作应用于联合属性。
+    然后它将值设置在物理仿真中。
+    如果分配参数不为特定属性提供，函数不会改变属性。
+
+    .. 提示::
+        这个函数使用CPU子分配联合属性。
+        建议仅在环境初始化期间使用此功能。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the term.
@@ -677,6 +845,18 @@ class randomize_joint_parameters(ManagerTermBase):
             ValueError: If the operation is not supported.
             ValueError: If the lower bound is negative or zero when not allowed.
             ValueError: If the upper bound is less than the lower bound.
+        """
+        """开始这个词。
+
+        参数：
+            cfg: 事件时间的配置。
+            env: 环境情况。
+
+        异常：
+            TypeError: 如果`params`不是两个数字的。
+            ValueError: 如果操作不支持。
+            ValueError: 如果下限是负值或零值，如果不允许。
+            ValueError: 如果上限小于下限。
         """
         super().__init__(cfg, env)
 
@@ -845,6 +1025,15 @@ class randomize_fixed_tendon_parameters(ManagerTermBase):
     the tendon properties. It then sets the values into the physics simulation. If the distribution parameters
     are not provided for a particular property, the function does not modify the property.
     """
+    """通过添加，扩展或设置随机值来随机调整一个关节的仿真固定子参数。
+
+    这种函数允许随机化资产的固定部参数。
+    这些与物理引擎的特性相匹配，
+
+    函数从给定的分布参数中抽取随机值，并将操作应用于子属性。
+    然后它将值设置在物理仿真中。
+    如果分配参数不为特定属性提供，函数不会改变属性。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the term.
@@ -858,6 +1047,18 @@ class randomize_fixed_tendon_parameters(ManagerTermBase):
             ValueError: If the operation is not supported.
             ValueError: If the lower bound is negative or zero when not allowed.
             ValueError: If the upper bound is less than the lower bound.
+        """
+        """开始这个词。
+
+        参数：
+            cfg: 事件时间的配置。
+            env: 环境情况。
+
+        异常：
+            TypeError: 如果`params`不是两个数字的。
+            ValueError: 如果操作不支持。
+            ValueError: 如果下限是负值或零值，如果不允许。
+            ValueError: 如果上限小于下限。
         """
         super().__init__(cfg, env)
 
@@ -1021,6 +1222,13 @@ def apply_external_force_torque(
     applied to the bodies by calling ``asset.set_external_force_and_torque``. The forces and torques are only
     applied when ``asset.write_data_to_sim()`` is called in the environment.
     """
+    """随机定制对身体的外部力和扭矩。
+
+    这个函数创建了从给定的范围抽取的随机力量和扭矩的集合。
+    动力和扭矩数量等于体体数量乘以环境数量。
+    通过调用``asset.set_external_force_and_torque``，将力和扭矩应用于机体。
+    只有在环境中调用``asset.write_data_to_sim()``时才会应用力和扭矩。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject | Articulation = env.scene[asset_cfg.name]
     # resolve environment ids
@@ -1058,6 +1266,16 @@ def push_by_setting_velocity(
     are ``x``, ``y``, ``z``, ``roll``, ``pitch``, and ``yaw``. The values are tuples of the form ``(min, max)``.
     If the dictionary does not contain a key, the velocity is set to zero for that axis.
     """
+    """通过将根速度设置为给定的范围内的随机值来推动资产。
+
+    这会产生类似于随机冲动推动资产的效果，
+    它从给定的范围中取出根速度样本，并将速度设置在物理仿真中。
+
+    函数为每个轴和旋转的速度范围采用字典。
+    字典的键是``x``，``y``，``z``，``roll``，``pitch``和``yaw``。
+    这些值是表格``(min， max)``的双倍。
+    如果字典中没有关键，速度为该轴设置为零。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject | Articulation = env.scene[asset_cfg.name]
 
@@ -1090,6 +1308,19 @@ def reset_root_state_uniform(
     The function takes a dictionary of pose and velocity ranges for each axis and rotation. The keys of the
     dictionary are ``x``, ``y``, ``z``, ``roll``, ``pitch``, and ``yaw``. The values are tuples of the form
     ``(min, max)``. If the dictionary does not contain a key, the position or velocity is set to zero for that axis.
+    """
+    """在给定的范围内，将资产根状态重置为随机位置和速度。
+
+    这种函数随机化了资产的根位置和速度。
+
+    * 它从给定的范围中采样根位置，然后将它们添加到默认根位置，然后将它们设置在物理仿真中。
+    * 它从给定的范围中取样根向并将它们放在物理仿真中。
+    * 它从给定的范围中取出根速度样本，并将它们放在物理仿真中。
+
+    函数为每一个轴和旋转的姿势和速度范围。
+    字典的键是``x``，``y``，``z``，``roll``，``pitch``和``yaw``。
+    这些值是表格``(min， max)``的双倍。
+    如果字典没有关键，则该轴的位置或速度设置为零。
     """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject | Articulation = env.scene[asset_cfg.name]
@@ -1142,6 +1373,22 @@ def reset_root_state_with_random_orientation(
 
     The values are tuples of the form ``(min, max)``. If the dictionary does not contain a particular key,
     the position is set to zero for that axis.
+    """
+    """在给定的范围内随机抽取的资产根位置和速度，以及从SO(3中随机抽取的资产根导向重置。
+
+    这种函数随机化了资产的根位置和速度。
+
+    * 它从给定的范围中采样根位置，然后将它们添加到默认根位置，然后将它们设置在物理仿真中。
+    * 它从SO(3) 中均地采样根导向，并将它们放入物理仿真中。
+    * 它从给定的范围中取出根速度样本，并将它们放在物理仿真中。
+
+    函数为每个轴和旋转采用位置和速度范围的字典:
+
+    * :attr:`pose_range` - 每个轴的位置范围字典.字典的键是``x``，``y``和``z``.从SO[3]中均地采样方向。
+    * :attr:`velocity_range` - 每个轴和旋转的速度范围字典.字典的键是``x``，``y``，``z``，``roll``，``pitch``和``yaw``。
+
+    这些值是表格``(min， max)``的双倍。
+    如果字典没有特定的键，则该轴的位置设置为零。
     """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject | Articulation = env.scene[asset_cfg.name]
@@ -1198,6 +1445,26 @@ def reset_root_state_from_terrain(
     Raises:
         ValueError: If the terrain does not have valid flat patches under the key "init_pos".
     """
+    """通过从地形中抽取随机有效姿势来重置资产根状态。
+
+    这个函数从地形中采样一个随机有效的姿势，基于平坦的补丁，并将资产的根状态设置在这个位置。
+    函数还从给定的范围中抽取随机速度，并将它们放在物理仿真中。
+
+    函数为每个轴和旋转采用位置和速度范围的字典:
+
+    * :attr:`pose_range` - 每个轴的姿势范围的字典.字典的键是``roll``，``pitch``和``yaw``.从地形的平坦片段中取样位置。
+    * :attr:`velocity_range` - 每个轴和旋转的速度范围字典.字典的键是``x``，``y``，``z``，``roll``，``pitch``和``yaw``。
+
+    这些值是表格``(min， max)``的双倍。
+    如果字典没有特定的键，则该轴的位置设置为零。
+
+    说明：
+        函数预计地形在"init_pos"键下有有效的平面补丁。
+        机器人使用平坦的贴片来抽取随机姿势。
+
+    异常：
+        ValueError: 如果地形在"init_pos"键下没有有效的平面补丁。
+    """
     # access the used quantities (to enable type-hinting)
     asset: RigidObject | Articulation = env.scene[asset_cfg.name]
     terrain: TerrainImporter = env.scene.terrain
@@ -1247,6 +1514,11 @@ def reset_joints_by_scale(
     This function samples random values from the given ranges and scales the default joint positions and velocities
     by these values. The scaled values are then set into the physics simulation.
     """
+    """通过按给定的范围调整默认位置和速度来重置机器人关节。
+
+    这种函数从给定的范围中抽取随机值，并通过这些值量度调度默认的关节位置和速度。
+    然后将规模值设置在物理仿真中。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
 
@@ -1286,6 +1558,11 @@ def reset_joints_by_offset(
 
     This function samples random values from the given ranges and biases the default joint positions and velocities
     by these values. The biased values are then set into the physics simulation.
+    """
+    """按给定的范围重置机器人关节，
+
+    这个函数从给定的范围中抽取随机值，并通过这些值来偏差默认的关节位置和速度。
+    然后将偏见值设置在物理仿真中。
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
@@ -1334,6 +1611,18 @@ def reset_nodal_state_uniform(
     dictionary are ``x``, ``y``, ``z``. The values are tuples of the form ``(min, max)``.
     If the dictionary does not contain a key, the position or velocity is set to zero for that axis.
     """
+    """在给定的范围内，将资产节点状态重置为随机位置和速度。
+
+    这种函数随机化了资产的节点位置和速度。
+
+    * 它从给定的范围中取样根位置，然后将它们添加到默认节点位置，然后将它们设置在物理仿真中。
+    * 它从给定的范围中取出根速度样本，并将它们放在物理仿真中。
+
+    函数为每个轴取定位和速度范围的字典。
+    字典的键是``x``，``y``，``z``。
+    这些值是表格``(min， max)``的双倍。
+    如果字典没有关键，则该轴的位置或速度设置为零。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: DeformableObject = env.scene[asset_cfg.name]
     # get default root state
@@ -1364,6 +1653,13 @@ def reset_scene_to_default(env: ManagerBasedEnv, env_ids: torch.Tensor, reset_jo
     also reset to their default values. This might be useful for some cases to clear out any previously set targets.
     However, this is not the default behavior as based on our experience, it is not always desired to reset
     targets to default values, especially when the targets should be handled by action terms and not event terms.
+    """
+    """将场景重置到场景配置中指定的默认状态。
+
+    If :attr:`reset_joint_targets`是True，关节的关节位置和速度目标是
+    也将其重置为默认值。
+    在某些情况下，这可能有助于清除之前设定的目标。
+    然而，这是不是默认的行为， 根据我们的经验， 并非总是希望重置目标到默认值，
     """
     # rigid bodies
     for rigid_object in env.scene.rigid_objects.values():
@@ -1415,6 +1711,21 @@ class randomize_visual_texture_material(ManagerTermBase):
         :attr:`isaaclab.scene.InteractiveSceneCfg.replicate_physics` to False. This ensures that physics
         parser will parse the individual asset properties separately.
     """
+    """使用复制器API来随机定制身体的视觉纹理。
+
+    这种函数使用复制器API来随机定制物体的视觉纹理。
+    函数从给定的纹理路径中抽取随机纹理，并将其应用到资产体中。
+    这些纹理被投射到体体上，并由给定的角度旋转。
+
+    .. 说明::
+        函数假设该资产遵循prim命名规则为:"{asset_prim_path}/{body_name}/视觉" (体名是实质应用于体名)。
+        在进口资产时，这是默认prim订单
+        from the asset converters in Isaac Lab.
+
+    .. 说明::
+        在随机化单个资产的纹理时，请确保设置:attr:`isaaclab.scene.InteractiveSceneCfg.replicate_physics`为False。
+        这确保物理解析器将单独分析个别资产属性。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the term.
@@ -1422,6 +1733,12 @@ class randomize_visual_texture_material(ManagerTermBase):
         Args:
             cfg: The configuration of the event term.
             env: The environment instance.
+        """
+        """开始这个词。
+
+        参数：
+            cfg: 事件时间的配置。
+            env: 环境情况。
         """
         super().__init__(cfg, env)
 
@@ -1586,6 +1903,22 @@ class randomize_visual_color(ManagerTermBase):
         :attr:`isaaclab.scene.InteractiveSceneCfg.replicate_physics` to False. This ensures that physics
         parser will parse the individual asset properties separately.
     """
+    """使用复制器API来随机调整物体的视觉颜色。
+
+    这种函数随机化使用复制器API来对物体的视觉颜色。
+    函数从给定的颜色中抽取随机颜色，并将它们应用到资产的体体上。
+
+    函数假设该资产遵循prim命名惯例为:"{asset_prim_path}/{mesh_name}"，其中网格名称是使用颜色的网格名称。
+    例如，如果资产有一个prim路径"/世界/资产"和一个称为"body_0/网格"的网格，则该网格的prim路径将是"/世界/资产/body_0/网格"。
+
+    颜色可以指定为 ``(r， g， b)`` 形式的双重列表或字典
+    with the keys ``r``, ``g``, ``b`` and values as tuples of the form ``(low, high)``.
+    如果使用字典，函数将从给定的范围中抽取随机颜色。
+
+    .. 说明::
+        在随机对个体资产的颜色时，请确保设置:attr:`isaaclab.scene.InteractiveSceneCfg.replicate_physics`到False。
+        这确保物理解析器将单独分析个别资产属性。
+    """
 
     def __init__(self, cfg: EventTermCfg, env: ManagerBasedEnv):
         """Initialize the randomization term.
@@ -1593,6 +1926,12 @@ class randomize_visual_color(ManagerTermBase):
         Args:
             cfg: The configuration of the event term.
             env: The environment instance.
+        """
+        """开始随机化项。
+
+        参数：
+            cfg: 事件时间的配置。
+            env: 环境情况。
         """
         super().__init__(cfg, env)
 
@@ -1711,6 +2050,8 @@ class randomize_visual_color(ManagerTermBase):
 """
 Internal helper functions.
 """
+"""内部助理功能。
+"""
 
 
 def _randomize_prop_by_op(
@@ -1736,6 +2077,26 @@ def _randomize_prop_by_op(
 
     Raises:
         NotImplementedError: If the operation or distribution is not supported.
+    """
+    """根据给定的操作和分布进行数据随机化。
+
+    参数：
+        data: 随机定位的数据子。
+              形状是 (dim_0，dim_1)。
+        distribution_parameters: 分配给样本值的参数。
+        dim_0_ids: 随机化第一维度的索引。
+        dim_1_ids: 第二维度的索引进行随机化。
+        operation: 在数据上执行的操作。
+                   选项:"添加"，"规模"，"abs"。
+        distribution: 随机值的分布。
+                      选项:"统一""，log_uniform"。
+
+    返回：
+        随机化后的数据子。
+        形状是 (dim_0，dim_1)。
+
+    异常：
+        NotImplementedError: 如果操作或分配不支持。
     """
     # resolve shape
     # -- dim 0
@@ -1808,6 +2169,28 @@ def _validate_scale_range(
 
     Example:
         _validate_scale_range((0.5, 1.5), "mass_scale")
+    """
+    """在基于规模的随机化中使用的 (低，高) 元组进行验证。
+
+    这种函数确保在应用"规模"操作时，元组遵循预期规则。
+    它执行类型和值检查，可选择允许负或零的下限。
+
+    参数：
+        params (tuple[float, float] | None): 验证的 (低，高) 范围。
+                                             如果None，验证将被跳过。
+        name (str): 验证参数名称，用于错误信息。
+        allow_negative (bool, optional): 如果 True，则允许下边界为负。
+                                         默认为 False。
+        allow_zero (bool, optional): 如果True，则允许下边界为零。
+                                     默认为 True。
+
+    异常：
+        TypeError: 如果`params`不是两个数字的。
+        ValueError: 如果下限是负值或零值，如果不允许。
+        ValueError: 如果上限小于下限。
+
+    示例：
+        根据"_validate_scale_range"的规定，mass_scale")
     """
     if params is None:  # caller didn’t request randomisation for this field
         return

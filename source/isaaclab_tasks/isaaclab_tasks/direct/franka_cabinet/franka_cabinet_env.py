@@ -175,6 +175,7 @@ class FrankaCabinetEnv(DirectRLEnv):
 
         def get_env_local_pose(env_pos: torch.Tensor, xformable: UsdGeom.Xformable, device: torch.device):
             """Compute pose in env-local coordinates"""
+            """在env局部坐标中计算姿势"""
             world_transform = xformable.ComputeLocalToWorldTransform(0)
             world_pos = world_transform.ExtractTranslation()
             world_quat = world_transform.ExtractRotationQuat()

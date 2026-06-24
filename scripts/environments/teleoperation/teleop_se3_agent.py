@@ -8,8 +8,13 @@
 Supports multiple input devices (e.g., keyboard, spacemouse, gamepad) and devices
 configured within the environment (including OpenXR-based hand tracking or motion
 controllers)."""
+"""脚本将与艾萨克实验室操纵环境进行远程操作。
+
+支持多个输入设备 (e.g.，键盘，空间鼠标，游戏盘) 和环境内配置的设备 (包括基于OpenXR的手跟踪或运动控制器)。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 from collections.abc import Callable
@@ -57,6 +62,7 @@ app_launcher = AppLauncher(app_launcher_args)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 import logging
@@ -90,6 +96,13 @@ def main() -> None:
     and runs the main simulation loop until the application is closed.
 
     Returns:
+        None
+    """
+    """运行与艾萨克实验室操纵环境的远程操作。
+
+    创建环境，设置远程操作接口和回调，并运行主要仿真循环，直到应用程序关闭。
+
+    返回：
         None
     """
     # parse configuration
@@ -140,6 +153,13 @@ def main() -> None:
         Returns:
             None
         """
+        """恢复环境到原来的状态。
+
+        在下一步仿真时设置一个旗来重置环境。
+
+        返回：
+            None
+        """
         nonlocal should_reset_recording_instance
         should_reset_recording_instance = True
         print("Reset triggered - Environment will reset on next step")
@@ -153,6 +173,13 @@ def main() -> None:
         Returns:
             None
         """
+        """激活机器人的遥控操作。
+
+        允许对环境应用远程操作命令。
+
+        返回：
+            None
+        """
         nonlocal teleoperation_active
         teleoperation_active = True
         print("Teleoperation activated")
@@ -164,6 +191,13 @@ def main() -> None:
         Disables the application of teleoperation commands to the environment.
 
         Returns:
+            None
+        """
+        """关闭机器人的远程操作控制。
+
+        禁用对环境进行远程操作命令的应用。
+
+        返回：
             None
         """
         nonlocal teleoperation_active

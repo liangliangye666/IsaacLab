@@ -13,5 +13,13 @@ The deploy module includes:
 - Reach environments for end-effector pose tracking
 
 """
+"""操纵任务的部署环境。
+
+这些环境是为了实在部署操纵任务。
+它们包含已在物理机器人上测试和部署的配置和实施。
+
+部署模块包括:
+- 终端效应者姿势跟踪的覆盖环境
+"""
 
 from .reach import *  # noqa: F401, F403

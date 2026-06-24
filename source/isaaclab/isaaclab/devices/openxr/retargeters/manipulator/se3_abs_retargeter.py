@@ -28,6 +28,17 @@ class Se3AbsRetargeter(RetargeterBase):
     - Optional constraint to zero out X/Y rotations (keeping only Z-axis rotation)
     - Optional visualization of the target end-effector pose
     """
+    """返回OpenXR手动跟踪数据到使用绝对定位的末端执行器命令。
+
+    这种 retargeter 将手关键直接映射到机器人末端执行器的位置和方向，而不是使用相对运动。
+    它可以:
+    - 使用手腕的位置和方向
+    - 使用指公和指公之间的中点 (点位置)
+
+    Features:
+    - 选择性限制为零掉X/Y旋转 (仅保持Z轴旋转)
+    - 目标末端执行器姿势的可选可视化
+    """
 
     def __init__(
         self,
@@ -42,6 +53,16 @@ class Se3AbsRetargeter(RetargeterBase):
             use_wrist_position: If True, use wrist position instead of pinch position
             enable_visualization: If True, visualize the target pose in the scene
             device: The device to place the returned tensor on ('cpu' or 'cuda')
+        """
+        """启动重定位器。
+
+        参数：
+            bound_hand: 追踪手 (DeviceBase.TrackingTarget.HAND_LEFT或DeviceBase.TrackingTarget.HAND_RIGHT)
+            zero_out_xy_rotation: 如果True，在x和y轴周围的零出旋转
+            use_wrist_rotation: 如果True，使用手腕旋转而不是指指平均
+            use_wrist_position: 如果True，使用手腕位置而不是点位置
+            enable_visualization: 如果True，可视化场景目标姿势
+            device: 返回门器的装置 ("cpu"或"cuda")
         """
         super().__init__(cfg)
         if cfg.bound_hand not in [DeviceBase.TrackingTarget.HAND_LEFT, DeviceBase.TrackingTarget.HAND_RIGHT]:
@@ -75,6 +96,16 @@ class Se3AbsRetargeter(RetargeterBase):
             torch.Tensor: 7D tensor containing position (xyz) and orientation (quaternion)
                 for the robot end-effector
         """
+        """转换手关姿势为机器人终端执行器命令。
+
+        参数：
+            data: 根据"数据字典"的定义，
+                  联合名称在isaaclab.devices.openxr.common.HAND_JOINT_NAMES中定义
+
+        返回：
+            torch.Tensor: 含有位置 (xyz) 和方向 (quaternion) 的7D子
+                for the robot end-effector
+        """
         # Extract key joint poses from the bound hand
         hand_data = data[self.bound_hand]
         thumb_tip = hand_data.get("thumb_tip")
@@ -104,6 +135,20 @@ class Se3AbsRetargeter(RetargeterBase):
 
         Returns:
             np.ndarray: 7D array containing position (xyz) and orientation (quaternion)
+                for the robot end-effector
+        """
+        """处理绝对的姿势重定向。
+
+        参数：
+            thumb_tip: 包含位置 (xyz) 和方向 (quaternion) 的7D阵列
+                for the thumb tip
+            index_tip: 包含位置 (xyz) 和方向 (quaternion) 的7D阵列
+                for the index tip
+            wrist: 包含位置 (xyz) 和方向 (quaternion) 的7D阵列
+                for the wrist
+
+        返回：
+            np.ndarray: 包含位置 (xyz) 和方向 (quaternion) 的7D阵列
                 for the robot end-effector
         """
 
@@ -153,6 +198,10 @@ class Se3AbsRetargeter(RetargeterBase):
 
         If visualization is enabled, the target end-effector pose is visualized in the scene.
         """
+        """更新可视化标记与当前姿势。
+
+        如果设置可视化，目标末端执行器姿势将在场景中可视化。
+        """
         if self._enable_visualization:
             trans = np.array([self._visualization_pos])
             quat = Rotation.from_matrix(self._visualization_rot).as_quat()
@@ -163,6 +212,7 @@ class Se3AbsRetargeter(RetargeterBase):
 @dataclass
 class Se3AbsRetargeterCfg(RetargeterCfg):
     """Configuration for absolute position retargeter."""
+    """配置为绝对位置重定位器。"""
 
     zero_out_xy_rotation: bool = True
     use_wrist_rotation: bool = False

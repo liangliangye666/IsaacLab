@@ -11,6 +11,13 @@ the ".vscode/settings.json" file.
 This is necessary because Isaac Sim 2022.2.1 onwards does not add the necessary python packages to the python path
 when the "setup_python_env.sh" is run as part of the vs-code launch configuration.
 """
+"""这本脚本为伊萨克实验室项目设置了对代码设置。
+
+这个脚本将python.analysis.extraPaths从"{ISAACSIM_DIR}/.vscode/settings.json"文件合并到
+".vscode/settings.json"文件中。
+
+这是必要的，因为Isaac Sim 2022.2.1 以后，当"setup_python_env.sh"作为对代码启动配置的一部分运行时，不会添加必要的python包到python路径。
+"""
 
 import re
 import sys
@@ -20,6 +27,7 @@ import pathlib
 
 ISAACLAB_DIR = pathlib.Path(__file__).parents[2]
 """Path to the Isaac Lab directory."""
+"""进入伊萨克实验室目录。"""
 
 try:
     import isaacsim  # noqa: F401
@@ -45,6 +53,7 @@ if not os.path.exists(isaacsim_dir):
 
 ISAACSIM_DIR = isaacsim_dir
 """Path to the isaac-sim directory."""
+"""路径到伊萨克-sim目录。"""
 
 
 def overwrite_python_analysis_extra_paths(isaaclab_settings: str) -> str:
@@ -60,6 +69,18 @@ def overwrite_python_analysis_extra_paths(isaaclab_settings: str) -> str:
 
     Returns:
         The settings string with overwritten python analysis extra paths.
+    """
+    """在Isaac Lab设置文件中重写python.analysis.extraPaths。
+
+    在"{ISAACSIM_DIR}/.vscode/settings.json"文件中存在的 isaac-sim设置文件中取代了额外路径名称。
+
+    如果 isaac-sim 设置文件不存在，则不重写了 extraPaths。
+
+    参数：
+        isaaclab_settings: 设置字符串将作为模板使用。
+
+    返回：
+        设置链有过重的 Python 分析额外的路径。
     """
     # isaac-sim settings
     isaacsim_vscode_filename = os.path.join(ISAACSIM_DIR, ".vscode", "settings.json")
@@ -129,6 +150,17 @@ def overwrite_default_python_interpreter(isaaclab_settings: str) -> str:
 
     Returns:
         The settings string with overwritten default python interpreter.
+    """
+    """在 Isaac Lab 设置文件中重写默认 Python 解释器。
+
+    默认 python 解释器被 isaac-sim 项目使用的 python 解释器的路径所取代。
+    这是必要的，因为默认的python解释器是与 isaac-sim一起运送的。
+
+    参数：
+        isaaclab_settings: 设置字符串将作为模板使用。
+
+    返回：
+        设置字符串与重写的默认python解释器。
     """
     # read executable name
     python_exe = sys.executable.replace("\\", "/")

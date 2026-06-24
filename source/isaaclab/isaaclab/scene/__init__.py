@@ -24,6 +24,25 @@ For instance, computing the observations based on the state of the scene, or ran
 actions to the scene. All these are handled by different "managers" in the framework. Please refer to the
 :mod:`isaaclab.managers` sub-package for more details.
 """
+"""包含交互场景定义的子包。
+
+场景是可以添加到仿真中的实体 (e.g.，地形，关节，传感器，灯光等) 的集合。
+然而，只有这些实体中的一小组对用户进行直接交互的利益。
+例如，用户可能希望与场景机器人交互，
+我们将不同的实体整合到一个叫做:class:`InteractiveScene`的类。
+
+交互场景执行以下任务:
+
+1. 它解析配置类:class:`InteractiveSceneCfg`来创建场景.这个配置类由用户继承，以添加实体到场景。
+2. 它根据用户指定的环境数量克隆实体。
+3. 它根据其类型 (e.g.，关节，传感器等) 将实体分为不同的组。
+4. 它提供了一系列方法来统一场景实体的共同操作 (e.g.，重置内部缓冲器，写入缓冲器到仿真和更新缓冲器从仿真)。
+
+交互场景可以在框架内转移到不同的模块来执行不同的任务。
+例如，根据场景的状态计算观测，或随机化场景，或对场景应用动作。
+所有这些都由框架内不同的"管理器"来处理。
+详细请参阅:mod:`isaaclab.managers`子包。
+"""
 
 from .interactive_scene import InteractiveScene
 from .interactive_scene_cfg import InteractiveSceneCfg

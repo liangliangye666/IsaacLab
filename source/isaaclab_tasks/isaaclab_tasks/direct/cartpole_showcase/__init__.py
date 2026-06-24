@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Cartpole environment showcase for the supported Gymnasium spaces."""
+"""支持的体育馆空间。"""
 
 from .cartpole import *  # noqa
 from .cartpole_camera import *  # noqa

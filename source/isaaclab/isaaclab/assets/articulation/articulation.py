@@ -85,9 +85,57 @@ class Articulation(AssetBase):
     .. _`USD ArticulationRootAPI`: https://openusd.org/dev/api/class_usd_physics_articulation_root_a_p_i.html
 
     """
+    """一个关节资产类别。
+
+    关节是通过关节连接的硬体集合。
+    关节可以固定或激活。
+    关节可以有不同类型，如转动， pris体，D-6，等。
+    然而，关节阶级目前已经通过转动和结进行了测试。
+    该类支持浮式和固定式关节。
+    关节的类型根据关节的根关节来确定。
+    如果根关节是固定的，则关节被认为是固定基础系统。
+    否则，它将被视为浮动基座系统。
+    这可以通过:attr:`Articulation.is_fixed_base`属性检查。
+
+    为了使资产被视为关节，资产的根prim必须具有`USD ArticulationRootAPI`_。
+    这种API用于使用缩小坐标配方定义关节的子树。
+    在播放仿真时，物理引擎分析关节根prim，并在物理引擎中创建相应的关节。
+    使用:attr:`AssetBaseCfg.prim_path`属性可以指定关节根 prim。
+
+    关节类还提供了增强关节系统仿真的功能，使用定制动机模型。
+    这些模型可以是明确的或隐含的，
+    the :模块:`isaaclab.actuators`
+         执行器模型使用
+    一个":attr:`ArticulationCfg.actuators`"属性。
+    然后分析并用于启动相应的动机模型，当仿真播放时。
+
+    在仿真阶段，关节类首先应用动机模型来计算基于用户指定目标的联合命令。
+    然后将这些联合命令应用到仿真中。
+    联合命令可以是位置，速度或努力命令。
+    作为一个例子，下面的摘录显示了如何使用这一点为位置命令:
+
+    .. code-block:: python
+
+        # an example instance of the articulation class
+        my_articulation = Articulation(cfg)
+
+        # set joint position targets
+        my_articulation.set_joint_position_target(position)
+        # propagate the actuator models and apply the computed commands into the simulation
+        my_articulation.write_data_to_sim()
+
+        # step the simulation using the simulation context
+        sim_context.step()
+
+        # update the articulation state, where dt is the simulation time step
+        my_articulation.update(dt)
+
+    .. _`USD ArticulationRootAPI`: https://openusd.org/dev/api/class_usd_physics_articulation_root_a_p_i.html
+    """
 
     cfg: ArticulationCfg
     """Configuration instance for the articulations."""
+    """关节的配置实例。"""
 
     actuators: dict[str, ActuatorBase]
     """Dictionary of actuator instances for the articulation.
@@ -96,6 +144,12 @@ class Articulation(AssetBase):
     are initialized based on the actuator configurations specified in the :attr:`ArticulationCfg.actuators`
     attribute. They are used to compute the joint commands during the :meth:`write_data_to_sim` function.
     """
+    """关节动机实例字典。
+
+    关键是执行器名称，值是执行器实例。
+    根据:attr:`ArticulationCfg.actuators`属性所指定的执行器配置，执行器实例启动。
+    它们用于计算:meth:`write_data_to_sim`函数期间的联合命令。
+    """
 
     def __init__(self, cfg: ArticulationCfg):
         """Initialize the articulation.
@@ -103,10 +157,17 @@ class Articulation(AssetBase):
         Args:
             cfg: A configuration instance.
         """
+        """开始关节。
+
+        参数：
+            cfg: 一个配置实例。
+        """
         super().__init__(cfg)
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -120,46 +181,55 @@ class Articulation(AssetBase):
     @property
     def is_fixed_base(self) -> bool:
         """Whether the articulation is a fixed-base or floating-base system."""
+        """关节是固定基或浮基系统。"""
         return self.root_physx_view.shared_metatype.fixed_base
 
     @property
     def num_joints(self) -> int:
         """Number of joints in articulation."""
+        """关节的数量"""
         return self.root_physx_view.shared_metatype.dof_count
 
     @property
     def num_fixed_tendons(self) -> int:
         """Number of fixed tendons in articulation."""
+        """关节的固定节数量"""
         return self.root_physx_view.max_fixed_tendons
 
     @property
     def num_spatial_tendons(self) -> int:
         """Number of spatial tendons in articulation."""
+        """关节中的空间的数量。"""
         return self.root_physx_view.max_spatial_tendons
 
     @property
     def num_bodies(self) -> int:
         """Number of bodies in articulation."""
+        """关节体的数量"""
         return self.root_physx_view.shared_metatype.link_count
 
     @property
     def joint_names(self) -> list[str]:
         """Ordered names of joints in articulation."""
+        """关节的名字在关节中排列。"""
         return self.root_physx_view.shared_metatype.dof_names
 
     @property
     def fixed_tendon_names(self) -> list[str]:
         """Ordered names of fixed tendons in articulation."""
+        """按顺序命名的固定节。"""
         return self._fixed_tendon_names
 
     @property
     def spatial_tendon_names(self) -> list[str]:
         """Ordered names of spatial tendons in articulation."""
+        """在关节中排列的空间肌肉名称。"""
         return self._spatial_tendon_names
 
     @property
     def body_names(self) -> list[str]:
         """Ordered names of bodies in articulation."""
+        """列出了各个尸体的名字。"""
         return self.root_physx_view.shared_metatype.link_names
 
     @property
@@ -168,6 +238,12 @@ class Articulation(AssetBase):
 
         Note:
             Use this view with caution. It requires handling of tensors in a specific way.
+        """
+        """对资产的关节视图 (PhysX)。
+
+        说明：
+            用这种观点谨慎。
+            它需要以特定的方式处理子。
         """
         return self._root_physx_view
 
@@ -184,6 +260,17 @@ class Articulation(AssetBase):
             Permanent wrenches are composed into the instantaneous wrench before the instantaneous wrenches are
             applied to the simulation.
         """
+        """立刻的 w钥匙作曲家。
+
+        返回一个:class:`~isaaclab.utils.wrench_composer.WrenchComposer`实例。
+        添加或设置到此钥匙组件的关键仅适用于当前仿真步骤。
+        在仿真步骤结束时，将对此物体设置的 w钥匙丢弃。
+        这对于不断变化的力量来说是有用的。
+        for instance.
+
+        说明：
+            在将瞬间的钥匙应用于仿真之前，永久的钥匙组成即时的钥匙。
+        """
         return self._instantaneous_wrench_composer
 
     @property
@@ -198,10 +285,21 @@ class Articulation(AssetBase):
             Permanent wrenches are composed into the instantaneous wrench before the instantaneous wrenches are
             applied to the simulation.
         """
+        """一个永久的 w钥匙作曲家。
+
+        返回一个:class:`~isaaclab.utils.wrench_composer.WrenchComposer`实例。
+        加入或设置到这个匙组件的关键是持久的，并且在每一步都应用于仿真。
+        这对于在时间段内恒定的力量来说是有用的，例如电机的推力。
+
+        说明：
+            在将瞬间的钥匙应用于仿真之前，永久的钥匙组成即时的钥匙。
+        """
         return self._permanent_wrench_composer
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -224,6 +322,15 @@ class Articulation(AssetBase):
         Note:
             We write external wrench to the simulation here since this function is called before the simulation step.
             This ensures that the external wrench is applied at every simulation step.
+        """
+        """在仿真中写出外部钥匙和联合命令。
+
+        如果存在任何明确的执行器，则执行器模型用于计算联合命令。
+        否则，联合命令将直接设置在仿真中。
+
+        说明：
+            我们写出仿真的外部关键，因为这个函数在仿真步骤之前被调用。
+            这确保在每个仿真步骤上使用外部钥匙。
         """
         # write external wrench
         if self._instantaneous_wrench_composer.active or self._permanent_wrench_composer.active:
@@ -269,6 +376,8 @@ class Articulation(AssetBase):
     """
     Operations - Finders.
     """
+    """搜索器
+    """
 
     def find_bodies(self, name_keys: str | Sequence[str], preserve_order: bool = False) -> tuple[list[int], list[str]]:
         """Find bodies in the articulation based on the name keys.
@@ -282,6 +391,18 @@ class Articulation(AssetBase):
 
         Returns:
             A tuple of lists containing the body indices and names.
+        """
+        """根据名字键，在关节中找到尸体。
+
+        请查看:meth:`isaaclab.utils.string_utils.resolve_matching_names`函数，了解更多关于名称匹配的信息。
+
+        参数：
+            name_keys: 一个正则表达式或一个与体名相匹配的正则表达式列表。
+            preserve_order: 在输出中是否保留名称键的顺序。
+                            默认为 False。
+
+        返回：
+            一个包含身体指标和名称的列表。
         """
         return string_utils.resolve_matching_names(name_keys, self.body_names, preserve_order)
 
@@ -301,6 +422,20 @@ class Articulation(AssetBase):
 
         Returns:
             A tuple of lists containing the joint indices and names.
+        """
+        """根据名字键找到关节。
+
+        请查看:func:`isaaclab.utils.string.resolve_matching_names`函数，了解更多关于名称匹配的信息。
+
+        参数：
+            name_keys: 一个正则表达式或一列正则表达式，以匹配共同名称。
+            joint_subset: 关节的小组，要寻找。
+                          在None上，意味着关节中的所有关节都被搜索。
+            preserve_order: 在输出中是否保留名称键的顺序。
+                            默认为 False。
+
+        返回：
+            一组列表包含联合索引和名称。
         """
         if joint_subset is None:
             joint_subset = self.joint_names
@@ -325,6 +460,20 @@ class Articulation(AssetBase):
         Returns:
             A tuple of lists containing the tendon indices and names.
         """
+        """在关节中找到固定的节点，根据名称键。
+
+        请查看:func:`isaaclab.utils.string.resolve_matching_names`函数，了解更多关于名称匹配的信息。
+
+        参数：
+            name_keys: 一个正则表达式或一个正则表达式列表，以匹配固定肌的联合名称。
+            tendon_subsets: 一组有固定节点的关节。
+                            在None上，意味着关节中的所有关节都被搜索。
+            preserve_order: 在输出中是否保留名称键的顺序。
+                            默认为 False。
+
+        返回：
+            一个包含子指标和名称的列表。
+        """
         if tendon_subsets is None:
             # tendons follow the joint names they are attached to
             tendon_subsets = self.fixed_tendon_names
@@ -348,6 +497,20 @@ class Articulation(AssetBase):
         Returns:
             A tuple of lists containing the tendon indices and names.
         """
+        """根据名称键，找到关节中的空间。
+
+        请查看:func:`isaaclab.utils.string.resolve_matching_names`函数，了解更多关于名称匹配的信息。
+
+        参数：
+            name_keys: 一个正则表达式或一系列正则表达式，
+            tendon_subsets: 一组子要找。
+                            默认为 None，这意味着关节中的所有都被搜索。
+            preserve_order: 在输出中是否保留名称键的顺序。
+                            默认为 False。
+
+        返回：
+            一个包含子指标和名称的列表。
+        """
         if tendon_subsets is None:
             tendon_subsets = self.spatial_tendon_names
         # find tendons
@@ -355,6 +518,8 @@ class Articulation(AssetBase):
 
     """
     Operations - State Writers.
+    """
+    """动作 - 国家秘书
     """
 
     def write_root_state_to_sim(self, root_state: torch.Tensor, env_ids: Sequence[int] | None = None):
@@ -366,6 +531,17 @@ class Articulation(AssetBase):
         Args:
             root_state: Root state in simulation frame. Shape is (len(env_ids), 13).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置选定的环境索引上的根状态。
+
+        根状态包括卡特西亚位置，在 (w，x，y，z) 中的四元数方向以及线性和角的速度。
+        所有数量都在仿真框架中。
+
+        参数：
+            root_state: 在仿真框架中的根状态。
+                        形状是 (len(env_ids)，13。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         self.write_root_link_pose_to_sim(root_state[:, :7], env_ids=env_ids)
         self.write_root_com_velocity_to_sim(root_state[:, 7:], env_ids=env_ids)
@@ -380,6 +556,17 @@ class Articulation(AssetBase):
             root_state: Root state in simulation frame. Shape is (len(env_ids), 13).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置了选择的环境索引上质量状态的根中心。
+
+        根状态包括卡特西亚位置，在 (w，x，y，z) 中的四元数方向以及线性和角的速度。
+        所有数量都在仿真框架中。
+
+        参数：
+            root_state: 在仿真框架中的根状态。
+                        形状是 (len(env_ids)，13。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         self.write_root_com_pose_to_sim(root_state[:, :7], env_ids=env_ids)
         self.write_root_com_velocity_to_sim(root_state[:, 7:], env_ids=env_ids)
 
@@ -393,6 +580,17 @@ class Articulation(AssetBase):
             root_state: Root state in simulation frame. Shape is (len(env_ids), 13).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置选定的环境索引上根链状态。
+
+        根状态包括卡特西亚位置，在 (w，x，y，z) 中的四元数方向以及线性和角的速度。
+        所有数量都在仿真框架中。
+
+        参数：
+            root_state: 在仿真框架中的根状态。
+                        形状是 (len(env_ids)，13。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         self.write_root_link_pose_to_sim(root_state[:, :7], env_ids=env_ids)
         self.write_root_link_velocity_to_sim(root_state[:, 7:], env_ids=env_ids)
 
@@ -405,6 +603,16 @@ class Articulation(AssetBase):
             root_pose: Root poses in simulation frame. Shape is (len(env_ids), 7).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置选定的环境索引上的根姿势。
+
+        根姿势包括在 (w，x，y，z) 中的卡特西亚位置和四元数方向。
+
+        参数：
+            root_pose: 在仿真框架中的根姿势。
+                       形状是 (len(env_ids)， 7)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         self.write_root_link_pose_to_sim(root_pose, env_ids=env_ids)
 
     def write_root_link_pose_to_sim(self, root_pose: torch.Tensor, env_ids: Sequence[int] | None = None):
@@ -415,6 +623,16 @@ class Articulation(AssetBase):
         Args:
             root_pose: Root poses in simulation frame. Shape is (len(env_ids), 7).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置选定的环境索引上根链接姿势。
+
+        根姿势包括在 (w，x，y，z) 中的卡特西亚位置和四元数方向。
+
+        参数：
+            root_pose: 在仿真框架中的根姿势。
+                       形状是 (len(env_ids)， 7)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         # resolve all indices
         physx_env_ids = env_ids
@@ -455,6 +673,17 @@ class Articulation(AssetBase):
             root_pose: Root center of mass poses in simulation frame. Shape is (len(env_ids), 7).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置选择的环境索引上，
+
+        根姿势包括在 (w，x，y，z) 中的卡特西亚位置和四元数方向。
+        导向是惯性的主要轴的导向。
+
+        参数：
+            root_pose: 在仿真框架中，质量的根中心姿势。
+                       形状是 (len(env_ids)， 7)。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         # resolve all indices
         if env_ids is None:
             local_env_ids = slice(env_ids)
@@ -492,6 +721,17 @@ class Articulation(AssetBase):
             root_velocity: Root center of mass velocities in simulation world frame. Shape is (len(env_ids), 6).
             env_ids: Environment indices. If None, then all indices are used.
         """
+        """在仿真中设置质量速度的根中心，
+
+        速度包括线性速度 (x，y，z) 和角速度 (x，y，z) 在这个顺序中。
+        NOTE: 这设定了根的质量中心的速度，而不是根框架。
+
+        参数：
+            root_velocity: 在仿真世界框架中，
+                           形状是 (len(env_ids)， 6。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
+        """
         self.write_root_com_velocity_to_sim(root_velocity=root_velocity, env_ids=env_ids)
 
     def write_root_com_velocity_to_sim(self, root_velocity: torch.Tensor, env_ids: Sequence[int] | None = None):
@@ -503,6 +743,17 @@ class Articulation(AssetBase):
         Args:
             root_velocity: Root center of mass velocities in simulation world frame. Shape is (len(env_ids), 6).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置质量速度的根中心，
+
+        速度包括线性速度 (x，y，z) 和角速度 (x，y，z) 在这个顺序中。
+        NOTE: 这设定了根的质量中心的速度，而不是根框架。
+
+        参数：
+            root_velocity: 在仿真世界框架中，
+                           形状是 (len(env_ids)， 6。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         # resolve all indices
         physx_env_ids = env_ids
@@ -533,6 +784,17 @@ class Articulation(AssetBase):
         Args:
             root_velocity: Root frame velocities in simulation world frame. Shape is (len(env_ids), 6).
             env_ids: Environment indices. If None, then all indices are used.
+        """
+        """在仿真中设置选定的环境索引上根链速度。
+
+        速度包括线性速度 (x，y，z) 和角速度 (x，y，z) 在这个顺序中。
+        NOTE: 这设定了根框架的速度而不是根质中心。
+
+        参数：
+            root_velocity: 在仿真世界框架中的根框架速度。
+                           形状是 (len(env_ids)， 6。
+            env_ids: 环境索引
+                     如果 None，则使用所有索引。
         """
         # resolve all indices
         if env_ids is None:
@@ -573,6 +835,18 @@ class Articulation(AssetBase):
             joint_ids: The joint indices to set the targets for. Defaults to None (all joints).
             env_ids: The environment indices to set the targets for. Defaults to None (all environments).
         """
+        """在仿真中写出关节位置和速度。
+
+        参数：
+            position: 共同位置。
+                      形状是 (len(env_ids)，len(joint_ids))。
+            velocity: 关节速度。
+                      形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 确定目标的共同索引。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境索引设定目标。
+                     在 None (所有环境) 中默认设置。
+        """
         # set into simulation
         self.write_joint_position_to_sim(position, joint_ids=joint_ids, env_ids=env_ids)
         self.write_joint_velocity_to_sim(velocity, joint_ids=joint_ids, env_ids=env_ids)
@@ -589,6 +863,16 @@ class Articulation(AssetBase):
             position: Joint positions. Shape is (len(env_ids), len(joint_ids)).
             joint_ids: The joint indices to set the targets for. Defaults to None (all joints).
             env_ids: The environment indices to set the targets for. Defaults to None (all environments).
+        """
+        """在仿真中写下关节位置。
+
+        参数：
+            position: 共同位置。
+                      形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 确定目标的共同索引。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境索引设定目标。
+                     在 None (所有环境) 中默认设置。
         """
         # resolve indices
         physx_env_ids = env_ids
@@ -628,6 +912,16 @@ class Articulation(AssetBase):
             joint_ids: The joint indices to set the targets for. Defaults to None (all joints).
             env_ids: The environment indices to set the targets for. Defaults to None (all environments).
         """
+        """在仿真中写出关节速度。
+
+        参数：
+            velocity: 关节速度。
+                      形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 确定目标的共同索引。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境索引设定目标。
+                     在 None (所有环境) 中默认设置。
+        """
         # resolve indices
         physx_env_ids = env_ids
         if env_ids is None:
@@ -648,6 +942,8 @@ class Articulation(AssetBase):
     """
     Operations - Simulation Parameters Writers.
     """
+    """操作 - 仿真参数编写器。
+    """
 
     def write_joint_stiffness_to_sim(
         self,
@@ -661,6 +957,16 @@ class Articulation(AssetBase):
             stiffness: Joint stiffness. Shape is (len(env_ids), len(joint_ids)).
             joint_ids: The joint indices to set the stiffness for. Defaults to None (all joints).
             env_ids: The environment indices to set the stiffness for. Defaults to None (all environments).
+        """
+        """在仿真中写关节硬度。
+
+        参数：
+            stiffness: 关节硬化。
+                       形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 固度的索引。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境指标设定了度。
+                     在 None (所有环境) 中默认设置。
         """
         # note: This function isn't setting the values for actuator models. (#128)
         # resolve indices
@@ -690,6 +996,16 @@ class Articulation(AssetBase):
             damping: Joint damping. Shape is (len(env_ids), len(joint_ids)).
             joint_ids: The joint indices to set the damping for. Defaults to None (all joints).
             env_ids: The environment indices to set the damping for. Defaults to None (all environments).
+        """
+        """在仿真中输入关节缩。
+
+        参数：
+            damping: 关节缩。
+                     形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 设置 joint缩的关节索引。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境指标设置缩。
+                     在 None (所有环境) 中默认设置。
         """
         # note: This function isn't setting the values for actuator models. (#128)
         # resolve indices
@@ -722,6 +1038,18 @@ class Articulation(AssetBase):
             env_ids: The environment indices to set the limits for. Defaults to None (all environments).
             warn_limit_violation: Whether to use warning or info level logging when default joint positions
                 exceed the new limits. Defaults to True.
+        """
+        """在仿真中写出关节位置限制。
+
+        参数：
+            limits: 共同的限制。
+                    形状是 (len(env_ids)，len(joint_ids)，2)。
+            joint_ids: 共同索引设定限制。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境索引设定限制。
+                     在 None (所有环境) 中默认设置。
+            warn_limit_violation: 如果默认关联位置超过新的限制时，是否使用警告或信息水平记录。
+                                  默认为 True。
         """
         # note: This function isn't setting the values for actuator models. (#128)
         # resolve indices
@@ -784,6 +1112,20 @@ class Articulation(AssetBase):
             joint_ids: The joint indices to set the max velocity for. Defaults to None (all joints).
             env_ids: The environment indices to set the max velocity for. Defaults to None (all environments).
         """
+        """在仿真中写出联合最大速度。
+
+        速度限制用于限制物理引擎中的关节速度。
+        关节只能达到这个速度，如果关节的力度极限足够大。
+        如果关节速度超过这个速度，物理引擎实际上会试图制关节以达到这个速度。
+
+        参数：
+            limits: 联合最大速度。
+                    形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 设置最大速度的联合索引。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境索引设置最大速度。
+                     在 None (所有环境) 中默认设置。
+        """
         # resolve indices
         physx_env_ids = env_ids
         if env_ids is None:
@@ -817,6 +1159,19 @@ class Articulation(AssetBase):
             limits: Joint torque limits. Shape is (len(env_ids), len(joint_ids)).
             joint_ids: The joint indices to set the joint torque limits for. Defaults to None (all joints).
             env_ids: The environment indices to set the joint torque limits for. Defaults to None (all environments).
+        """
+        """在仿真中写出联合努力限制。
+
+        在物理引擎中的计算联合努力被限制。
+        如果计算的功率超过这个限度，物理引擎将把功率缩小到这个值。
+
+        参数：
+            limits: 关节扭矩限制。
+                    形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 组合索引设置组合扭矩限制。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境指标设定关节力矩限制。
+                     在 None (所有环境) 中默认设置。
         """
         # note: This function isn't setting the values for actuator models. (#128)
         # resolve indices
@@ -852,6 +1207,19 @@ class Articulation(AssetBase):
             armature: Joint armature. Shape is (len(env_ids), len(joint_ids)).
             joint_ids: The joint indices to set the joint torque limits for. Defaults to None (all joints).
             env_ids: The environment indices to set the joint torque limits for. Defaults to None (all environments).
+        """
+        """在仿真中输入关节 armature。
+
+        机器直接加入相应的关节空间惯性。
+        通过减少关节速度，它有助于提高仿真稳定性。
+
+        参数：
+            armature: 关节 armature。
+                      形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 组合索引设置组合扭矩限制。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境指标设定关节力矩限制。
+                     在 None (所有环境) 中默认设置。
         """
         # resolve indices
         physx_env_ids = env_ids
@@ -898,6 +1266,33 @@ class Articulation(AssetBase):
                 Same shape as above. If None, the viscous coefficient is not updated.
             joint_ids: The joint indices to set the friction coefficients for. Defaults to None (all joints).
             env_ids: The environment indices to set the friction coefficients for. Defaults to None (all environments).
+        """
+        """在仿真中写出关节摩擦系数。
+
+        对于低于5.0的Isaac Sim版本，只有静态摩擦系数设置。
+        这将阻力或扭矩限制在与传输的空间力最大比例:`\|F_{resist}\| \leq \mu_s \， \|F_{spatial}\|`。
+
+        对于Isaac Sim版本5.0及以上，静态，动态和粘性摩擦系数设置。
+        该模型将Coulomb (静态和动态) 的摩擦与粘性项结合在一起:
+
+        - 静态摩擦:数学:`\mu_s` 定义了阻碍静止运动的最大努力。
+        - 动态摩擦:数学:`\mu_d` 一旦运动开始，就适用于运动过程中。
+        - 粘性摩擦:数学:`c_v`是速度比例的阻力项。
+
+        参数：
+            joint_friction_coeff: 静态摩擦系数:`\mu_s`
+                                  形状是 (len(env_ids)，len(joint_ids))。
+                                  度将播放到所有选择。
+            joint_dynamic_friction_coeff: 动态摩擦系数:数学:`\mu_d`。
+                                          同上面的形状。
+                                          如果None，动态系数不会更新。
+            joint_viscous_friction_coeff: 粘性摩擦系数:数学:`c_v`
+                                          同上面的形状。
+                                          如果None，粘度系数不会更新。
+            joint_ids: 固定索引设置摩擦系数。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境索引设置摩擦系数。
+                     在 None (所有环境) 中默认设置。
         """
         # resolve indices
         physx_env_ids = env_ids
@@ -999,6 +1394,8 @@ class Articulation(AssetBase):
     """
     Operations - Setters.
     """
+    """运营 - 设置器。
+    """
 
     def set_external_force_and_torque(
         self,
@@ -1038,6 +1435,41 @@ class Articulation(AssetBase):
             env_ids: Environment indices to apply external wrench to. Defaults to None (all instances).
             is_global: Whether to apply the external wrench in the global frame. Defaults to False. If set to False,
                 the external wrench is applied in the link frame of the articulations' bodies.
+        """
+        """设置外部力和扭矩应在本地框架中的资产体上应用。
+
+        在许多应用中，我们希望在一段时间内 (例如，在策略控制期间) 保持对硬体的外力稳定。
+        这种功能使我们能够将外部力和扭矩存储在缓冲器中，然后在每一步都应用于仿真。
+        选择地设置将外部钥匙应用到 (在机器的本地链接框中)。
+
+        .. 谨慎::
+            如果函数被用空力和扭矩调用，则该函数将外部钥匙被禁用在仿真中。
+
+            .. code-block:: python
+
+                # example of disabling external wrench
+                asset.set_external_force_and_torque(forces=torch.zeros(0, 3), torques=torch.zeros(0, 3))
+
+        .. 说明::
+            这项函数不适用于仿真的外部关键。
+            它只用所需的值填充缓冲器。
+            在仿真步骤之前，请调用:meth:`write_data_to_sim`函数。
+
+        参数：
+            forces: 在身体的局部框架中，
+                    形状是 (len(env_ids)，len(body_ids)，3)。
+            torques: 身体的局部体内外部扭矩。
+                     形状是 (len(env_ids)，len(body_ids)，3)。
+            positions: 外部钥匙的位置。
+                       形状是 (len(env_ids)，len(body_ids)，3)。
+                       默认为 None。
+            body_ids: 机体指标应用外部钥匙。
+                      在None (所有机体) 上默认设置。
+            env_ids: 环境索引应使用外部匙。
+                     在 None 中默认设置 (所有实例)。
+            is_global: 在全球框架中是否应使用外部 w钥匙。
+                       默认为 False。
+                       如果设置为False，则将外部钥匙应用在关节体的链接框架中。
         """
         logger.warning(
             "The function 'set_external_force_and_torque' will be deprecated in a future release. Please"
@@ -1089,6 +1521,20 @@ class Articulation(AssetBase):
             joint_ids: The joint indices to set the targets for. Defaults to None (all joints).
             env_ids: The environment indices to set the targets for. Defaults to None (all environments).
         """
+        """在内部缓冲器中设置关节位置目标。
+
+        这项功能不适用于仿真的共同目标。
+        它只用所需的值填充缓冲器。
+        为了应用共同目标，请调用:meth:`write_data_to_sim`函数。
+
+        参数：
+            target: 共同定位目标。
+                    形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 确定目标的共同索引。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境索引设定目标。
+                     在 None (所有环境) 中默认设置。
+        """
         # resolve indices
         if env_ids is None:
             env_ids = slice(None)
@@ -1112,6 +1558,20 @@ class Articulation(AssetBase):
             target: Joint velocity targets. Shape is (len(env_ids), len(joint_ids)).
             joint_ids: The joint indices to set the targets for. Defaults to None (all joints).
             env_ids: The environment indices to set the targets for. Defaults to None (all environments).
+        """
+        """在内部缓冲器中设置关节速度目标。
+
+        这项功能不适用于仿真的共同目标。
+        它只用所需的值填充缓冲器。
+        为了应用共同目标，请调用:meth:`write_data_to_sim`函数。
+
+        参数：
+            target: 共同的速度目标。
+                    形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 确定目标的共同索引。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境索引设定目标。
+                     在 None (所有环境) 中默认设置。
         """
         # resolve indices
         if env_ids is None:
@@ -1137,6 +1597,20 @@ class Articulation(AssetBase):
             joint_ids: The joint indices to set the targets for. Defaults to None (all joints).
             env_ids: The environment indices to set the targets for. Defaults to None (all environments).
         """
+        """在内部缓冲器中设置共同努力。
+
+        这项功能不适用于仿真的共同目标。
+        它只用所需的值填充缓冲器。
+        为了应用共同目标，请调用:meth:`write_data_to_sim`函数。
+
+        参数：
+            target: 共同努力目标。
+                    形状是 (len(env_ids)，len(joint_ids))。
+            joint_ids: 确定目标的共同索引。
+                       在 None (所有关节) 上默认设置。
+            env_ids: 环境索引设定目标。
+                     在 None (所有环境) 中默认设置。
+        """
         # resolve indices
         if env_ids is None:
             env_ids = slice(None)
@@ -1150,6 +1624,8 @@ class Articulation(AssetBase):
 
     """
     Operations - Tendons.
+    """
+    """医生: 部
     """
 
     def set_fixed_tendon_stiffness(
@@ -1168,6 +1644,20 @@ class Articulation(AssetBase):
             stiffness: Fixed tendon stiffness. Shape is (len(env_ids), len(fixed_tendon_ids)).
             fixed_tendon_ids: The tendon indices to set the stiffness for. Defaults to None (all fixed tendons).
             env_ids: The environment indices to set the stiffness for. Defaults to None (all environments).
+        """
+        """在内部缓冲器中设置固定门硬度。
+
+        这种功能不适用于仿真的硬度。
+        它只用所需的值填充缓冲器。
+        要使用门硬性，请使用:meth:`write_fixed_tendon_properties_to_sim`方法。
+
+        参数：
+            stiffness: 固定的门硬。
+                       形状是 (len(env_ids)，len(fixed_tendon_ids))。
+            fixed_tendon_ids: 子指标设定了度。
+                              None (所有固定节) 的默认情况。
+            env_ids: 环境指标设定了度。
+                     在 None (所有环境) 中默认设置。
         """
         # resolve indices
         if env_ids is None:
@@ -1194,6 +1684,20 @@ class Articulation(AssetBase):
             damping: Fixed tendon damping. Shape is (len(env_ids), len(fixed_tendon_ids)).
             fixed_tendon_ids: The tendon indices to set the damping for. Defaults to None (all fixed tendons).
             env_ids: The environment indices to set the damping for. Defaults to None (all environments).
+        """
+        """设置固定的门入内部缓冲器。
+
+        这项功能不适用于仿真门缩。
+        它只用所需的值填充缓冲器。
+        要使用门缩，请调用:meth:`write_fixed_tendon_properties_to_sim`函数。
+
+        参数：
+            damping: 固定节。
+                     形状是 (len(env_ids)，len(fixed_tendon_ids))。
+            fixed_tendon_ids: 子指标设置缩。
+                              None (所有固定节) 的默认情况。
+            env_ids: 环境指标设置缩。
+                     在 None (所有环境) 中默认设置。
         """
         # resolve indices
         if env_ids is None:
@@ -1222,6 +1726,20 @@ class Articulation(AssetBase):
             fixed_tendon_ids: The tendon indices to set the limit stiffness for. Defaults to None (all fixed tendons).
             env_ids: The environment indices to set the limit stiffness for. Defaults to None (all environments).
         """
+        """在内部缓冲器中设置固定门限制硬度努力。
+
+        这项功能不适用于仿真的门限制硬度。
+        它只用所需的值填充缓冲器。
+        为了应用门极硬度，请调用:meth:`write_fixed_tendon_properties_to_sim`方法。
+
+        参数：
+            limit_stiffness: 固定门的硬度限制。
+                             形状是 (len(env_ids)，len(fixed_tendon_ids))。
+            fixed_tendon_ids: 子指标设定了限制的硬度。
+                              None (所有固定节) 的默认情况。
+            env_ids: 环境指标设定了 limit度限制。
+                     在 None (所有环境) 中默认设置。
+        """
         # resolve indices
         if env_ids is None:
             env_ids = slice(None)
@@ -1247,6 +1765,20 @@ class Articulation(AssetBase):
              limit: Fixed tendon limit. Shape is (len(env_ids), len(fixed_tendon_ids)).
              fixed_tendon_ids: The tendon indices to set the limit for. Defaults to None (all fixed tendons).
              env_ids: The environment indices to set the limit for. Defaults to None (all environments).
+        """
+        """在内部缓冲器中设置固定门限制力。
+
+        这项功能不适用于仿真的门限制。
+        它只用所需的值填充缓冲器。
+        要应用门极限，请调用:meth:`write_fixed_tendon_properties_to_sim`函数。
+
+         参数：
+             limit: 固定的门限制。
+                    形状是 (len(env_ids)，len(fixed_tendon_ids))。
+             fixed_tendon_ids: 子指标设定限制。
+                               None (所有固定节) 的默认情况。
+             env_ids: 环境索引设定限制。
+                      在 None (所有环境) 中默认设置。
         """
         # resolve indices
         if env_ids is None:
@@ -1275,6 +1807,20 @@ class Articulation(AssetBase):
             fixed_tendon_ids: The tendon indices to set the rest length for. Defaults to None (all fixed tendons).
             env_ids: The environment indices to set the rest length for. Defaults to None (all environments).
         """
+        """在内部缓冲器中设置固定门休息长度。
+
+        这项功能不适用于仿真的休息长度。
+        它只用所需的值填充缓冲器。
+        要使用部休息长度，请使用:meth:`write_fixed_tendon_properties_to_sim`方法。
+
+        参数：
+            rest_length: 固定的休息长度。
+                         形状是 (len(env_ids)，len(fixed_tendon_ids))。
+            fixed_tendon_ids: 子指标设定休息时间。
+                              None (所有固定节) 的默认情况。
+            env_ids: 环境指标设置休息时间。
+                     在 None (所有环境) 中默认设置。
+        """
         # resolve indices
         if env_ids is None:
             env_ids = slice(None)
@@ -1301,6 +1847,20 @@ class Articulation(AssetBase):
             fixed_tendon_ids: The tendon indices to set the offset for. Defaults to None (all fixed tendons).
             env_ids: The environment indices to set the offset for. Defaults to None (all environments).
         """
+        """在内部缓冲器中设置固定部抵消力。
+
+        这项功能不适用于仿真运动的 of位。
+        它只用所需的值填充缓冲器。
+        调用:meth:`write_fixed_tendon_properties_to_sim`函数来执行部偏移。
+
+        参数：
+            offset: 固定的位。
+                    形状是 (len(env_ids)，len(fixed_tendon_ids))。
+            fixed_tendon_ids: 子指标设定对冲。
+                              None (所有固定节) 的默认情况。
+            env_ids: 环境索引设置抵消。
+                     在 None (所有环境) 中默认设置。
+        """
         # resolve indices
         if env_ids is None:
             env_ids = slice(None)
@@ -1321,6 +1881,14 @@ class Articulation(AssetBase):
         Args:
             fixed_tendon_ids: The fixed tendon indices to set the limits for. Defaults to None (all fixed tendons).
             env_ids: The environment indices to set the limits for. Defaults to None (all environments).
+        """
+        """在仿真中写出固定的属性。
+
+        参数：
+            fixed_tendon_ids: 固定部索引设定限制。
+                              None (所有固定节) 的默认情况。
+            env_ids: 环境索引设定限制。
+                     在 None (所有环境) 中默认设置。
         """
         # resolve indices
         physx_env_ids = env_ids
@@ -1357,6 +1925,20 @@ class Articulation(AssetBase):
             spatial_tendon_ids: The tendon indices to set the stiffness for. Defaults to None (all spatial tendons).
             env_ids: The environment indices to set the stiffness for. Defaults to None (all environments).
         """
+        """在内部缓冲器中设置空间硬性。
+
+        这种功能不适用于仿真的硬度。
+        它只用所需的值填充缓冲器。
+        要使用门硬性，请使用:meth:`write_spatial_tendon_properties_to_sim`方法。
+
+        参数：
+            stiffness: 空间节硬化。
+                       形状是 (len(env_ids)，len(spatial_tendon_ids))。
+            spatial_tendon_ids: 子指标设定了度。
+                                None (所有空间节) 的默认情况。
+            env_ids: 环境指标设定了度。
+                     在 None (所有环境) 中默认设置。
+        """
         if get_isaac_sim_version().major < 5:
             logger.warning(
                 "Spatial tendons are not supported in Isaac Sim < 5.0. Please update to Isaac Sim 5.0 or later."
@@ -1389,6 +1971,20 @@ class Articulation(AssetBase):
             spatial_tendon_ids: The tendon indices to set the damping for. Defaults to None,
                 which means all spatial tendons.
             env_ids: The environment indices to set the damping for. Defaults to None, which means all environments.
+        """
+        """设置空间门入内部缓冲器。
+
+        这项功能不适用于仿真门缩。
+        它只用所需的值填充缓冲器。
+        要使用门缩，请使用:meth:`write_spatial_tendon_properties_to_sim`方法。
+
+        参数：
+            damping: 空间节。
+                     形状是 (len(env_ids)，len(spatial_tendon_ids))。
+            spatial_tendon_ids: 子指标设置缩。
+                                设置为None，这意味着所有的空间。
+            env_ids: 环境指标设置缩。
+                     默认为 None，这意味着所有环境。
         """
         if get_isaac_sim_version().major < 5:
             logger.warning(
@@ -1423,6 +2019,20 @@ class Articulation(AssetBase):
                 which means all spatial tendons.
             env_ids: The environment indices to set the limit stiffness for. Defaults to None (all environments).
         """
+        """设置空间门限制硬度在内部缓冲器。
+
+        这项功能不适用于仿真的门限制硬度。
+        它只用所需的值填充缓冲器。
+        为了应用门极硬度，请调用:meth:`write_spatial_tendon_properties_to_sim`方法。
+
+        参数：
+            limit_stiffness: 空间门限制了硬度。
+                             形状是 (len(env_ids)，len(spatial_tendon_ids))。
+            spatial_tendon_ids: 子指标设定了限制的硬度。
+                                设置为None，这意味着所有的空间。
+            env_ids: 环境指标设定了 limit度限制。
+                     在 None (所有环境) 中默认设置。
+        """
         if get_isaac_sim_version().major < 5:
             logger.warning(
                 "Spatial tendons are not supported in Isaac Sim < 5.0. Please update to Isaac Sim 5.0 or later."
@@ -1455,6 +2065,20 @@ class Articulation(AssetBase):
             spatial_tendon_ids: The tendon indices to set the offset for. Defaults to None (all spatial tendons).
             env_ids: The environment indices to set the offset for. Defaults to None (all environments).
         """
+        """设置空间，抵消内部缓冲器的努力。
+
+        这项功能不适用于仿真运动的 of位。
+        它只用所需的值填充缓冲器。
+        为了使用部偏移，请调用:meth:`write_spatial_tendon_properties_to_sim`方法。
+
+        参数：
+            offset: 空间部的移动。
+                    形状是 (len(env_ids)，len(spatial_tendon_ids))。
+            spatial_tendon_ids: 子指标设定对冲。
+                                None (所有空间节) 的默认情况。
+            env_ids: 环境索引设置抵消。
+                     在 None (所有环境) 中默认设置。
+        """
         if get_isaac_sim_version().major < 5:
             logger.warning(
                 "Spatial tendons are not supported in Isaac Sim < 5.0. Please update to Isaac Sim 5.0 or later."
@@ -1483,6 +2107,14 @@ class Articulation(AssetBase):
             env_ids: The environment indices to set the properties for. Defaults to None,
                 which means all environments.
         """
+        """在仿真中写出空间的属性。
+
+        参数：
+            spatial_tendon_ids: 空间子指标设定其特性。
+                                设置为None，这意味着所有的空间。
+            env_ids: 环境索引设置属性。
+                     默认为 None，这意味着所有环境。
+        """
         # resolve indices
         physx_env_ids = env_ids
         if env_ids is None:
@@ -1501,6 +2133,8 @@ class Articulation(AssetBase):
 
     """
     Internal helper.
+    """
+    """内部助理。
     """
 
     def _initialize_impl(self):
@@ -1665,6 +2299,7 @@ class Articulation(AssetBase):
 
     def _process_cfg(self):
         """Post processing of configuration parameters."""
+        """配置参数后处理。"""
         # default state
         # -- root state
         # note: we cast to tuple to avoid torch/numpy type mismatch.
@@ -1694,9 +2329,12 @@ class Articulation(AssetBase):
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         # call parent
         super()._invalidate_initialize_callback(event)
         self._root_physx_view = None
@@ -1704,9 +2342,12 @@ class Articulation(AssetBase):
     """
     Internal helpers -- Actuators.
     """
+    """内部辅助员-- 执行器。
+    """
 
     def _process_actuators_cfg(self):
         """Process and apply articulation joint properties."""
+        """处理和应用关节结合特性。"""
         # create actuators
         self.actuators = dict()
         # flag for implicit actuators
@@ -1814,6 +2455,7 @@ class Articulation(AssetBase):
 
     def _process_tendons(self):
         """Process fixed and spatial tendons."""
+        """过程固定和空间。"""
         # create a list to store the fixed tendon names
         self._fixed_tendon_names = list()
         self._spatial_tendon_names = list()
@@ -1872,6 +2514,11 @@ class Articulation(AssetBase):
         The actions are first processed using actuator models. Depending on the robot configuration,
         the actuator models compute the joint level simulation commands and sets them into the PhysX buffers.
         """
+        """通过将它们转发到执行器来处理关节的联合命令。
+
+        操作首先采用动机模型进行处理。
+        根据机器人配置，执行器模型计算了联合级别仿真命令，并将其设置在PhysX缓冲器中。
+        """
         # process actions per group
         for actuator in self.actuators.values():
             # prepare input for actuator model based on cached data
@@ -1908,6 +2555,8 @@ class Articulation(AssetBase):
     """
     Internal helpers -- Debugging.
     """
+    """内部助理 - - 调试。
+    """
 
     def _validate_cfg(self):
         """Validate the configuration after processing.
@@ -1916,6 +2565,13 @@ class Articulation(AssetBase):
             This function should be called only after the configuration has been processed and the buffers have been
             created. Otherwise, some settings that are altered during processing may not be validated.
             For instance, the actuator models may change the joint max velocity limits.
+        """
+        """处理后验证配置。
+
+        说明：
+            在配置已处理并创建缓冲器后才应调用此函数。
+            否则，在加工过程中改变的某些设置可能无法验证。
+            例如，执行器模型可能会改变联合最大速度限制。
         """
         # check that the default values are within the limits
         joint_pos_limits = self.root_physx_view.get_dof_limits()[0].to(self.device)
@@ -1954,10 +2610,15 @@ class Articulation(AssetBase):
 
         Note: We purposefully read the values from the simulator to ensure that the values are configured as expected.
         """
+        """记录有关关节的信息。
+
+        Note: 我们故意读取仿真器中的值，以确保值按预期配置。
+        """
 
         # define custom formatters for large numbers and limit ranges
         def format_large_number(_, v: float) -> str:
             """Format large numbers using scientific notation."""
+            """使用科学符号来格式化大数字。"""
             if abs(v) >= 1e3:
                 return f"{v:.1e}"
             else:
@@ -1965,6 +2626,7 @@ class Articulation(AssetBase):
 
         def format_limits(_, v: tuple[float, float]) -> str:
             """Format limit ranges using scientific notation."""
+            """使用科学标记来格式化限制范围。"""
             if abs(v[0]) >= 1e3 or abs(v[1]) >= 1e3:
                 return f"[{v[0]:.1e}, {v[1]:.1e}]"
             else:
@@ -2114,6 +2776,8 @@ class Articulation(AssetBase):
     """
     Deprecated methods.
     """
+    """废弃的方法。
+    """
 
     def write_joint_friction_to_sim(
         self,
@@ -2125,6 +2789,11 @@ class Articulation(AssetBase):
 
         .. deprecated:: 2.1.0
             Please use :meth:`write_joint_friction_coefficient_to_sim` instead.
+        """
+        """在仿真中写出关节摩擦系数。
+
+        ..
+        过时:: 2.1.0 请使用:meth:`write_joint_friction_coefficient_to_sim`。
         """
         logger.warning(
             "The function 'write_joint_friction_to_sim' will be deprecated in a future release. Please"
@@ -2144,6 +2813,11 @@ class Articulation(AssetBase):
         .. deprecated:: 2.1.0
             Please use :meth:`write_joint_position_limit_to_sim` instead.
         """
+        """在仿真中写出关节限制。
+
+        ..
+        过时:: 2.1.0 请使用:meth:`write_joint_position_limit_to_sim`。
+        """
         logger.warning(
             "The function 'write_joint_limits_to_sim' will be deprecated in a future release. Please"
             " use 'write_joint_position_limit_to_sim' instead."
@@ -2162,6 +2836,11 @@ class Articulation(AssetBase):
 
         .. deprecated:: 2.1.0
             Please use :meth:`set_fixed_tendon_position_limit` instead.
+        """
+        """在内部缓冲器中设定固定位限制。
+
+        ..
+        过时:: 2.1.0 请使用:meth:`set_fixed_tendon_position_limit`。
         """
         logger.warning(
             "The function 'set_fixed_tendon_limit' will be deprecated in a future release. Please"

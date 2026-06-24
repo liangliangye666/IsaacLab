@@ -10,6 +10,10 @@ the termination introduced by the function.
 """
 
 from __future__ import annotations
+"""常见功能，可用于激活某些升降任务的终止。
+
+函数可以传递到:class:`isaaclab.managers.TerminationTermCfg`对象，以实现函数引入的终止。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -39,6 +43,18 @@ def object_reached_goal(
         robot_cfg: The robot configuration. Defaults to SceneEntityCfg("robot").
         object_cfg: The object configuration. Defaults to SceneEntityCfg("object").
 
+    """
+    """达到目标位置的物体终止条件。
+
+    参数：
+        env: 环境。
+        command_name: 控制对象的命令名称。
+        threshold: 目标位置的目标值。
+                   默认为0.02。
+        robot_cfg: 机器人配置。
+                   在 SceneEntityCfg (("机器人") 中默认设置。
+        object_cfg: 对象配置。
+                    默认的SceneEntityCfg"对象"
     """
     # extract the used quantities (to enable type-hinting)
     robot: RigidObject = env.scene[robot_cfg.name]

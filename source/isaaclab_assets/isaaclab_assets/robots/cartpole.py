@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Configuration for a simple Cartpole robot."""
+"""简单的卡特波尔机器人配置。"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -48,3 +49,4 @@ CARTPOLE_CFG = ArticulationCfg(
     },
 )
 """Configuration for a simple Cartpole robot."""
+"""简单的卡特波尔机器人配置。"""

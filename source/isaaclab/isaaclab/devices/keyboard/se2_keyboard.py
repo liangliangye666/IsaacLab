@@ -6,6 +6,7 @@
 """Keyboard controller for SE(2) control."""
 
 from __future__ import annotations
+"""对于SE ((2) 控制的键盘控制器。"""
 
 import weakref
 from collections.abc import Callable
@@ -43,6 +44,27 @@ class Se2Keyboard(DeviceBase):
         The official documentation for the keyboard interface: `Carb Keyboard Interface <https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/input-devices/keyboard.html>`__.
 
     """
+    """一个键盘控制器用于发送SE(2) 命令作为速度命令。
+
+    这一类是为了提供移动基础 (如四肢) 的键盘控制器。
+    它使用"万能键盘接口"来听到键盘事件并将它们映射到机器人的任务空间命令中。
+
+    命令包括基线和角速度:`(v_x， v_y， \omega_z)`。
+
+    关键约束:
+    ====================================================================================================
+    ====================================================================================================
+    ====================================================================================================
+    ====================================================================================================
+    ====================================================================================================
+    ==========
+
+    ..
+    查看:
+
+        键盘接口的官方文档:`Carb Keyboard Interface <https://docs.omniverse.nvidia.com/dev-guide/latest/programme
+        r_ref/input-devices/keyboard.html>`__。
+    """
 
     def __init__(self, cfg: Se2KeyboardCfg):
         """Initialize the keyboard layer.
@@ -51,6 +73,16 @@ class Se2Keyboard(DeviceBase):
             v_x_sensitivity: Magnitude of linear velocity along x-direction scaling. Defaults to 0.8.
             v_y_sensitivity: Magnitude of linear velocity along y-direction scaling. Defaults to 0.4.
             omega_z_sensitivity: Magnitude of angular velocity along z-direction scaling. Defaults to 1.0.
+        """
+        """启动键盘层。
+
+        参数：
+            v_x_sensitivity: 在 x 方向尺度上线性速度的大小。
+                             默认为0.8。
+            v_y_sensitivity: 沿着y方向扩展的线性速度的大小。
+                             默认为0.4。
+            omega_z_sensitivity: 沿着z方向尺度的角度速度的大小。
+                                 默认到1.0。
         """
         # store inputs
         self.v_x_sensitivity = cfg.v_x_sensitivity
@@ -76,11 +108,13 @@ class Se2Keyboard(DeviceBase):
 
     def __del__(self):
         """Release the keyboard interface."""
+        """释放键盘接口。"""
         self._input.unsubscribe_to_keyboard_events(self._keyboard, self._keyboard_sub)
         self._keyboard_sub = None
 
     def __str__(self) -> str:
         """Returns: A string containing the information of joystick."""
+        """Returns: 包含玩具信息的字符串。"""
         msg = f"Keyboard Controller for SE(2): {self.__class__.__name__}\n"
         msg += f"\tKeyboard name: {self._input.get_keyboard_name(self._keyboard)}\n"
         msg += "\t----------------------------------------------\n"
@@ -95,6 +129,8 @@ class Se2Keyboard(DeviceBase):
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self):
@@ -112,6 +148,16 @@ class Se2Keyboard(DeviceBase):
             func: The function to call when key is pressed. The callback function should not
                 take any arguments.
         """
+        """添加额外的功能来绑定键盘。
+
+        提供可用的键列表`carb documentation
+        <https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/input-devices/keyboard.html>`__。
+
+        参数：
+            key: 键盘检查。
+            func: 在键时调用的函数。
+                  召回函数不应进行任何争论。
+        """
         self._additional_callbacks[key] = func
 
     def advance(self) -> torch.Tensor:
@@ -120,10 +166,17 @@ class Se2Keyboard(DeviceBase):
         Returns:
             Tensor containing the linear (x,y) and angular velocity (z).
         """
+        """提供键盘事件状态的结果。
+
+        返回：
+            含有线性 (x，y) 和角性 (z) 的电压。
+        """
         return torch.tensor(self._base_command, dtype=torch.float32, device=self._sim_device)
 
     """
     Internal helpers.
+    """
+    """内部助理。
     """
 
     def _on_keyboard_event(self, event, *args, **kwargs):
@@ -131,6 +184,11 @@ class Se2Keyboard(DeviceBase):
 
         Reference:
             https://docs.omniverse.nvidia.com/dev-guide/latest/programmer_ref/input-devices/keyboard.html
+        """
+        """订阅者将在更新套件时回调。
+
+        Reference:
+            https://docs.omniverse.nvidia.com/dev-guide/最新programmer_ref/输入设备/keyboard.html
         """
         # apply the command when pressed
         if event.type == carb.input.KeyboardEventType.KEY_PRESS:
@@ -152,6 +210,7 @@ class Se2Keyboard(DeviceBase):
 
     def _create_key_bindings(self):
         """Creates default key binding."""
+        """创建默认键绑定。"""
         self._INPUT_KEY_MAPPING = {
             # forward command
             "NUMPAD_8": np.asarray([1.0, 0.0, 0.0]) * self.v_x_sensitivity,
@@ -177,6 +236,7 @@ class Se2Keyboard(DeviceBase):
 @dataclass
 class Se2KeyboardCfg(DeviceCfg):
     """Configuration for SE2 keyboard devices."""
+    """对于SE2键盘设备的配置。"""
 
     v_x_sensitivity: float = 0.8
     v_y_sensitivity: float = 0.4

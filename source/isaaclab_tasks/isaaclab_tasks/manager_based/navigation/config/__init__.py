@@ -4,3 +4,4 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Configurations for navigation environments."""
+"""导航环境的配置"""

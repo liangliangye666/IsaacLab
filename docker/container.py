@@ -21,6 +21,14 @@ def parse_cli_args() -> argparse.Namespace:
     Returns:
         The parsed command line arguments.
     """
+    """分析命令行参数。
+
+    这个函数创建了一个解析器对象并为每个命令添加子解析器。
+    然后，该函数解析命令行参数并返回解析的参数。
+
+    返回：
+        分析了命令行参数。
+    """
     parser = argparse.ArgumentParser(description="Utility for using Docker with Isaac Lab.")
 
     # We have to create separate parent parsers for common options to our subparsers
@@ -102,6 +110,7 @@ def parse_cli_args() -> argparse.Namespace:
 
 def main(args: argparse.Namespace):
     """Main function for the Docker utility."""
+    """对于Docker的主要功能。"""
     # check if docker is installed
     if not shutil.which("docker"):
         raise RuntimeError(

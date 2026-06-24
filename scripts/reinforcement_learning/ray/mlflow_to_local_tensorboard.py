@@ -21,6 +21,7 @@ def setup_logging(level=logging.INFO):
 
 def get_existing_runs(download_dir: str) -> set[str]:
     """Get set of run IDs that have already been downloaded."""
+    """获取已经下载的IDs运行集。"""
     existing_runs = set()
     tensorboard_dir = os.path.join(download_dir, "tensorboard")
     if os.path.exists(tensorboard_dir):
@@ -32,6 +33,7 @@ def get_existing_runs(download_dir: str) -> set[str]:
 
 def process_run(args):
     """Convert MLflow run to TensorBoard format."""
+    """将MLflow运行转换为TensorBoard格式。"""
     run_id, download_dir, tracking_uri = args
 
     try:
@@ -66,6 +68,7 @@ def process_run(args):
 
 def download_experiment_tensorboard_logs(uri: str, experiment_name: str, download_dir: str) -> None:
     """Download MLflow experiment logs and convert to TensorBoard format."""
+    """下载MLflow实验日志并将其转换为TensorBoard格式。"""
     # import logger
     logger = logging.getLogger(__name__)
 

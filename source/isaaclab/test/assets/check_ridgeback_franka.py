@@ -12,8 +12,16 @@ This script demonstrates how to simulate a mobile manipulator.
     ./isaaclab.sh -p source/isaaclab/test/assets/check_ridgeback_franka.py
 
 """
+"""这本脚本展示了如何仿真移动操纵器。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p source/isaaclab/test/assets/check_ridgeback_franka.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -33,6 +41,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -47,6 +56,7 @@ from isaaclab_assets.robots.ridgeback_franka import RIDGEBACK_FRANKA_PANDA_CFG  
 
 def design_scene():
     """Designs the scene."""
+    """他设计了场景。"""
     # Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
     cfg.func("/World/defaultGroundPlane", cfg)
@@ -59,6 +69,7 @@ def design_scene():
 
 def add_robots() -> Articulation:
     """Adds robots to the scene."""
+    """增加机器人。"""
     robot_cfg = RIDGEBACK_FRANKA_PANDA_CFG
     # -- Spawn robot
     robot_cfg.spawn.func("/World/Robot_1", robot_cfg.spawn, translation=(0.0, -1.0, 0.0))
@@ -71,6 +82,7 @@ def add_robots() -> Articulation:
 
 def run_simulator(sim: sim_utils.SimulationContext, robot: Articulation):
     """Runs the simulator by applying actions to the robot at every time-step"""
+    """运行仿真器，每次执行操作对机器人"""
     # dummy action
     actions = robot.data.default_joint_pos.clone()
 
@@ -146,6 +158,7 @@ def run_simulator(sim: sim_utils.SimulationContext, robot: Articulation):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Initialize the simulation context
     sim = sim_utils.SimulationContext(sim_utils.SimulationCfg())
     # Set main camera

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 
@@ -66,6 +68,9 @@ def sim_config():
 @pytest.mark.isaacsim_ci
 def test_no_change(sim_config):
     """Call conversion twice. This should not generate a new USD file."""
+    """两次打电话转换。
+    这不应该产生新的USD文件。
+    """
     sim, config = sim_config
     urdf_converter = UrdfConverter(config)
     time_usd_file_created = os.stat(urdf_converter.usd_path).st_mtime_ns
@@ -83,6 +88,9 @@ def test_no_change(sim_config):
 @pytest.mark.isaacsim_ci
 def test_config_change(sim_config):
     """Call conversion twice but change the config in the second call. This should generate a new USD file."""
+    """在第二次调用时，调用转换，但在第二次调用时，调用配置。
+    这应该生成一个新的USD文件。
+    """
     sim, config = sim_config
     urdf_converter = UrdfConverter(config)
     time_usd_file_created = os.stat(urdf_converter.usd_path).st_mtime_ns
@@ -102,6 +110,7 @@ def test_config_change(sim_config):
 @pytest.mark.isaacsim_ci
 def test_create_prim_from_usd(sim_config):
     """Call conversion and create a prim from it."""
+    """打电话转换并从中创建prim。"""
     sim, config = sim_config
     urdf_converter = UrdfConverter(config)
 
@@ -114,6 +123,7 @@ def test_create_prim_from_usd(sim_config):
 @pytest.mark.isaacsim_ci
 def test_config_drive_type(sim_config):
     """Change the drive mechanism of the robot to be position."""
+    """改变机器人的驱动机制。"""
     sim, config = sim_config
     # Create directory to dump results
     test_dir = os.path.dirname(os.path.abspath(__file__))

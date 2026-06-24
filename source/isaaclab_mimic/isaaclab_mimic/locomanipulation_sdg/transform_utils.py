@@ -10,6 +10,7 @@ import isaaclab.utils.math as math_utils
 
 def transform_mul(transform_a: torch.Tensor, transform_b: torch.Tensor) -> torch.Tensor:
     """Multiply two translation, quaternion pose representations by converting to matrices first."""
+    """乘以两种翻译，四元数将表现转换为矩阵。"""
     # Extract position and quaternion components
     pos_a, quat_a = transform_a[..., :3], transform_a[..., 3:]
     pos_b, quat_b = transform_b[..., :3], transform_b[..., 3:]
@@ -36,6 +37,7 @@ def transform_mul(transform_a: torch.Tensor, transform_b: torch.Tensor) -> torch
 
 def transform_inv(transform: torch.Tensor) -> torch.Tensor:
     """Invert a translation, quaternion format transformation using math_utils."""
+    """转换一个翻译，使用math_utils的四元数格式转换。"""
     pos, quat = transform[..., :3], transform[..., 3:]
     quat_inv = math_utils.quat_inv(quat)
     pos_inv = math_utils.quat_apply(quat_inv, -pos)
@@ -44,5 +46,6 @@ def transform_inv(transform: torch.Tensor) -> torch.Tensor:
 
 def transform_relative_pose(world_pose: torch.Tensor, src_frame_pose: torch.Tensor, dst_frame_pose: torch.Tensor):
     """Compute the relative pose with respect to a source frame, and apply this relative pose to a destination frame."""
+    """计算对源框架的相对姿势，并将这种相对姿势应用于目的地框架。"""
     pose = transform_mul(dst_frame_pose, transform_mul(transform_inv(src_frame_pose), world_pose))
     return pose

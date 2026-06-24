@@ -28,6 +28,20 @@ def nearest_point_on_segment(a: torch.Tensor, b: torch.Tensor, c: torch.Tensor) 
             - The nearest point on the segment AB to point C
             - The distance along the segment from A to the nearest point
     """
+    """在线段 AB 到点 C 最接近的点。
+
+    这个函数计算从A到B的线段最接近给定的点C的点，以及从A到该点的距离沿线段。
+
+    参数：
+        a (torch.Tensor): 线段的起点。
+        b (torch.Tensor): 线段的终点。
+        c (torch.Tensor): 查找最接近的地方。
+
+    返回：
+        [torch.Tensor， torch.Tensor]:含有:
+            - 段 AB 最接近点 C
+            - 从A到最近点沿线的距离
+    """
     a2b = b - a
     a2c = c - a
     a2b_mag = torch.sqrt(torch.sum(a2b**2))
@@ -43,6 +57,7 @@ def nearest_point_on_segment(a: torch.Tensor, b: torch.Tensor, c: torch.Tensor) 
 
 class ParameterizedPath:
     """Path parameterized by arc length for distance-based queries and interpolation."""
+    """为基于距离的查询和插射进行弧度参数的路径。"""
 
     def __init__(self, points: torch.Tensor) -> None:
         """Initialize parameterized path with waypoints.
@@ -50,11 +65,17 @@ class ParameterizedPath:
         Args:
             points (torch.Tensor): Sequential waypoints of shape (N, 2).
         """
+        """用路线点启动参数化的路径。
+
+        参数：
+            points (torch.Tensor): 形状的序列路线点 (N， 2)。
+        """
         self.points = points
         self._init_point_distances()
 
     def _init_point_distances(self) -> None:
         """Initialize arc length parameterization."""
+        """启动弧度参数化。"""
         self._point_distances = torch.zeros(len(self.points))
         length = 0.0
         for i in range(0, len(self.points) - 1):
@@ -71,6 +92,11 @@ class ParameterizedPath:
         Returns:
             torch.Tensor: Arc length parameter values.
         """
+        """每个路线点的弧度参数。
+
+        返回：
+            torch.Tensor: 弧度参数值
+        """
         return self._point_distances
 
     def get_path_length(self) -> float:
@@ -78,6 +104,11 @@ class ParameterizedPath:
 
         Returns:
             float: Total euclidean distance from start to end.
+        """
+        """计算路径总长度。
+
+        返回：
+            float: 从开始到结束的全方位距离。
         """
         length = 0.0
         for i in range(1, len(self.points)):
@@ -93,6 +124,11 @@ class ParameterizedPath:
         Returns:
             torch.Tensor: X-coordinates of all points.
         """
+        """得到所有路径点的x坐标。
+
+        返回：
+            torch.Tensor: 所有点的X坐标。
+        """
         return self.points[:, 0]
 
     def points_y(self) -> torch.Tensor:
@@ -100,6 +136,11 @@ class ParameterizedPath:
 
         Returns:
             torch.Tensor: Y-coordinates of all points.
+        """
+        """得到所有路径点的y坐标。
+
+        返回：
+            torch.Tensor: 所有点的Y坐标。
         """
         return self.points[:, 1]
 
@@ -111,6 +152,14 @@ class ParameterizedPath:
 
         Returns:
             Tuple[int, int]: Indices of segment endpoints.
+        """
+        """找到包含给定的距离的路径段。
+
+        参数：
+            distance (float): 距离从开始。
+
+        返回：
+            元组[int，int]:段末点索引
         """
         for i in range(0, len(self.points) - 1):
             d_b = self._point_distances[i + 1]
@@ -129,6 +178,14 @@ class ParameterizedPath:
 
         Returns:
             torch.Tensor: Interpolated 2D coordinates.
+        """
+        """在指定弧度参数的样本点。
+
+        参数：
+            distance (float): 从开始的弧度参数。
+
+        返回：
+            torch.Tensor: 两维坐标的回合。
         """
         a_idx, b_idx = self.get_segment_by_distance(distance)
         a, b = self.points[a_idx], self.points[b_idx]
@@ -149,6 +206,18 @@ class ParameterizedPath:
             - float: Distance along the path from the start to the nearest point
             - Tuple[int, int]: Indices of the segment containing the nearest point
             - float: Euclidean distance from the query point to the nearest point on path
+        """
+        """在路径到查询点上找到最近的点。
+
+        参数：
+            point (torch.Tensor): 查询点作为二维子。
+
+        返回：
+            含有:
+            - torch.Tensor:查询点的路径上最接近的点
+            - 漂浮:从起点到最近点的路径距离
+            - 元组[int， int]:包含最近点的段子索引
+            - 漂浮:从查询点到路径上最接近的点的尤克利德距离
         """
         min_pt_dist_to_seg = 1e9
         min_pt_seg = None
@@ -182,6 +251,16 @@ def plan_path(start: HasPose2d, end: HasPose2d, occupancy_map: OccupancyMap) -> 
     Returns:
         torch.Tensor: A tensor of shape (N, 2) representing the planned path as a
                      sequence of 2D waypoints from start to end.
+    """
+    """计划开始和结束位置之间的无碰撞路径。
+
+    参数：
+        start (HasPose2d): 启动实体2D姿势。
+        end (HasPose2d): 目标实体2D姿势。
+        occupancy_map (OccupancyMap): 占用地图，定义障碍。
+
+    返回：
+        torch.Tensor: 一个形状张量 (N，2) 代表计划路径作为从开始到结束的2D路线的序列。
     """
 
     # Extract 2D positions from poses

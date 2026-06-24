@@ -10,6 +10,8 @@ import trimesh
 """
 Primitive functions to generate meshes.
 """
+"""它们可以产生。
+"""
 
 
 def make_plane(size: tuple[float, float], height: float, center_zero: bool = True) -> trimesh.Trimesh:
@@ -28,6 +30,22 @@ def make_plane(size: tuple[float, float], height: float, center_zero: bool = Tru
 
     Returns:
         A trimesh.Trimesh objects for the plane.
+    """
+    """产生一个平面网格。
+
+    If :`center_zero`是True，起源在平面网格的中心 i.e.网格从
+    :math:`(-size[0] / 2， -size[1] / 2， 0)`在数学上:`(size[0] / 2， size[1] / 2， height)`。
+    否则，来源是:math:`(size[0] / 2， size[1] / 2)`，网格延伸到
+    :math:`(0， 0， 0)`在数学上:`(size[0]， size[1]， height)`。
+
+    参数：
+        size: 地形的长度 (沿 x) 和宽度 (沿 y)。
+        height: 飞机的高度 (m)。
+        center_zero: 飞机的二维起源是否设置在网格中心。
+                     默认为 True。
+
+    返回：
+        飞机的trimesh.Trimesh物体。
     """
     # compute the vertices of the terrain
     x0 = [size[0], size[1], height]
@@ -72,6 +90,22 @@ def make_border(
 
     Returns:
         A list of trimesh.Trimesh objects that represent the border.
+    """
+    """产生一个直角边缘的网格，中间有一个洞。
+
+    ..
+    代码:: 文字
+
+        +-------------+#########################################################################
+
+    参数：
+        size: 地形的长度 (沿 x) 和宽度 (沿 y)。
+        inner_size: 洞的内部长度 (沿 x) 和宽度 (沿 y)。
+        height: 边界的高度 (m)。
+        position: 边界的中心 (m)。
+
+    返回：
+        列出代表边界的trimesh.Trimesh物体。
     """
     # compute thickness of the border
     thickness_x = (size[0] - inner_size[0]) / 2.0
@@ -118,6 +152,21 @@ def make_box(
     Returns:
         A trimesh.Trimesh object for the cylinder.
     """
+    """产生一个随机方向的盒子网格。
+
+    参数：
+        length: 箱的长度 (沿 x) (以 m)。
+        width: 箱的宽度 (y) (m)。
+        height: 的高度 (m)。
+        center: 圆的中心 (m)。
+        max_yx_angle: 沿着y和x轴的最大角。
+                      默认为0。
+        degrees: 如果角是度。
+                 默认为 True。
+
+    返回：
+        一个trimesh.Trimesh对筒的对象。
+    """
     # create a pose for the cylinder
     transform = np.eye(4)
     transform[0:3, -1] = np.asarray(center)
@@ -149,6 +198,20 @@ def make_cylinder(
     Returns:
         A trimesh.Trimesh object for the cylinder.
     """
+    """产生一个随机方向的子网。
+
+    参数：
+        radius: 圆半径 (m)。
+        height: 的高度 (m)。
+        center: 圆的中心 (m)。
+        max_yx_angle: 沿着y和x轴的最大角。
+                      默认为0。
+        degrees: 如果角是度。
+                 默认为 True。
+
+    返回：
+        一个trimesh.Trimesh对筒的对象。
+    """
     # create a pose for the cylinder
     transform = np.eye(4)
     transform[0:3, -1] = np.asarray(center)
@@ -178,6 +241,20 @@ def make_cone(
 
     Returns:
         A trimesh.Trimesh object for the cone.
+    """
+    """产生一个随机方向的子网。
+
+    参数：
+        radius: 圆半径 (m)。
+        height: 圆的高度 (m)。
+        center: 圆的中心 (m)。
+        max_yx_angle: 沿着y和x轴的最大角。
+                      默认为0。
+        degrees: 如果角是度。
+                 默认为 True。
+
+    返回：
+        一个trimesh.Trimesh对的对象。
     """
     # create a pose for the cylinder
     transform = np.eye(4)

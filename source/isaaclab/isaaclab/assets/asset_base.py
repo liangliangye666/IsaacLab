@@ -54,6 +54,29 @@ class AssetBase(ABC):
     to True. The debug visualization is implemented through the :meth:`_set_debug_vis_impl` and
     :meth:`_debug_vis_callback` methods.
     """
+    """资产的基础接口类。
+
+    一个资产与任何可以在仿真中产生的物理支持的对象相匹配。
+    这些包括硬物体，关节物体，变形物体等。
+    一个资产的核心功能是提供一组可用于与仿真器交互的缓冲器。
+    按资产类别更新缓冲，可使用其各自的``write``方法写入仿真器。
+    这使得在写入仿真器并获得相应的仿真结果之前，在缓冲器上进行后处理操作的方便方式。
+
+    该类处理资产进入USD阶段的产卵，以及与资产交互的必要物理句柄的初始化。
+    在构建资产实例时，对资产相应的prim将产生到USD阶段，如果生成配置不是None。
+    在:attr:`AssetBaseCfg.spawn`属性中定义了产卵配置。
+    如果配置的:attr:`AssetBaseCfg.prim_path`是表达式，则在所有匹配的路径上产生prim。
+    否则，在配置的路径上产生单个prim。
+    查看:mod:`isaaclab.sim.spawners`模块。
+
+    与Isaac Sim界面不同，通常需要调用:meth:`isaacsim.core.prims.XFormPrim.initialize`方法来初始化PhysX句柄，
+    class automatically initializes and invalidates the PhysX handles when the stage is played/stopped. This
+    通过记录舞台剧/停止事件的回调。
+
+    此外，如果在资产类别中实现了调试可视化，该类还会记录对资产的调试可视化回调。
+    这可以通过设置:attr:`AssetBaseCfg.debug_vis`属性为True来实现。
+    通过:meth:`_set_debug_vis_impl`和:meth:`_debug_vis_callback`方法实现了调试可视化。
+    """
 
     def __init__(self, cfg: AssetBaseCfg):
         """Initialize the asset base.
@@ -63,6 +86,14 @@ class AssetBase(ABC):
 
         Raises:
             RuntimeError: If no prims found at input prim path or prim path expression.
+        """
+        """启动资产基础。
+
+        参数：
+            cfg: 资产的配置类。
+
+        异常：
+            RuntimeError: 如果输入prim路径或prim路径表达没有prims。
         """
         # check that the config is valid
         cfg.validate()
@@ -102,11 +133,14 @@ class AssetBase(ABC):
 
     def __del__(self):
         """Unsubscribe from the callbacks."""
+        """取消回电话。"""
         # clear events handles
         self._clear_callbacks()
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -114,6 +148,10 @@ class AssetBase(ABC):
         """Whether the asset is initialized.
 
         Returns True if the asset is initialized, False otherwise.
+        """
+        """资产是否启动。
+
+        返回True如果资产初始化，否则False。
         """
         return self._is_initialized
 
@@ -124,28 +162,37 @@ class AssetBase(ABC):
 
         This is equal to the number of asset instances per environment multiplied by the number of environments.
         """
+        """资产的实例数
+
+        这等于每个环境的资产实例数乘以环境数。
+        """
         return NotImplementedError
 
     @property
     def device(self) -> str:
         """Memory device for computation."""
+        """计算的内存设备。"""
         return self._device
 
     @property
     @abstractmethod
     def data(self) -> Any:
         """Data related to the asset."""
+        """与资产相关的数据。"""
         return NotImplementedError
 
     @property
     def has_debug_vis_implementation(self) -> bool:
         """Whether the asset has a debug visualization implemented."""
+        """资产是否实现了调试可视化。"""
         # check if function raises NotImplementedError
         source_code = inspect.getsource(self._set_debug_vis_impl)
         return "NotImplementedError" not in source_code
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def set_visibility(self, visible: bool, env_ids: Sequence[int] | None = None):
@@ -162,6 +209,21 @@ class AssetBase(ABC):
         Args:
             visible: Whether to make the prims visible or not.
             env_ids: The indices of the object to set visibility. Defaults to None (all instances).
+        """
+        """设置对资产相应的prims的可见性。
+
+        这一操作影响prims相应的USD阶段资产的可视性。
+        它可用于仿真器中的资产可见性转换。
+        例如，如果不用于降低 over渲染总费用，则可以隐藏资产。
+
+        说明：
+            这种操作使用PXR API来设置prims的可见性。
+            因此，如果prims的数量很大，操作可能会有上层费用。
+
+        参数：
+            visible: 是否让prims可见。
+            env_ids: 设置可见性对象的指标。
+                     在 None 中默认设置 (所有实例)。
         """
         # resolve the environment ids
         if env_ids is None:
@@ -187,6 +249,15 @@ class AssetBase(ABC):
         Returns:
             Whether the debug visualization was successfully set. False if the asset
             does not support debug visualization.
+        """
+        """设定是否可查看资产数据。
+
+        参数：
+            debug_vis: 是否可视化资产数据。
+
+        返回：
+            设置错误可视化是否成功。
+            False如果资产不支持调试可视化。
         """
         # check if debug visualization is supported
         if not self.has_debug_vis_implementation:
@@ -216,11 +287,18 @@ class AssetBase(ABC):
         Args:
             env_ids: The indices of the object to reset. Defaults to None (all instances).
         """
+        """重置选定的环境的所有内部缓冲器。
+
+        参数：
+            env_ids: 将重置的对象的索引。
+                     在 None 中默认设置 (所有实例)。
+        """
         raise NotImplementedError
 
     @abstractmethod
     def write_data_to_sim(self):
         """Writes data to the simulator."""
+        """在仿真器上写数据。"""
         raise NotImplementedError
 
     @abstractmethod
@@ -233,15 +311,25 @@ class AssetBase(ABC):
         Args:
             dt: The amount of time passed from last ``update`` call.
         """
+        """更新内部缓冲器。
+
+        时间步骤 ``dt``用于计算数值衍生物，例如仿真器未提供的联合加速。
+
+        参数：
+            dt: 从最后一次``update``电话以来的时间。
+        """
         raise NotImplementedError
 
     """
     Implementation specific.
     """
+    """具体实施情况
+    """
 
     @abstractmethod
     def _initialize_impl(self):
         """Initializes the PhysX handles and internal buffers."""
+        """启动PhysX句柄和内部缓冲器。"""
         raise NotImplementedError
 
     def _set_debug_vis_impl(self, debug_vis: bool):
@@ -251,6 +339,11 @@ class AssetBase(ABC):
         and input ``debug_vis`` is True. If the visualization objects exist, the function should
         set their visibility into the stage.
         """
+        """设置调试可视化到可视化对象。
+
+        如果它们不存在，并且输入 ``debug_vis`` 是 True，
+        如果可视化对象存在，函数应该将它们的可视性设置在舞台上。
+        """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
     def _debug_vis_callback(self, event):
@@ -258,18 +351,26 @@ class AssetBase(ABC):
 
         This function calls the visualization objects and sets the data to visualize into them.
         """
+        """检查错误可视化。
+
+        这个函数将可视化对象调用，并设置数据可视化到它们中。
+        """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _register_callbacks(self):
         """Registers the timeline and prim deletion callbacks."""
+        """记录时间表和prim删除回调。"""
 
         # register simulator callbacks (with weakref safety to avoid crashes on deletion)
         def safe_callback(callback_name, event, obj_ref):
             """Safely invoke a callback on a weakly-referenced object, ignoring ReferenceError if deleted."""
+            """安全地调用一个弱引用的对象，如果删除ReferenceError，则忽略。"""
             try:
                 obj = obj_ref
                 getattr(obj, callback_name)(event)
@@ -308,6 +409,12 @@ class AssetBase(ABC):
             PhysX handles are only enabled once the simulator starts playing. Hence, this function needs to be
             called whenever the simulator "plays" from a "stop" state.
         """
+        """启动场景元素。
+
+        说明：
+            在仿真器开始播放后才启用PhysX句柄。
+            因此，每当仿真器从"停止"状态中"播放"时，需要调用此函数。
+        """
         if not self._is_initialized:
             # obtain simulation related information
             self._backend = SimulationManager.get_backend()
@@ -323,6 +430,7 @@ class AssetBase(ABC):
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         self._is_initialized = False
         if self._debug_vis_handle is not None:
             self._debug_vis_handle.unsubscribe()
@@ -337,6 +445,14 @@ class AssetBase(ABC):
         Note:
             This function is called when the prim is deleted.
         """
+        """在删除prim时，将反调无效和删除。
+
+        参数：
+            prim_path: 删除的prim的路径。
+
+        说明：
+            当删除prim时，这个函数会被调用。
+        """
         if prim_path == "/":
             self._clear_callbacks()
             return
@@ -348,6 +464,7 @@ class AssetBase(ABC):
 
     def _clear_callbacks(self) -> None:
         """Clears the callbacks."""
+        """清除回调。"""
         if self._prim_deletion_callback_id:
             SimulationManager.deregister_callback(self._prim_deletion_callback_id)
             self._prim_deletion_callback_id = None

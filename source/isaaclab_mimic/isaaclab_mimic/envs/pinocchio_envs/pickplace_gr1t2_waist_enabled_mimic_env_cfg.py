@@ -14,6 +14,7 @@ from isaaclab_tasks.manager_based.manipulation.pick_place.pickplace_gr1t2_waist_
 @configclass
 class PickPlaceGR1T2WaistEnabledMimicEnvCfg(PickPlaceGR1T2WaistEnabledEnvCfg, MimicEnvCfg):
     """Configuration for GR1T2 Pick Place Waist Enabled Mimic environment."""
+    """设置为GR1T2选择位置腰部启用仿真环境。"""
 
     def __post_init__(self):
         # Calling post init of parents

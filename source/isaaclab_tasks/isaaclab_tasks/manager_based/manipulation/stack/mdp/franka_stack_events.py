@@ -73,6 +73,16 @@ def sample_random_color(base=(0.75, 0.75, 0.75), variation=0.1):
     Returns:
         tuple: A new RGB color with balanced random variation.
     """
+    """产生一个随机化的颜色，保持接近基色，同时保持整体亮度。
+    通过确保随机抵消的总数为零，维护R，G和B组件之间的相对平衡。
+
+    Parameters:
+        base (tuple): 基 RGB颜色，每个组件在0到1之间。
+        variation (float): 在平衡之前，每个道的最大样本偏差。
+
+    返回：
+        tuple: 一个新的RGB颜色，有平衡的随机变化。
+    """
     # Generate random offsets for each channel in the range [-variation, variation]
     offsets = [random.uniform(-variation, variation) for _ in range(3)]
     # Compute the average offset
@@ -267,6 +277,21 @@ def randomize_visual_texture_material(
         When randomizing the texture of individual assets, please make sure to set
         :attr:`isaaclab.scene.InteractiveSceneCfg.replicate_physics` to False. This ensures that physics
         parser will parse the individual asset properties separately.
+    """
+    """使用复制器API来随机定制身体的视觉纹理。
+
+    这种函数使用复制器API来随机定制物体的视觉纹理。
+    函数从给定的纹理路径中抽取随机纹理，并将其应用到资产体中。
+    这些纹理被投射到体体上，并由给定的角度旋转。
+
+    .. 说明::
+        函数假设该资产遵循prim命名规则为:"{asset_prim_path}/{body_name}/视觉" (体名是实质应用于体名)。
+        在进口资产时，这是默认prim订单
+        from the asset converters in Isaac Lab.
+
+    .. 说明::
+        在随机化单个资产的纹理时，请确保设置:attr:`isaaclab.scene.InteractiveSceneCfg.replicate_physics`为False。
+        这确保物理解析器将单独分析个别资产属性。
     """
     if hasattr(env.cfg, "eval_mode") and (
         not env.cfg.eval_mode or env.cfg.eval_type not in [f"{asset_cfg.name}_texture", "all"]

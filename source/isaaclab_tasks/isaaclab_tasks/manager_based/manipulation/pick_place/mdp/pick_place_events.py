@@ -37,6 +37,18 @@ def reset_object_poses_nut_pour(
         pose_range: The dictionary of pose ranges for the objects. Keys are
                     ``x``, ``y``, ``z``, ``roll``, ``pitch``, and ``yaw``.
     """
+    """在给定的范围内，将资产根状态重置为随机位置和方向。
+
+    参数：
+        env: 在RL环境实例。
+        env_ids: 设置对象的环境 IDs。
+        sorting_beaker_cfg: 排序杯资产的配置。
+        factory_nut_cfg: 工厂 asset蛋的配置。
+        sorting_bowl_cfg: 排序碗资产的配置
+        sorting_scale_cfg: 排序规模资产的配置。
+        pose_range: 姿势字典为物体范围。
+                    关键是``x``，``y``，``z``，``roll``，``pitch``和``yaw``。
+    """
     # extract the used quantities (to enable type-hinting)
     sorting_beaker = env.scene[sorting_beaker_cfg.name]
     factory_nut = env.scene[factory_nut_cfg.name]

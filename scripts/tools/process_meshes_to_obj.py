@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Convert all mesh files to `.obj` in given folders."""
+"""将所有网格文件转换为给定的文件中的`.obj`。"""
 
 import argparse
 import os
@@ -17,6 +18,7 @@ BLENDER_EXE_PATH = shutil.which("blender")
 
 def parse_cli_args():
     """Parse the input command line arguments."""
+    """分析输入命令行参数。"""
     # add argparse arguments
     parser = argparse.ArgumentParser("Utility to convert all mesh files to `.obj` in given folders.")
     parser.add_argument("input_dir", type=str, help="The input directory from which to load meshes.")
@@ -42,6 +44,12 @@ def run_blender_convert2obj(in_file: str, out_file: str):
         in_file: Input mesh file.
         out_file: Output obj file.
     """
+    """通过`subprocess`来调用python脚本来处理网格文件。
+
+    参数：
+        in_file: 输入网格文件。
+        out_file: 输出文件。
+    """
     # resolve for python file
     tools_dirname = os.path.dirname(os.path.abspath(__file__))
     script_file = os.path.join(tools_dirname, "blender_obj.py")
@@ -59,6 +67,12 @@ def convert_meshes(source_folders: list[str], destination_folders: list[str]):
     Args:
         source_folders: List of directories to search for meshes.
         destination_folders: List of directories to dump converted files.
+    """
+    """使用混合器将支持格式的所有网格文件处理到OBJ文件中。
+
+    参数：
+        source_folders: 找网格的目录列表。
+        destination_folders: 转换文件的目录列表。
     """
     # create folder for corresponding destination
     for folder in destination_folders:

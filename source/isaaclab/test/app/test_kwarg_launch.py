@@ -11,6 +11,7 @@ from isaaclab.app import AppLauncher
 @pytest.mark.usefixtures("mocker")
 def test_livestream_launch_with_kwargs(mocker):
     """Test launching with keyword arguments."""
+    """用关键词参数进行测试启动。"""
     # everything defaults to None
     app = AppLauncher(headless=True, livestream=1).app
 

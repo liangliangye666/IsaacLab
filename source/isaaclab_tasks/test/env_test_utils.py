@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Shared test utilities for Isaac Lab environments."""
+"""共同测试实验室环境。"""
 
 import inspect
 import os
@@ -42,6 +43,22 @@ def setup_environment(
 
     Returns:
         A sorted list of task IDs matching the selected filters.
+    """
+    """获得所有注册的艾萨克环境任务IDs，
+
+    参数：
+        include_play: 如果 True，包括以"Play-v0"结束的环境。
+        factory_envs:
+            - True:仅包括工厂环境
+            - False:排除工厂环境
+            - None:包括工厂和非工厂环境
+        multi_agent:
+            - True:只包括多代理环境
+            - False:仅包括单机环境
+            - None:包括所有环境，无论是代理类型
+
+    返回：
+        按选择过器匹配的任务IDs排序列表。
     """
     # disable interactive mode for wandb for automate environments
     os.environ["WANDB_DISABLED"] = "true"
@@ -108,6 +125,17 @@ def _run_environments(
         multi_agent: Whether the environment is multi-agent.
         create_stage_in_memory: Whether to create stage in memory.
         disable_clone_in_fabric: Whether to disable fabric cloning.
+    """
+    """运行所有环境，检查环境返回有效信号。
+
+    参数：
+        task_name: 环境名称。
+        device: 使用的设备 (e.g.， "cuda")。
+        num_envs: 环境数量
+        num_steps: 仿真步骤数量
+        multi_agent: 环境是否具有多种作用。
+        create_stage_in_memory: 是否在记忆中创建舞台。
+        disable_clone_in_fabric: 是否禁用布料克隆。
     """
 
     # skip test if stage in memory is not supported
@@ -182,6 +210,17 @@ def _check_random_actions(
         multi_agent: Whether the environment is multi-agent.
         create_stage_in_memory: Whether to create stage in memory.
         disable_clone_in_fabric: Whether to disable fabric cloning.
+    """
+    """运行随机操作，检查环境返回有效信号。
+
+    参数：
+        task_name: 环境名称。
+        device: 使用的设备 (e.g.， "cuda")。
+        num_envs: 环境数量
+        num_steps: 仿真步骤数量
+        multi_agent: 环境是否具有多种作用。
+        create_stage_in_memory: 是否在记忆中创建舞台。
+        disable_clone_in_fabric: 是否禁用布料克隆。
     """
     # create a new context stage, if stage in memory is not enabled
     if not create_stage_in_memory:
@@ -272,6 +311,14 @@ def _check_valid_tensor(data: torch.Tensor | dict) -> bool:
 
     Returns:
         True if the data is valid.
+    """
+    """检查给出的数据是否没有损坏值。
+
+    参数：
+        data: 数据缓冲器。
+
+    返回：
+        True 如果数据是有效的。
     """
     if isinstance(data, torch.Tensor):
         return not torch.any(torch.isnan(data))

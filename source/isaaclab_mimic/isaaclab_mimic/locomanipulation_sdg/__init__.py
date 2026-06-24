@@ -4,3 +4,4 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Sub-package with locomanipulation SDG utilities."""
+"""配备了SDG机器。"""

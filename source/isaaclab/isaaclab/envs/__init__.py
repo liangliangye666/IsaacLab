@@ -41,6 +41,36 @@ For more information about the workflow design patterns, see the `Task Design Wo
 
 .. _`Task Design Workflows`: https://docs.isaacsim.omniverse.nvidia.com/latest/introduction/workflows.html
 """
+"""环境定义的子包。
+
+环境定义了代理和仿真之间的界面。
+在最简单的情况下，环境向代理提供当前的观测，并执行代理提供的操作。
+然而，环境也可以提供额外的信息，如当前的奖励，完成的旗和关于当前的事件的信息。
+
+设计工作流的环境有两种类型:
+
+* **基于管理器**:环境被分解成单个组件 (或管理器)
+  for different aspects (such as computing observations, applying actions, and applying
+  随机化。
+  用户主要配置管理器，环境协调管理器，调用他们的功能。
+* **直接**:用户直接将所有必要的功能直接实现在单一类中，而不需要额外的管理器。
+
+基于这些工作流，单机和多代理RL的环境类型如下:
+
+**单身代理 RL:**
+
+* :class:`ManagerBasedEnv`:基于管理器的工作流基础环境，只为代理提供当前的观测，并执行代理提供的操作。
+* :class:`ManagerBasedRLEnv`:基于管理器的工作流 RL任务环境，除了基础环境的功能外，还提供了有关马尔可夫决策过程 (MDP) 的额外信息，如当前的奖励，完成的标志和信息。
+* :class:`DirectRLEnv`:直接工作流 RL任务环境，为实场景景设置，计算数据，执行重置以及计算奖励和观测提供了实现。
+
+**多剂RL (MARL):**
+
+* :class:`DirectMARLEnv`:直接工作流 MARL任务环境，为实场景景设置，计算数据，执行重置以及计算奖励和观测提供了实现。
+
+更多关于工作流设计模式的信息，请参见`Task Design Workflows`_部分。
+
+.. _`Task Design Workflows`: https://docs.isaacsim.omniverse.nvidia.com/latest/introduction/workflows.html
+"""
 
 from . import mdp, ui
 from .common import VecEnvObs, VecEnvStepReturn, ViewerCfg

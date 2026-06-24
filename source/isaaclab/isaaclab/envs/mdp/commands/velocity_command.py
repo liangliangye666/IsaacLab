@@ -6,6 +6,7 @@
 """Sub-module containing command generators for the velocity-based locomotion task."""
 
 from __future__ import annotations
+"""含有基于速度移动任务的命令生成器的子模块。"""
 
 import logging
 from collections.abc import Sequence
@@ -44,9 +45,25 @@ class UniformVelocityCommand(CommandTerm):
         \omega_z = \frac{1}{2} \text{wrap_to_pi}(\theta_{\text{target}} - \theta_{\text{current}})
 
     """
+    """命令生成器，从均分布中生成SE(2) 的速度命令。
+
+    命令包括 x 和 y 方向的线性速度和z 轴周围的角性速度。
+    在机器人的基架中提供。
+
+    如果:attr:`cfg.heading_command`标志设置为True，则从标题错误计算的角度速度类似于对标题错误进行比例控制。
+    目标标题采样均
+    from the provided range. Otherwise, the angular velocity is sampled uniformly from the provided range.
+
+    从数学上来看，从头条命令计算角度速度如下:
+
+    .. math::
+
+        \omega_z = \frac{1}{2} \text{wrap_to_pi}(\theta_{\text{target}} - \theta_{\text{current}})
+    """
 
     cfg: UniformVelocityCommandCfg
     """The configuration of the command generator."""
+    """命令生成器的配置。"""
 
     def __init__(self, cfg: UniformVelocityCommandCfg, env: ManagerBasedEnv):
         """Initialize the command generator.
@@ -57,6 +74,15 @@ class UniformVelocityCommand(CommandTerm):
 
         Raises:
             ValueError: If the heading command is active but the heading range is not provided.
+        """
+        """启动命令生成器。
+
+        参数：
+            cfg: 命令生成器的配置。
+            env: 环境。
+
+        异常：
+            ValueError: 如果方向指令是活跃的，但方向范围没有提供。
         """
         # initialize the base class
         super().__init__(cfg, env)
@@ -89,6 +115,7 @@ class UniformVelocityCommand(CommandTerm):
 
     def __str__(self) -> str:
         """Return a string representation of the command generator."""
+        """返回命令生成器的字符串表示。"""
         msg = "UniformVelocityCommand:\n"
         msg += f"\tCommand dimension: {tuple(self.command.shape[1:])}\n"
         msg += f"\tResampling time range: {self.cfg.resampling_time_range}\n"
@@ -101,14 +128,21 @@ class UniformVelocityCommand(CommandTerm):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def command(self) -> torch.Tensor:
         """The desired base velocity command in the base frame. Shape is (num_envs, 3)."""
+        """在基架中所需的基速度命令。
+        形状是 (num_envs， 3)。
+        """
         return self.vel_command_b
 
     """
     Implementation specific functions.
+    """
+    """具体执行功能。
     """
 
     def _update_metrics(self):
@@ -145,6 +179,10 @@ class UniformVelocityCommand(CommandTerm):
 
         This function sets velocity command to zero for standing environments and computes angular
         velocity from heading direction if the heading_command flag is set.
+        """
+        """后处理速度命令。
+
+        这项函数为站立环境设置速度指令为零，并在设置heading_command旗时计算方向的角速度。
         """
         # Compute angular velocity from heading direction
         if self.cfg.heading_command:
@@ -199,9 +237,12 @@ class UniformVelocityCommand(CommandTerm):
     """
     Internal helpers.
     """
+    """内部助理。
+    """
 
     def _resolve_xy_velocity_to_arrow(self, xy_velocity: torch.Tensor) -> tuple[torch.Tensor, torch.Tensor]:
         """Converts the XY base velocity command to arrow direction rotation."""
+        """将XY基速度命令转换为箭头方向旋转。"""
         # obtain default scale of the marker
         default_scale = self.goal_vel_visualizer.cfg.markers["arrow"].scale
         # arrow-scale
@@ -227,9 +268,18 @@ class NormalVelocityCommand(UniformVelocityCommand):
     The command is sampled from a normal distribution with mean and standard deviation specified in
     the configuration. With equal probability, the sign of the individual components is flipped.
     """
+    """命令生成器，从正常分布中生成SE(2) 的速度命令。
+
+    命令包括 x 和 y 方向的线性速度和z 轴周围的角性速度。
+    在机器人的基架中提供。
+
+    命令从正常分布中采集样本，中值和标准偏差在配置中指定。
+    具有相同的可能性，单个组件的标志被翻转。
+    """
 
     cfg: NormalVelocityCommandCfg
     """The command generator configuration."""
+    """命令生成器配置。"""
 
     def __init__(self, cfg: NormalVelocityCommandCfg, env: ManagerBasedEnv):
         """Initializes the command generator.
@@ -237,6 +287,12 @@ class NormalVelocityCommand(UniformVelocityCommand):
         Args:
             cfg: The command generator configuration.
             env: The environment.
+        """
+        """启动命令生成器。
+
+        参数：
+            cfg: 命令生成器配置。
+            env: 环境。
         """
         super().__init__(cfg, env)
         # create buffers for zero commands envs
@@ -246,6 +302,7 @@ class NormalVelocityCommand(UniformVelocityCommand):
 
     def __str__(self) -> str:
         """Return a string representation of the command generator."""
+        """返回命令生成器的字符串表示。"""
         msg = "NormalVelocityCommand:\n"
         msg += f"\tCommand dimension: {tuple(self.command.shape[1:])}\n"
         msg += f"\tResampling time range: {self.cfg.resampling_time_range}\n"
@@ -276,6 +333,7 @@ class NormalVelocityCommand(UniformVelocityCommand):
 
     def _update_command(self):
         """Sets velocity command to zero for standing envs."""
+        """设置速度指令为站立的零envs。"""
         # Enforce standing (i.e., zero velocity command) for standing envs
         standing_env_ids = self.is_standing_env.nonzero(as_tuple=False).flatten()  # TODO check if conversion is needed
         self.vel_command_b[standing_env_ids, :] = 0.0

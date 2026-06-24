@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Test texture randomization in the cartpole scene using pytest."""
+"""通过Pytest测试在车杆场景中的纹理随机化。"""
 
 from isaaclab.app import AppLauncher
 
@@ -32,6 +33,11 @@ def test_non_concatenated_obs_groups_contain_all_terms(device):
 
     Before the fix, only the last term in each non-concatenated group would be present
     in the observation space Dict. This test ensures all terms are correctly included.
+    """
+    """测试是否含有所有定义的项 (问题#3133)。
+
+    在固定之前，只会在观测空间 Dict 中存在每个非连接组的最后一个项。
+    这种测试确保所有项都被正确包含。
     """
     from isaaclab_tasks.manager_based.manipulation.stack.config.franka.stack_joint_pos_env_cfg import (
         FrankaCubeStackEnvCfg,
@@ -117,6 +123,7 @@ def test_non_concatenated_obs_groups_contain_all_terms(device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_obs_space_follows_clip_contraint(env_cfg_cls, device):
     """Ensure curriculum terms apply correctly after the fallback and replacement."""
+    """确保课程项在倒退和更换后正确应用。"""
     # new USD stage
     omni.usd.get_context().new_stage()
 

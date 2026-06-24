@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Test dataset generation for Isaac Lab Mimic workflow."""
+"""测试数据集生成对 Isaac Lab Mimic 工作流。"""
 
 from isaaclab.app import AppLauncher
 
@@ -26,6 +27,7 @@ EXPECTED_SUCCESSFUL_ANNOTATIONS = 10
 @pytest.fixture
 def setup_test_environment():
     """Set up the environment for testing."""
+    """设置环境进行测试。"""
     # Create the datasets directory if it does not exist
     if not os.path.exists(DATASETS_DOWNLOAD_DIR):
         print("Creating directory : ", DATASETS_DOWNLOAD_DIR)
@@ -110,6 +112,7 @@ def setup_test_environment():
 @pytest.mark.isaacsim_ci
 def test_generate_dataset(setup_test_environment):
     """Test the dataset generation script."""
+    """测试数据集生成脚本。"""
     workflow_root = setup_test_environment
 
     # Define the command to run the dataset generation script

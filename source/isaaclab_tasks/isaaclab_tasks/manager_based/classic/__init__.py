@@ -10,3 +10,10 @@ These environments are based on the MuJoCo environments provided by OpenAI.
 Reference:
     https://github.com/openai/gym/tree/master/gym/envs/mujoco
 """
+"""控制的经典环境。
+
+这些环境基于OpenAI提供的MuJoCo环境。
+
+Reference:
+    https://github.com/开门/Gym/树/老师/Gym/envs子
+"""

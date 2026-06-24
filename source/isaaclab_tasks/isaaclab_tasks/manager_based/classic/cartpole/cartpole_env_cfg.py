@@ -33,6 +33,7 @@ from isaaclab_assets.robots.cartpole import CARTPOLE_CFG  # isort:skip
 @configclass
 class CartpoleSceneCfg(InteractiveSceneCfg):
     """Configuration for a cart-pole scene."""
+    """设置车杆场景。"""
 
     # ground plane
     ground = AssetBaseCfg(
@@ -58,6 +59,7 @@ class CartpoleSceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     joint_effort = mdp.JointEffortActionCfg(asset_name="robot", joint_names=["slider_to_cart"], scale=100.0)
 
@@ -65,10 +67,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # observation terms (order preserved)
         joint_pos_rel = ObsTerm(func=mdp.joint_pos_rel)
@@ -85,6 +89,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     # reset
     reset_cart_position = EventTerm(
@@ -111,6 +116,7 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     '''
     RewTerm 就是一个奖励项配置。
@@ -152,6 +158,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     '''
     DoneTerm(
@@ -177,6 +184,7 @@ class TerminationsCfg:
 @configclass
 class CartpoleEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the cartpole environment."""
+    """适用于车杆环境的配置。"""
 
     # Scene settings    clone_in_fabric=True:用更高效的方式复制多个环境，提高大规模并行环境的性能。
     scene: CartpoleSceneCfg = CartpoleSceneCfg(num_envs=4096, env_spacing=4.0, clone_in_fabric=True)
@@ -191,6 +199,7 @@ class CartpoleEnvCfg(ManagerBasedRLEnvCfg):
     # Post initialization
     def __post_init__(self) -> None:
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 2
         self.episode_length_s = 5

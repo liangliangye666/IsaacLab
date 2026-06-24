@@ -6,6 +6,7 @@
 """OpenXR-powered device for teleoperation and interaction."""
 
 from __future__ import annotations
+"""用OpenXR驱动的设备用于远程操作和交互。"""
 
 import contextlib
 import logging
@@ -65,6 +66,30 @@ class OpenXRDevice(DeviceBase):
     based on the TrackingTarget enum values. When retargeters are provided, the raw tracking
     data is transformed into robot control commands suitable for teleoperation.
     """
+    """一个OpenXR驱动器用于远程操作和交互。
+
+    该设备使用OpenXR来追踪手关节，并将它们作为:
+
+    1. 追踪数据的字典 (如果没有追踪器使用)
+    2. 对机器人控制的重定向命令 (当提供重定向器时)
+
+    原数据格式 (_get_raw_data输出):
+
+    * 一个字典，具有与TrackingTarget enum值相匹配的键 (HAND_LEFT，HAND_RIGHT，HEAD)
+    * 每个手跟踪条目都包含了联合姿势的字典
+    * 每个联合姿势都是7D向量 (x， y， z， qw， qx， qy， qz)
+    * 从isaaclab.devices.openxr.common起，共同名称在HAND_JOINT_NAMES中定义
+    * 支持的关节包括手掌，手腕和手指，指针，中部，戒指和小手指的关节
+
+    电话命令:设备响应通过add_callback(可以订阅的多个电话命令:
+
+    * "START":恢复手动跟踪数据流程
+    * "STOP":暂停手动跟踪数据流
+    * "RESET":重置跟踪和信号仿真重置
+
+    该装置根据TrackingTarget enum值追踪左手，右手，头部位置或任何这些组合。
+    当提供回器时，原始跟踪数据将转化为适合远程操作的机器人控制命令。
+    """
 
     TELEOP_COMMAND_EVENT_TYPE = "teleop_command"
 
@@ -78,6 +103,12 @@ class OpenXRDevice(DeviceBase):
         Args:
             cfg: Configuration object for OpenXR settings.
             retargeters: List of retargeter instances to use for transforming raw tracking data.
+        """
+        """启动OpenXR设备。
+
+        参数：
+            cfg: 对于OpenXR设置的配置对象。
+            retargeters: 用于转换原始跟踪数据的重定位实例列表。
         """
         super().__init__(retargeters)
         self._xr_cfg = cfg.xr_cfg or XrCfg()
@@ -155,6 +186,10 @@ class OpenXRDevice(DeviceBase):
         Properly unsubscribes from the XR message bus to prevent memory leaks
         and resource issues when the device is no longer needed.
         """
+        """当物体被破坏时，清理资源。
+
+        在设备不再需要时，正确取消XR消息公交器的订阅，以防止存储漏洞和资源问题。
+        """
         if hasattr(self, "_vc_subscription") and self._vc_subscription is not None:
             self._vc_subscription = None
         if hasattr(self, "_xr_pre_sync_update_subscription") and self._xr_pre_sync_update_subscription is not None:
@@ -173,6 +208,13 @@ class OpenXRDevice(DeviceBase):
 
         Returns:
             Formatted string with device information
+        """
+        """返回包含OpenXR手指跟踪设备的信息。
+
+        这提供了设备配置，跟踪设置以及可用的手势命令的详细信息。
+
+        返回：
+            有设备信息的格式链
         """
 
         msg = f"OpenXR Hand Tracking Device: {self.__class__.__name__}\n"
@@ -216,6 +258,8 @@ class OpenXRDevice(DeviceBase):
     """
     Operations
     """
+    """运营
+    """
 
     def reset(self):
         default_pose = np.array([0, 0, 0, 1, 0, 0, 0], dtype=np.float32)
@@ -233,6 +277,14 @@ class OpenXRDevice(DeviceBase):
             func: The function to call when the message is received. The callback function should not
                 take any arguments.
         """
+        """添加额外的函数来绑定客户端消息。
+
+        参数：
+            key: 键入的信息类型。
+                 有效值为"START"，"STOP"和"RESET"。
+            func: 在收到消息时调用函数。
+                  召回函数不应进行任何争论。
+        """
         self._additional_callbacks[key] = func
 
     def _get_raw_data(self) -> Any:
@@ -246,6 +298,16 @@ class OpenXRDevice(DeviceBase):
 
         Each pose is represented as a 7-element array: [x, y, z, qw, qx, qy, qz]
         where the first 3 elements are position and the last 4 are quaternion orientation.
+        """
+        """获取OpenXR运行时间的最新跟踪数据。
+
+        返回：
+            有TrackingTarget enum键 (HAND_LEFT，HAND_RIGHT，HEAD) 的字典，包含:
+                - 左手关节姿势: 26个关节的字典，位置和方向
+                - 右手关节姿势: 26个关节的字典，位置和方向
+                - 头部姿势:单个7个元素阵列，位置和方向
+
+        每个姿势都以7个元素阵列表示: [x， y， z， qw， qx， qy， qz] 首先3个元素是位置，最后4个元素是四元数方向。
         """
         data = {}
 
@@ -282,6 +344,8 @@ class OpenXRDevice(DeviceBase):
     """
     Internal helpers.
     """
+    """内部助理。
+    """
 
     def _calculate_joint_poses(
         self, hand_device: Any, previous_joint_poses: dict[str, np.ndarray]
@@ -301,6 +365,20 @@ class OpenXRDevice(DeviceBase):
             Updated dictionary of joint poses with the same structure as previous_joint_poses.
             Each pose is represented as a 7-element numpy array: [x, y, z, qw, qx, qy, qz]
             where the first 3 elements are position and the last 4 are quaternion orientation.
+        """
+        """计算和更新手机关节姿势。
+
+        该函数从OpenXR手机中检索当前的关联姿势，并将以前的关联姿势更新到新的数据。
+        如果关联的位置或方向不有效，则将使用前列值。
+
+        参数：
+            hand_device: 一个手 (/用户/手/左或/用户/手/右) 的 OpenXR输入装置。
+            previous_joint_poses: 字典将共同名字映射到他们以前的姿势。
+                                  每个姿势都是7个元素阵列: [x， y， z， qw， qx， qy， qz]。
+
+        返回：
+            与previous_joint_poses相同的结构的联合姿势的更新字典。
+            每个姿势都以7个元素的数组为例: [x， y， z， qw， qx， qy， qz] 首先3个元素是位置，最后4个元素是四元数方向。
         """
         if hand_device is None:
             return previous_joint_poses
@@ -337,6 +415,11 @@ class OpenXRDevice(DeviceBase):
 
         Returns:
             numpy.ndarray: 7-element array containing head position (xyz) and orientation (wxyz)
+        """
+        """从OpenXR计算头部姿势。
+
+        返回：
+            numpy.ndarray: 包含头位置 (xyz) 和方向 (wxyz) 的7个元素阵列
         """
         head_device = XRCore.get_singleton().get_input_device("/user/head")
         if head_device:
@@ -431,6 +514,11 @@ class OpenXRDevice(DeviceBase):
         Row 0 (POSE): [x, y, z, w, x, y, z]
         Row 1 (INPUTS): [thumbstick_x, thumbstick_y, trigger, squeeze, button_0, button_1, padding]
         """
+        """查询运动控制器姿势和输入作为2x7阵列。
+
+        排列 0 (POSE): [x， y， z， w， x， y， z]排列 1 (INPUTS): [thumbstick_x， thumbstick_y，触发器，挤压器， button_0，
+        button_1，填充器]
+        """
         if input_device is None:
             return np.array([])
 
@@ -506,6 +594,7 @@ class OpenXRDevice(DeviceBase):
 @dataclass
 class OpenXRDeviceCfg(DeviceCfg):
     """Configuration for OpenXR devices."""
+    """对OpenXR设备的配置。"""
 
     xr_cfg: XrCfg | None = None
     class_type: type[DeviceBase] = OpenXRDevice

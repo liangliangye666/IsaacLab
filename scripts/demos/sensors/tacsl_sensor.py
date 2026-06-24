@@ -22,6 +22,15 @@ tactile sensing with the GelSight finger setup.
         --enable_cameras
 
 """
+"""在IsaacLab中实现TacSL触觉传感器的示例脚本。
+
+这本脚本展示了如何使用TactileSensor用于基于相机的感觉和GelSight指部设置的力场触觉。
+
+.. code-block:: bash
+
+    # Usage
+    python scripts/demos/sensors/tacsl_sensor.py         --use_tactile_rgb         --use_tactile_ff         --tactile_compliance_stiffness 100.0         --num_envs 16         --contact_object_type nut         --save_viz         --enable_cameras
+"""
 
 import argparse
 import math
@@ -76,6 +85,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.assets import ArticulationCfg, AssetBaseCfg, RigidObjectCfg
@@ -95,6 +105,7 @@ from isaaclab_assets.sensors import GELSIGHT_R15_CFG
 @configclass
 class TactileSensorsSceneCfg(InteractiveSceneCfg):
     """Design the scene with tactile sensors on the robot."""
+    """用机器人的触觉传感器设计场景。"""
 
     # Ground plane
     ground = AssetBaseCfg(prim_path="/World/defaultGroundPlane", spawn=sim_utils.GroundPlaneCfg())
@@ -171,6 +182,7 @@ class TactileSensorsSceneCfg(InteractiveSceneCfg):
 @configclass
 class CubeTactileSceneCfg(TactileSensorsSceneCfg):
     """Scene with cube contact object."""
+    """有立方接触物体的场景。"""
 
     # Cube contact object
     contact_object = RigidObjectCfg(
@@ -190,6 +202,7 @@ class CubeTactileSceneCfg(TactileSensorsSceneCfg):
 @configclass
 class NutTactileSceneCfg(TactileSensorsSceneCfg):
     """Scene with nut contact object."""
+    """场景与物接触物体。"""
 
     # Nut contact object
     contact_object = RigidObjectCfg(
@@ -222,6 +235,14 @@ def mkdir_helper(dir_path: str) -> tuple[str, str]:
     Returns:
         A tuple containing paths to the force field directory and RGB image directory.
     """
+    """创建目录以保存触觉传感器可视化。
+
+    参数：
+        dir_path: 基本目录的路径将保存视图。
+
+    返回：
+        包含向力场目录和RGB图像目录的路径。
+    """
     tactile_img_folder = dir_path
     os.makedirs(tactile_img_folder, exist_ok=True)
     # create a subdirectory for the force field data
@@ -251,6 +272,16 @@ def save_viz_helper(
         num_envs: Number of environments in the simulation.
         nrows: Number of rows in the tactile array.
         ncols: Number of columns in the tactile array.
+    """
+    """保存触觉传感器数据的可视化。
+
+    参数：
+        dir_path_list: 包含向力场目录和RGB图像目录的路径。
+        count: 现在的仿真步骤数，用于命名保存的文件。
+        tactile_data: 含有触觉传感器读数 (力，图像) 的数据对象。
+        num_envs: 仿真中的环境数量。
+        nrows: 触觉阵列中的行数。
+        ncols: 触觉阵列中的列数。
     """
     # Only save the first 2 environments
 
@@ -296,6 +327,7 @@ def save_viz_helper(
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     """Run the simulator."""
+    """运行仿真器。"""
     # Define simulation stepping
     sim_dt = sim.get_physics_dt()
     sim_time = 0.0
@@ -378,6 +410,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Initialize simulation
     # Note: We set the gpu_collision_stack_size to prevent buffer overflow in contact-rich environments.
     sim_cfg = sim_utils.SimulationCfg(

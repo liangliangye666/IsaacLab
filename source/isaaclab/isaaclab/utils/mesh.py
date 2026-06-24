@@ -5,6 +5,7 @@
 
 
 """Utility functions for working with meshes."""
+"""用于使用网格的功能。"""
 
 from collections.abc import Callable
 
@@ -33,6 +34,17 @@ def create_trimesh_from_geom_mesh(mesh_prim: Usd.Prim) -> trimesh.Trimesh:
     Returns:
         A trimesh.Trimesh object containing the mesh geometry.
     """
+    """读取网格prim的顶点和面孔。
+
+    函数读取一个网格prim的顶点和面部，然后返回它。
+    如果底层网格是四面网格，则将其转换为三角网格。
+
+    参数：
+        mesh_prim: 网格prim读取顶点和面孔。
+
+    返回：
+        包含网格几何的trimesh.Trimesh对象。
+    """
     if mesh_prim.GetTypeName() != "Mesh":
         raise ValueError(f"Prim at path '{mesh_prim.GetPath()}' is not a mesh.")
     # cast into UsdGeomMesh
@@ -59,6 +71,18 @@ def create_trimesh_from_geom_shape(prim: Usd.Prim) -> trimesh.Trimesh:
     Raises:
         ValueError: If the prim is not a supported primitive. Check PRIMITIVE_MESH_TYPES for supported primitives.
     """
+    """转换一个原始的对象成一个 trim。
+
+    参数：
+        prim: 在prim这应该转换为三。
+
+    返回：
+        一个代表原始的Trimesh对象。
+
+    异常：
+        ValueError: 如果prim不是支持的原始。
+                    检查支持原始的 PRIMITIVE_MESH_TYPES。
+    """
 
     if prim.GetTypeName() not in PRIMITIVE_MESH_TYPES:
         raise ValueError(f"Prim at path '{prim.GetPath()}' is not a primitive mesh. Cannot convert to trimesh.")
@@ -78,6 +102,21 @@ def convert_faces_to_triangles(faces: np.ndarray, point_counts: np.ndarray) -> n
 
     Returns:
         The new face ids with triangles. Shape is (n_faces_new, 3).
+    """
+    """转换四面网面索引为三角面索引。
+
+    这种函数预计面部数组 (索引) 和每个面部点数。
+    然后将潜在的四角形转化为三角形，并将新的三角形面孔索引作为一个形阵列 (n_faces_new， 3)。
+
+    参数：
+        faces: 面部的四面网格作为一维阵列。
+               形状是 (N，)。
+        point_counts: 每个脸的点数。
+                      形状是 (N，)。
+
+    返回：
+        新的面孔识别器有三角形。
+        形状是 (n_faces_new， 3)。
     """
     # check if the mesh is already triangulated
     if (point_counts == 3).all():
@@ -100,10 +139,13 @@ def convert_faces_to_triangles(faces: np.ndarray, point_counts: np.ndarray) -> n
 """
 Internal USD Shape Handlers.
 """
+"""内部USD形状处理器。
+"""
 
 
 def _create_plane_trimesh(prim: Usd.Prim) -> trimesh.Trimesh:
     """Creates a trimesh for a plane primitive."""
+    """创建了一个原始飞机的三角形。"""
     size = (2e6, 2e6)
     vertices = np.array([[size[0], size[1], 0], [size[0], 0.0, 0], [0.0, size[1], 0], [0.0, 0.0, 0]]) - np.array(
         [size[0] / 2.0, size[1] / 2.0, 0.0]
@@ -114,6 +156,7 @@ def _create_plane_trimesh(prim: Usd.Prim) -> trimesh.Trimesh:
 
 def _create_cube_trimesh(prim: Usd.Prim) -> trimesh.Trimesh:
     """Creates a trimesh for a cube primitive."""
+    """为立方体原始创建了一个三角形。"""
     size = prim.GetAttribute("size").Get()
     extends = [size, size, size]
     return trimesh.creation.box(extends)
@@ -121,6 +164,7 @@ def _create_cube_trimesh(prim: Usd.Prim) -> trimesh.Trimesh:
 
 def _create_sphere_trimesh(prim: Usd.Prim, subdivisions: int = 2) -> trimesh.Trimesh:
     """Creates a trimesh for a sphere primitive."""
+    """创建了一个原始球体的三角形。"""
     radius = prim.GetAttribute("radius").Get()
     mesh = trimesh.creation.icosphere(radius=radius, subdivisions=subdivisions)
     return mesh
@@ -128,6 +172,7 @@ def _create_sphere_trimesh(prim: Usd.Prim, subdivisions: int = 2) -> trimesh.Tri
 
 def _create_cylinder_trimesh(prim: Usd.Prim) -> trimesh.Trimesh:
     """Creates a trimesh for a cylinder primitive."""
+    """创建一个 cyl原始的三角形。"""
     radius = prim.GetAttribute("radius").Get()
     height = prim.GetAttribute("height").Get()
     mesh = trimesh.creation.cylinder(radius=radius, height=height)
@@ -145,6 +190,7 @@ def _create_cylinder_trimesh(prim: Usd.Prim) -> trimesh.Trimesh:
 
 def _create_capsule_trimesh(prim: Usd.Prim) -> trimesh.Trimesh:
     """Creates a trimesh for a capsule primitive."""
+    """创建一个 cap囊原始的三角形。"""
     radius = prim.GetAttribute("radius").Get()
     height = prim.GetAttribute("height").Get()
     mesh = trimesh.creation.capsule(radius=radius, height=height)
@@ -162,6 +208,7 @@ def _create_capsule_trimesh(prim: Usd.Prim) -> trimesh.Trimesh:
 
 def _create_cone_trimesh(prim: Usd.Prim) -> trimesh.Trimesh:
     """Creates a trimesh for a cone primitive."""
+    """创建了一个 trim形原始的三角形。"""
     radius = prim.GetAttribute("radius").Get()
     height = prim.GetAttribute("height").Get()
     mesh = trimesh.creation.cone(radius=radius, height=height)
@@ -181,3 +228,4 @@ _MESH_CONVERTERS_CALLBACKS: dict[str, Callable[[Usd.Prim], trimesh.Trimesh]] = {
 
 PRIMITIVE_MESH_TYPES = list(_MESH_CONVERTERS_CALLBACKS.keys())
 """List of supported primitive mesh types that can be converted to a trimesh."""
+"""支持的原始网格类型列表，可转换为trimesh。"""

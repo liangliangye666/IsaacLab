@@ -7,6 +7,7 @@
 # pyright: reportPrivateUsage=none
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -16,6 +17,7 @@ HEADLESS = True
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import contextlib
 import types
@@ -49,6 +51,11 @@ def generate_multirotor_cfg(usd_path: str | None = None) -> MultirotorCfg:
     minimal `MultirotorCfg` so integration tests can still run when a USD is
     provided.
     """
+    """为了测试，生成一个多轮机配置。
+
+    如果有ARL提供的配置，
+    否则返回最小的`MultirotorCfg`，以便在提供USD时仍然可以运行集成测试。
+    """
     if ARL_ROBOT_1_CFG is not None:
         return ARL_ROBOT_1_CFG
 
@@ -67,6 +74,9 @@ def make_multirotor_stub(num_instances: int, num_thrusters: int, device=torch.de
     """Create a lightweight Multirotor instance suitable for unit tests that
     don't require IsaacSim. We construct via __new__ and inject minimal
     attributes the class methods expect.
+    """
+    """创建一个轻量级的Multirotor实例，适合不需要IsaacSim的单元测试。
+    我们通过 __new__构建，并注入等级方法预期的最小属性。
     """
     # Use a plain object (not a Multirotor instance) to avoid assigning to
     # properties that only exist on the real class. We'll bind the
@@ -175,6 +185,7 @@ def test_multirotor_data_annotations():
 
 def test_set_thrust_target_env_slice_unit():
     """Setting targets for an env slice updates only those envs."""
+    """设置目标为env片段更新只有envs。"""
     m = make_multirotor_stub(num_instances=4, num_thrusters=3)
 
     original = m._data.thrust_target.clone()
@@ -190,6 +201,7 @@ def test_set_thrust_target_env_slice_unit():
 
 def test_combine_thrusts_with_zero_allocation():
     """When allocation matrix is zero, combined wrench/force/torque are zero."""
+    """当分配矩阵为零时，结合的/力/扭矩为零。"""
     m = make_multirotor_stub(num_instances=2, num_thrusters=3)
 
     # zero allocation
@@ -207,6 +219,7 @@ def test_combine_thrusts_with_zero_allocation():
 
 def test_arl_cfg_structure_and_counts():
     """Validate the ARL robot config structure (or a safe fallback)."""
+    """验证ARL机器人配置结构 (或安全倒退)。"""
     # Use the ARL-provided config if available, otherwise synthesize a
     # lightweight fallback so this test never skips.
     cfg = ARL_ROBOT_1_CFG
@@ -237,6 +250,8 @@ def test_arl_allocation_applies_to_stub():
     """Create a stub with the ARL allocation matrix (or fallback) and verify
     `_combine_thrusts` produces the expected internal wrench via matrix
     multiplication.
+    """
+    """创建一个与ARL分配矩阵 (或倒退) 的片，并验证`_combine_thrusts`通过矩阵乘法产生预期的内部钥匙。
     """
     cfg = ARL_ROBOT_1_CFG
     if cfg is None or getattr(cfg, "allocation_matrix", None) is None:
@@ -273,6 +288,10 @@ def generate_multirotor(
 
     Mirrors the pattern used in `test_articulation.py`.
     """
+    """创建场景prims和产出`Multirotor`资产从cfg。
+
+    镜像 `test_articulation.py` 中使用的模式。
+    """
     translations = torch.zeros(num_multirotors, 3, device=device)
     translations[:, 0] = torch.arange(num_multirotors) * 2.5
 
@@ -306,6 +325,10 @@ def sim(request):
     Uses `build_simulation_context` from the project utils so tests match
     `test_articulation.py` behaviour.
     """
+    """为集成测试创建仿真环境 (app + sim)。
+
+    项目使用的`build_simulation_context`，因此测试与`test_articulation.py`行为相匹配。
+    """
     device = request.getfixturevalue("device") if "device" in request.fixturenames else "cpu"
     gravity_enabled = request.getfixturevalue("gravity_enabled") if "gravity_enabled" in request.fixturenames else True
     add_ground_plane = (
@@ -327,6 +350,10 @@ def test_multirotor_thruster_buffers_and_actuators(sim, num_multirotors, device)
 
     This test will be skipped automatically when `ARL_ROBOT_1_CFG` is not
     available in the test environment (lightweight setups).
+    """
+    """在集成环境中检查推进器缓冲器和执行器电缆。
+
+    在测试环境中没有`ARL_ROBOT_1_CFG` (轻量设置) 时，该测试将自动跳过。
     """
     cfg = generate_multirotor_cfg()
 
@@ -379,6 +406,7 @@ def test_multirotor_thruster_buffers_and_actuators(sim, num_multirotors, device)
 @pytest.mark.isaacsim_ci
 def test_set_thrust_target_broadcasting_integration(sim, num_multirotors, device):
     """Ensure `set_thrust_target` broadcasting works in the integration context."""
+    """确保`set_thrust_target`广播工作在集成背景下。"""
     cfg = generate_multirotor_cfg()
     multirotor, _ = generate_multirotor(cfg, num_multirotors, device=sim.device)
 

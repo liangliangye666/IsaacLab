@@ -32,6 +32,20 @@ def height_field_to_mesh(func: Callable) -> Callable:
         The mesh function. The mesh function returns a tuple containing a list of ``trimesh``
         mesh objects and the origin of the terrain.
     """
+    """装饰器将高度场函数转换为网格函数。
+
+    这种装饰器通过在指定分辨率下采样高度，并进行插射以获得中间高度，将高度场函数转换为网格函数。
+    此外，它在地形周围增加了一个边界，以避免边缘的文物。
+
+    参数：
+        func: 转换的高度场函数。
+              函数应该返回一个2D numpy 阵列
+            with the heights of the terrain.
+
+    返回：
+        网格功能。
+        网格函数返回包含``trimesh``网格物体列表和地形的起源的图布。
+    """
 
     @functools.wraps(func)
     def wrapper(difficulty: float, cfg: HfTerrainBaseCfg):
@@ -116,6 +130,40 @@ def convert_height_field_to_mesh(
           Each row represents the location of each vertex (in m).
         - **triangles** (np.ndarray(int)): Array of shape (num_triangles, 3).
           Each row represents the indices of the 3 vertices connected by this triangle.
+    """
+    """转换一个高度领域阵列为由顶点和三角形表示的三角形网格。
+
+    这种函数将高度场数组转换为由顶点和三角形表示的三角形网格。
+    据假设，高度领域阵列是一个2D漂浮阵列，其中每个元素代表该位置的地形高度。
+    据假设，高度字段阵列是矩阵的形式，其中第一维度代表x轴，第二维度代表y轴。
+
+    该函数还可以在提供倾斜门以上的垂直表面进行纠正。
+    这有助于避免在网格中长的垂直表面。
+    通过将垂直表面的顶点移动到两个邻近顶点的最低点进行了纠正。
+
+    调整方式如下:
+    If :算数:`\frac{y_2 - y_1}{x_2 - x_1} > threshold`，然后移动A到A' (i.e.，设置:数学:`x_1' = x_2`)。
+    这一点在各个方向都会重复。
+
+    .. code-block:: none
+
+                B(x_2,y_2)
+                    /|
+                   / |
+                  /  |
+        (x_1，y_1)--A'(x_1'，y_1)
+
+    参数：
+        height_field: 输入高度场阵列。
+        horizontal_scale: 在 x 和 y 轴上地形的化。
+        vertical_scale: 沿着z轴的地形的化。
+        slope_threshold: 垂直的坡门。
+                         在 None 中，没有修改。
+
+    返回：
+        网格的顶点和三角形:
+        - **顶点** (np.ndarray(漂浮)):形状阵列 (num_vertices， 3)。 每一行代表每个顶点的位置 (以m)。
+        - **三角形** (np.ndarray(int)):形状阵列 (num_triangles， 3)。 每一行代表这个三角形连接的3个顶点的索引。
     """
     # read height field
     num_rows, num_cols = height_field.shape

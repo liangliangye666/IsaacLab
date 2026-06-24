@@ -30,6 +30,7 @@ import isaaclab_tasks.manager_based.manipulation.deploy.mdp as mdp
 @configclass
 class SceneCfg(InteractiveSceneCfg):
     """Configuration for the scene with a robotic arm."""
+    """用机器人手臂进行场景配置。"""
 
     # world
     ground = AssetBaseCfg(
@@ -63,6 +64,7 @@ class SceneCfg(InteractiveSceneCfg):
 @configclass
 class CommandsCfg:
     """Command terms for the MDP."""
+    """对MDP的命令条件。"""
 
     ee_pose = mdp.UniformPoseCommandCfg(
         asset_name="robot",
@@ -83,6 +85,7 @@ class CommandsCfg:
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     arm_action: ActionTerm = MISSING
     gripper_action: ActionTerm | None = None
@@ -91,10 +94,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # observation terms (order preserved)
         joint_pos = ObsTerm(func=mdp.joint_pos, noise=Unoise(n_min=-0.0, n_max=0.0))
@@ -112,6 +117,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_robot_joints = EventTerm(
         func=mdp.reset_joints_by_offset,
@@ -151,6 +157,7 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     end_effector_keypoint_tracking = RewTerm(
         func=mdp.keypoint_command_error,
@@ -180,6 +187,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -192,6 +200,7 @@ class TerminationsCfg:
 @configclass
 class ReachEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the end-effector pose tracking environment that has been deployed on a real robot."""
+    """对于最终效应器的设置，是用于实际机器人的追踪环境。"""
 
     # Scene settings
     scene: SceneCfg = SceneCfg(num_envs=4096, env_spacing=2.5)
@@ -206,6 +215,7 @@ class ReachEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 2
         self.sim.render_interval = self.decimation

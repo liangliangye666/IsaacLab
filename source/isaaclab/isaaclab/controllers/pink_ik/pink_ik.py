@@ -13,6 +13,13 @@ Reference:
 """
 
 from __future__ import annotations
+"""为IsaacLab实现粉红色IK控制器。
+
+这个模块提供了粉红色反动动力解析器和IsaacLab之间的集成。
+粉红色是一个可分化逆动力学解决器框架，提供任务空间控制功能。
+
+Reference: 粉红色IK溶剂:https://github.com/stephane-caron/pink
+"""
 
 from typing import TYPE_CHECKING
 
@@ -45,6 +52,17 @@ class PinkIKController:
     Reference:
         Pink IK Solver: https://github.com/stephane-caron/pink
     """
+    """色IK控制器与艾萨克实验室的集成。
+
+    粉红色IK控制器通过权重任务解决差异逆动力学。
+    每个任务由一个剩余函数 e(q) 定义，驱动到零 (e.g.， e(q) = p_target - p_ee(q) 为终端效应位置)。
+    控制器计算了满足J_e(q) v = -αe(q的关节速度，其中J_e(q) 是Jacobian任务。
+    通过权重优化来解决多项任务，制定一个方形程序，同时尊重关节速度限制，将权重任务错误最小化。
+
+    它支持用户定义的任务，我们提供了NullSpacePostureTask来维持所需的联合配置。
+
+    Reference: 粉红色IK溶剂:https://github.com/stephane-caron/pink
+    """
 
     def __init__(
         self, cfg: PinkIKControllerCfg, robot_cfg: ArticulationCfg, device: str, controlled_joint_indices: list[int]
@@ -61,6 +79,17 @@ class PinkIKController:
 
         Raises:
             ValueError: When joint_names or all_joint_names are not provided in the configuration.
+        """
+        """启动粉红色IK控制器。
+
+        参数：
+            cfg: 包含任务定义，解决器参数和联合配置的Pink IK控制器配置。
+            robot_cfg: 机器人的关节配置，包含最初的关节位置和机器人的规格。
+            device: 用于计算的设备 (e.g.， "cuda:0"， "cpu")。
+            controlled_joint_indices: 在USD资产中，由Pink IK控制器控制的联合索引列表。
+
+        异常：
+            ValueError: 如果配置中没有提供joint_names或all_joint_names。
         """
         if cfg.joint_names is None:
             raise ValueError("joint_names must be provided in the configuration")
@@ -117,6 +146,15 @@ class PinkIKController:
         Raises:
             ValueError: If any consistency checks fail.
         """
+        """验证controlled_joint_indices和控制器配置之间的一致性。
+
+        参数：
+            cfg: 粉红色IK控制器配置。
+            controlled_joint_indices: 艾萨克实验室的联合索引列表。
+
+        异常：
+            ValueError: 如果任何一致性检查失败。
+        """
         # Check: Length consistency
         if cfg.joint_names is None:
             raise ValueError("cfg.joint_names cannot be None")
@@ -143,6 +181,7 @@ class PinkIKController:
 
     def _setup_joint_ordering_mappings(self):
         """Setup joint ordering mappings between Isaac Lab and Pink conventions."""
+        """设置艾萨克实验室和粉丝会议之间的联合排序地图。"""
         pink_joint_names = self.pink_configuration.all_joint_names_pinocchio_order
         isaac_lab_joint_names = self.cfg.all_joint_names
 
@@ -184,6 +223,14 @@ class PinkIKController:
         Args:
             curr_joint_pos: The current joint positions of shape (num_joints,).
         """
+        """更新零空间联合目标。
+
+        该方法根据当前的联合配置更新了零空间姿势任务的目标关节位置。
+        在首要任务允许冗余时，这对于维持所需的联合配置有用。
+
+        参数：
+            curr_joint_pos: 现在的形状关节位置 (num_joints，)。
+        """
         for task in self.cfg.variable_input_tasks:
             if isinstance(task, NullSpacePostureTask):
                 task.set_target(curr_joint_pos)
@@ -206,6 +253,19 @@ class PinkIKController:
         Returns:
             The target joint positions as a tensor of shape (num_joints,) on the specified device.
             If the IK solver fails, returns the current joint positions unchanged to maintain stability.
+        """
+        """根据当前状态和任务计算目标关节位置。
+
+        使用粉红色溶解器执行反向动力，以计算满足定义任务的目标关键位置。
+        解决器使用方形编程来找到最小化任务错误的最佳关节速度，同时尊重限制。
+
+        参数：
+            curr_joint_pos: 现在的形状关节位置 (num_joints，)。
+            dt: 计算关节位置的时间步骤在几秒钟内变化。
+
+        返回：
+            在指定装置上，目标关节作为形状张量 (num_joints) 定位。
+            如果IK解决器失败，将当前的关节位置保持不变，以保持稳定。
         """
         # Get the current controlled joint positions
         curr_controlled_joint_pos = [curr_joint_pos[i] for i in self.controlled_joint_indices]

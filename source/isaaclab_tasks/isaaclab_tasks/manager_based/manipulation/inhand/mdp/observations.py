@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Functions specific to the in-hand dexterous manipulation environments."""
+"""专用于手中的精通操纵环境的功能。"""
 
 from typing import TYPE_CHECKING
 
@@ -24,6 +25,11 @@ def goal_quat_diff(
     """Goal orientation relative to the asset's root frame.
 
     The quaternion is represented as (w, x, y, z). The real part is always positive.
+    """
+    """对资产根底框架的目标导向。
+
+    四元数表示为 (w， x， y， z)。
+    真正的部分总是积极的。
     """
     # extract useful elements
     asset: RigidObject = env.scene[asset_cfg.name]

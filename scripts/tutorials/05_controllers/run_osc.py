@@ -15,8 +15,19 @@ mass matricescomputed by PhysX.
     ./isaaclab.sh -p scripts/tutorials/05_controllers/run_osc.py
 
 """
+"""本脚本展示了如何使用操作空间控制器 (OSC) 与仿真器。
+
+OSC控制器可以在不同的模式下配置。
+它使用了由PhysX计算的动态数量，如雅哥比亚和质量矩阵。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/05_controllers/run_osc.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -35,6 +46,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -63,6 +75,7 @@ from isaaclab_assets import FRANKA_PANDA_HIGH_PD_CFG  # isort:skip
 @configclass
 class SceneCfg(InteractiveSceneCfg):
     """Configuration for a simple scene with a tilted wall."""
+    """设置一个简单的场景，墙面倾斜。"""
 
     # ground plane
     ground = AssetBaseCfg(
@@ -111,6 +124,12 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     Args:
         sim: (SimulationContext) Simulation context.
         scene: (InteractiveScene) Interactive scene.
+    """
+    """运行仿真循环。
+
+    参数：
+        sim: (SimulationContext) 仿真环境。
+        scene: (InteractiveScene交互场景。
     """
 
     # Extract scene entities for readability.
@@ -311,6 +330,31 @@ def update_states(
     Raises:
         ValueError: Undefined target_type.
     """
+    """更新机器人状态。
+
+    参数：
+        sim: (SimulationContext) 仿真环境。
+        scene: (InteractiveScene交互场景。
+        robot: 机器人关节。
+        ee_frame_idx: (int) 末端执行器框架索引。
+        arm_joint_ids: (list[int]) 双臂联合索引。
+        contact_forces: (ContactSensor) 接触传感器。
+
+    返回：
+        jacobian_b (torch.tensor): 雅科比安在身体框架中。
+        mass_matrix (torch.tensor): 质量矩阵。
+        gravity (torch.tensor): 引力向量。
+        ee_pose_b (torch.tensor): 在身体框架中进行终端效应。
+        ee_vel_b (torch.tensor): 在车体框架中的末端执行器速度。
+        root_pose_w (torch.tensor): 在世界框架中的根姿势。
+        ee_pose_w (torch.tensor): 在世界框架中的终极效应者姿势。
+        ee_force_b (torch.tensor): 身体框架中的最终效应力。
+        joint_pos (torch.tensor): 共同的位置。
+        joint_vel (torch.tensor): 关联速度。
+
+    异常：
+        ValueError: 没有定义的target_type。
+    """
     # obtain dynamics related quantities from simulation
     ee_jacobi_idx = ee_frame_idx - 1
     jacobian_w = robot.root_physx_view.get_jacobians()[:, ee_jacobi_idx, :, arm_joint_ids]
@@ -397,6 +441,25 @@ def update_target(
     Raises:
         ValueError: Undefined target_type.
     """
+    """更新操作空间控制器的目标。
+
+    参数：
+        sim: (SimulationContext) 仿真环境。
+        scene: (InteractiveScene交互场景。
+        osc: (OperationalSpaceController) 操作空间控制器。
+        root_pose_w: (torch.tensor) 在世界框架中。
+        ee_target_set: (torch.tensor) 终端效应目标设定。
+        current_goal_idx: (int) 目前目标索引。
+
+    返回：
+        command (torch.tensor): 更新了目标命令。
+        ee_target_pose_b (torch.tensor): 更新了身体框架中的目标姿势。
+        ee_target_pose_w (torch.tensor): 在世界框架中更新了目标姿势。
+        next_goal_idx (int): 下一个目标索引。
+
+    异常：
+        ValueError: 没有定义的target_type。
+    """
 
     # update the ee desired command
     command = torch.zeros(scene.num_envs, osc.action_dim, device=sim.device)
@@ -439,6 +502,20 @@ def convert_to_task_frame(osc: OperationalSpaceController, command: torch.tensor
     Raises:
         ValueError: Undefined target_type.
     """
+    """将目标命令转换为任务框架。
+
+    参数：
+        osc: OperationalSpaceController标题
+        command: 命令要转化。
+        ee_target_pose_b: 目标姿势在身体框架。
+
+    返回：
+        command (torch.tensor): 在任务框架中的目标命令。
+        task_frame_pose_b (torch.tensor): 在任务框架中定位目标。
+
+    异常：
+        ValueError: 没有定义的target_type。
+    """
     command = command.clone()
     task_frame_pose_b = ee_target_pose_b.clone()
 
@@ -461,6 +538,7 @@ def convert_to_task_frame(osc: OperationalSpaceController, command: torch.tensor
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(dt=0.01, device=args_cli.device)
     sim = sim_utils.SimulationContext(sim_cfg)

@@ -14,8 +14,18 @@ It uses the `warp` library to run the state machine in parallel on the GPU.
     ./isaaclab.sh -p scripts/environments/state_machine/lift_teddy_bear.py
 
 """
+"""用机器人手臂举起一个可变的物体。
+
+状态机在内核函数`infer_state_machine`中实现。
+它使用`warp`库在GPU上并行运行状态机。
+
+.. code-block:: bash
+
+    ./isaaclab.sh -p scripts/environments/state_machine/lift_teddy_bear.py
+"""
 
 """Launch Omniverse Toolkit first."""
+"""首先启动全宇宙工具包。"""
 
 import argparse
 
@@ -39,6 +49,7 @@ from isaacsim.core.utils.extensions import disable_extension
 disable_extension("omni.usd.metrics.assembler.ui")
 
 """Rest everything else."""
+"""休息其他一切。"""
 
 from collections.abc import Sequence
 
@@ -58,6 +69,7 @@ wp.init()
 
 class GripperState:
     """States for the gripper."""
+    """为了抓住。"""
 
     OPEN = wp.constant(1.0)
     CLOSE = wp.constant(-1.0)
@@ -65,6 +77,7 @@ class GripperState:
 
 class PickSmState:
     """States for the pick state machine."""
+    """美国选用机器。"""
 
     REST = wp.constant(0)
     APPROACH_ABOVE_OBJECT = wp.constant(1)
@@ -76,6 +89,7 @@ class PickSmState:
 
 class PickSmWaitTime:
     """Additional wait times (in s) for states for before switching."""
+    """转换前的状态的额外等待时间 (s)。"""
 
     REST = wp.constant(0.2)
     APPROACH_ABOVE_OBJECT = wp.constant(0.5)
@@ -189,6 +203,18 @@ class PickAndLiftSm:
     4. GRASP_OBJECT: The robot grasps the object.
     5. LIFT_OBJECT: The robot lifts the object to the desired pose. This is the final state.
     """
+    """在机器人的任务空间中，一个简单的状态机器来挑选和抬起物体。
+
+    状态机是作为一个变形核实现的。
+    它将机器人的末端执行器和对象的当前状态，并输出机器人的末端执行器和抓住器的所需状态。
+    状态机是以以下状态实现的有限状态机:
+
+    1. REST机器人休息了。
+    2. 机器人移动在对象之上。
+    3. 机器人向物体移动。
+    4. 机器人抓住物体。
+    5. 机器人将物体抬起到所需的姿势。
+    """
 
     def __init__(self, dt: float, num_envs: int, device: torch.device | str = "cpu", position_threshold=0.01):
         """Initialize the state machine.
@@ -197,6 +223,13 @@ class PickAndLiftSm:
             dt: The environment time step.
             num_envs: The number of environments to simulate.
             device: The device to run the state machine on.
+        """
+        """启动状态机器。
+
+        参数：
+            dt: 环境时间步骤。
+            num_envs: 仿真环境的数量。
+            device: 运行国家机器的设备。
         """
         # save parameters
         self.dt = float(dt)
@@ -227,6 +260,7 @@ class PickAndLiftSm:
 
     def reset_idx(self, env_ids: Sequence[int] = None):
         """Reset the state machine."""
+        """重置状态机器。"""
         if env_ids is None:
             env_ids = slice(None)
         self.sm_state[env_ids] = 0
@@ -234,6 +268,7 @@ class PickAndLiftSm:
 
     def compute(self, ee_pose: torch.Tensor, object_pose: torch.Tensor, des_object_pose: torch.Tensor):
         """Compute the desired state of the robot's end-effector and the gripper."""
+        """计算机器人的末端执行器和抓住器的所需状态。"""
         # convert all transformations from (w, x, y, z) to (x, y, z, w)
         ee_pose = ee_pose[:, [0, 1, 2, 4, 5, 6, 3]]
         object_pose = object_pose[:, [0, 1, 2, 4, 5, 6, 3]]

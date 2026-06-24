@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 from collections import namedtuple
 
@@ -46,6 +48,7 @@ def env():
 
 def test_str(env):
     """Test the string representation of the reward manager."""
+    """测试奖励管理器的字符串表示。"""
     cfg = {
         "term_1": RewardTermCfg(func=grilled_chicken, weight=10),
         "term_2": RewardTermCfg(func=grilled_chicken_with_bbq, weight=5, params={"bbq": True}),
@@ -64,6 +67,7 @@ def test_str(env):
 
 def test_config_equivalence(env):
     """Test the equivalence of reward manager created from different config types."""
+    """测试来自不同配置类型的奖励管理器的等效性。"""
     # create from dictionary
     cfg = {
         "my_term": RewardTermCfg(func=grilled_chicken, weight=10),
@@ -80,6 +84,7 @@ def test_config_equivalence(env):
     @configclass
     class MyRewardManagerCfg:
         """Reward manager config with no type annotations."""
+        """奖励管理器没有类型注释的配置。"""
 
         my_term = RewardTermCfg(func=grilled_chicken, weight=10.0)
         your_term = RewardTermCfg(func=grilled_chicken_with_bbq, weight=2.0, params={"bbq": True})
@@ -92,6 +97,7 @@ def test_config_equivalence(env):
     @configclass
     class MyRewardManagerAnnotatedCfg:
         """Reward manager config with type annotations."""
+        """奖励管理器设置类型注释。"""
 
         my_term: RewardTermCfg = RewardTermCfg(func=grilled_chicken, weight=10.0)
         your_term: RewardTermCfg = RewardTermCfg(func=grilled_chicken_with_bbq, weight=2.0, params={"bbq": True})
@@ -115,6 +121,7 @@ def test_config_equivalence(env):
 
 def test_compute(env):
     """Test the computation of reward."""
+    """试验奖励的计算。"""
     cfg = {
         "term_1": RewardTermCfg(func=grilled_chicken, weight=10),
         "term_2": RewardTermCfg(func=grilled_chicken_with_curry, weight=0.0, params={"hot": False}),
@@ -131,6 +138,7 @@ def test_compute(env):
 
 def test_config_empty(env):
     """Test the creation of reward manager with empty config."""
+    """试试创建奖励管理器，用空置配置。"""
     rew_man = RewardManager(None, env)
     assert len(rew_man.active_terms) == 0
 
@@ -147,6 +155,7 @@ def test_config_empty(env):
 
 def test_active_terms(env):
     """Test the correct reading of active terms."""
+    """检查有效项的正确阅读。"""
     cfg = {
         "term_1": RewardTermCfg(func=grilled_chicken, weight=10),
         "term_2": RewardTermCfg(func=grilled_chicken_with_bbq, weight=5, params={"bbq": True}),
@@ -159,6 +168,7 @@ def test_active_terms(env):
 
 def test_missing_weight(env):
     """Test the missing of weight in the config."""
+    """测试在中缺失的体重。"""
     # TODO: The error should be raised during the config parsing, not during the reward manager creation.
     cfg = {
         "term_1": RewardTermCfg(func=grilled_chicken, weight=10),
@@ -170,6 +180,7 @@ def test_missing_weight(env):
 
 def test_invalid_reward_func_module(env):
     """Test the handling of invalid reward function's module in string representation."""
+    """在字符串表示中测试无效奖励函数模块的处理。"""
     cfg = {
         "term_1": RewardTermCfg(func=grilled_chicken, weight=10),
         "term_2": RewardTermCfg(func=grilled_chicken_with_bbq, weight=5, params={"bbq": True}),
@@ -181,6 +192,7 @@ def test_invalid_reward_func_module(env):
 
 def test_invalid_reward_config(env):
     """Test the handling of invalid reward function's config parameters."""
+    """测试无效的奖励函数配置参数的处理。"""
     cfg = {
         "term_1": RewardTermCfg(func=grilled_chicken_with_bbq, weight=0.1, params={"hot": False}),
         "term_2": RewardTermCfg(func=grilled_chicken_with_yoghurt, weight=2.0, params={"hot": False}),

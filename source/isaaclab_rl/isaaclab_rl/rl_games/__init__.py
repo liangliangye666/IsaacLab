@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Wrappers and utilities to configure an environment for rl-games library."""
+"""包装器和工具为rl游戏库配置环境。"""
 
 from .pbt import *
 from .rl_games import *

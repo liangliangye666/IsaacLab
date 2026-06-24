@@ -6,6 +6,7 @@
 """Configuration for the Mujoco Ant robot."""
 
 from __future__ import annotations
+"""Mu子 robot机器人的配置。"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -53,3 +54,4 @@ ANT_CFG = ArticulationCfg(
     },
 )
 """Configuration for the Mujoco Ant robot."""
+"""Mu子 robot机器人的配置。"""

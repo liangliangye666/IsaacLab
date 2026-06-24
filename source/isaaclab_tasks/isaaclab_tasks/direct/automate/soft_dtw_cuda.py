@@ -42,6 +42,9 @@ def compute_softdtw_cuda(D, gamma, bandwidth, max_i, max_j, n_passes, R):
     :param seq_len: The length of the sequence (both inputs are assumed to be of the same size)
     :param n_passes: 2 * seq_len - 1 (The number of anti-diagonals)
     """
+    """:param seq_len: 序列的长度 (假设两种输入都是相同的大小的)
+    :param n_passes: 2 * seq_len - 1 (反角形数量)
+    """
     # Each block processes one pair of examples
     b = cuda.blockIdx.x
     # We have as many threads as seq_len, because the most number of threads we need
@@ -115,6 +118,8 @@ class _SoftDTWCUDA(Function):
     """
     CUDA implementation is inspired by the diagonal one proposed in https://ieeexplore.ieee.org/document/8400444:
     "Developing a pattern discovery method in time series data and its GPU acceleration"
+    """
+    """CUDA的实现源于https://ieeexplore.ieee.org/document/8400444:中提出的"开发时间序列数据中的模式发现方法及其GPU加速"的角形。
     """
 
     @staticmethod
@@ -250,6 +255,8 @@ class _SoftDTW(Function):
     """
     CPU implementation based on https://github.com/Sleepwalking/pytorch-softdtw
     """
+    """基于https://github.com/Sleepwalking/pytorch-softdtw的CPU实现
+    """
 
     @staticmethod
     def forward(ctx, D, device, gamma, bandwidth):
@@ -282,6 +289,8 @@ class SoftDTW(torch.nn.Module):
     """
     The soft DTW implementation that optionally supports CUDA
     """
+    """软的DTW实现可选地支持CUDA
+    """
 
     def __init__(self, use_cuda, device, gamma=1.0, normalize=False, bandwidth=None, dist_func=None):
         """Initializes a new instance using the supplied parameters
@@ -297,6 +306,23 @@ class SoftDTW(torch.nn.Module):
                 If provided, must be a float.
             dist_func: The point-wise distance function to use. Default is None, which
                 uses a default Euclidean distance function.
+        """
+        """使用输入的参数初始化一个新实例
+
+        参数：
+
+            use_cuda: 是否使用CUDA实现。
+            device: 运行SoftDTW计算的设备。
+            gamma: SoftDTW的马参数。
+                   默认是1.0。
+            normalize: 是否进行正常化。
+                       默认是False。
+                       (如https://github.com/mblondel/soft-dtw/issues/10#issuecomment-383564790中讨论的)
+            bandwidth: 切割的Sakoe-Chiba带宽。
+                       默认是None，它禁用切割。
+                       如果提供，必须是浮动。
+            dist_func: 使用的点式距离函数。
+                       默认是None，它使用默认的尤克利德距离函数。
         """
         super().__init__()
         self.normalize = normalize
@@ -314,6 +340,8 @@ class SoftDTW(torch.nn.Module):
     def _get_func_dtw(self, x, y):
         """
         Checks the inputs and selects the proper implementation to use.
+        """
+        """检查输入并选择使用适当的实现。
         """
         bx, lx, dx = x.shape
         by, ly, dy = y.shape
@@ -337,6 +365,8 @@ class SoftDTW(torch.nn.Module):
         """
         Calculates the Euclidean distance between each element in x and y per timestep
         """
+        """计算每个元素在 x 和 y 的时间步骤之间的尤克利德距离
+        """
         n = x.size(1)
         m = y.size(1)
         d = x.size(2)
@@ -350,6 +380,11 @@ class SoftDTW(torch.nn.Module):
         :param X: One batch of examples, batch_size x seq_len x dims
         :param Y: The other batch of examples, batch_size x seq_len x dims
         :return: The computed results
+        """
+        """计算X和Y之间的软-DTW值
+        :param X: 一批示例，batch_size x seq_len x
+        :param Y: 其他批次的例子，batch_size x seq_len x dims
+        :return: 计算结果
         """
 
         # Check the inputs and get the correct implementation
@@ -374,6 +409,10 @@ def timed_run(a, b, sdtw):
     Runs a and b through sdtw, and times the forward and backward passes.
     Assumes that a requires gradients.
     :return: timing, forward result, backward result
+    """
+    """通过sdtw运行，乘以向前和向后传递。
+    假设一个需要梯度。
+    :return: 时间，前期结果，后期结果
     """
 
     from timeit import default_timer as timer

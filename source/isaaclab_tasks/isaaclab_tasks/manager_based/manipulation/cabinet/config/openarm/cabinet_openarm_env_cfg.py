@@ -7,6 +7,8 @@
 We modified parts of the environment, such as the target's position and orientation,
 as well as certain object properties, to better suit the smaller robot.
 """
+"""我们改变了环境的部分， 比如目标的位置和方向， 以及某些物体的特性，
+"""
 
 from dataclasses import MISSING
 
@@ -47,6 +49,10 @@ class CabinetSceneCfg(InteractiveSceneCfg):
 
     This is the abstract base implementation, the exact scene is defined in the derived classes
     which need to set the robot and end-effector frames
+    """
+    """机器人和机器人。
+
+    这是一个抽象的基础实现，精确的场景是定义在衍生类，需要设置机器人和最终效果器框架
     """
 
     # robots, Will be populated by agent env cfg
@@ -129,6 +135,7 @@ class CabinetSceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     arm_action: mdp.JointPositionActionCfg = MISSING
     gripper_action: mdp.BinaryJointPositionActionCfg = MISSING
@@ -137,10 +144,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
         joint_vel = ObsTerm(func=mdp.joint_vel_rel)
@@ -167,6 +176,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     robot_physics_material = EventTerm(
         func=mdp.randomize_rigid_body_material,
@@ -207,6 +217,7 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     # 1. Approach the handle
     approach_ee_handle = RewTerm(func=mdp.approach_ee_handle, weight=2.0, params={"threshold": 0.2})
@@ -245,6 +256,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -257,6 +269,7 @@ class TerminationsCfg:
 @configclass
 class CabinetEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the cabinet environment."""
+    """机柜环境的配置。"""
 
     # Scene settings
     scene: CabinetSceneCfg = CabinetSceneCfg(num_envs=4096, env_spacing=2.0)
@@ -270,6 +283,7 @@ class CabinetEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 1
         self.episode_length_s = 8.0

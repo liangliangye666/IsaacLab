@@ -20,6 +20,7 @@ RAY_CASTER_MARKER_CFG = VisualizationMarkersCfg(
     },
 )
 """Configuration for the ray-caster marker."""
+"""射线标记器的配置。"""
 
 
 CONTACT_SENSOR_MARKER_CFG = VisualizationMarkersCfg(
@@ -36,6 +37,7 @@ CONTACT_SENSOR_MARKER_CFG = VisualizationMarkersCfg(
     },
 )
 """Configuration for the contact sensor marker."""
+"""接触传感器标记的配置。"""
 
 DEFORMABLE_TARGET_MARKER_CFG = VisualizationMarkersCfg(
     markers={
@@ -46,6 +48,7 @@ DEFORMABLE_TARGET_MARKER_CFG = VisualizationMarkersCfg(
     },
 )
 """Configuration for the deformable object's kinematic target marker."""
+"""对可变物体的动态目标标记配置。"""
 
 VISUO_TACTILE_SENSOR_MARKER_CFG = VisualizationMarkersCfg(
     markers={
@@ -56,6 +59,7 @@ VISUO_TACTILE_SENSOR_MARKER_CFG = VisualizationMarkersCfg(
     },
 )
 """Configuration for the visuo-tactile sensor marker."""
+"""视觉触觉传感器标记的配置。"""
 
 ##
 # Frames.
@@ -75,6 +79,7 @@ FRAME_MARKER_CFG = VisualizationMarkersCfg(
     }
 )
 """Configuration for the frame marker."""
+"""框架标记的配置。"""
 
 
 RED_ARROW_X_MARKER_CFG = VisualizationMarkersCfg(
@@ -87,6 +92,7 @@ RED_ARROW_X_MARKER_CFG = VisualizationMarkersCfg(
     }
 )
 """Configuration for the red arrow marker (along x-direction)."""
+"""红色箭头标记的配置 (沿 x 方向)。"""
 
 
 BLUE_ARROW_X_MARKER_CFG = VisualizationMarkersCfg(
@@ -99,6 +105,7 @@ BLUE_ARROW_X_MARKER_CFG = VisualizationMarkersCfg(
     }
 )
 """Configuration for the blue arrow marker (along x-direction)."""
+"""蓝色箭头标记的配置 (沿 x方向)。"""
 
 GREEN_ARROW_X_MARKER_CFG = VisualizationMarkersCfg(
     markers={
@@ -110,6 +117,7 @@ GREEN_ARROW_X_MARKER_CFG = VisualizationMarkersCfg(
     }
 )
 """Configuration for the green arrow marker (along x-direction)."""
+"""绿色箭头标记的配置 (沿 x 方向)。"""
 
 
 ##
@@ -125,6 +133,7 @@ CUBOID_MARKER_CFG = VisualizationMarkersCfg(
     }
 )
 """Configuration for the cuboid marker."""
+"""立方体标记的配置。"""
 
 SPHERE_MARKER_CFG = VisualizationMarkersCfg(
     markers={
@@ -135,6 +144,7 @@ SPHERE_MARKER_CFG = VisualizationMarkersCfg(
     }
 )
 """Configuration for the sphere marker."""
+"""球标记的配置。"""
 
 POSITION_GOAL_MARKER_CFG = VisualizationMarkersCfg(
     markers={
@@ -154,3 +164,4 @@ POSITION_GOAL_MARKER_CFG = VisualizationMarkersCfg(
     }
 )
 """Configuration for the end-effector tracking marker."""
+"""终端效应标记的配置"""

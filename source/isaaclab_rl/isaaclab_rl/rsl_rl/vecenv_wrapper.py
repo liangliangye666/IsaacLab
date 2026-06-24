@@ -22,6 +22,18 @@ class RslRlVecEnvWrapper(VecEnv):
     Reference:
         https://github.com/leggedrobotics/rsl_rl/blob/master/rsl_rl/env/vec_env.py
     """
+    """围绕艾萨克实验室环境的包裹，用于RSL-RL库
+
+    .. 谨慎::
+        这类必须是包装链中的最后一个包装。
+        这是因为包裹不跟随
+        the :类:`gym.Wrapper`接口。
+             任何随后的包装都需要修改，以使用此
+        包装。
+
+    Reference:
+        https://github.com/ 腿部机器人rsl_rl/ master/老师rsl_rl/env/vec_env.py
+    """
 
     def __init__(self, env: ManagerBasedRLEnv | DirectRLEnv, clip_actions: float | None = None):
         """Initializes the wrapper.
@@ -35,6 +47,19 @@ class RslRlVecEnvWrapper(VecEnv):
 
         Raises:
             ValueError: When the environment is not an instance of :class:`ManagerBasedRLEnv` or :class:`DirectRLEnv`.
+        """
+        """启动包装。
+
+        说明：
+            包装在开始时调用:meth:`reset`，因为RSL-RL运行器不调用重置。
+
+        参数：
+            env: 周围的环境。
+            clip_actions: 裁剪值为动作。
+                          如果是``None``，那么没有裁剪。
+
+        异常：
+            ValueError: 当环境不是:class:`ManagerBasedRLEnv`或:class:`DirectRLEnv`的实例时。
         """
 
         # check that input is valid
@@ -67,39 +92,48 @@ class RslRlVecEnvWrapper(VecEnv):
 
     def __str__(self):
         """Returns the wrapper name and the :attr:`env` representation string."""
+        """返回包装名称和:attr:`env`表示字符串。"""
         return f"<{type(self).__name__}{self.env}>"
 
     def __repr__(self):
         """Returns the string representation of the wrapper."""
+        """返回包装的字符串表示。"""
         return str(self)
 
     """
     Properties -- Gym.Wrapper
     """
+    """属性 - Gym.Wrapper
+    """
 
     @property
     def cfg(self) -> object:
         """Returns the configuration class instance of the environment."""
+        """返回环境的配置类实例。"""
         return self.unwrapped.cfg
 
     @property
     def render_mode(self) -> str | None:
         """Returns the :attr:`Env` :attr:`render_mode`."""
+        """返回了:attr:`Env`:attr:`render_mode`。"""
         return self.env.render_mode
 
     @property
     def observation_space(self) -> gym.Space:
         """Returns the :attr:`Env` :attr:`observation_space`."""
+        """返回了:attr:`Env`:attr:`observation_space`。"""
         return self.env.observation_space
 
     @property
     def action_space(self) -> gym.Space:
         """Returns the :attr:`Env` :attr:`action_space`."""
+        """返回了:attr:`Env`:attr:`action_space`。"""
         return self.env.action_space
 
     @classmethod
     def class_name(cls) -> str:
         """Returns the class name of the wrapper."""
+        """返回包装的类名字。"""
         return cls.__name__
 
     @property
@@ -108,15 +142,22 @@ class RslRlVecEnvWrapper(VecEnv):
 
         This will be the bare :class:`gymnasium.Env` environment, underneath all layers of wrappers.
         """
+        """返回包装的基础环境。
+
+        这将是赤裸裸的:class:`gymnasium.Env`环境，
+        """
         return self.env.unwrapped
 
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def episode_length_buf(self) -> torch.Tensor:
         """The episode length buffer."""
+        """回合长度缓冲。"""
         return self.unwrapped.episode_length_buf
 
     @episode_length_buf.setter
@@ -126,10 +167,17 @@ class RslRlVecEnvWrapper(VecEnv):
         Note:
             This is needed to perform random initialization of episode lengths in RSL-RL.
         """
+        """设置回合长度缓冲。
+
+        说明：
+            这需要在RSL-RL中随机初始化事件长度。
+        """
         self.unwrapped.episode_length_buf = value
 
     """
     Operations - MDP
+    """
+    """运营 - MDP
     """
 
     def seed(self, seed: int = -1) -> int:  # noqa: D102
@@ -142,6 +190,7 @@ class RslRlVecEnvWrapper(VecEnv):
 
     def get_observations(self) -> TensorDict:
         """Returns the current observations of the environment."""
+        """返回了当前的环境观测。"""
         if hasattr(self.unwrapped, "observation_manager"):
             obs_dict = self.unwrapped.observation_manager.compute()
         else:
@@ -169,9 +218,12 @@ class RslRlVecEnvWrapper(VecEnv):
     """
     Helper functions
     """
+    """助理功能
+    """
 
     def _modify_action_space(self):
         """Modifies the action space to the clip range."""
+        """调整动作空间到裁剪范围。"""
         if self.clip_actions is None:
             return
 

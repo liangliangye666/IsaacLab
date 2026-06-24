@@ -61,11 +61,27 @@ class DirectMARLEnv(gym.Env):
         in a vectorized environment.
 
     """
+    """设计多代理环境的直接工作流。
+
+    该类实现了多代理强化学习 (MARL) 环境的核心功能。
+    它是用于任何RL库。
+    该类是用于向量化环境，i.e.，环境预计将与多个子环境并行运行。
+
+    该类的设计基于PettingZoo平行API。
+    虽然环境本身被实现为向量化环境，但我们不会继承:class:`pettingzoo.ParallelEnv`或:class:`gym.vector.VectorEnv`。
+    这主要是因为该类添加了不同属性和方法，
+
+    说明：
+        对于向量化环境，建议在第一次调用到:meth:`step`之前只****调用:meth:`reset`方法，环境创建后i.e.。
+        在此之后，:meth:`step`函数处理终止子环境的重置。
+        这是因为仿真器不支持在向量化环境中重置单个子环境。
+    """
 
     metadata: ClassVar[dict[str, Any]] = {
         "render_modes": [None, "human", "rgb_array"],
     }
     """Metadata for the environment."""
+    """对环境的元数据。"""
 
     def __init__(self, cfg: DirectMARLEnvCfg, render_mode: str | None = None, **kwargs):
         """Initialize the environment.
@@ -78,6 +94,17 @@ class DirectMARLEnv(gym.Env):
         Raises:
             RuntimeError: If a simulation context already exists. The environment must always create one
                 since it configures the simulation context and controls the simulation.
+        """
+        """初始化环境。
+
+        参数：
+            cfg: 环境的配置对象。
+            render_mode: 环境的渲染模式。
+                         默认为 None，类似于``"human"``。
+
+        异常：
+            RuntimeError: 如果仿真上下文已经存在。
+                          环境必须始终自行创建仿真上下文，因为环境需要配置并控制该仿真上下文。
         """
         # check that the config is valid
         cfg.validate()
@@ -220,15 +247,19 @@ class DirectMARLEnv(gym.Env):
 
     def __del__(self):
         """Cleanup for the environment."""
+        """清理环境。"""
         self.close()
 
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def num_envs(self) -> int:
         """The number of instances of the environment that are running."""
+        """正在运行的环境实例数量。"""
         return self.scene.num_envs
 
     @property
@@ -236,6 +267,10 @@ class DirectMARLEnv(gym.Env):
         """Number of current agents.
 
         The number of current agents may change as the environment progresses (e.g.: agents can be added or removed).
+        """
+        """现有代理人数。
+
+        随着环境的进步，当前剂量的数量可能会变化 (e.g.:可以添加或删除剂)。
         """
         return len(self.agents)
 
@@ -245,11 +280,16 @@ class DirectMARLEnv(gym.Env):
 
         This value remains constant as the environment progresses.
         """
+        """环境可以产生的所有可能的物体数。
+
+        随着环境的发展，这种价值仍然是恒定的。
+        """
         return len(self.possible_agents)
 
     @property
     def unwrapped(self) -> DirectMARLEnv:
         """Get the unwrapped environment underneath all the layers of wrappers."""
+        """在包装的各层下面的环境。"""
         return self
 
     @property
@@ -257,6 +297,10 @@ class DirectMARLEnv(gym.Env):
         """The physics time-step (in s).
 
         This is the lowest time-decimation at which the simulation is happening.
+        """
+        """物理时间步（单位：s）。
+
+        这是仿真采用的最小时间步。
         """
         return self.cfg.sim.dt
 
@@ -266,25 +310,34 @@ class DirectMARLEnv(gym.Env):
 
         This is the time-step at which the environment steps forward.
         """
+        """环境步进时间步（单位：s）。
+
+        这是环境向前推进一个步长时使用的时间步。
+        """
         return self.cfg.sim.dt * self.cfg.decimation
 
     @property
     def device(self):
         """The device on which the environment is running."""
+        """环境运行所在的设备。"""
         return self.sim.device
 
     @property
     def max_episode_length_s(self) -> float:
         """Maximum episode length in seconds."""
+        """在几秒钟内最大的回合长度。"""
         return self.cfg.episode_length_s
 
     @property
     def max_episode_length(self):
         """The maximum episode length in steps adjusted from s."""
+        """从s调整的步骤中最大回合长度。"""
         return math.ceil(self.max_episode_length_s / (self.cfg.sim.dt * self.cfg.decimation))
 
     """
     Space methods
+    """
+    """空间方法
     """
 
     def observation_space(self, agent: AgentID) -> gym.Space:
@@ -292,6 +345,11 @@ class DirectMARLEnv(gym.Env):
 
         Returns:
             The agent's observation space.
+        """
+        """给指定的特工提供观测空间。
+
+        返回：
+            警方的观测空间。
         """
         return self.observation_spaces[agent]
 
@@ -301,10 +359,17 @@ class DirectMARLEnv(gym.Env):
         Returns:
             The agent's action space.
         """
+        """给指定的代理提供动作空间。
+
+        返回：
+            代理的动作空间。
+        """
         return self.action_spaces[agent]
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(
@@ -321,6 +386,20 @@ class DirectMARLEnv(gym.Env):
 
         Returns:
             A tuple containing the observations and extras (keyed by the agent ID).
+        """
+        """设置所有环境并返回观测。
+
+        参数：
+            seed: 种子用于随机化。
+                  默认为None，在这种情况下，种子没有设置。
+            options: 具体说明环境如何重置的额外信息。
+                     默认为 None。
+
+                说明：
+                    这种参数用于与体育馆环境定义的兼容性。
+
+        返回：
+            含有观测和附加值 (由ID剂关键)。
         """
         # set the seed
         if seed is not None:
@@ -362,6 +441,31 @@ class DirectMARLEnv(gym.Env):
         Returns:
             A tuple containing the observations, rewards, resets (terminated and truncated) and
             extras (keyed by the agent ID). Shape of individual tensors is (num_envs, ...).
+        """
+        """执行一个时间步骤的环境动态。
+
+        环境在一个固定的时间步骤上向前迈进，而物理仿真在一个较低的时间步骤上被除。
+        这样可以保证仿真的稳定性。
+        这些两个时间步骤可以使用:attr:`DirectMARLEnvCfg.decimation` (每个环境步骤的仿真步骤数量)
+        和:attr:`DirectMARLEnvCfg.sim.physics_dt` (物理时间步骤) 独立配置。
+        根据这些参数，环境时间步骤被计算为两者的乘积。
+
+        这个函数执行以下步骤:
+
+        1. 在进入物理之前，先处理操作。
+        2. 运行操作到仿真器上，并通过物理进行 step化。
+        3. 计算奖励和完成的信号。
+        4. 设置已结束或达到最高回合长度的环境。
+        5. 如果它们已启用，应应用间隔事件。
+        6. 计算观测。
+
+        参数：
+            actions: 应对环境的动作 (主要由ID代理)
+                     单个子的形状是 (num_envs，action_dim)。
+
+        返回：
+            包含观测，奖励，重置 (终止和缩短) 和额外的 (由ID剂关键)。
+            单个子的形状是 (num_envs， ...)。
         """
         actions = {agent: action.to(self.device) for agent, action in actions.items()}
 
@@ -436,6 +540,14 @@ class DirectMARLEnv(gym.Env):
         Returns:
             The states for the environment, or None if :attr:`DirectMARLEnvCfg.state_space` parameter is zero.
         """
+        """恢复环境的状态。
+
+        国家空间用于集中培训或不对称的演员-批评架构。
+        它是使用:attr:`DirectMARLEnvCfg.state_space`参数配置的。
+
+        返回：
+            如果:attr:`DirectMARLEnvCfg.state_space`参数为零，则对环境的状态或None。
+        """
         if not self.cfg.state_space:
             return None
         # concatenate and return the observations as state
@@ -458,6 +570,15 @@ class DirectMARLEnv(gym.Env):
 
         Returns:
             The seed used for random generator.
+        """
+        """为环境提供种子。
+
+        参数：
+            seed: 种子是随机发电机。
+                  设置为 -1。
+
+        返回：
+            种子用于随机发电机。
         """
         # set seed for replicator
         try:
@@ -490,6 +611,26 @@ class DirectMARLEnv(gym.Env):
                 In this case, the simulation render mode must be set to ``RenderMode.PARTIAL_RENDERING``
                 or ``RenderMode.FULL_RENDERING``.
             NotImplementedError: If an unsupported rendering mode is specified.
+        """
+        """没有通过物理进行渲染。
+
+        根据"公约"，如果模式是:
+
+        - **人**:将其放到当前的显示屏上，没有任何东西返回.通常用于人类消费。
+        - **rgb_array**:以形状 (x， y， 3) 的 numpy.ndarray 返回，表示RGB值为x-by-y像素图像，适合转换为视频。
+
+        参数：
+            recompute: 如果仿真器已经将场景呈现出来。
+                       默认为 False。
+
+        返回：
+            如果模式是"rgb_array"，则将呈现成一个 numpy 阵列。
+            否则，返回None。
+
+        异常：
+            RuntimeError: 如果模式设置为"rgb_data"，并没有支持仿真渲染模式。
+                          在这种情况下，仿真渲染模式必须设置为``RenderMode.PARTIAL_RENDERING``或``RenderMode.FULL_RENDERING``。
+            NotImplementedError: 如果指定未支持的渲染模式。
         """
         # run a rendering step of the simulator
         # if we have rtx sensors, we do not need to render again sin
@@ -535,6 +676,7 @@ class DirectMARLEnv(gym.Env):
 
     def close(self):
         """Cleanup for the environment."""
+        """清理环境。"""
         if not self._is_closed:
             # close entities related to the environment
             # note: this is order-sensitive to avoid any dangling references
@@ -564,6 +706,8 @@ class DirectMARLEnv(gym.Env):
     """
     Operations - Debug Visualization.
     """
+    """操作 - 调试可视化。
+    """
 
     def set_debug_vis(self, debug_vis: bool) -> bool:
         """Toggles the environment debug visualization.
@@ -574,6 +718,15 @@ class DirectMARLEnv(gym.Env):
         Returns:
             Whether the debug visualization was successfully set. False if the environment
             does not support debug visualization.
+        """
+        """关闭环境调试可视化。
+
+        参数：
+            debug_vis: 是否可视化环境调试可视化。
+
+        返回：
+            设置错误可视化是否成功。
+            False如果环境不支持调试可视化。
         """
         # check if debug visualization is supported
         if not self.has_debug_vis_implementation:
@@ -599,9 +752,12 @@ class DirectMARLEnv(gym.Env):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _configure_env_spaces(self):
         """Configure the spaces for the environment."""
+        """配置环境空间。"""
         self.agents = self.cfg.possible_agents
         self.possible_agents = self.cfg.possible_agents
 
@@ -651,6 +807,11 @@ class DirectMARLEnv(gym.Env):
         Args:
             env_ids: List of environment ids which must be reset
         """
+        """根据指定索引重置环境。
+
+        参数：
+            env_ids: 必须重置的环境ID列表
+        """
         self.scene.reset(env_ids)
 
         # apply events such as randomization for environments that need a reset
@@ -673,6 +834,8 @@ class DirectMARLEnv(gym.Env):
     """
     Implementation-specific functions.
     """
+    """具体执行功能
+    """
 
     def _setup_scene(self):
         """Setup the scene for the environment.
@@ -683,6 +846,14 @@ class DirectMARLEnv(gym.Env):
 
         We leave the implementation of this function to the derived classes. If the environment does not require
         any explicit scene setup, the function can be left empty.
+        """
+        """为环境设置场景。
+
+        这种功能负责创建场景对象和为环境设置场景。
+        场景创建可以通过:class:`isaaclab.scene.InteractiveSceneCfg`或通过直接创建场景对象并将它们注册到场景管理器。
+
+        我们把这个函数的实现留给了衍生类。
+        如果环境不需要任何明确的场景设置，则可以将函数留空。
         """
         pass
 
@@ -697,6 +868,15 @@ class DirectMARLEnv(gym.Env):
             actions: The actions to apply on the environment (keyed by the agent ID).
                 Shape of individual tensors is (num_envs, action_dim).
         """
+        """在进入物理之前，我们做了前处理的操作。
+
+        这项功能负责在通过物理之前预先处理操作。
+        它被称为物理步骤前 (被除)。
+
+        参数：
+            actions: 应对环境的动作 (主要由ID代理)
+                     单个子的形状是 (num_envs，action_dim)。
+        """
         raise NotImplementedError(f"Please implement the '_pre_physics_step' method for {self.__class__.__name__}.")
 
     @abstractmethod
@@ -706,6 +886,11 @@ class DirectMARLEnv(gym.Env):
         This function is responsible for applying the actions to the simulator. It is called at each
         physics time-step.
         """
+        """在仿真器上执行操作。
+
+        这项功能负责将操作应用于仿真器。
+        在每一个物理时间步骤中，
+        """
         raise NotImplementedError(f"Please implement the '_apply_action' method for {self.__class__.__name__}.")
 
     @abstractmethod
@@ -714,6 +899,11 @@ class DirectMARLEnv(gym.Env):
 
         Returns:
             The observations for the environment (keyed by the agent ID).
+        """
+        """计算和返回对环境的观测。
+
+        返回：
+            对环境的观测 (由ID剂关键)。
         """
         raise NotImplementedError(f"Please implement the '_get_observations' method for {self.__class__.__name__}.")
 
@@ -727,6 +917,13 @@ class DirectMARLEnv(gym.Env):
         Returns:
             The states for the environment.
         """
+        """计算和返回环境状态。
+
+        这种方法只有当 :attr:`DirectMARLEnvCfg.state_space` 参数不小于或等于零时才被称为 (因此必须实施)。
+
+        返回：
+            为了环境。
+        """
         raise NotImplementedError(f"Please implement the '_get_states' method for {self.__class__.__name__}.")
 
     @abstractmethod
@@ -736,6 +933,12 @@ class DirectMARLEnv(gym.Env):
         Returns:
             The rewards for the environment (keyed by the agent ID).
             Shape of individual tensors is (num_envs,).
+        """
+        """计算和回报环境的回报。
+
+        返回：
+            对环境的回报 (由ID代理关键)。
+            单个子的形状是 (num_envs，)。
         """
         raise NotImplementedError(f"Please implement the '_get_rewards' method for {self.__class__.__name__}.")
 
@@ -747,6 +950,12 @@ class DirectMARLEnv(gym.Env):
             A tuple containing the done flags for termination and time-out (keyed by the agent ID).
             Shape of individual tensors is (num_envs,).
         """
+        """计算和返回已完成的环境标志。
+
+        返回：
+            一个包含终止和休息的完成标志 (由ID代理关键)。
+            单个子的形状是 (num_envs，)。
+        """
         raise NotImplementedError(f"Please implement the '_get_dones' method for {self.__class__.__name__}.")
 
     def _set_debug_vis_impl(self, debug_vis: bool):
@@ -755,5 +964,10 @@ class DirectMARLEnv(gym.Env):
         This function is responsible for creating the visualization objects if they don't exist
         and input ``debug_vis`` is True. If the visualization objects exist, the function should
         set their visibility into the stage.
+        """
+        """设置调试可视化到可视化对象。
+
+        如果它们不存在，并且输入 ``debug_vis`` 是 True，
+        如果可视化对象存在，函数应该将它们的可视性设置在舞台上。
         """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")

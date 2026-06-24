@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Installation script for the 'isaaclab_rl' python package."""
+""""isaaclab_rl" Python 包的安装脚本。"""
 
 import itertools
 import os

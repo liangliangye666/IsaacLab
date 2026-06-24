@@ -25,6 +25,26 @@ To make it convenient to use the module, we recommend importing the module as fo
     import isaaclab.sim as sim_utils
 
 """
+"""包含仿真特定功能的子包。
+
+这些包括:
+
+* 能够将不同的物体和材料产生到全宇宙中
+* 定义和修改USD prims的各种方案
+* 转换器从其他文件格式获取USD文件 (如URDF，OBJ，STL，FBX)
+* 控制仿真器的实用类
+
+.. 说明::
+    目前，只支持所有可能的方案和全宇宙中的prims的子集。
+    我们正在根据需要扩大这些功能。
+    如果您希望包含特定的prims或方案，请在GitHub上打开一个问题，作为详细的功能请求。
+
+为了方便使用模块，我们建议导入模块如下:
+
+.. code-block:: python
+
+    import isaaclab.sim as sim_utils
+"""
 
 from .converters import *  # noqa: F401, F403
 from .schemas import *  # noqa: F401, F403

@@ -36,8 +36,35 @@ optional arguments:
   --mass                        The mass (in kg) to assign to the converted asset. (default: None)
 
 """
+"""工具将OBJ/STL/FBX转换为USD格式。
+
+OBJ文件格式是一个简单的数据格式，仅仅代表3D几何，即每个顶点的位置，每个纹理坐标顶点的UV位置，顶点正常，以及使每个多边形定义为顶点列表和纹理顶点的面孔。
+
+一个STL文件描述了使用三维卡特西亚坐标系统的三角形的原始，不结构化的三角形表面，由三角形的单位正常和顶点 (按右手规则排序)。
+
+FBX文件是一种使用Autodesk FBX软件创建的3D模型文件。
+它们可以在各种建模应用中设计和修改，例如Maya，3ds Max和Blender。
+此外，FBX文件通常包含网格，材料，纹理和骨架动画数据。
+Link: https://www.autodesk.com/products/fbx/overview
+
+
+这个脚本使用来自Isaac Sim (``omni.kit.asset_converter``) 的资产转换扩展来将OBJ/STL/FBX资产转换为USD格式。
+它被设计为命令行使用的便利脚本。
+
+
+位置参数:输入输入网格 (.OBJ/.STL/.FBX) 文件的路径。
+输出存储USD文件的路径。
+
+-h，--help 显示这个帮助消息，然后退出--make-instanceable，让资产可进行实例化，以便有效地克隆。
+(默认:False) --collision-approximation 接近碰撞网的方法。
+默认的曲解。
+设置为"没有"以免将碰撞网加到转换的网。
+(默认:曲解) --mass 将重量 (公斤) 分配给转换的资产。
+(默认:None)
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -89,6 +116,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import contextlib
 import os

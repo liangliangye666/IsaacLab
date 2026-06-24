@@ -18,6 +18,16 @@ def export_policy_as_jit(policy: object, normalizer: object | None, path: str, f
         path: The path to the saving directory.
         filename: The name of exported JIT file. Defaults to "policy.pt".
     """
+    """输出策略到火JIT文件中。
+
+    参数：
+        policy: 策略火模块。
+        normalizer: 经验正常化模块。
+                    如果 None，使用身份。
+        path: 拯救目录的路径。
+        filename: 出口的JIT文件名称。
+                  在"policy.pt"上默认。
+    """
     policy_exporter = _TorchPolicyExporter(policy, normalizer)
     policy_exporter.export(path, filename)
 
@@ -34,6 +44,18 @@ def export_policy_as_onnx(
         filename: The name of exported ONNX file. Defaults to "policy.onnx".
         verbose: Whether to print the model summary. Defaults to False.
     """
+    """输出策略到火ONNX文件中。
+
+    参数：
+        policy: 策略火模块。
+        normalizer: 经验正常化模块。
+                    如果 None，使用身份。
+        path: 拯救目录的路径。
+        filename: 出口的ONNX文件名称。
+                  在"policy.onnx"上默认。
+        verbose: 是否打印模型总结。
+                 默认为 False。
+    """
     if not os.path.exists(path):
         os.makedirs(path, exist_ok=True)
     policy_exporter = _OnnxPolicyExporter(policy, normalizer, verbose)
@@ -43,10 +65,13 @@ def export_policy_as_onnx(
 """
 Helper Classes - Private.
 """
+"""助手班 - 私人
+"""
 
 
 class _TorchPolicyExporter(torch.nn.Module):
     """Exporter of actor-critic into JIT file."""
+    """导出演员-批评者到JIT文件中。"""
 
     def __init__(self, policy, normalizer=None):
         super().__init__()
@@ -119,6 +144,7 @@ class _TorchPolicyExporter(torch.nn.Module):
 
 class _OnnxPolicyExporter(torch.nn.Module):
     """Exporter of actor-critic into ONNX file."""
+    """导出演员-批评者到ONNX文件中。"""
 
     def __init__(self, policy, normalizer=None, verbose=False):
         super().__init__()

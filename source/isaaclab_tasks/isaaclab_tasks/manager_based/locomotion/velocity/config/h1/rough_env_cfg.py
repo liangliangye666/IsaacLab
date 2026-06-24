@@ -19,6 +19,7 @@ from isaaclab_assets import H1_MINIMAL_CFG  # isort: skip
 @configclass
 class H1Rewards(RewardsCfg):
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     termination_penalty = RewTerm(func=mdp.is_terminated, weight=-200.0)
     lin_vel_z_l2 = None

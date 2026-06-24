@@ -6,6 +6,8 @@
 """
 Humanoid locomotion environment.
 """
+"""人类运动环境。
+"""
 
 import gymnasium as gym
 

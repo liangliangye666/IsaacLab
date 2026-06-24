@@ -53,6 +53,42 @@ Usage:
     # For all command line arguments
     python3 scripts/reinforcement_learning/ray/submit_job.py -h
 """
+"""这个脚本将包含在配置文件中描述的集群中的总数工作``name: <NAME> address: http://<IP>:<PORT>``在每个集群的新线上。
+对于KubeRay集群，该文件可以自动创建:file:`grok_cluster_with_kubectl.py`
+
+综合工作( () 通过以下关系与集群( () 匹配:
+cluster_line_index_submitted_to = job_index % total_cluster_count
+
+综合职位由*界限器分开。
+``--aggregate_jobs``参数必须是最后一个参数。
+
+总结工作可能是:file:`../tuner.py`调整工作，在集群中启动时自动创建多个单个工作。
+另外，一个综合工作可能是:文件:'../wrap_resources.py`资源包装的工作，可能包含几个单独的子工作，由+界限器分开。
+综合工作也可能是:file:`../task_runner.py`多任务提交工作，其中每个子工作及其资源要求都被定义在YAML配置文件中。
+在这种模式下， :file:`../task_runner.py`将读取YAML文件 (通过--task_cfg)，并将所有定义的子任务提交到Ray集群中，支持每个工作资源的规范和实时流动子工作输出。
+
+如果集群工作数量比集群工作数量更高，集群就会通过上述定义的关系提供集群工作。
+如果集团工作总数较少，则有些集团不会获得集团工作总数。
+可同时运行的总工作的最大数量是由于工作结束后获取日志输出，在提交工作的机器上ThreadPoolExecutor默认创建的工人数量，这很可能不会限制整体工作提交。
+
+Usage:
+
+.. code-block:: bash
+
+    # Example; submitting a tuning job
+    python3 scripts/reinforcement_learning/ray/submit_job.py     --aggregate_jobs /workspace/isaaclab/scripts/reinforcement_learning/ray/tuner.py         --cfg_file hyperparameter_tuning/vision_cartpole_cfg.py         --cfg_class CartpoleTheiaJobCfg --mlflow_uri <ML_FLOW_URI>
+
+    # Example: Submitting resource wrapped job
+    python3 scripts/reinforcement_learning/ray/submit_job.py --aggregate_jobs wrap_resources.py --test
+
+    # Example: submitting tasks with specific resources, and supporting pip packages and py_modules
+    # You may use relative paths for task_cfg and py_modules, placing them in the
+    # "scripts/reinforcement_learning/ray" directory, which will be uploaded to the cluster.
+    python3 scripts/reinforcement_learning/ray/submit_job.py --aggregate_jobs task_runner.py --task_cfg tasks.yaml
+
+    # For all command line arguments
+    python3 scripts/reinforcement_learning/ray/submit_job.py -h
+"""
 
 import argparse
 import os
@@ -90,6 +126,8 @@ def submit_job(cluster: dict, job_command: str) -> None:
     """
     Submits a job to a single cluster, prints the final result and Ray dashboard URL at the end.
     """
+    """在最后打印最终结果和雷仪表板URL。
+    """
     address = cluster["address"]
     cluster_name = cluster["name"]
     print(f"[INFO]: Submitting job to cluster '{cluster_name}' at {address}")  # with {num_gpus} GPUs.")
@@ -119,6 +157,8 @@ def submit_job(cluster: dict, job_command: str) -> None:
 def submit_jobs_to_clusters(jobs: list[str], clusters: list[dict]) -> None:
     """
     Submit all jobs to their respective clusters, cycling through clusters if there are more jobs than clusters.
+    """
+    """提交所有工作到各自的集群中，如果有更多的工作，
     """
     if not clusters:
         raise ValueError("No clusters available for job submission.")

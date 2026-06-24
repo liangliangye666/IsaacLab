@@ -22,6 +22,7 @@ _UNINITIALIZED_VALUE = float(-1e9)
 
 class PbtAlgoObserver(AlgoObserver):
     """rl_games observer that implements Population-Based Training for a single policy process."""
+    """rl_games实行基于人口的培训，"""
 
     def __init__(self, params, args_cli):
         """Initialize observer, print the mutation table, and allocate the restart flag.
@@ -29,6 +30,12 @@ class PbtAlgoObserver(AlgoObserver):
         Args:
             params (dict): Full agent/task params (Hydra style).
             args_cli: Parsed CLI args used to reconstruct a restart command.
+        """
+        """启动观测员，打印突变表，并分配重启旗。
+
+        参数：
+            params (dict): 完全代理/任务参数 (水力风格)。
+            args_cli: 分析了CLIargs用于重启命令。
         """
         super().__init__()
         self.printer = pbt_utils.PbtTablePrinter()
@@ -55,6 +62,11 @@ class PbtAlgoObserver(AlgoObserver):
         Args:
             algo: rl_games algorithm object (provides writer, train_dir, frame counter, etc.).
         """
+        """捕获0级训练目录并创建该策略的工作空间文件。
+
+        参数：
+            algo: rl_games算法对象 (提供编写器，train_dir，框架计数器等)。
+        """
         if self.distributed_args.rank != 0:
             return
 
@@ -69,6 +81,11 @@ class PbtAlgoObserver(AlgoObserver):
 
         Notes:
             Expects the objective to be at `infos[self.cfg.objective]` where self.cfg.objective is dotted address.
+        """
+        """从环境信息中提取尺度目标并将其存储在`self.score`中。
+
+        说明：
+            预计目标在`infos[self.cfg.objective]`，self.cfg.objective是点地址。
         """
         score = infos
         for part in self.cfg.objective.split("."):
@@ -86,6 +103,13 @@ class PbtAlgoObserver(AlgoObserver):
                underperformer, select a replacement (random leader or self), mutate
                whitelisted params, set `restart_flag`, broadcast (if distributed),
                and print a mutation diff table.
+        """
+        """主体PBT子执行了每一个火车步骤。
+
+        Flow: 1) 非零级:如果`restart_flag == 1`，立即退出，否则返回。
+              2) 排名 0:如果 `restart_flag == 1`，重新启动这个过程，使用新的参数。
+              3) 排名0:在PBT序列界限 (`interval_steps`) 上，保存检查点，负载人口检查点，计算频段，如果这个策略表现不佳，请选择一个替代
+              (随机领袖或自我)，突变白色列表参数，设置`restart_flag`，播放 (如果分布)，打印突变差表。
         """
         if self.distributed_args.distributed:
             dist.broadcast(self.restart_flag, src=0)
@@ -171,6 +195,12 @@ class PbtAlgoObserver(AlgoObserver):
             - On distributed runs, assigns a fresh master port and forwards
               distributed args to the python.sh launcher.
         """
+        """通过过/增强CLI重新执行当前的过程，以应用新的参数。
+
+        说明：
+            - 过现有的Hydra类型过关，将被取代，并添加`--checkpoint=<path>`和新的参数过关。
+            - 在分布式运行上，将新的主端口分配给python.sh发射器，并将分布式args转发。
+        """
         cli_args = sys.argv
         print(f"previous command line args: {cli_args}")
 
@@ -240,6 +270,7 @@ class PbtAlgoObserver(AlgoObserver):
 
 class MultiObserver(AlgoObserver):
     """Meta-observer that allows the user to add several observers."""
+    """允许用户添加多个观测者。"""
 
     def __init__(self, observers_):
         super().__init__()

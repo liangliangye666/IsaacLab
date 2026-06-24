@@ -10,8 +10,16 @@
     ./isaaclab.sh -p scripts/benchmarks/benchmark_load_robot.py --num_envs 2048 --robot g1 --headless
 
 """
+"""编写一个机器人的多副本。
+
+..
+代码区块字thon
+
+    ./isaaclab.sh -p脚本/基准/benchmark_load_robot.py --num_envs 2048 --robot g1 --headless
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import time
@@ -46,6 +54,7 @@ app_start_time_end = time.perf_counter_ns()
 print(f"[INFO]: App start time: {(app_start_time_end - app_start_time_begin) / 1e6:.2f} ms")
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 # Start the timer for imports
 imports_time_begin = time.perf_counter_ns()
@@ -73,6 +82,7 @@ print(f"[INFO]: Imports time: {(imports_time_end - imports_time_begin) / 1e6:.2f
 @configclass
 class RobotSceneCfg(InteractiveSceneCfg):
     """Configuration for a simple scene with a robot."""
+    """简单的机器人场景的配置。"""
 
     # ground plane
     ground = AssetBaseCfg(prim_path="/World/defaultGroundPlane", spawn=sim_utils.GroundPlaneCfg())
@@ -95,6 +105,7 @@ class RobotSceneCfg(InteractiveSceneCfg):
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     """Runs the simulation loop."""
+    """运行仿真循环。"""
     # Extract scene entities
     # note: we only do this here for readability.
     robot = scene["robot"]
@@ -142,6 +153,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(device="cuda:0")
     sim = SimulationContext(sim_cfg)

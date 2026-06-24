@@ -17,6 +17,9 @@ class LocalFrameTask(FrameTask):
     A task that computes error in a local (custom) frame.
     Inherits from FrameTask but overrides compute_error.
     """
+    """在本地 (定制) 框架中计算错误的任务。
+    继承FrameTask，但超过compute_error。
+    """
 
     def __init__(
         self,
@@ -47,6 +50,25 @@ class LocalFrameTask(FrameTask):
             gain: Task gain factor that scales the overall task contribution.
                 Defaults to 1.0.
         """
+        """在配置中启动LocalFrameTask。
+
+        这项任务计算在本地 (定制) 框架中出现错误，而不是世界框架，从而允许更灵活的控制策略，其中可以独立指定参考框架。
+
+        参数：
+            frame: 控制的框架名称 (末端执行器或目标框架)。
+            base_link_frame_name: 作为参考框架使用的基链框架名称
+                for computing transforms and errors.
+            position_cost: 对位置错误的成本权重
+                           可以是一个漂浮的
+                for uniform weighting or a sequence of 3 floats for per-axis weighting.
+            orientation_cost: 导向错误的成本权重
+                              可以是一个漂浮的
+                for uniform weighting or a sequence of 3 floats for per-axis weighting.
+            lm_damping: 利文堡-马卡尔特缩因子为数值稳定性。
+                        默认值为0.0 (没有缩)。
+            gain: 任务增长因子 (task gain factor) 缩小了整体任务贡献。
+                  默认到1.0。
+        """
         super().__init__(frame, position_cost, orientation_cost, lm_damping, gain)
         self.base_link_frame_name = base_link_frame_name
         self.transform_target_to_base = None
@@ -58,6 +80,11 @@ class LocalFrameTask(FrameTask):
             transform_target_to_world: Transform from the task target frame to
                 the world frame.
         """
+        """在世界框架中设置任务目标姿势。
+
+        参数：
+            transform_target_to_world: 从任务目标框架转变为世界框架。
+        """
         self.transform_target_to_base = transform_target_to_base.copy()
 
     def set_target_from_configuration(self, configuration: PinkKinematicsConfiguration) -> None:
@@ -66,6 +93,11 @@ class LocalFrameTask(FrameTask):
         Args:
             configuration: Robot configuration.
         """
+        """从机器人配置设置任务目标姿势。
+
+        参数：
+            configuration: 机器人配置。
+        """
         if not isinstance(configuration, PinkKinematicsConfiguration):
             raise ValueError("configuration must be a PinkKinematicsConfiguration")
         self.set_target(configuration.get_transform(self.frame, self.base_link_frame_name))
@@ -73,6 +105,8 @@ class LocalFrameTask(FrameTask):
     def compute_error(self, configuration: PinkKinematicsConfiguration) -> np.ndarray:
         """
         Compute the error between current and target pose in a local frame.
+        """
+        """在本地框架中计算当前和目标姿势之间的错误。
         """
         if not isinstance(configuration, PinkKinematicsConfiguration):
             raise ValueError("configuration must be a PinkKinematicsConfiguration")
@@ -106,6 +140,25 @@ class LocalFrameTask(FrameTask):
 
         Returns:
             Jacobian matrix :math:`J`, expressed locally in the frame.
+        """
+        """计算框架任务Jacobian。
+
+        任务Jacobian:math:`J(q) \in \mathbb{R}^{6 \times n_v}`是对配置的任务错误:math:`e(q) \in
+        \mathbb{R}^6`的衍生:math:`q`。
+        框架任务的公式是:
+
+        .. math::
+
+            J(q) = -\text{Jlog}_6(T_{tb}) {}_b J_{0b}(q)
+
+        这种Jacobian公式的衍生方法详细介绍在 [Caron2023]_。
+        查看:func:`pink.tasks.task.Task.compute_jacobian`更多关于任务的背景。
+
+        参数：
+            configuration: 机器人配置:数学:`q`。
+
+        返回：
+            雅可比矩阵:数学:`J`，以本地表达在框架中。
         """
         if self.transform_target_to_base is None:
             raise Exception(f"no target set for frame '{self.frame}'")

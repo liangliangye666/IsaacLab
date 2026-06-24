@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +14,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -116,6 +118,7 @@ def create_dummy_sensor(request, device):
 @pytest.mark.parametrize("device", ("cpu", "cuda"))
 def test_sensor_init(create_dummy_sensor, device):
     """Test that the sensor initializes, steps without update, and forces update."""
+    """测试传感器启动，步骤没有更新，"""
 
     sensor_cfg, sim, dt = create_dummy_sensor
     sensor = DummySensor(cfg=sensor_cfg)
@@ -154,6 +157,8 @@ def test_sensor_update_rate(create_dummy_sensor, device):
     """Test that the update_rate configuration parameter works by checking the value of the data is old for an update
     period of 2.
     """
+    """测试update_rate配置参数通过检查数据的值是否已过时，更新时间为2。
+    """
     sensor_cfg, sim, dt = create_dummy_sensor
     sensor_cfg.update_period = 2 * dt
     sensor = DummySensor(cfg=sensor_cfg)
@@ -180,6 +185,7 @@ def test_sensor_update_rate(create_dummy_sensor, device):
 @pytest.mark.parametrize("device", ("cpu", "cuda"))
 def test_sensor_reset(create_dummy_sensor, device):
     """Test that sensor can be reset for all or partial env ids."""
+    """测试可以重置所有或部分envID的传感器。"""
     sensor_cfg, sim, dt = create_dummy_sensor
     sensor = DummySensor(cfg=sensor_cfg)
 

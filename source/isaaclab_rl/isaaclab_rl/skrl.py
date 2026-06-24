@@ -26,6 +26,25 @@ Or, equivalently, by directly calling the skrl library API as follows:
 
 # needed to import for type hinting: Agent | list[Agent]
 from __future__ import annotations
+"""包装器来配置一个环境实例到 skrl环境。
+
+下面的例子显示了如何包装skrl的环境:
+
+.. code-block:: python
+
+    from isaaclab_rl.skrl import SkrlVecEnvWrapper
+
+    env = SkrlVecEnvWrapper(env, ml_framework="torch")  # or ml_framework="jax"
+
+或同样，直接调用 skrl 库API，如下:
+
+.. code-block:: python
+
+    from skrl.envs.torch.wrappers import wrap_env  # for PyTorch, or...
+    from skrl.envs.jax.wrappers import wrap_env  # for JAX
+
+    env = wrap_env(env, wrapper="isaaclab")
+"""
 
 from typing import Literal
 
@@ -33,6 +52,8 @@ from isaaclab.envs import DirectMARLEnv, DirectRLEnv, ManagerBasedRLEnv
 
 """
 Vectorized environment wrapper.
+"""
+"""面向环境包装。
 """
 
 
@@ -60,6 +81,26 @@ def SkrlVecEnvWrapper(
 
     Reference:
         https://skrl.readthedocs.io/en/latest/api/envs/wrapping.html
+    """
+    """围绕艾萨克实验室环境进行 skr缩。
+
+    这种功能围绕着艾萨克实验室的环境。
+    由于包装功能是定义在 Skrl 库本身，因此该实现保持与包含它的扩展结构的兼容性。
+    在内部，它从 Skrl 库中调用 :func:`wrap_env` API。
+
+    参数：
+        env: 周围的环境。
+        ml_framework: 包装使用的ML框架。
+                      默认的"火"。
+        wrapper: 包装要使用。
+                 "isaaclab"的默认设置:将其留给 skrl 确定环境是否将被包装为单机或多机。
+
+    异常：
+        ValueError: 当环境不是任何Isaac Lab环境界面的实例时。
+        ValueError: 如果指定的ML框架不有效。
+
+    Reference:
+        https://skrl.readthedocs.io其他国家envs/wrapping.html
     """
     # check that input is valid
     if (

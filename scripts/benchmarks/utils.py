@@ -20,6 +20,11 @@ def parse_tf_logs(log_dir: str):
     Args:
         log_dir: directory used to search for tfevents files
     """
+    """在log_dir文件中搜索最新的tfevents文件，并在字典中返回board格记录。
+
+    参数：
+        log_dir: 用于搜索tfevents文件的目录
+    """
 
     # search log directory for latest log file
     list_of_files = glob.glob(f"{log_dir}/events*")  # * means all if need specific format then *.csv

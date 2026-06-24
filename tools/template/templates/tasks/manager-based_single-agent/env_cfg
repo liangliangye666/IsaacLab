@@ -34,6 +34,7 @@ from isaaclab_assets.robots.cartpole import CARTPOLE_CFG  # isort:skip
 @configclass
 class {{ task.classname }}SceneCfg(InteractiveSceneCfg):
     """Configuration for a cart-pole scene."""
+    """倒立摆场景的配置。"""
 
     # ground plane
     ground = AssetBaseCfg(
@@ -59,6 +60,7 @@ class {{ task.classname }}SceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """MDP 的动作规格。"""
 
     joint_effort = mdp.JointEffortActionCfg(asset_name="robot", joint_names=["slider_to_cart"], scale=100.0)
 
@@ -66,10 +68,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """MDP 的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略观测组的观测项。"""
 
         # observation terms (order preserved)
         joint_pos_rel = ObsTerm(func=mdp.joint_pos_rel)
@@ -86,6 +90,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """事件配置。"""
 
     # reset
     reset_cart_position = EventTerm(
@@ -112,6 +117,7 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """MDP 的奖励项。"""
 
     # (1) Constant running reward
     alive = RewTerm(func=mdp.is_alive, weight=1.0)
@@ -140,6 +146,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """MDP 的终止项。"""
 
     # (1) Time out
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
@@ -170,6 +177,7 @@ class {{ task.classname }}EnvCfg(ManagerBasedRLEnvCfg):
     # Post initialization
     def __post_init__(self) -> None:
         """Post initialization."""
+        """执行配置对象的后初始化。"""
         # general settings
         self.decimation = 2
         self.episode_length_s = 5

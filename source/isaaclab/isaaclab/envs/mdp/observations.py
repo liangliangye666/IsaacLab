@@ -10,6 +10,10 @@ the observation introduced by the function.
 """
 
 from __future__ import annotations
+"""可以用来创建观测项的共同函数。
+
+函数可以传递到:class:`isaaclab.managers.ObservationTermCfg`对象，以实现函数引入的观测。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -38,11 +42,14 @@ from isaaclab.envs.utils.io_descriptors import (
 """
 Root state.
 """
+"""根源状态。
+"""
 
 
 @generic_io_descriptor(units="m", axes=["Z"], observation_type="RootState", on_inspect=[record_shape, record_dtype])
 def base_pos_z(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Root height in the simulation world frame."""
+    """在仿真世界框架中的根高度。"""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     return asset.data.root_pos_w[:, 2].unsqueeze(-1)
@@ -53,6 +60,7 @@ def base_pos_z(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg(
 )
 def base_lin_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Root linear velocity in the asset's root frame."""
+    """在资产的根框架中的根线性速度。"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_lin_vel_b
@@ -63,6 +71,7 @@ def base_lin_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCf
 )
 def base_ang_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Root angular velocity in the asset's root frame."""
+    """在资产的根框架中的根角速度。"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_ang_vel_b
@@ -73,6 +82,7 @@ def base_ang_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCf
 )
 def projected_gravity(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Gravity projection on the asset's root frame."""
+    """在资产的根框架上的重力投影。"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.projected_gravity_b
@@ -83,6 +93,7 @@ def projected_gravity(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEnt
 )
 def root_pos_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Asset root position in the environment frame."""
+    """资产根位置在环境框架中"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_pos_w - env.scene.env_origins
@@ -100,6 +111,12 @@ def root_quat_w(
     the quaternion has non-negative real component. This is because both ``q`` and ``-q`` represent
     the same orientation.
     """
+    """环境框架中的资产根导向 (w，x，y，z)。
+
+    If :attr:`make_quat_unique`是True，然后返回的四元数通过确保
+    四元数具有非负的真实组成部分。
+    因为``q``和``-q``都代表着相同的方向。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
 
@@ -113,6 +130,7 @@ def root_quat_w(
 )
 def root_lin_vel_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Asset root linear velocity in the environment frame."""
+    """在环境框架中的资产根线性速度。"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_lin_vel_w
@@ -123,6 +141,7 @@ def root_lin_vel_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntity
 )
 def root_ang_vel_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Asset root angular velocity in the environment frame."""
+    """在环境框架中的资产根角速度。"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_ang_vel_w
@@ -130,6 +149,8 @@ def root_ang_vel_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntity
 
 """
 Body state
+"""
+"""身体状态
 """
 
 
@@ -149,6 +170,19 @@ def body_pose_w(
     Returns:
         The poses of bodies in articulation [num_env, 7 * num_bodies]. Pose order is [x,y,z,qw,qx,qy,qz].
         Output is stacked horizontally per body.
+    """
+    """的体格设置的资产w.r.tXenv.scene.origin。
+
+    Note: 只有在:attr:`asset_cfg.body_ids`中配置的尸体才能恢复姿势。
+
+    参数：
+        env: 环境。
+        asset_cfg: 在SceneEntity这种观测与相关。
+
+    返回：
+        关节体的姿势 [num_env， 7 * num_bodies]。
+        位置顺序是 [x，y，z，qw，qx，qy，qz]。
+        每个机体的输出水平堆叠。
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
@@ -178,6 +212,19 @@ def body_projected_gravity_b(
         The unit vector direction of gravity projected onto body_name's frame. Gravity projection vector order is
         [x,y,z]. Output is stacked horizontally per body.
     """
+    """引力向关节体投射。
+
+    Note: 只有在:attr:`asset_cfg.body_ids`中配置的尸体才能恢复姿势。
+
+    参数：
+        env: 环境。
+        asset_cfg: 关节与这一观测有关。
+
+    返回：
+        引力的单位向量方向投射到body_name的框架上。
+        引力投射向量顺序是 [x，y，z]。
+        每个机体的输出水平堆叠。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
 
@@ -189,6 +236,8 @@ def body_projected_gravity_b(
 """
 Joint state.
 """
+"""联合州。
+"""
 
 
 @generic_io_descriptor(
@@ -198,6 +247,10 @@ def joint_pos(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("
     """The joint positions of the asset.
 
     Note: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their positions returned.
+    """
+    """资产的共同位置。
+
+    Note: 只有在:attr:`asset_cfg.joint_ids`中配置的关节才能返回位置。
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
@@ -214,6 +267,11 @@ def joint_pos_rel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityC
 
     Note: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their positions returned.
     """
+    """资产w.r.t的共同位置
+    默认的关节位置。
+
+    Note: 只有在:attr:`asset_cfg.joint_ids`中配置的关节才能返回位置。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     return asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]
@@ -226,6 +284,10 @@ def joint_pos_limit_normalized(
     """The joint positions of the asset normalized with the asset's joint limits.
 
     Note: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their normalized positions returned.
+    """
+    """资产的共同地位与资产的共同限制正常化。
+
+    Note: 只有在:attr:`asset_cfg.joint_ids`中配置的关节才能恢复正常位置。
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
@@ -244,6 +306,10 @@ def joint_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("
 
     Note: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their velocities returned.
     """
+    """资产的关节速度。
+
+    Note: 只有在:attr:`asset_cfg.joint_ids`中配置的关节才能恢复速度。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     return asset.data.joint_vel[:, asset_cfg.joint_ids]
@@ -258,6 +324,11 @@ def joint_vel_rel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityC
     """The joint velocities of the asset w.r.t. the default joint velocities.
 
     Note: Only the joints configured in :attr:`asset_cfg.joint_ids` will have their velocities returned.
+    """
+    """资产 w.r.t的关节速度。
+    默认的关节速度。
+
+    Note: 只有在:attr:`asset_cfg.joint_ids`中配置的关节才能恢复速度。
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
@@ -279,6 +350,17 @@ def joint_effort(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCf
     Returns:
         The joint effort (N or N-m) for joint_names in asset_cfg, shape is [num_env,num_joints].
     """
+    """机器人的共同应用。
+
+    NOTE: 只有在:attr:`asset_cfg.joint_ids`中配置的关节才能回复他们的努力。
+
+    参数：
+        env: 环境。
+        asset_cfg: 在SceneEntity这种观测与相关。
+
+    返回：
+        在 asset_cfg，形状中的joint_names的联合努力 (N或N-m) 是 [num_env，num_joints]。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     return asset.data.applied_torque[:, asset_cfg.joint_ids]
@@ -287,12 +369,19 @@ def joint_effort(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCf
 """
 Sensors.
 """
+"""传感器。
+"""
 
 
 def height_scan(env: ManagerBasedEnv, sensor_cfg: SceneEntityCfg, offset: float = 0.5) -> torch.Tensor:
     """Height scan from the given sensor w.r.t. the sensor's frame.
 
     The provided offset (Defaults to 0.5) is subtracted from the returned values.
+    """
+    """从给定的传感器w.r.t的高度扫描。
+    传感器的框架。
+
+    在返回的值中，所提供的抵消 (默认到0.5) 将减去。
     """
     # extract the used quantities (to enable type-hinting)
     sensor: RayCaster = env.scene.sensors[sensor_cfg.name]
@@ -304,6 +393,10 @@ def body_incoming_wrench(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg) -> tor
     """Incoming spatial wrench on bodies of an articulation in the simulation world frame.
 
     This is the 6-D wrench (force and torque) applied to the body link by the incoming joint force.
+    """
+    """在仿真世界框架中的关节物体上的空间钥匙。
+
+    这是一个6D关 (力和扭矩) 通过接入的联合力对车身链接进行应用。
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
@@ -322,6 +415,17 @@ def imu_orientation(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntit
     Returns:
         Orientation in the world frame in (w, x, y, z) quaternion form. Shape is (num_envs, 4).
     """
+    """在仿真世界框架中的Imu传感器导向。
+
+    参数：
+        env: 环境。
+        asset_cfg: SceneEntity与IMU传感器相关。
+                   在 SceneEntityCfg (("imu") 中默认存在。
+
+    返回：
+        在世界框架中的导向 (w，x，y，z) 四角形。
+        形状是 (num_envs， 4)。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Imu = env.scene[asset_cfg.name]
     # return the orientation quaternion
@@ -338,6 +442,15 @@ def imu_projected_gravity(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = Scen
     Returns:
         Gravity projected on imu_frame, shape of torch.tensor is (num_env,3).
     """
+    """传感器导向w.r.t env.scene.origin。
+
+    参数：
+        env: 环境。
+        asset_cfg: SceneEntity与Imu传感器相关。
+
+    返回：
+        在imu_frame上投射的重力，torch.tensor的形状是 (num_env，3)。
+    """
 
     asset: Imu = env.scene[asset_cfg.name]
     return asset.data.projected_gravity_b
@@ -352,6 +465,18 @@ def imu_ang_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg
 
     Returns:
         The angular velocity (rad/s) in the sensor frame. Shape is (num_envs, 3).
+    """
+    """图像传感器角速度w.r.t。
+    在传感器框架中表达的环境来源。
+
+    参数：
+        env: 环境。
+        asset_cfg: SceneEntity与IMU传感器相关。
+                   在 SceneEntityCfg (("imu") 中默认存在。
+
+    返回：
+        传感器框架中的角速度 (rad/s)。
+        形状是 (num_envs， 3)。
     """
     # extract the used quantities (to enable type-hinting)
     asset: Imu = env.scene[asset_cfg.name]
@@ -368,6 +493,18 @@ def imu_lin_acc(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg
 
     Returns:
         The linear acceleration (m/s^2) in the sensor frame. Shape is (num_envs, 3).
+    """
+    """电感器线性加速w.r.t。
+    在传感器框架中表达的环境来源。
+
+    参数：
+        env: 环境。
+        asset_cfg: SceneEntity与IMU传感器相关。
+                   在 SceneEntityCfg (("imu") 中默认存在。
+
+    返回：
+        传感器框架中的线性加速 (m/s^2)。
+        形状是 (num_envs， 3)。
     """
     asset: Imu = env.scene[asset_cfg.name]
     return asset.data.lin_acc_b
@@ -399,6 +536,30 @@ def image(
 
     Returns:
         The images produced at the last time-step
+    """
+    """摄像头传感器的特定数据类型的图像。
+
+    如果标志:attr:`normalize`是True，则根据图像的
+    data-types:
+
+    - "rgb":将图像缩小到 (0， 1) 并以当前图像批量的平均值减去。
+    - "深度"或"distance_to_camera"或"distance_to_plane":以零取代无限值。
+
+    参数：
+        env: 摄像机的环境。
+        sensor_cfg: 需要的传感器。
+                    默认的SceneEntityCfg("tiled_camera")。
+        data_type: 从所需的相机中抽取的数据类型。
+                   默认的"rgb"。
+        convert_perspective_to_orthogonal: 是否直角化视角深度图像。
+                                           只有数据类型是"distance_to_camera"时才使用。
+                                           默认为 False。
+        normalize: 是否将图像正常化。
+                   这取决于选择的数据类型。
+                   默认为 True。
+
+    返回：
+        在最后一步制作的图像
     """
     # extract the used quantities (to enable type-hinting)
     sensor: TiledCamera | Camera | RayCasterCamera = env.scene.sensors[sensor_cfg.name]
@@ -464,6 +625,53 @@ class image_features(ManagerTermBase):
     Raises:
         ValueError: When the model name is not found in the provided model zoo configuration.
         ValueError: When the model name is not found in the default model zoo configuration.
+    """
+    """从预训练的冷编码器中提取了图像的特征。
+
+    这个项使用PyTorch中的模型动物园模型，并从图像中提取特征。
+
+    它调用:func:`image`函数来获取图像，
+
+    用户可以提供自己的模型动物园配置，以使用不同的模型进行特征提取。
+    模型动物园配置应是一个字典，将不同的模型名称映射到定义模型，预处理和推断函数的字典。
+    字典应该包含以下内容:
+    entries:
+
+    - "模型":无论证地调用时返回模型的可调用器。
+    - "重置":一个调用式，重置模型。 这在模型需要重置的状态时是有用的。
+    - "推理":一个调用器，在给模型和图像时，返回取出的特征。
+
+    如果没有提供模型动物园配置，则使用默认模型动物园配置。
+    默认模型动物园配置包括来自Theia的模型:cite:`shang2024theia`和ResNet:cite:`he2016deep`。
+    这些模型由`Hugging-Face transformers <https://huggingface.co/docs/transformers/index>`并且`PyTorch
+    torchvision <https://pytorch.org/vision/stable/models.html>`它们是
+
+    参数：
+        sensor_cfg: 传感器配置到投票。
+                    默认的SceneEntityCfg("tiled_camera")。
+        data_type: 传感器数据类型。
+                   默认的"rgb"。
+        convert_perspective_to_orthogonal: 是否直角化视角深度图像。
+                                           只有数据类型是"distance_to_camera"时才使用。
+                                           默认为 False。
+        model_zoo_cfg: 用户定义的字典，将不同的模型名称映射到各自的配置。
+                       默认为 None。
+                       如果 None，则使用默认模型动物园配置。
+        model_name: 用于推断的模型名称。
+                    在"resnet18"上默认设置。
+        model_device: 存储和推断模型的设备。
+                      这在卸载计算时有用。
+            from the environment simulation device. Defaults to the environment device.
+        inference_kwargs: 其他关键词参数将转移到推理函数。
+                          在 None 中，默认情况下，这意味着没有其他参数被通过。
+
+    返回：
+        提取的特征是子。
+        形状是 (num_envs，feature_dim)。
+
+    异常：
+        ValueError: 当模型名称不在提供的模型动物园配置中时。
+        ValueError: 当模型名称不在默认模型动物园配置中时。
     """
 
     def __init__(self, cfg: ObservationTermCfg, env: ManagerBasedEnv):
@@ -552,6 +760,8 @@ class image_features(ManagerTermBase):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def _prepare_theia_transformer_model(self, model_name: str, model_device: str) -> dict:
         """Prepare the Theia transformer model for inference.
@@ -563,10 +773,20 @@ class image_features(ManagerTermBase):
         Returns:
             A dictionary containing the model and inference functions.
         """
+        """准备Theia变压器模型进行推断。
+
+        参数：
+            model_name: 修亚变压器模型的名称。
+            model_device: 存储和推断模型的设备。
+
+        返回：
+            包含模型和推断函数的字典。
+        """
         from transformers import AutoModel
 
         def _load_model() -> torch.nn.Module:
             """Load the Theia transformer model."""
+            """装载了Theia变压器模型。"""
             model = AutoModel.from_pretrained(f"theaiinstitute/{model_name}", trust_remote_code=True).eval()
             return model.to(model_device)
 
@@ -579,6 +799,17 @@ class image_features(ManagerTermBase):
 
             Returns:
                 The extracted features tensor. Shape is (num_envs, feature_dim).
+            """
+            """引入了Theia变压器模型。
+
+            参数：
+                model: 这种变压器模型。
+                images: 预处理的图像子。
+                        形状是 (num_envs，高度，宽度，道)。
+
+            返回：
+                提取的特征是子。
+                形状是 (num_envs，feature_dim)。
             """
             # Move the image to the model device
             image_proc = images.to(model_device)
@@ -606,10 +837,20 @@ class image_features(ManagerTermBase):
         Returns:
             A dictionary containing the model and inference functions.
         """
+        """准备ResNet模型进行推断。
+
+        参数：
+            model_name: 准备ResNet模型的名称。
+            model_device: 存储和推断模型的设备。
+
+        返回：
+            包含模型和推断函数的字典。
+        """
         from torchvision import models
 
         def _load_model() -> torch.nn.Module:
             """Load the ResNet model."""
+            """装载ResNet模型。"""
             # map the model name to the weights
             resnet_weights = {
                 "resnet18": "ResNet18_Weights.IMAGENET1K_V1",
@@ -632,6 +873,17 @@ class image_features(ManagerTermBase):
             Returns:
                 The extracted features tensor. Shape is (num_envs, feature_dim).
             """
+            """引进ResNet模型。
+
+            参数：
+                model: 这就是ResNet模型。
+                images: 预处理的图像子。
+                        形状是 (num_envs，道，高度，宽度)。
+
+            返回：
+                提取的特征是子。
+                形状是 (num_envs，feature_dim)。
+            """
             # move the image to the model device
             image_proc = images.to(model_device)
             # permute the image to (num_envs, channel, height, width)
@@ -651,6 +903,8 @@ class image_features(ManagerTermBase):
 """
 Actions.
 """
+"""动作。
+"""
 
 
 @generic_io_descriptor(dtype=torch.float32, observation_type="Action", on_inspect=[record_shape])
@@ -659,6 +913,11 @@ def last_action(env: ManagerBasedEnv, action_name: str | None = None) -> torch.T
 
     The name of the action term for which the action is required. If None, the
     entire action tensor is returned.
+    """
+    """最后一次向环境输入动作。
+
+    要求采取动作的动作项名称。
+    如果 None，则返回整个动作张量。
     """
     if action_name is None:
         return env.action_manager.action
@@ -669,24 +928,31 @@ def last_action(env: ManagerBasedEnv, action_name: str | None = None) -> torch.T
 """
 Commands.
 """
+"""命令。
+"""
 
 
 @generic_io_descriptor(dtype=torch.float32, observation_type="Command", on_inspect=[record_shape])
 def generated_commands(env: ManagerBasedRLEnv, command_name: str | None = None) -> torch.Tensor:
     """The generated command from command term in the command manager with the given name."""
+    """在指令管理器中从指令项中生成的命令。"""
     return env.command_manager.get_command(command_name)
 
 
 """
 Time.
 """
+"""时间。
+"""
 
 
 def current_time_s(env: ManagerBasedRLEnv) -> torch.Tensor:
     """The current time in the episode (in seconds)."""
+    """回合中的当前时间 (秒钟)。"""
     return env.episode_length_buf.unsqueeze(1) * env.step_dt
 
 
 def remaining_time_s(env: ManagerBasedRLEnv) -> torch.Tensor:
     """The maximum time remaining in the episode (in seconds)."""
+    """回合剩余的最大时间 (秒钟)。"""
     return env.max_episode_length_s - env.episode_length_buf.unsqueeze(1) * env.step_dt

@@ -12,8 +12,16 @@ scene, action, observation and event managers to create an environment.
     ./isaaclab.sh -p scripts/tutorials/03_envs/create_cartpole_base_env.py --num_envs 32
 
 """
+"""这本脚本展示了如何使用车杆创建一个简单的环境。
+它结合了场景，动作，观测和事件管理器的概念，
+
+.. code-block:: bash
+
+    ./isaaclab.sh -p scripts/tutorials/03_envs/create_cartpole_base_env.py --num_envs 32
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -34,6 +42,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 
@@ -53,6 +62,7 @@ from isaaclab_tasks.manager_based.classic.cartpole.cartpole_env_cfg import Cartp
 @configclass
 class ActionsCfg:
     """Action specifications for the environment."""
+    """环境动作规范"""
 
     joint_efforts = mdp.JointEffortActionCfg(asset_name="robot", joint_names=["slider_to_cart"], scale=5.0)
 
@@ -60,10 +70,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the environment."""
+    """对环境的观测规范。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # observation terms (order preserved)
         joint_pos_rel = ObsTerm(func=mdp.joint_pos_rel)
@@ -80,6 +92,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     '''
     每个 EventTerm 一般包含三部分：
@@ -127,6 +140,7 @@ class EventCfg:
 @configclass
 class CartpoleEnvCfg(ManagerBasedEnvCfg):
     """Configuration for the cartpole environment."""
+    """适用于车杆环境的配置。"""
 
     # Scene settings
     scene = CartpoleSceneCfg(num_envs=1024, env_spacing=2.5)
@@ -137,6 +151,7 @@ class CartpoleEnvCfg(ManagerBasedEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # viewer settings
         self.viewer.eye = [4.5, 0.0, 6.0]       # 相机的位置
         self.viewer.lookat = [0.0, 0.0, 2.0]    # 相机看向哪里
@@ -148,6 +163,7 @@ class CartpoleEnvCfg(ManagerBasedEnvCfg):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # parse the arguments
     env_cfg = CartpoleEnvCfg()
     env_cfg.scene.num_envs = args_cli.num_envs

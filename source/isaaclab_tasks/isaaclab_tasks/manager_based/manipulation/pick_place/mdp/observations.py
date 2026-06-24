@@ -25,6 +25,8 @@ def object_obs(
         left_eef to object,
         right_eef_to object,
     """
+    """观测对象 (世界框架):对象位置，对象四，对象left_eef，对象right_eef_to，
+    """
 
     body_pos_w = env.scene["robot"].data.body_pos_w
     left_eef_idx = env.scene["robot"].data.body_names.index(left_eef_link_name)

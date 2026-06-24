@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 
@@ -28,6 +30,7 @@ from isaaclab.utils.string import to_camel_case
 @pytest.fixture
 def setup_simulation():
     """Fixture to set up and tear down the simulation context."""
+    """设置和拆除仿真环境的固定装置。"""
     # Create a new stage
     sim_utils.create_new_stage()
     # Simulation time-step
@@ -87,6 +90,10 @@ def test_valid_properties_cfg(setup_simulation):
 
     This is to ensure that we check that all the properties of the schema are set.
     """
+    """测试所有配置实例是否具有非None值。
+
+    这就是为了确保我们检查该方案的所有属性都设置。
+    """
     sim, arti_cfg, rigid_cfg, collision_cfg, mass_cfg, joint_cfg = setup_simulation
     for cfg in [arti_cfg, rigid_cfg, collision_cfg, mass_cfg, joint_cfg]:
         # check nothing is none
@@ -97,6 +104,7 @@ def test_valid_properties_cfg(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_modify_properties_on_invalid_prim(setup_simulation):
     """Test modifying properties on a prim that does not exist."""
+    """在不存在的prim上测试修改性能。"""
     sim, _, rigid_cfg, _, _, _ = setup_simulation
     # set properties
     with pytest.raises(ValueError):
@@ -108,6 +116,10 @@ def test_modify_properties_on_articulation_instanced_usd(setup_simulation):
     """Test modifying properties on articulation instanced usd.
 
     In this case, modifying collision properties on the articulation instanced usd will fail.
+    """
+    """测试对关节实例 usd 的修改性质。
+
+    在这种情况下，修改关节实例 usd 的碰撞特性将失败。
     """
     sim, arti_cfg, rigid_cfg, collision_cfg, mass_cfg, joint_cfg = setup_simulation
     # spawn asset to the stage
@@ -135,6 +147,7 @@ def test_modify_properties_on_articulation_instanced_usd(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_modify_properties_on_articulation_usd(setup_simulation):
     """Test setting properties on articulation usd."""
+    """测试对articulation usd的设置性能"""
     sim, arti_cfg, rigid_cfg, collision_cfg, mass_cfg, joint_cfg = setup_simulation
     # spawn asset to the stage
     asset_usd_file = f"{ISAAC_NUCLEUS_DIR}/Robots/FrankaRobotics/FrankaPanda/franka.usd"
@@ -165,6 +178,7 @@ def test_modify_properties_on_articulation_usd(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_defining_rigid_body_properties_on_prim(setup_simulation):
     """Test defining rigid body properties on a prim."""
+    """在prim上定义硬体特性的测试。"""
     sim, _, rigid_cfg, collision_cfg, mass_cfg, _ = setup_simulation
     # create a prim
     sim_utils.create_prim("/World/parent", prim_type="XForm")
@@ -197,6 +211,7 @@ def test_defining_rigid_body_properties_on_prim(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_defining_articulation_properties_on_prim(setup_simulation):
     """Test defining articulation properties on a prim."""
+    """在prim上定义关节性质的测试。"""
     sim, arti_cfg, rigid_cfg, collision_cfg, mass_cfg, _ = setup_simulation
     # create a parent articulation
     sim_utils.create_prim("/World/parent", prim_type="Xform")
@@ -218,6 +233,8 @@ def test_defining_articulation_properties_on_prim(setup_simulation):
 """
 Helper functions.
 """
+"""辅助函数。
+"""
 
 
 def _validate_articulation_properties_on_prim(
@@ -227,6 +244,12 @@ def _validate_articulation_properties_on_prim(
 
     If :attr:`has_default_fixed_root` is True, then the asset already has a fixed root link. This is used to check the
     expected behavior of the fixed root link configuration.
+    """
+    """验证prim的关节性质。
+
+    If :attr:`has_default_fixed_root`是True，那么资产已经有一个固定的根链接。
+        这用于检查
+    固定根链配置的预期行为。
     """
     # Obtain stage handle
     stage = sim_utils.get_current_stage()
@@ -270,6 +293,12 @@ def _validate_rigid_body_properties_on_prim(prim_path: str, rigid_cfg, verbose: 
         Right now this function exploits the hierarchy in the asset to check the properties. This is not a
         fool-proof way of checking the properties.
     """
+    """验证prim上的硬体特性。
+
+    说明：
+        现在该函数利用资产中的层次来检查属性。
+        这不是检查房产的无方法。
+    """
     # Obtain stage handle
     stage = sim_utils.get_current_stage()
     # the root prim
@@ -297,6 +326,12 @@ def _validate_collision_properties_on_prim(prim_path: str, collision_cfg, verbos
     Note:
         Right now this function exploits the hierarchy in the asset to check the properties. This is not a
         fool-proof way of checking the properties.
+    """
+    """验证prim上的碰撞特性。
+
+    说明：
+        现在该函数利用资产中的层次来检查属性。
+        这不是检查房产的无方法。
     """
     # Obtain stage handle
     stage = sim_utils.get_current_stage()
@@ -327,6 +362,12 @@ def _validate_mass_properties_on_prim(prim_path: str, mass_cfg, verbose: bool = 
         Right now this function exploits the hierarchy in the asset to check the properties. This is not a
         fool-proof way of checking the properties.
     """
+    """验证prim上的质量特性。
+
+    说明：
+        现在该函数利用资产中的层次来检查属性。
+        这不是检查房产的无方法。
+    """
     # Obtain stage handle
     stage = sim_utils.get_current_stage()
     # the root prim
@@ -354,6 +395,12 @@ def _validate_joint_drive_properties_on_prim(prim_path: str, joint_cfg, verbose:
     Note:
         Right now this function exploits the hierarchy in the asset to check the properties. This is not a
         fool-proof way of checking the properties.
+    """
+    """验证prim上的质量特性。
+
+    说明：
+        现在该函数利用资产中的层次来检查属性。
+        这不是检查房产的无方法。
     """
     # Obtain stage handle
     stage = sim_utils.get_current_stage()

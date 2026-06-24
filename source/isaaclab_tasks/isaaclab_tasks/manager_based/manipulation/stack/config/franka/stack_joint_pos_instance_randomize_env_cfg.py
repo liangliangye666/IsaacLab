@@ -31,6 +31,7 @@ from isaaclab_assets.robots.franka import FRANKA_PANDA_CFG  # isort: skip
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     init_franka_arm_pose = EventTerm(
         func=franka_stack_events.set_default_joint_pose,

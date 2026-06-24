@@ -26,8 +26,27 @@ Usage:
 """
 
 from __future__ import annotations
+"""基准脚本比较XformPrimView实现不同APIs。
+
+该脚本测试了使用:
+- 艾萨克实验室的XformPrimView实现与USD后端
+- 艾萨克实验室的XformPrimView实现与织后端
+- 艾萨克·西姆的XformPrimView实现 (遗产)
+- 艾萨克·西姆实验的XformPrim实现 (最新)
+
+Usage: #基本基准 (所有APIs) ./isaaclab.sh -p脚本/基准/benchmark_xform_prim_view.py --num_envs 1024 --device
+       cuda:0 --headless
+
+    # 启用配置文件 (用于 snakeviz视觉化)./isaaclab.sh -p脚本/基准/benchmark_xform_prim_view.py --num_envs 1024
+    --profile --headless
+
+    #然后用蛇viz:蛇viz profile_results/isaaclab_usd_benchmark.prof蛇viz
+    profile_results/isaaclab_fabric_benchmark.prof蛇viz profile_results/isaacsim_benchmark.prof蛇viz
+    profile_results/isaacsim_exp_benchmark.prof
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -60,6 +79,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import cProfile
 import time
@@ -98,6 +118,22 @@ def benchmark_xform_prim_view(  # noqa: C901
         A tuple of (timing_results, computed_results) where:
         - timing_results: Dictionary containing timing results for various operations
         - computed_results: Dictionary containing the computed values for validation
+    """
+    """标记来自Isaac Lab，Isaac Sim或Isaac Sim实验中的Xform视图类。
+
+    参数：
+        api: 哪些API值值:
+            - "isaaclab-usd":Isaac Lab XformPrimView与USD后端
+            - "isaaclab-fabric":Isaac Lab XformPrimView 带着 Fabric后端
+            - "isaacsim-usd":Isaac Sim遗产XformPrimView与USD (usd=True)
+            - "isaacsim-fabric":Isaac Sim遗产XformPrimView与织物 (usd=False)
+            - "isaacsim-exp":艾萨克·西姆实验 XformPrim
+        num_iterations: 运行的代数。
+
+    返回：
+        一个 (timing_results，computed_results) 的元组，其中:
+        - timing_results:包含各种操作的定时结果的字典
+        - computed_results:包含验证计算值的字典
     """
     timing_results = {}
     computed_results = {}
@@ -301,6 +337,22 @@ def compare_results(
         Nested dictionary: {comparison_pair: {metric: {stats}}}, e.g.,
         {"isaaclab-usd_vs_isaacsim-usd": {"initial_world_positions": {"max_diff": 0.001, ...}}}
     """
+    """在多个实现中比较计算结果。
+
+    仅使用相同的数据路径进行实现比较:
+    - USD实现 (isaaclab-usd， isaacsim-usd) 与彼此进行比较
+    - 织物实施方案 (ISAACLAB-FABRIC，ISAACSIM-FABRIC) 与其相比较
+
+    这是因为 Fabric 设计为写第一工作流，并且可能不匹配初始化时的USD读数。
+
+    参数：
+        results_dict: 字典将API名称映射到计算值。
+        tolerance: 宽容数值比较。
+
+    返回：
+        嵌套字典: {comparison_pair: {metric: {stats}}}， e.g.， {"isaaclab-usd_vs_isaacsim-usd":
+        {"initial_world_positions": {"max_diff": 0.001， ...}}}
+    """
     comparison_stats = {}
 
     # Group APIs by their data path (USD vs Fabric)
@@ -379,6 +431,12 @@ def print_comparison_results(comparison_stats: dict[str, dict[str, dict[str, flo
         comparison_stats: Nested dictionary containing comparison statistics for each API pair.
         tolerance: Tolerance used for comparison.
     """
+    """打印实现中比较结果。
+
+    参数：
+        comparison_stats: 包含每个API对的比较统计数据的嵌套字典。
+        tolerance: 用于比较的宽容。
+    """
     if not comparison_stats:
         print("\n" + "=" * 100)
         print("RESULT COMPARISON")
@@ -444,6 +502,13 @@ def print_results(results_dict: dict[str, dict[str, float]], num_prims: int, num
         results_dict: Dictionary mapping API names to their timing results.
         num_prims: Number of prims tested.
         num_iterations: Number of iterations run.
+    """
+    """打印基准结果以格式表格。
+
+    参数：
+        results_dict: 字典将API名字映射到它们的时间结果。
+        num_prims: 测试的prims号码。
+        num_iterations: 运行的代数。
     """
     print("\n" + "=" * 100)
     print(f"BENCHMARK RESULTS: {num_prims} prims, {num_iterations} iterations")
@@ -541,6 +606,7 @@ def print_results(results_dict: dict[str, dict[str, float]], num_prims: int, num
 
 def main():
     """Main benchmark function."""
+    """主要基准函数"""
     print("=" * 100)
     print("XformPrimView Benchmark - Comparing Multiple APIs")
     print("=" * 100)

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Test cases for Cosmos prompt generation script."""
+"""测试案例为宇宙快速生成脚本。"""
 
 import json
 import os
@@ -17,6 +18,7 @@ from scripts.tools.cosmos.cosmos_prompt_gen import generate_prompt, main
 @pytest.fixture(scope="class")
 def temp_templates_file():
     """Create temporary templates file."""
+    """创建临时模板文件。"""
     temp_file = tempfile.NamedTemporaryFile(suffix=".json", delete=False)  # noqa: SIM115
 
     # Create test templates
@@ -40,6 +42,7 @@ def temp_templates_file():
 @pytest.fixture
 def temp_output_file():
     """Create temporary output file."""
+    """创建临时输出文件。"""
     temp_file = tempfile.NamedTemporaryFile(suffix=".txt", delete=False)  # noqa: SIM115
     yield temp_file.name
     # Cleanup
@@ -48,9 +51,11 @@ def temp_output_file():
 
 class TestCosmosPromptGen:
     """Test cases for Cosmos prompt generation functionality."""
+    """测试案例为"宇宙快速生成"功能。"""
 
     def test_generate_prompt_valid_templates(self, temp_templates_file):
         """Test generating a prompt with valid templates."""
+        """使用有效模板生成提示。"""
         prompt = generate_prompt(temp_templates_file)
 
         # Check that prompt is a string
@@ -66,11 +71,13 @@ class TestCosmosPromptGen:
 
     def test_generate_prompt_invalid_file(self):
         """Test generating a prompt with invalid file path."""
+        """测试生成无效文件路径的提示。"""
         with pytest.raises(FileNotFoundError):
             generate_prompt("nonexistent_file.json")
 
     def test_generate_prompt_invalid_json(self):
         """Test generating a prompt with invalid JSON file."""
+        """测试生成无效JSON文件的提示。"""
         # Create a temporary file with invalid JSON
         with tempfile.NamedTemporaryFile(suffix=".json", delete=False) as temp_file:
             temp_file.write(b"invalid json content")
@@ -84,6 +91,7 @@ class TestCosmosPromptGen:
 
     def test_main_function_single_prompt(self, temp_templates_file, temp_output_file):
         """Test main function with single prompt generation."""
+        """试用单个提示生成的主要功能。"""
         # Mock command line arguments
         import sys
 
@@ -115,6 +123,7 @@ class TestCosmosPromptGen:
 
     def test_main_function_multiple_prompts(self, temp_templates_file, temp_output_file):
         """Test main function with multiple prompt generation."""
+        """用多个提示生成来测试主函数。"""
         # Mock command line arguments
         import sys
 
@@ -150,6 +159,7 @@ class TestCosmosPromptGen:
 
     def test_main_function_default_output(self, temp_templates_file):
         """Test main function with default output path."""
+        """使用默认输出路径测试主函数。"""
         # Mock command line arguments
         import sys
 

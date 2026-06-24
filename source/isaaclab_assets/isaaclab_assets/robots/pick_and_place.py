@@ -6,6 +6,7 @@
 """Configuration for a simple pick and place robot with a suction cup."""
 
 from __future__ import annotations
+"""简单的选择和放置机器人配置，"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -67,3 +68,4 @@ PICK_AND_PLACE_CFG = ArticulationCfg(
     },
 )
 """Configuration for a simple pick and place robot with a suction cup."""
+"""简单的选择和放置机器人配置，"""

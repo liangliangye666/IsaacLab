@@ -35,6 +35,7 @@ import isaaclab_tasks.manager_based.manipulation.reach.mdp as mdp
 @configclass
 class ReachSceneCfg(InteractiveSceneCfg):
     """Configuration for the scene with a robotic arm."""
+    """用机器人手臂进行场景配置。"""
 
     # world
     ground = AssetBaseCfg(
@@ -69,6 +70,7 @@ class ReachSceneCfg(InteractiveSceneCfg):
 @configclass
 class CommandsCfg:
     """Command terms for the MDP."""
+    """对MDP的命令条件。"""
 
     ee_pose = mdp.UniformPoseCommandCfg(
         asset_name="robot",
@@ -89,6 +91,7 @@ class CommandsCfg:
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     arm_action: ActionTerm = MISSING
     gripper_action: ActionTerm | None = None
@@ -97,10 +100,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # observation terms (order preserved)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel, noise=Unoise(n_min=-0.01, n_max=0.01))
@@ -119,6 +124,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_robot_joints = EventTerm(
         func=mdp.reset_joints_by_scale,
@@ -133,6 +139,7 @@ class EventCfg:
 @configclass
 class RewardsCfg:
     """Reward terms for the MDP."""
+    """对于MDP的奖励条件。"""
 
     # task terms
     end_effector_position_tracking = RewTerm(
@@ -163,6 +170,7 @@ class RewardsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -170,6 +178,7 @@ class TerminationsCfg:
 @configclass
 class CurriculumCfg:
     """Curriculum terms for the MDP."""
+    """对于MDP的课程项。"""
 
     action_rate = CurrTerm(
         func=mdp.modify_reward_weight, params={"term_name": "action_rate", "weight": -0.005, "num_steps": 4500}
@@ -188,6 +197,7 @@ class CurriculumCfg:
 @configclass
 class ReachEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the reach end-effector pose tracking environment."""
+    """对于到达末端执行器的设置设置追踪环境。"""
 
     # Scene settings
     scene: ReachSceneCfg = ReachSceneCfg(num_envs=4096, env_spacing=2.5)
@@ -203,6 +213,7 @@ class ReachEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 2
         self.sim.render_interval = self.decimation

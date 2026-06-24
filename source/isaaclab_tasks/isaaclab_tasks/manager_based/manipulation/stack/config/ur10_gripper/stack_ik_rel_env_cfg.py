@@ -17,6 +17,7 @@ from . import stack_joint_pos_env_cfg
 @configclass
 class UR10LongSuctionCubeStackEnvCfg(stack_joint_pos_env_cfg.UR10LongSuctionCubeStackEnvCfg):
     """Configuration for the UR10 Long Suction Cube Stack Environment."""
+    """对于UR10长吸收立方体堆环境的配置。"""
 
     def __post_init__(self):
         # post init of parent

@@ -18,6 +18,11 @@ class DataGenInfoPool:
     The pool supports the use of an asyncio lock to safely add new episodes to the pool while
     consuming the data, so it can be shared across multiple mimic data generators.
     """
+    """为数据生成的DatagenInfo池。
+
+    这类是存储从事件中提取的`DatagenInfo`物体的容器。
+    游泳池支持使用异步锁来安全地添加新集在消耗数据时，因此可以在多个模仿数据生成器中共享。
+    """
 
     def __init__(self, env, env_cfg, device, asyncio_lock: asyncio.Lock | None = None):
         """
@@ -25,6 +30,11 @@ class DataGenInfoPool:
             env_cfg (dict): environment configuration
             device (torch.device): device to store the data
             asyncio_lock (asyncio.Lock or None): asyncio lock to use for thread safety
+        """
+        """参数：
+            env_cfg (dict): 环境配置
+            device (torch.device): 存储数据的设备
+            asyncio_lock (asyncio.Lock or None): 用于线程安全的asyncio锁
         """
         self._datagen_infos = []
 
@@ -56,21 +66,25 @@ class DataGenInfoPool:
     @property
     def datagen_infos(self):
         """Returns the datagen infos."""
+        """返回数据数据。"""
         return self._datagen_infos
 
     @property
     def subtask_boundaries(self) -> dict[str, list[list[tuple[int, int]]]]:
         """Returns the subtask boundaries."""
+        """返回子任务界限。"""
         return self._subtask_boundaries
 
     @property
     def asyncio_lock(self):
         """Returns the asyncio lock."""
+        """返回了异步锁。"""
         return self._asyncio_lock
 
     @property
     def num_datagen_infos(self):
         """Returns the number of datagen infos."""
+        """返回数据数据的数量。"""
         return len(self._datagen_infos)
 
     async def add_episode(self, episode: EpisodeData):
@@ -79,6 +93,11 @@ class DataGenInfoPool:
 
         Args:
             episode (EpisodeData): episode to add
+        """
+        """添加给给定的事件的数据数据。
+
+        参数：
+            episode (EpisodeData): 增加一个事件
         """
         if self._asyncio_lock is not None:
             async with self._asyncio_lock:
@@ -96,6 +115,15 @@ class DataGenInfoPool:
         Raises:
             ValueError: Episode lacks 'datagen_info' annotations in observations.
             ValueError: Subtask termination signal is not increasing.
+        """
+        """添加给给定的事件的数据数据。
+
+        参数：
+            episode: 另一个事件。
+
+        异常：
+            ValueError: 在观测中没有"datagen_info"注释。
+            ValueError: 任务终止信号没有增加。
         """
         ep_grp = episode.data
 
@@ -210,6 +238,12 @@ class DataGenInfoPool:
         Args:
             file_path (str): path to the dataset file
             select_demo_keys (str or None): keys of the demos to load
+        """
+        """从数据集文件中加载。
+
+        参数：
+            file_path (str): 数据集文件的路径
+            select_demo_keys (str or None): 装载的演示钥匙
         """
         dataset_file_handler = HDF5DatasetFileHandler()
         dataset_file_handler.open(file_path)

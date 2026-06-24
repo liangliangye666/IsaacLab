@@ -6,6 +6,7 @@
 """Action manager for processing actions sent to the environment."""
 
 from __future__ import annotations
+"""处理向环境发送的动作管理器。"""
 
 import inspect
 import re
@@ -41,6 +42,15 @@ class ActionTerm(ManagerTermBase):
     * Applying actions: This operation is performed once per **simulation step** and is
       responsible for applying the processed actions to the asset managed by the term.
     """
+    """基本类别的动作条件。
+
+    动作项负责处理向环境发送的原始动作，并将其应用到该项管理的资产上。
+    动作项由两个
+    operations:
+
+    * 处理动作:该操作每次**环境步骤**进行一次，负责向环境发送的原始动作的预处理。
+    * 执行动作:此操作每**仿真步骤**进行一次，负责将处理的动作应用于该期内管理的资产。
+    """
 
     def __init__(self, cfg: ActionTermCfg, env: ManagerBasedEnv):
         """Initialize the action term.
@@ -48,6 +58,12 @@ class ActionTerm(ManagerTermBase):
         Args:
             cfg: The configuration object.
             env: The environment instance.
+        """
+        """开始动作项。
+
+        参数：
+            cfg: 配置对象。
+            env: 环境情况。
         """
         # call the base class constructor
         super().__init__(cfg, env)
@@ -63,6 +79,7 @@ class ActionTerm(ManagerTermBase):
 
     def __del__(self):
         """Unsubscribe from the callbacks."""
+        """取消回电话。"""
         if self._debug_vis_handle:
             self._debug_vis_handle.unsubscribe()
             self._debug_vis_handle = None
@@ -70,28 +87,34 @@ class ActionTerm(ManagerTermBase):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     @abstractmethod
     def action_dim(self) -> int:
         """Dimension of the action term."""
+        """动作项的尺寸。"""
         raise NotImplementedError
 
     @property
     @abstractmethod
     def raw_actions(self) -> torch.Tensor:
         """The input/raw actions sent to the term."""
+        """输入/原始动作向该项发送。"""
         raise NotImplementedError
 
     @property
     @abstractmethod
     def processed_actions(self) -> torch.Tensor:
         """The actions computed by the term after applying any processing."""
+        """经过任何处理后按项计算的动作。"""
         raise NotImplementedError
 
     @property
     def has_debug_vis_implementation(self) -> bool:
         """Whether the action term has a debug visualization implemented."""
+        """操作项是否实现了调试可视化。"""
         # check if function raises NotImplementedError
         source_code = inspect.getsource(self._set_debug_vis_impl)
         return "NotImplementedError" not in source_code
@@ -99,6 +122,7 @@ class ActionTerm(ManagerTermBase):
     @property
     def IO_descriptor(self) -> GenericActionIODescriptor:
         """The IO descriptor for the action term."""
+        """动作项的IO描述符。"""
         self._IO_descriptor.name = re.sub(r"([a-z])([A-Z])", r"\1_\2", self.__class__.__name__).lower()
         self._IO_descriptor.full_path = f"{self.__class__.__module__}.{self.__class__.__name__}"
         self._IO_descriptor.description = " ".join(self.__class__.__doc__.split())
@@ -108,10 +132,13 @@ class ActionTerm(ManagerTermBase):
     @property
     def export_IO_descriptor(self) -> bool:
         """Whether to export the IO descriptor for the action term."""
+        """是否出口IO描述符用于动作项。"""
         return self._export_IO_descriptor
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def set_debug_vis(self, debug_vis: bool) -> bool:
@@ -121,6 +148,13 @@ class ActionTerm(ManagerTermBase):
         Returns:
             Whether the debug visualization was successfully set. False if the action term does
             not support debug visualization.
+        """
+        """设定是否可可视化动作项数据。
+        参数：
+            debug_vis: 是否可视化动作项数据。
+        返回：
+            设置错误可视化是否成功。
+            False如果操作项不支持调试可视化。
         """
         # check if debug visualization is supported
         if not self.has_debug_vis_implementation:
@@ -154,6 +188,14 @@ class ActionTerm(ManagerTermBase):
         Args:
             actions: The actions to process.
         """
+        """处理向环境发送的动作。
+
+        说明：
+            该函数由管理器每次调用一次。
+
+        参数：
+            actions: 处理的动作。
+        """
         raise NotImplementedError
 
     @abstractmethod
@@ -163,6 +205,11 @@ class ActionTerm(ManagerTermBase):
         Note:
             This is called at every simulation step by the manager.
         """
+        """投资指数
+
+        说明：
+            管理器在每一步仿真时都会调用。
+        """
         raise NotImplementedError
 
     def _set_debug_vis_impl(self, debug_vis: bool):
@@ -171,11 +218,18 @@ class ActionTerm(ManagerTermBase):
         and input ``debug_vis`` is True. If the visualization objects exist, the function should
         set their visibility into the stage.
         """
+        """设置调试可视化到可视化对象。
+        如果它们不存在，并且输入 ``debug_vis`` 是 True，
+        如果可视化对象存在，函数应该将它们的可视性设置在舞台上。
+        """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
     def _debug_vis_callback(self, event):
         """Callback for debug visualization.
         This function calls the visualization objects and sets the data to visualize into them.
+        """
+        """检查错误可视化。
+        这个函数将可视化对象调用，并设置数据可视化到它们中。
         """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
@@ -194,6 +248,16 @@ class ActionManager(ManagerBase):
     * apply actions: This operation typically sets the processed actions into the assets in the
       scene (such as robots). It should be called before every simulation step.
     """
+    """管理一个特定世界的处理和应用动作。
+
+    动作管理器处理用户定义的操作在给定的世界上的解释和应用。
+    它由不同的动作项组成，决定预期动作的规模。
+
+    动作管理器在两个阶段执行操作:
+
+    * 处理操作:它将输入操作分为每个项，并执行任何必要的预处理。
+    * 运行操作:这种操作通常将处理的操作设置在场景的资产中 (如机器人)。
+    """
 
     def __init__(self, cfg: object, env: ManagerBasedEnv):
         """Initialize the action manager.
@@ -204,6 +268,15 @@ class ActionManager(ManagerBase):
 
         Raises:
             ValueError: If the configuration is None.
+        """
+        """启动动作管理器。
+
+        参数：
+            cfg: 配置对象或字典 (``dict[str， ActionTermCfg]``)。
+            env: 环境情况。
+
+        异常：
+            ValueError: 如果配置是None。
         """
         # check if config is None
         if cfg is None:
@@ -222,6 +295,7 @@ class ActionManager(ManagerBase):
 
     def __str__(self) -> str:
         """Returns: A string representation for action manager."""
+        """Returns: 动作管理器的字符串表示。"""
         msg = f"<ActionManager> contains {len(self._term_names)} active terms.\n"
 
         # create table for term information
@@ -243,35 +317,47 @@ class ActionManager(ManagerBase):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def total_action_dim(self) -> int:
         """Total dimension of actions."""
+        """动作的总尺寸。"""
         return sum(self.action_term_dim)
 
     @property
     def active_terms(self) -> list[str]:
         """Name of active action terms."""
+        """事件项名称。"""
         return self._term_names
 
     @property
     def action_term_dim(self) -> list[int]:
         """Shape of each action term."""
+        """每个动作项的形状。"""
         return [term.action_dim for term in self._terms.values()]
 
     @property
     def action(self) -> torch.Tensor:
         """The actions sent to the environment. Shape is (num_envs, total_action_dim)."""
+        """动作向环境发送。
+        形状是 (num_envs，total_action_dim)。
+        """
         return self._action
 
     @property
     def prev_action(self) -> torch.Tensor:
         """The previous actions sent to the environment. Shape is (num_envs, total_action_dim)."""
+        """之前的动作向环境发送。
+        形状是 (num_envs，total_action_dim)。
+        """
         return self._prev_action
 
     @property
     def has_debug_vis_implementation(self) -> bool:
         """Whether the command terms have debug visualization implemented."""
+        """命令项是否实现了调试可视化。"""
         # check if function raises NotImplementedError
         has_debug_vis = False
         for term in self._terms.values():
@@ -284,6 +370,11 @@ class ActionManager(ManagerBase):
 
         Returns:
             A dictionary with keys as the term names and values as the IO descriptors.
+        """
+        """给动作管理器提供IO描述符。
+
+        返回：
+            一个字典，用键作为项名称和值作为IO描述符。
         """
 
         data = []
@@ -316,6 +407,8 @@ class ActionManager(ManagerBase):
     """
     Operations.
     """
+    """操作。
+    """
 
     def get_active_iterable_terms(self, env_idx: int) -> Sequence[tuple[str, Sequence[float]]]:
         """Returns the active terms as iterable sequence of tuples.
@@ -327,6 +420,16 @@ class ActionManager(ManagerBase):
 
         Returns:
             The active terms.
+        """
+        """返回活跃的项作为可反复的双数序列。
+
+        元组的第一个元素是项的名称，第二个元素是项的原始值。
+
+        参数：
+            env_idx: 具体的环境，可以从中提取活跃项。
+
+        返回：
+            积极的项。
         """
         terms = []
         idx = 0
@@ -344,6 +447,13 @@ class ActionManager(ManagerBase):
             Whether the debug visualization was successfully set. False if the action
             does not support debug visualization.
         """
+        """设定是否可可视化动作数据。
+        参数：
+            debug_vis: 是否可视化动作数据。
+        返回：
+            设置错误可视化是否成功。
+            False如果该操作不支持调试可视化。
+        """
         for term in self._terms.values():
             term.set_debug_vis(debug_vis)
 
@@ -356,6 +466,15 @@ class ActionManager(ManagerBase):
 
         Returns:
             An empty dictionary.
+        """
+        """恢复动作历史。
+
+        参数：
+            env_ids: 环境 ID。
+                     在 None 中，默认情况下考虑所有环境。
+
+        返回：
+            一个空白的字典。
         """
         # resolve environment ids
         if env_ids is None:
@@ -378,6 +497,14 @@ class ActionManager(ManagerBase):
         Args:
             action: The actions to process.
         """
+        """处理向环境发送的动作。
+
+        说明：
+            这个函数应每次调用一次。
+
+        参数：
+            action: 处理的动作。
+        """
         # check if action dimension is valid
         if self.total_action_dim != action.shape[1]:
             raise ValueError(f"Invalid action shape, expected: {self.total_action_dim}, received: {action.shape[1]}.")
@@ -398,6 +525,11 @@ class ActionManager(ManagerBase):
         Note:
             This should be called at every simulation step.
         """
+        """适用于环境/仿真。
+
+        说明：
+            在每个仿真步骤中都应调用。
+        """
         for term in self._terms.values():
             term.apply_actions()
 
@@ -410,6 +542,14 @@ class ActionManager(ManagerBase):
         Returns:
             The action term with the specified name.
         """
+        """返回使用指定名称的操作项。
+
+        参数：
+            name: 动作项的名称。
+
+        返回：
+            用指定名称的动作项。
+        """
         return self._terms[name]
 
     def serialize(self) -> dict:
@@ -418,10 +558,17 @@ class ActionManager(ManagerBase):
         Returns:
             A dictionary of serialized action term configurations.
         """
+        """连载动作管理器配置。
+
+        返回：
+            一个系列动作项配置字典。
+        """
         return {term_name: term.serialize() for term_name, term in self._terms.items()}
 
     """
     Helper functions.
+    """
+    """辅助函数。
     """
 
     def _prepare_terms(self):

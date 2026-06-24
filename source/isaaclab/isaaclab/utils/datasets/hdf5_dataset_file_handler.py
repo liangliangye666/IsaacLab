@@ -22,9 +22,11 @@ from .episode_data import EpisodeData
 
 class HDF5DatasetFileHandler(DatasetFileHandlerBase):
     """HDF5 dataset file handler for storing and loading episode data."""
+    """存储和加载事件数据的HDF5数据集文件处理器。"""
 
     def __init__(self):
         """Initializes the HDF5 dataset file handler."""
+        """启动HDF5数据集文件处理器。"""
         self._hdf5_file_stream = None
         self._hdf5_data_group = None
         self._demo_count = 0
@@ -32,6 +34,7 @@ class HDF5DatasetFileHandler(DatasetFileHandlerBase):
 
     def open(self, file_path: str, mode: str = "r"):
         """Open an existing dataset file."""
+        """打开现有数据集文件。"""
         if self._hdf5_file_stream is not None:
             raise RuntimeError("HDF5 dataset file stream is already in use")
         self._hdf5_file_stream = h5py.File(file_path, mode)
@@ -40,6 +43,7 @@ class HDF5DatasetFileHandler(DatasetFileHandlerBase):
 
     def create(self, file_path: str, env_name: str = None):
         """Create a new dataset file."""
+        """创建一个新的数据集文件。"""
         if self._hdf5_file_stream is not None:
             raise RuntimeError("HDF5 dataset file stream is already in use")
         if not file_path.endswith(".hdf5"):
@@ -62,25 +66,31 @@ class HDF5DatasetFileHandler(DatasetFileHandlerBase):
 
     def __del__(self):
         """Destructor for the file handler."""
+        """文件处理器的破坏器。"""
         self.close()
 
     """
     Properties
     """
+    """产品
+    """
 
     def add_env_args(self, env_args: dict):
         """Add environment arguments to the dataset."""
+        """在数据集中添加环境参数。"""
         self._raise_if_not_initialized()
         self._env_args.update(env_args)
         self._hdf5_data_group.attrs["env_args"] = json.dumps(self._env_args)
 
     def set_env_name(self, env_name: str):
         """Set the environment name."""
+        """设置环境名称。"""
         self._raise_if_not_initialized()
         self.add_env_args({"env_name": env_name})
 
     def get_env_name(self) -> str | None:
         """Get the environment name."""
+        """找一个环境名称。"""
         self._raise_if_not_initialized()
         env_args = json.loads(self._hdf5_data_group.attrs["env_args"])
         if "env_name" in env_args:
@@ -89,24 +99,30 @@ class HDF5DatasetFileHandler(DatasetFileHandlerBase):
 
     def get_episode_names(self) -> Iterable[str]:
         """Get the names of the episodes in the file."""
+        """在档案中找到事件的名字。"""
         self._raise_if_not_initialized()
         return self._hdf5_data_group.keys()
 
     def get_num_episodes(self) -> int:
         """Get number of episodes in the file."""
+        """在档案中查看事件数。"""
         return self._demo_count
 
     @property
     def demo_count(self) -> int:
         """The number of demos collected so far."""
+        """迄今为止收集的演示。"""
         return self._demo_count
 
     """
     Operations.
     """
+    """操作。
+    """
 
     def load_episode(self, episode_name: str, device: str) -> EpisodeData | None:
         """Load episode data from the file."""
+        """在文件中加载事件数据。"""
         self._raise_if_not_initialized()
         if episode_name not in self._hdf5_data_group:
             return None
@@ -115,6 +131,7 @@ class HDF5DatasetFileHandler(DatasetFileHandlerBase):
 
         def load_dataset_helper(group):
             """Helper method to load dataset that contains recursive dict objects."""
+            """辅助方法加载包含复制式指令对象的数据集。"""
             data = {}
             for key in group:
                 if isinstance(group[key], h5py.Group):
@@ -143,6 +160,13 @@ class HDF5DatasetFileHandler(DatasetFileHandlerBase):
         Args:
             episode: The episode data to add.
             demo_id: Custom index for the episode. If None, uses default index.
+        """
+        """在数据集中添加一个集。
+
+        参数：
+            episode: 增加的事件数据。
+            demo_id: 回合的定制索引。
+                     如果 None，则使用默认索引。
         """
         self._raise_if_not_initialized()
         if episode.is_empty():
@@ -173,6 +197,7 @@ class HDF5DatasetFileHandler(DatasetFileHandlerBase):
 
         def create_dataset_helper(group, key, value):
             """Helper method to create dataset that contains recursive dict objects."""
+            """帮助创建包含递归式指令对象的数据集的方法。"""
             if isinstance(value, dict):
                 key_group = group.create_group(key)
                 for sub_key, sub_value in value.items():
@@ -193,17 +218,20 @@ class HDF5DatasetFileHandler(DatasetFileHandlerBase):
 
     def flush(self):
         """Flush the episode data to disk."""
+        """把事件数据放到磁盘上。"""
         self._raise_if_not_initialized()
 
         self._hdf5_file_stream.flush()
 
     def close(self):
         """Close the dataset file handler."""
+        """关闭数据集文件处理器。"""
         if self._hdf5_file_stream is not None:
             self._hdf5_file_stream.close()
             self._hdf5_file_stream = None
 
     def _raise_if_not_initialized(self):
         """Raise an error if the dataset file handler is not initialized."""
+        """如果数据集文件处理器未启动，则会出现错误。"""
         if self._hdf5_file_stream is None:
             raise RuntimeError("HDF5 dataset file stream is not initialized")

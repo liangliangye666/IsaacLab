@@ -6,6 +6,8 @@
 """
 Script to record teleoperated demos and run mimic dataset generation in real-time.
 """
+"""脚本记录远程操作的演示，并实时运行模仿数据集生成。
+"""
 
 # Launching Isaac Sim Simulator first.
 
@@ -70,6 +72,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import asyncio
 import contextlib
@@ -104,6 +107,7 @@ num_attempts = 0
 
 class PreStepDatagenInfoRecorder(RecorderTerm):
     """Recorder term that records the datagen info data in each step."""
+    """每一步记录数据数据的记录项。"""
 
     def record_pre_step(self):
         eef_pose_dict = {}
@@ -121,12 +125,14 @@ class PreStepDatagenInfoRecorder(RecorderTerm):
 @configclass
 class PreStepDatagenInfoRecorderCfg(RecorderTermCfg):
     """Configuration for the datagen info recorder term."""
+    """数据记录器的配置。"""
 
     class_type: type[RecorderTerm] = PreStepDatagenInfoRecorder
 
 
 class PreStepSubtaskTermsObservationsRecorder(RecorderTerm):
     """Recorder term that records the subtask completion observations in each step."""
+    """在每个步骤中记录子任务完成的观测。"""
 
     def record_pre_step(self):
         return "obs/datagen_info/subtask_term_signals", self._env.get_subtask_term_signals()
@@ -135,6 +141,7 @@ class PreStepSubtaskTermsObservationsRecorder(RecorderTerm):
 @configclass
 class PreStepSubtaskTermsObservationsRecorderCfg(RecorderTermCfg):
     """Configuration for the step subtask terms observation recorder term."""
+    """步骤子任务项的配置"""
 
     class_type: type[RecorderTerm] = PreStepSubtaskTermsObservationsRecorder
 
@@ -142,6 +149,7 @@ class PreStepSubtaskTermsObservationsRecorderCfg(RecorderTermCfg):
 @configclass
 class MimicRecorderManagerCfg(ActionStateRecorderManagerCfg):
     """Mimic specific recorder terms."""
+    """模仿特定的录音器项。"""
 
     record_pre_step_datagen_info = PreStepDatagenInfoRecorderCfg()
     record_pre_step_subtask_term_signals = PreStepSubtaskTermsObservationsRecorderCfg()
@@ -149,11 +157,15 @@ class MimicRecorderManagerCfg(ActionStateRecorderManagerCfg):
 
 class RateLimiter:
     """Convenience class for enforcing rates in loops."""
+    """在循环中执行税率的便利类。"""
 
     def __init__(self, hz):
         """
         Args:
             hz (int): frequency to enforce
+        """
+        """参数：
+            hz (int): 执行频率
         """
         self.hz = hz
         self.last_time = time.time()
@@ -162,6 +174,7 @@ class RateLimiter:
 
     def sleep(self, env):
         """Attempt to sleep at the specified rate in hz."""
+        """试着以hz的规定的速度睡觉。"""
         next_wakeup_time = self.last_time + self.sleep_duration
         while time.time() < next_wakeup_time:
             time.sleep(self.render_period)
@@ -177,6 +190,7 @@ class RateLimiter:
 
 def pre_process_actions(delta_pose: torch.Tensor, gripper_command: bool) -> torch.Tensor:
     """Pre-process actions for the environment."""
+    """环境前处理动作。"""
     # compute actions based on environment
     if "Reach" in args_cli.task:
         # note: reach is the only one that uses a different action space
@@ -194,6 +208,7 @@ async def run_teleop_robot(
     env, env_id, env_action_queue, shared_datagen_info_pool, success_term, exported_dataset_path, teleop_interface=None
 ):
     """Run teleop robot."""
+    """运行电话机器人。"""
     global num_recorded
     should_reset_teleop_instance = False
     # create controller if needed
@@ -263,6 +278,7 @@ async def run_data_generator(
     env, env_id, env_action_queue, shared_datagen_info_pool, success_term, pause_subtask=False, export_demo=True
 ):
     """Run data generator."""
+    """运行数据生成器。"""
     global num_success, num_failures, num_attempts
     data_generator = DataGenerator(env=env.unwrapped, src_demo_datagen_info_pool=shared_datagen_info_pool)
     idle_action = torch.zeros(env.unwrapped.action_space.shape)[0]
@@ -290,6 +306,7 @@ async def run_data_generator(
 
 def env_loop(env, env_action_queue, shared_datagen_info_pool, asyncio_event_loop):
     """Main loop for the environment."""
+    """对于环境来说的主要环节。"""
     global num_recorded, num_success, num_failures, num_attempts
     prev_num_attempts = 0
     prev_num_recorded = 0

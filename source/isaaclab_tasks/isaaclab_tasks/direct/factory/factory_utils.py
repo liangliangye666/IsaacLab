@@ -11,6 +11,7 @@ import isaacsim.core.utils.torch as torch_utils
 
 def get_keypoint_offsets(num_keypoints, device):
     """Get uniformly-spaced keypoints along a line of unit length, centered at 0."""
+    """得到一个单元长度线沿着均的关键点，中心在0。"""
     keypoint_offsets = torch.zeros((num_keypoints, 3), device=device)
     keypoint_offsets[:, -1] = torch.linspace(0.0, 1.0, num_keypoints, device=device) - 0.5
     return keypoint_offsets
@@ -18,6 +19,7 @@ def get_keypoint_offsets(num_keypoints, device):
 
 def get_deriv_gains(prop_gains, rot_deriv_scale=1.0):
     """Set robot gains using critical damping."""
+    """设置机器人使用关键缩。"""
     deriv_gains = 2 * torch.sqrt(prop_gains)
     deriv_gains[:, 3:6] /= rot_deriv_scale
     return deriv_gains
@@ -25,11 +27,13 @@ def get_deriv_gains(prop_gains, rot_deriv_scale=1.0):
 
 def wrap_yaw(angle):
     """Ensure yaw stays within range."""
+    """确保保持在射程内。"""
     return torch.where(angle > np.deg2rad(235), angle - 2 * np.pi, angle)
 
 
 def set_friction(asset, value, num_envs):
     """Update material properties for a given asset."""
+    """更新给定的资产的材料属性。"""
     materials = asset.root_physx_view.get_material_properties()
     materials[..., 0] = value  # Static friction.
     materials[..., 1] = value  # Dynamic friction.
@@ -39,6 +43,7 @@ def set_friction(asset, value, num_envs):
 
 def set_body_inertias(robot, num_envs):
     """Note: this is to account for the asset_options.armature parameter in IGE."""
+    """Note: 这将解释IGE中的asset_options.armature参数。"""
     inertias = robot.root_physx_view.get_inertias()
     offset = torch.zeros_like(inertias)
     offset[:, :, [0, 4, 8]] += 0.01
@@ -48,6 +53,7 @@ def set_body_inertias(robot, num_envs):
 
 def get_held_base_pos_local(task_name, fixed_asset_cfg, num_envs, device):
     """Get transform between asset default frame and geometric base frame."""
+    """在资产默认框架和几何基础框架之间进行转换。"""
     held_base_x_offset = 0.0
     if task_name == "peg_insert":
         held_base_z_offset = 0.0
@@ -69,6 +75,7 @@ def get_held_base_pos_local(task_name, fixed_asset_cfg, num_envs, device):
 
 def get_held_base_pose(held_pos, held_quat, task_name, fixed_asset_cfg, num_envs, device):
     """Get current poses for keypoint and success computation."""
+    """获得关键点和成功计算的当前姿势。"""
     held_base_pos_local = get_held_base_pos_local(task_name, fixed_asset_cfg, num_envs, device)
     held_base_quat_local = torch.tensor([1.0, 0.0, 0.0, 0.0], device=device).unsqueeze(0).repeat(num_envs, 1)
 
@@ -80,6 +87,7 @@ def get_held_base_pose(held_pos, held_quat, task_name, fixed_asset_cfg, num_envs
 
 def get_target_held_base_pose(fixed_pos, fixed_quat, task_name, fixed_asset_cfg, num_envs, device):
     """Get target poses for keypoint and success computation."""
+    """获取关键点和成功计算的目标姿势。"""
     fixed_success_pos_local = torch.zeros((num_envs, 3), device=device)
     if task_name == "peg_insert":
         fixed_success_pos_local[:, 2] = 0.0
@@ -104,11 +112,13 @@ def get_target_held_base_pose(fixed_pos, fixed_quat, task_name, fixed_asset_cfg,
 
 def squashing_fn(x, a, b):
     """Compute bounded reward function."""
+    """计算有限的奖励函数。"""
     return 1 / (torch.exp(a * x) + b + torch.exp(-a * x))
 
 
 def collapse_obs_dict(obs_dict, obs_order):
     """Stack observations in given order."""
+    """在给定的顺序上堆积观测。"""
     obs_tensors = [obs_dict[obs_name] for obs_name in obs_order]
     obs_tensors = torch.cat(obs_tensors, dim=-1)
     return obs_tensors

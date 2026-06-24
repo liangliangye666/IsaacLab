@@ -33,6 +33,32 @@ for RL-Games :class:`Runner` class:
 
 # needed to import for allowing type-hinting:gym.spaces.Box | None
 from __future__ import annotations
+"""将环境实例配置为RL-Games的向量化环境。
+
+下面的例子显示了如何包装RL游戏的环境，并记录环境建设
+for RL-Games :class:`Runner` class:
+
+.. code-block:: python
+
+    from rl_games.common import env_configurations, vecenv
+
+    from isaaclab_rl.rl_games import RlGamesGpuEnv, RlGamesVecEnvWrapper
+
+    # configuration parameters
+    rl_device = "cuda:0"
+    clip_obs = 10.0
+    clip_actions = 1.0
+
+    # wrap around environment for rl-games
+    env = RlGamesVecEnvWrapper(env, rl_device, clip_obs, clip_actions)
+
+    # register the environment to rl-games registry
+    # note: in agents configuration: environment name must be "rlgpu"
+    vecenv.register(
+        "IsaacRlgWrapper", lambda config_name, num_actors, **kwargs: RlGamesGpuEnv(config_name, num_actors, **kwargs)
+    )
+    env_configurations.register("rlgpu", {"vecenv_type": "IsaacRlgWrapper", "env_creator": lambda **kwargs: env})
+"""
 
 from collections.abc import Callable
 
@@ -46,6 +72,8 @@ from isaaclab.envs import DirectRLEnv, ManagerBasedRLEnv, VecEnvObs
 
 """
 Vectorized environment wrapper.
+"""
+"""面向环境包装。
 """
 
 
@@ -82,6 +110,37 @@ class RlGamesVecEnvWrapper(IVecEnv):
         https://github.com/Denys88/rl_games/blob/master/rl_games/common/ivecenv.py
         https://github.com/NVIDIA-Omniverse/IsaacGymEnvs
     """
+    """围绕艾萨克实验室环境进行RL游戏。
+
+    这类课程围绕着艾萨克实验室环境。
+    由于RL-Games直接在GPU缓冲器上工作，包装处理缓冲器从仿真环境移动到与学习代理相同的设备。
+    此外，它还执行了观测和动作的裁剪。
+
+    对于不对称的演员-批评者等算法，RL-Games期望有一个字典来观测。
+    这个字典包含"obs"和"states"，通常与演员和评论家的观测相符。
+
+    为了使用不对称的演员-批评者，在``"states"`` (e.g。 ``["critic"]``) 下映射特权观测组。
+
+    包装支持**或**连锁紧器 (默认) **或** 字幕输入:当包装是连接模式时，rl-游戏看到{"obs": Tensor， (optional)"states":
+    Tensor}当包装不是连接模式时，rl-游戏看到{"obs": dict[str， Tensor]， (optional)"states": dict[str， Tensor]}
+
+    - 连接模式 (``concate_obs_group=True``):``observation_space``/``state_space``是``gym.spaces.Box``。
+    - 语句模式 (``concate_obs_group=False``):``observation_space``/``state_space``是要求组键 ``gym.spaces.Dict``。
+      当没有提供``"states"``组时，在运行时，语句状态被遗漏。
+
+    .. 谨慎::
+
+        这类必须是包装链中的最后一个包装。
+        这是因为包裹不跟随
+        the :类:`gym.Wrapper`接口。
+             任何随后的包装都需要修改，以使用此
+        包装。
+
+
+    Reference:
+        https://github.com/丹尼斯88/rl_games/ master/老师rl_games/常见/ivecenv.py
+        https://github.com/NVIDIA- 全球IsaacGymEnvs
+    """
 
     def __init__(
         self,
@@ -106,6 +165,21 @@ class RlGamesVecEnvWrapper(IVecEnv):
         Raises:
             ValueError: The environment is not inherited from :class:`ManagerBasedRLEnv` or :class:`DirectRLEnv`.
             ValueError: If specified, the privileged observations (critic) are not of type :obj:`gym.spaces.Box`.
+        """
+        """启动包装实例。
+
+        参数：
+            env: 周围的环境。
+            rl_device: 执行代理计算的设备。
+            clip_obs: 对观测的裁剪值。
+            clip_actions: 裁剪值为动作。
+            obs_groups: 从 isaaclab 观测到 rl-游戏，默认到None适用于后退兼容性。
+            concate_obs_group: 布尔值表示，如果输入rl-games网络是 dict或 tensor。
+                               在 True 默认情况下，
+
+        异常：
+            ValueError: 环境不是从:class:`ManagerBasedRLEnv`或:class:`DirectRLEnv`中继承的。
+            ValueError: 如果指定，特权观测 (批评) 不属于:obj:`gym.spaces.Box`类型。
         """
         # check that input is valid
         if not isinstance(env.unwrapped, ManagerBasedRLEnv) and not isinstance(env.unwrapped, DirectRLEnv):
@@ -153,6 +227,7 @@ class RlGamesVecEnvWrapper(IVecEnv):
 
     def __str__(self):
         """Returns the wrapper name and the :attr:`env` representation string."""
+        """返回包装名称和:attr:`env`表示字符串。"""
         return (
             f"<{type(self).__name__}{self.env}>"
             f"\n\tObservations clipping: {self._clip_obs}"
@@ -163,20 +238,25 @@ class RlGamesVecEnvWrapper(IVecEnv):
 
     def __repr__(self):
         """Returns the string representation of the wrapper."""
+        """返回包装的字符串表示。"""
         return str(self)
 
     """
     Properties -- Gym.Wrapper
     """
+    """属性 - Gym.Wrapper
+    """
 
     @property
     def render_mode(self) -> str | None:
         """Returns the :attr:`Env` :attr:`render_mode`."""
+        """返回了:attr:`Env`:attr:`render_mode`。"""
         return self.env.render_mode
 
     @property
     def observation_space(self) -> gym.spaces.Box | gym.spaces.Dict:
         """Returns the :attr:`Env` :attr:`observation_space` (``Box`` if concatenated, otherwise ``Dict``)."""
+        """返回:attr:`Env` :attr:`observation_space` (如果连接``Box``，否则``Dict``)。"""
         # note: rl-games only wants single observation space
         space = self.unwrapped.single_observation_space
         clip = self._clip_obs
@@ -191,6 +271,7 @@ class RlGamesVecEnvWrapper(IVecEnv):
     @property
     def action_space(self) -> gym.Space:
         """Returns the :attr:`Env` :attr:`action_space`."""
+        """返回了:attr:`Env`:attr:`action_space`。"""
         # note: rl-games only wants single action space
         action_space = self.unwrapped.single_action_space
         if not isinstance(action_space, gymnasium.spaces.Box):
@@ -207,6 +288,7 @@ class RlGamesVecEnvWrapper(IVecEnv):
     @classmethod
     def class_name(cls) -> str:
         """Returns the class name of the wrapper."""
+        """返回包装的类名字。"""
         return cls.__name__
 
     @property
@@ -215,25 +297,34 @@ class RlGamesVecEnvWrapper(IVecEnv):
 
         This will be the bare :class:`gymnasium.Env` environment, underneath all layers of wrappers.
         """
+        """返回包装的基础环境。
+
+        这将是赤裸裸的:class:`gymnasium.Env`环境，
+        """
         return self.env.unwrapped
 
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def num_envs(self) -> int:
         """Returns the number of sub-environment instances."""
+        """返回子环境实例数。"""
         return self.unwrapped.num_envs
 
     @property
     def device(self) -> str:
         """Returns the base environment simulation device."""
+        """返回基环境仿真设备。"""
         return self.unwrapped.device
 
     @property
     def state_space(self) -> gym.spaces.Box | gym.spaces.Dict | None:
         """Returns the privileged observation space for the critic (``Box`` if concatenated, otherwise ``Dict``)."""
+        """返回对评论者的特权观测空间 (如果连锁 ``Box``，否则 ``Dict``)。"""
         # # note: rl-games only wants single observation space
         space = self.unwrapped.single_observation_space
         clip = self._clip_obs
@@ -247,10 +338,12 @@ class RlGamesVecEnvWrapper(IVecEnv):
 
     def get_number_of_agents(self) -> int:
         """Returns number of actors in the environment."""
+        """返回环境中参与者的数量。"""
         return getattr(self, "num_agents", 1)
 
     def get_env_info(self) -> dict:
         """Returns the Gym spaces for the environment."""
+        """恢复体育馆的环境空间。"""
         return {
             "observation_space": self.observation_space,
             "action_space": self.action_space,
@@ -259,6 +352,8 @@ class RlGamesVecEnvWrapper(IVecEnv):
 
     """
     Operations - MDP
+    """
+    """运营 - MDP
     """
 
     def seed(self, seed: int = -1) -> int:  # noqa: D102
@@ -303,6 +398,8 @@ class RlGamesVecEnvWrapper(IVecEnv):
     """
     Helper functions
     """
+    """助理功能
+    """
 
     def _process_obs(self, obs_dict: VecEnvObs) -> dict[str, torch.Tensor] | dict[str, dict[str, torch.Tensor]]:
         """Processing of the observations and states from the environment.
@@ -318,6 +415,20 @@ class RlGamesVecEnvWrapper(IVecEnv):
             A dictionary for RL-Games with keys:
             - ``"obs"``: either a concatenated tensor (``concate_obs_group=True``) or a Dict of group tensors.
             - ``"states"`` (optional): same structure as above when state groups are configured; omitted otherwise.
+        """
+        """处理环境中的观测和状态。
+
+        说明：
+            国家通常指为批判功能的特权观测。
+            它通常用于不对称的演员批判算法。
+
+        参数：
+            obs_dict: 目前的环境观测。
+
+         返回：
+            对于RL-Games的字典，有键:
+            - ``"obs"``:是连接式子 (``concate_obs_group=True``) 或是组 group子的 Dict。
+            - ``"states"`` (可选):当配置状态组时，相同的结构如上所述；否则省略。
         """
         # move observations to RL device if different from sim device
         if self._rl_device != self._sim_device:
@@ -353,6 +464,14 @@ def make_concat_plan(shapes: list[tuple[int, ...]]) -> tuple[tuple[int, ...], Ca
          2a) If all s[:-1] equal -> concat along last dim (channels-last, dim=-1).
          2b) If all s[1:] equal  -> concat along first dim (channels-first, dim=1).
     """
+    """根据每样品的形状 (不含批量薄)，返回:
+      - 每个样品的连接形状
+      - 一个函数，相应连接批量子列表。
+
+    Rules: 0) 空 -> (0，)， No-op 1) 所有1D -> concat功能 (dim=1)。
+           2) 同等级 > 1: 2a) 如果所有 s[:-1]等于 -> 沿着最后的暗 (道-最后，暗=-1)。
+           2b) 如果所有的s[1:]等于 -> concat沿着第一个暗 (道-第一，暗=1)。
+    """
     if len(shapes) == 0:
         return (0,), lambda x: x
     # case 1: all vectors
@@ -378,10 +497,13 @@ def make_concat_plan(shapes: list[tuple[int, ...]]) -> tuple[tuple[int, ...], Ca
 """
 Environment Handler.
 """
+"""环境管理器。
+"""
 
 
 class RlGamesGpuEnv(IVecEnv):
     """Thin wrapper to create instance of the environment to fit RL-Games runner."""
+    """薄包装，使环境的实例适应RL- 游戏跑步。"""
 
     # TODO: Adding this for now but do we really need this?
 
@@ -391,6 +513,13 @@ class RlGamesGpuEnv(IVecEnv):
         Args:
             config_name: The name of the environment configuration.
             num_actors: The number of actors in the environment. This is not used in this wrapper.
+        """
+        """初始化环境。
+
+        参数：
+            config_name: 环境配置名称
+            num_actors: 环境中的参与者数量
+                        这种包装不用。
         """
         self.env: RlGamesVecEnvWrapper = env_configurations.configurations[config_name]["env_creator"](**kwargs)
 
@@ -406,6 +535,11 @@ class RlGamesGpuEnv(IVecEnv):
         Returns:
             The number of agents in the environment.
         """
+        """查看环境中的代理人数。
+
+        返回：
+            环境中的代理人数。
+        """
         return self.env.get_number_of_agents()
 
     def get_env_info(self) -> dict:
@@ -413,5 +547,10 @@ class RlGamesGpuEnv(IVecEnv):
 
         Returns:
             The Gym spaces for the environment.
+        """
+        """为环境提供Gym空间。
+
+        返回：
+            Gym为环境提供空间。
         """
         return self.env.get_env_info()

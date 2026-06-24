@@ -40,11 +40,28 @@ class SurfaceGripperBinaryAction(ActionTerm):
     The action term is specifically designed for surface grippers, which use a different
     interface than joint-based grippers.
     """
+    """表面抓住器的二进制作用。
+
+    这种动作项将二进制动作映射到 * 开放 * 或 * 关闭 * 表面抓住器配置。
+    表面的行为如下:
+    - [-1， -0.3] --> 抓住器正在开放
+    - [-0.3，0.3] --> 抓住者是无力 (什么都不要做)
+    - [0.3， 1] --> 抓住器正在关闭
+
+    基于上述，我们遵循以下二进制作用的惯例:
+
+    1. 开放动作:1 (bool) 或正值 (float)。
+    2. 接近作用:0 (bool) 或负值 (float)。
+
+    操作项专门用于使用不同于基于关节的接口的表面接口。
+    """
 
     cfg: actions_cfg.SurfaceGripperBinaryActionCfg
     """The configuration of the action term."""
+    """动作项的配置。"""
     _asset: SurfaceGripper
     """The surface gripper asset on which the action term is applied."""
+    """操作项适用于的表面抓住器资产。"""
 
     def __init__(self, cfg: actions_cfg.SurfaceGripperBinaryActionCfg, env: ManagerBasedEnv) -> None:
         # initialize the action term
@@ -67,6 +84,8 @@ class SurfaceGripperBinaryAction(ActionTerm):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def action_dim(self) -> int:
@@ -82,6 +101,8 @@ class SurfaceGripperBinaryAction(ActionTerm):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def process_actions(self, actions: torch.Tensor):
@@ -99,6 +120,7 @@ class SurfaceGripperBinaryAction(ActionTerm):
 
     def apply_actions(self):
         """Apply the processed actions to the surface gripper."""
+        """应将加工的操作应用于表面抓住器。"""
         self._asset.set_grippers_command(self._processed_actions.view(-1))
         self._asset.write_data_to_sim()
 

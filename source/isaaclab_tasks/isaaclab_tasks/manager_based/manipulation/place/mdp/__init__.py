@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """This sub-module contains the functions that are specific to the pick and place environments."""
+"""这一子模块包含特定选择和放置环境的函数。"""
 
 from isaaclab.envs.mdp import *  # noqa: F401, F403
 

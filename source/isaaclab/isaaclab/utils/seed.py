@@ -21,6 +21,16 @@ def configure_seed(seed: int | None, torch_deterministic: bool = False) -> int:
     Returns:
         The seed value that was set.
     """
+    """设置种子在所有随机数生成器上 (火， n，随机，扭曲)。
+
+    参数：
+        seed: 随机种子值。
+              如果None，则产生一个随机种子。
+        torch_deterministic: 如果True，则可为火操作实现确定性模式。
+
+    返回：
+        种子值是设定的。
+    """
     if seed is None or seed == -1:
         seed = 42 if torch_deterministic else random.randint(0, 10000)
 

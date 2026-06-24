@@ -35,6 +35,14 @@ class TriggerType(Enum):
     - TRIGGER_ON_CHANGE: Execute when a specific data variable changes
     - TRIGGER_ON_UPDATE: Execute every frame
     """
+    """视觉回调的触发器类型列表。
+
+    定义应执行回调时间:
+    - TRIGGER_ON_EVENT:执行当特定事件发生时
+    - 执行时间间隔
+    - TRIGGER_ON_CHANGE:当特定数据变量发生变化时执行
+    - 执行每个框架
+    """
 
     TRIGGER_ON_EVENT = 0
     TRIGGER_ON_PERIOD = 1
@@ -48,9 +56,15 @@ class DataCollector:
     This class provides a centralized data store for visualization data,
     with change detection and callback mechanisms for real-time updates.
     """
+    """收集和管理数据以实现可视化目的。
+
+    这类为可视化数据提供一个集中数据存储，
+    with change detection and callback mechanisms for real-time updates.
+    """
 
     def __init__(self):
         """Initialize the data collector with empty data store and callback system."""
+        """启动数据收集器，使用空格数据存储和回调系统。"""
         self._data: dict[str, Any] = {}
         self._visualization_callback: Callable | None = None
         self._changed_flags: set[str] = set()
@@ -67,6 +81,17 @@ class DataCollector:
 
         Returns:
             bool: True if values are equal, False otherwise
+        """
+        """根据其类型，使用适当的方法比较两个值。
+
+        处理包括None，NumPy阵列，PyTorch子和标准Python类型的不同数据类型，以准确检测变化。
+
+        参数：
+            existing_value: 在数据收集器中存储的当前值
+            new_value: 新的比较值
+
+        返回：
+            bool: 如果值等于True，否则False
         """
         # If both are None or one is None
         if existing_value is None or new_value is None:
@@ -101,6 +126,15 @@ class DataCollector:
             name: The name/key of the data field to update
             value: The new value to store (None to remove the field)
         """
+        """更新数据字段并触发变化检测。
+
+        这种方法通过智能变化检测来处理数据更新。
+        它还根据领域名称进行预处理和后处理。
+
+        参数：
+            name: 更新的数据字段名称/关键
+            value: 存储的新值 (None删除该字段)
+        """
         existing_value = self.get_data(name)
 
         if value is None:
@@ -124,6 +158,10 @@ class DataCollector:
         This method should be called regularly to ensure visualization updates
         are processed in a timely manner.
         """
+        """处理正在进行的变化并触发可视化回调。
+
+        这种方法应定期调用，以确保可视化更新及时处理。
+        """
         if len(self._changed_flags) > 0:
             if self._visualization_callback:
                 self._visualization_callback(self._changed_flags)
@@ -138,6 +176,14 @@ class DataCollector:
         Returns:
             The stored value, or None if the field doesn't exist
         """
+        """取名数据。
+
+        参数：
+            name: 获取数据字段名称/关键
+
+        返回：
+            存储值，或者None如果该领域不存在
+        """
         return self._data.get(name)
 
     def set_visualization_callback(self, callback: Callable) -> None:
@@ -145,6 +191,11 @@ class DataCollector:
 
         Args:
             callback: Function to call when data changes, receives set of changed field names
+        """
+        """设置数据变化时调用VisualizationManager回调函数。
+
+        参数：
+            callback: 当数据变化时调用函数，接收了已更改的字段名称集
         """
         self._visualization_callback = callback
 
@@ -155,6 +206,10 @@ class VisualizationManager:
     Provides a framework for registering and executing callbacks based on
     different trigger conditions (events, time periods, data changes).
     """
+    """管理可视化规则和回调的基础类。
+
+    根据不同触发条件 (事件，时间段，数据变化) 进行回调记录和执行的框架。
+    """
 
     # Type aliases for different callback signatures
     StandardCallback = Callable[["VisualizationManager", "DataCollector"], None]
@@ -163,6 +218,7 @@ class VisualizationManager:
 
     class TimeCountdown:
         """Internal class for managing periodic timer-based callbacks."""
+        """内部类型用于管理周期性定制器回调。"""
 
         period: float
         countdown: float
@@ -173,6 +229,11 @@ class VisualizationManager:
 
             Args:
                 period: Time interval in seconds between callback executions
+            """
+            """启动倒计时器。
+
+            参数：
+                period: 召回执行之间的数秒时间间隔
             """
             self.period = period
             self.countdown = initial_countdown
@@ -186,6 +247,14 @@ class VisualizationManager:
 
             Returns:
                 bool: True if callback should be triggered, False otherwise
+            """
+            """更新倒计时器，检查是否应该启动回调。
+
+            参数：
+                current_time: 目前时间
+
+            返回：
+                bool: 如果应启动回调，True，否则False
             """
             self.countdown -= current_time - self.last_time
             self.last_time = current_time
@@ -201,6 +270,11 @@ class VisualizationManager:
 
         Returns:
             dict: Configuration dictionary for message widgets
+        """
+        """获取消息预设配置。
+
+        返回：
+            dict: 信息 widget 的配置字典
         """
         return {
             "prim_path_source": "/_xr/stage/xrCamera",
@@ -219,6 +293,11 @@ class VisualizationManager:
         Returns:
             dict: Configuration dictionary for panel widgets
         """
+        """获取面板插件预设配置。
+
+        返回：
+            dict: 面板 widget 的配置字典
+        """
         return {
             "prim_path_source": "/XRAnchor",
             "translation": Gf.Vec3f(0, 2, 2),  # hard-coded temporarily
@@ -236,6 +315,14 @@ class VisualizationManager:
             name: Unique identifier for the widget. If duplicated, the old one will be removed from scene.
             args: Configuration dictionary for widget appearance and behavior
         """
+        """显示给定的文本和配置。
+
+        参数：
+            text: 在 widget 中显示文本内容
+            name: 唯一的标识符。
+                  如果复制，旧的将从场景删除。
+            args: 配置字典对小工具的外观和行为
+        """
         widget_config = args | {"text": text, "target_prim_path": name}
         show_instruction(**widget_config)
 
@@ -244,6 +331,11 @@ class VisualizationManager:
 
         Args:
             data_collector: DataCollector instance to access the data for visualization use.
+        """
+        """启动可视化管理器。
+
+        参数：
+            data_collector: 访问数据可用于可视化使用的DataCollector实例。
         """
         self.data_collector: DataCollector = data_collector
         data_collector.set_visualization_callback(self.on_change)
@@ -260,6 +352,11 @@ class VisualizationManager:
         Args:
             names: Set of data field names that have changed
         """
+        """通过执行注册回调来处理数据变化。
+
+        参数：
+            names: 已改变的数据字段名称集合
+        """
         for name in names:
             callbacks = self._rules_on_change.get(name)
             if callbacks:
@@ -274,6 +371,10 @@ class VisualizationManager:
 
         This method should be called regularly to ensure periodic callbacks
         are executed at the correct intervals.
+        """
+        """根据需要更新定期计时时间并执行回调。
+
+        这种方法应定期调用，以确保定期回调在正确的间隔中执行。
         """
 
         # Create a copy of the list to avoid modification during iteration
@@ -292,6 +393,11 @@ class VisualizationManager:
 
         Args:
             event: Name of the event that occurred
+        """
+        """通过执行注册回调来处理事件。
+
+        参数：
+            event: 发生的事件名称
         """
         callbacks = self._rules_on_event.get(event)
         if callbacks is None:
@@ -327,6 +433,30 @@ class VisualizationManager:
 
         Raises:
             TypeError: If callback signature doesn't match the expected signature for the trigger type
+        """
+        """根据触发条件执行回调函数。
+
+        参数：
+            trigger: 应执行回调的触发器类型
+            arg: 含有触发器特定参数的字典:
+                - 对于TRIGGER_ON_PERIOD: {"period": float}
+                - 对于 TRIGGER_ON_EVENT: {"event_name": str}
+                - 对于 TRIGGER_ON_CHANGE: {"variable_name": str}
+                - 为了TIGGER_ON_UPDATE: {}
+            callback: 在触发条件达到时执行函数。
+                      根据触发器类型，回调应应具有以下签名:
+                - 对于TIGGER_ON_EVENT:回调
+                        manager: VisualizationManager，
+                        data_collector: DataCollector，
+                        event_params: 任何一个，
+                    )
+                - 其他:回调
+                        manager: VisualizationManager，
+                        data_collector: DataCollector，
+                    )
+
+        异常：
+            TypeError: 如果回调签名不符合预期的签名，
         """
         # Validate callback signature based on trigger type
         self._validate_callback_signature(trigger, callback)
@@ -378,6 +508,15 @@ class VisualizationManager:
             arg: Trigger-specific identifier (event name or variable name)
             callback: The callback function to remove
         """
+        """删除已注册的回调。
+
+        暂时不支持取消定期回调。
+
+        参数：
+            trigger: 取消回调的触发器类型
+            arg: 触发器特定标识符 (事件名称或变量名称)
+            callback: 删除回调函数
+        """
         callbacks = None
         match trigger:
             case TriggerType.TRIGGER_ON_CHANGE:
@@ -401,6 +540,12 @@ class VisualizationManager:
             name: Name of the attribute to set
             value: Value to set the attribute to
         """
+        """设置可视化管理器的属性。
+
+        参数：
+            name: 集合属性的名称
+            value: 将属性设置为
+        """
         setattr(self, name, value)
 
     def _validate_callback_signature(self, trigger: TriggerType, callback: Callable) -> None:
@@ -412,6 +557,15 @@ class VisualizationManager:
 
         Raises:
             TypeError: If callback signature doesn't match expected signature
+        """
+        """验证回调具有触发器类型的正确签名。
+
+        参数：
+            trigger: 回调的触发器类型
+            callback: 验证的回调函数
+
+        异常：
+            TypeError: 如果回调签名不符合预期签名
         """
         try:
             sig = inspect.signature(callback)
@@ -472,6 +626,20 @@ class XRVisualization:
         "approximated_working_space" : list[float]
         "hand_torque_mapping" : list[str]
     """
+    """提供XR可视化功能的Singleton类。
+
+    这个类实现单元模式，以确保整个应用程序中只存在一个可视化系统的实例。
+    它提供了一个集中 API 管理XR可视化功能。
+
+    当管理一个新的事件数据字段时，请在下列列表中添加评论。
+
+    事件名称: "ik_solver_failed"
+
+    数据场:"manipulability_ellipsoid" : list[float] "device_raw_data" : dict
+    "joints_distance_percentage_to_limit" : list[float] "joints_torque" : list[float]
+    "joints_torque_limit" : list[float] "joints_name" : list[str] "wrist_pose" : list[float]
+    "approximated_working_space" : list[float] "hand_torque_mapping" : list[str]
+    """
 
     _lock = threading.Lock()
     _instance: XRVisualization | None = None
@@ -479,6 +647,7 @@ class XRVisualization:
 
     def __init__(self):
         """Prevent direct instantiation."""
+        """防止直接实例化。"""
         raise RuntimeError("Use VisualizationInterface classmethods instead of direct instantiation")
 
     @classmethod
@@ -487,6 +656,11 @@ class XRVisualization:
 
         Returns:
             VisualizationManager: The visualization manager instance
+        """
+        """查看视觉管理器实例。
+
+        返回：
+            VisualizationManager: 视觉管理器实例
         """
         with cls._lock:
             if cls._instance is None:
@@ -502,6 +676,11 @@ class XRVisualization:
         Returns:
             XRVisualization: The singleton instance of the visualization system
         """
+        """无线单机接入。
+
+        返回：
+            XRVisualization: 视觉化系统的单个实例
+        """
         if cls._instance is None:
             return cls.__create_instance()
         elif not cls._instance._registered:
@@ -514,6 +693,11 @@ class XRVisualization:
         Returns:
             bool: True if the visualization system is registered, False otherwise
         """
+        """记录视觉系统。
+
+        返回：
+            bool: 如果可视化系统已注册，则True，否则False
+        """
         if self._registered:
             return True
 
@@ -525,6 +709,7 @@ class XRVisualization:
 
     def _initialize(self, manager: type[VisualizationManager]) -> None:
         """Initialize the singleton instance with data collector and visualization manager."""
+        """使用数据收集器和可视化管理器启动单元实例。"""
 
         self._data_collector = DataCollector()
         self._visualization_manager = manager(self._data_collector)
@@ -541,6 +726,10 @@ class XRVisualization:
         This method should be called regularly (e.g., every frame) to ensure
         visualization updates are processed and periodic callbacks are executed.
         """
+        """更新可视化系统。
+
+        这种方法应该定期调用 (e.g.，每一个框架)，以确保可视化更新进行处理，并执行定期回调。
+        """
         self._visualization_manager.update_loop()
         self._data_collector.update_loop()
 
@@ -551,6 +740,12 @@ class XRVisualization:
         Args:
             name: Name of the event to trigger
             args: Optional arguments for the event (currently unused)
+        """
+        """推出一个事件以触发注册回调。
+
+        参数：
+            name: 引发事件名称
+            args: 对事件的可选参数 (目前未使用)
         """
         instance = cls.__get_instance()
         instance._visualization_manager.on_event(name, args)
@@ -565,6 +760,14 @@ class XRVisualization:
         Args:
             item: Dictionary containing data field names and their values
         """
+        """将数据输入到可视化系统中。
+
+        一次更新多个数据字段。
+        字典中的每个关键值对将由数据收集器处理。
+
+        参数：
+            item: 包含数据字段名称及其值的字典
+        """
         instance = cls.__get_instance()
         for name, value in item.items():
             instance._data_collector.update_data(name, value)
@@ -575,6 +778,12 @@ class XRVisualization:
 
         Args:
             attributes: Dictionary containing configuration keys and values
+        """
+        """设置可视化系统的配置数据。
+        目前未使用。
+
+        参数：
+            attributes: 包含配置键和值的字典
         """
 
         instance = cls.__get_instance()
@@ -587,6 +796,12 @@ class XRVisualization:
 
         Args:
             name: Configuration key
+        """
+        """获取可视化系统的配置数据。
+        目前未使用。
+
+        参数：
+            name: 配置键
         """
         instance = cls.__get_instance()
         return getattr(instance._visualization_manager, name)
@@ -603,6 +818,16 @@ class XRVisualization:
                 - For TRIGGER_ON_CHANGE: {"variable_name": str}
             callback: Function to execute when trigger condition is met
         """
+        """记录视觉事件的回调函数。
+
+        参数：
+            trigger: 应执行回调的触发器类型
+            arg: 含有触发器特定参数的字典:
+                - 对于TRIGGER_ON_PERIOD: {"period": float}
+                - 对于 TRIGGER_ON_EVENT: {"event_name": str}
+                - 对于 TRIGGER_ON_CHANGE: {"variable_name": str}
+            callback: 当触发条件达到时执行的函数
+        """
         instance = cls.__get_instance()
         instance._visualization_manager.register_callback(trigger, arg, callback)
 
@@ -612,6 +837,11 @@ class XRVisualization:
 
         Args:
             manager: Type of the visualization manager to assign
+        """
+        """将可视化管理器类型分配到可视化系统中。
+
+        参数：
+            manager: 指定可视化管理器类型
         """
         if cls._instance is not None:
             logger.error(

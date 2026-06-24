@@ -10,6 +10,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Warp kernels for GPU-accelerated Fabric operations."""
+"""变变核用于GPU加速的织操作。"""
 
 from typing import TYPE_CHECKING, Any
 
@@ -32,6 +33,7 @@ else:
 @wp.kernel(enable_backward=False)
 def set_view_to_fabric_array(fabric_to_view: FabricArrayUInt32, view_to_fabric: ArrayUInt32):
     """Create bidirectional mapping from view indices to fabric indices."""
+    """创建双向地图，从视图索引到布料索引。"""
     fabric_idx = int(wp.tid())
     view_idx = int(fabric_to_view[fabric_idx])
     view_to_fabric[view_idx] = wp.uint32(fabric_idx)
@@ -40,6 +42,7 @@ def set_view_to_fabric_array(fabric_to_view: FabricArrayUInt32, view_to_fabric: 
 @wp.kernel(enable_backward=False)
 def arange_k(a: ArrayUInt32_1d):
     """Fill array with sequential indices."""
+    """填充数组以序列索引。"""
     tid = int(wp.tid())
     a[tid] = wp.uint32(tid)
 
@@ -66,6 +69,19 @@ def decompose_fabric_transformation_matrix_to_warp_arrays(
         array_scales: Output array for scales (N, 3)
         indices: View indices to process
         mapping: Mapping from view indices to fabric indices
+    """
+    """分解布料转换矩阵成位置，方向和尺度阵列。
+
+    这个内核从 Fabric 的 omni:fabric:worldMatrix 属性中提取转换组件，并将它们存储在单独的数组中。
+    它处理了四元数会议转换 (Warp使用xyzw，Isaac Lab使用wxyz)。
+
+    参数：
+        fabric_matrices: 含有4x4转换矩阵的织物阵列
+        array_positions: 位置输出阵列 (N， 3)
+        array_orientations: 在wxyz格式中输出阵列 (N， 4)
+        array_scales: 尺度输出阵列 (N， 3)
+        indices: 查看处理索引
+        mapping: 从视图索引到织物索引的映射
     """
     # Thread index is the output array index (0, 1, 2, ... for N elements)
     output_index = wp.tid()
@@ -125,6 +141,24 @@ def compose_fabric_transformation_matrix_from_warp_arrays(
         indices: View indices to process
         mapping: Mapping from view indices to fabric indices
     """
+    """从位置，方向和尺度阵列组成的织物转换矩阵。
+
+    这个内核更新了Fabric的 omni:fabric:worldMatrix属性。
+    它处理四元数会议转换 (Isaac Lab使用wxyz，Warp使用xyz)。
+
+    在调用这个内核后，应调用IFabricHierarchy.updateWorldXforms() 来通过层次结构传播变化。
+
+    参数：
+        fabric_matrices: 包含4x4转换矩阵的织物阵列进行更新
+        array_positions: 输入阵列为位置 (N， 3) 或None
+        array_orientations: 输入阵列为wxyz格式 (N， 4) 或None的四元数
+        array_scales: 输入阵列为尺度 (N， 3) 或None
+        broadcast_positions: 如果True，则使用所有prims的第一位置
+        broadcast_orientations: 如果True，则使用所有prims的第一方向
+        broadcast_scales: 如果是True，则使用所有prims的第一尺度
+        indices: 查看处理索引
+        mapping: 从视图索引到织物索引的映射
+    """
     i = wp.tid()
     # resolve fabric index
     fabric_index = mapping[indices[i]]
@@ -174,6 +208,14 @@ def _decompose_transformation_matrix(m: Any):  # -> tuple[wp.vec3f, wp.quatf, wp
 
     Returns:
         Tuple of (position, rotation_quaternion, scale)
+    """
+    """分解4x4转换矩阵成位置，方向和规模。
+
+    参数：
+        m: 4x4转换矩阵
+
+    返回：
+        (位置，rotation_quaternion，规模)
     """
     # extract position from translation column
     position = wp.vec3f(m[3, 0], m[3, 1], m[3, 2])

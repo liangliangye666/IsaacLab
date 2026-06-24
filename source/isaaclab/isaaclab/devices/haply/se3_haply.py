@@ -6,6 +6,7 @@
 """Haply device controller for SE3 control with force feedback."""
 
 from __future__ import annotations
+"""通过强力反来控制SE3控制器。"""
 
 import asyncio
 import json
@@ -53,6 +54,29 @@ class HaplyDevice(DeviceBase):
         Install dependencies: pip install websockets
 
     """
+    """一个Haply设备控制器，用于发送SE(3) 命令与力量反。
+
+    这个类提供了Haply机器人设备 (Inverse3 + VerseGrip) 的接口
+    for teleoperation. It communicates via WebSocket and supports:
+
+    - 从Inverse3设备追踪位置
+    - 从VerseGrip设备的导向和按输入
+    - 方向力反向3
+    - 实时数据流量以可配置的速度
+
+    该设备提供原始数据:
+
+    * 位置:从反向3的米中3D位置 (x，y，z)
+    * 方向:从VerseGrip的四元数 (x，y，z，w)
+    * 按:从VerseGrip的三个按 (a，b，c) 有状态 (按下/不按下)
+
+    Note: 所有按逻辑 (e.g.，抓住器控制，重置，模式切换)
+    在应用层中实现，使用原始按状态。
+
+    说明：
+        要求Haply SDK运行并通过WebSocket访问。
+        安装依赖性:pIP安装网关
+    """
 
     def __init__(self, cfg: HaplyDeviceCfg, retargeters: list[RetargeterBase] | None = None):
         """Initialize the Haply device interface.
@@ -65,6 +89,17 @@ class HaplyDevice(DeviceBase):
         Raises:
             ImportError: If websockets module is not installed.
             RuntimeError: If connection to Haply device fails.
+        """
+        """启动 Haply 设备界面。
+
+        参数：
+            cfg: 为 Haply 设备设置的配置对象。
+            retargeters: 可选的重定位组件列表，将设备数据转化为机器人命令。
+                         如果是None或空，设备将输出其原生数据格式。
+
+        异常：
+            ImportError: 如果Websockets模块没有安装。
+            RuntimeError: 如果 Haply 设备连接失败。
         """
         super().__init__(retargeters)
 
@@ -131,6 +166,7 @@ class HaplyDevice(DeviceBase):
 
     def __del__(self):
         """Cleanup on deletion: shutdown WebSocket connection and background thread."""
+        """清除时清除:关闭WebSocket连接和背景线。"""
         if not hasattr(self, "running") or not self.running:
             return
 
@@ -150,6 +186,7 @@ class HaplyDevice(DeviceBase):
 
     def __str__(self) -> str:
         """Returns: A string containing the information of the device."""
+        """Returns: 包含设备信息的字符串。"""
         msg = f"Haply Device Controller: {self.__class__.__name__}\n"
         msg += f"\tWebSocket URI: {self.websocket_uri}\n"
         msg += f"\tInverse3 ID: {self.inverse3_device_id}\n"
@@ -162,6 +199,7 @@ class HaplyDevice(DeviceBase):
 
     def reset(self):
         """Reset the device internal state."""
+        """设置设备内部状态。"""
         with self.force_lock:
             self.feedback_force = {"x": 0.0, "y": 0.0, "z": 0.0}
 
@@ -176,6 +214,14 @@ class HaplyDevice(DeviceBase):
             func: The function to call when button is pressed. The callback function should not
                 take any arguments.
         """
+        """添加额外的函数来绑定按事件。
+
+        参数：
+            key: 按检查。
+                 有效的值是"a"，"b"，"c"。
+            func: 在按时调用函数。
+                  召回函数不应进行任何争论。
+        """
         if key not in ["a", "b", "c"]:
             raise ValueError(f"Invalid button key: {key}. Valid keys are 'a', 'b', 'c'.")
         self._additional_callbacks[key] = func
@@ -188,6 +234,13 @@ class HaplyDevice(DeviceBase):
                 - 10 elements: [x, y, z, qx, qy, qz, qw, button_a, button_b, button_c]
                     where (x, y, z) is position, (qx, qy, qz, qw) is quaternion orientation,
                     and buttons are 1.0 (pressed) or 0.0 (not pressed)
+        """
+        """提供 Haply 设备状态的结果。
+
+        返回：
+            torch.Tensor: 包含原始设备数据的子:
+                - 10个元素: [x， y， z， qx， qy， qz， qw， button_a， button_b， button_c]其中 (x， y， z) 是位置， (qx， qy，
+                  qz， qw) 是四元数方向，按是 1.0 (按压) 或 0.0 (不按压)
         """
         with self.data_lock:
             if not (self.cached_data["inverse3_connected"] and self.cached_data["versegrip_connected"]):
@@ -234,6 +287,15 @@ class HaplyDevice(DeviceBase):
             forces: Tensor of shape (N, 3) with forces [fx, fy, fz].
             position: Tensor of shape (N) with indices specifying which forces to use.
         """
+        """推力向量到Haply Inverse3设备。
+
+        过关DeviceBase.push_force() 为Haply Inverse3提供力量反。
+        为了安全性，将部队裁剪到 [-limit_force， limit_force] 范围。
+
+        参数：
+            forces: 形状的电力 (N，3) 与力量 [fx， fy， fz]。
+            position: 形状度 (N)，指标说明使用的力量。
+        """
         # Check if forces is empty
         if forces.shape[0] == 0:
             raise ValueError("No forces provided")
@@ -252,6 +314,7 @@ class HaplyDevice(DeviceBase):
 
     def _start_websocket_thread(self):
         """Start WebSocket connection thread."""
+        """启动WebSocket连接线。"""
 
         def websocket_thread():
             loop = asyncio.new_event_loop()
@@ -263,6 +326,7 @@ class HaplyDevice(DeviceBase):
 
     async def _websocket_loop(self):
         """WebSocket data reading and writing loop."""
+        """WebSocket数据阅读和写作循环。"""
         while self.running:
             try:
                 async with websockets.connect(self.websocket_uri, ping_interval=None, ping_timeout=None) as ws:
@@ -386,6 +450,14 @@ class HaplyDeviceCfg(DeviceCfg):
         pos_sensitivity: Position sensitivity scaling factor
         data_rate: Data exchange rate in Hz
         limit_force: Maximum force magnitude in Newtons (safety limit)
+    """
+    """设置 Haply 设备。
+
+    属性：
+        websocket_uri: WebSocket URI 对于 Haply SDK连接
+        pos_sensitivity: 位置敏感度扩展因素
+        data_rate: 数据汇率在Hz
+        limit_force: 牛顿的最大力大小 (安全限制)
     """
 
     websocket_uri: str = "ws://localhost:10001"

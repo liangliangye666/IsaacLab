@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Test cases for LocalFrameTask class."""
+"""对LocalFrameTask类的测试案例。"""
 
 # Import pinocchio in the main script to force the use of the dependencies installed
 # by IsaacLab and not the one installed by Isaac Sim
@@ -34,18 +35,21 @@ from isaaclab.controllers.pink_ik.pink_kinematics_configuration import PinkKinem
 @pytest.fixture
 def urdf_path():
     """Path to test URDF file."""
+    """测试URDF文件的路径。"""
     return Path(__file__).parent / "urdfs" / "test_urdf_two_link_robot.urdf"
 
 
 @pytest.fixture
 def controlled_joint_names():
     """List of controlled joint names for testing."""
+    """测试的控制联合名称列表。"""
     return ["joint_1", "joint_2"]
 
 
 @pytest.fixture
 def pink_config(urdf_path, controlled_joint_names):
     """Create a PinkKinematicsConfiguration instance for testing."""
+    """为测试创建一个PinkKinematicsConfiguration实例。"""
     return PinkKinematicsConfiguration(
         urdf_path=str(urdf_path),
         controlled_joint_names=controlled_joint_names,
@@ -57,6 +61,7 @@ def pink_config(urdf_path, controlled_joint_names):
 @pytest.fixture
 def local_frame_task():
     """Create a LocalFrameTask instance for testing."""
+    """为测试创建一个LocalFrameTask实例。"""
     return LocalFrameTask(
         frame="link_2",
         base_link_frame_name="base_link",
@@ -69,6 +74,7 @@ def local_frame_task():
 
 def test_initialization(local_frame_task):
     """Test proper initialization of LocalFrameTask."""
+    """测试LocalFrameTask的正确初始化。"""
     # Check that the task is properly initialized
     assert local_frame_task.frame == "link_2"
     assert local_frame_task.base_link_frame_name == "base_link"
@@ -83,6 +89,7 @@ def test_initialization(local_frame_task):
 
 def test_initialization_with_sequence_costs():
     """Test initialization with sequence costs."""
+    """测试初始化与序列成本。"""
     task = LocalFrameTask(
         frame="link_1",
         base_link_frame_name="base_link",
@@ -102,6 +109,7 @@ def test_initialization_with_sequence_costs():
 
 def test_inheritance_from_frame_task(local_frame_task):
     """Test that LocalFrameTask properly inherits from FrameTask."""
+    """测试是否LocalFrameTask正确继承FrameTask。"""
     from pink.tasks.frame_task import FrameTask
 
     # Check inheritance
@@ -114,6 +122,7 @@ def test_inheritance_from_frame_task(local_frame_task):
 
 def test_set_target(local_frame_task):
     """Test setting target with a transform."""
+    """测试设置目标，用转换。"""
     # Create a test transform
     target_transform = pin.SE3.Identity()
     target_transform.translation = np.array([0.1, 0.2, 0.3])
@@ -136,6 +145,7 @@ def test_set_target(local_frame_task):
 
 def test_set_target_from_configuration(local_frame_task, pink_config):
     """Test setting target from a robot configuration."""
+    """从机器人配置测试设置目标。"""
     # Set target from configuration
     local_frame_task.set_target_from_configuration(pink_config)
 
@@ -146,12 +156,14 @@ def test_set_target_from_configuration(local_frame_task, pink_config):
 
 def test_set_target_from_configuration_wrong_type(local_frame_task):
     """Test that set_target_from_configuration raises error with wrong type."""
+    """测试是否set_target_from_configuration带来错误。"""
     with pytest.raises(ValueError, match="configuration must be a PinkKinematicsConfiguration"):
         local_frame_task.set_target_from_configuration("not_a_configuration")
 
 
 def test_compute_error_with_target_set(local_frame_task, pink_config):
     """Test computing error when target is set."""
+    """在设置目标时测试计算错误。"""
     # Set a target
     target_transform = pin.SE3.Identity()
     target_transform.translation = np.array([0.1, 0.2, 0.3])
@@ -170,12 +182,14 @@ def test_compute_error_with_target_set(local_frame_task, pink_config):
 
 def test_compute_error_without_target(local_frame_task, pink_config):
     """Test that compute_error raises error when no target is set."""
+    """在没有设置目标时，测试compute_error会产生错误。"""
     with pytest.raises(ValueError, match="no target set for frame 'link_2'"):
         local_frame_task.compute_error(pink_config)
 
 
 def test_compute_error_wrong_configuration_type(local_frame_task):
     """Test that compute_error raises error with wrong configuration type."""
+    """测试是否compute_error带来错误的配置类型。"""
     # Set a target first
     target_transform = pin.SE3.Identity()
     local_frame_task.set_target(target_transform)
@@ -186,6 +200,7 @@ def test_compute_error_wrong_configuration_type(local_frame_task):
 
 def test_compute_jacobian_with_target_set(local_frame_task, pink_config):
     """Test computing Jacobian when target is set."""
+    """在设置目标时，测试 Jacobian 计算。"""
     # Set a target
     target_transform = pin.SE3.Identity()
     target_transform.translation = np.array([0.1, 0.2, 0.3])
@@ -204,12 +219,14 @@ def test_compute_jacobian_with_target_set(local_frame_task, pink_config):
 
 def test_compute_jacobian_without_target(local_frame_task, pink_config):
     """Test that compute_jacobian raises error when no target is set."""
+    """在没有设置目标时，测试compute_jacobian会产生错误。"""
     with pytest.raises(Exception, match="no target set for frame 'link_2'"):
         local_frame_task.compute_jacobian(pink_config)
 
 
 def test_error_consistency_across_configurations(local_frame_task, pink_config):
     """Test that error computation is consistent across different configurations."""
+    """测试错误计算在不同的配置中一致。"""
     # Set a target
     target_transform = pin.SE3.Identity()
     target_transform.translation = np.array([0.1, 0.2, 0.3])
@@ -232,6 +249,7 @@ def test_error_consistency_across_configurations(local_frame_task, pink_config):
 
 def test_jacobian_consistency_across_configurations(local_frame_task, pink_config):
     """Test that Jacobian computation is consistent across different configurations."""
+    """测试Jacobian计算在不同的配置中一致。"""
     # Set a target
     target_transform = pin.SE3.Identity()
     target_transform.translation = np.array([0.1, 0.2, 0.3])
@@ -254,6 +272,7 @@ def test_jacobian_consistency_across_configurations(local_frame_task, pink_confi
 
 def test_error_zero_at_target_pose(local_frame_task, pink_config):
     """Test that error is zero when current pose matches target pose."""
+    """当当前姿势与目标姿势相匹配时，测试错误为零。"""
     # Get current transform of the frame
     current_transform = pink_config.get_transform_frame_to_world("link_2")
 
@@ -269,6 +288,7 @@ def test_error_zero_at_target_pose(local_frame_task, pink_config):
 
 def test_different_frames(pink_config):
     """Test LocalFrameTask with different frame names."""
+    """测试LocalFrameTask用不同的框架名称。"""
     # Test with link_1 frame
     task_link1 = LocalFrameTask(
         frame="link_1",
@@ -300,6 +320,7 @@ def test_different_frames(pink_config):
 
 def test_different_base_frames(pink_config):
     """Test LocalFrameTask with different base frame names."""
+    """测试LocalFrameTask用不同的基架名称。"""
     # Test with base_link as base frame
     task_base_base = LocalFrameTask(
         frame="link_2",
@@ -328,6 +349,7 @@ def test_different_base_frames(pink_config):
 
 def test_sequence_cost_parameters():
     """Test LocalFrameTask with sequence cost parameters."""
+    """用序列成本参数测试LocalFrameTask。"""
     task = LocalFrameTask(
         frame="link_2",
         base_link_frame_name="base_link",
@@ -345,6 +367,7 @@ def test_sequence_cost_parameters():
 
 def test_error_magnitude_consistency(local_frame_task, pink_config):
     """Test that error computation produces reasonable results."""
+    """测试错误计算是否产生合理的结果。"""
     # Set a small target offset
     small_target = pin.SE3.Identity()
     small_target.translation = np.array([0.01, 0.01, 0.01])
@@ -367,6 +390,7 @@ def test_error_magnitude_consistency(local_frame_task, pink_config):
 
 def test_jacobian_structure(local_frame_task, pink_config):
     """Test that Jacobian has the correct structure."""
+    """检查Jacobian有正确的结构。"""
     # Set a target
     target_transform = pin.SE3.Identity()
     target_transform.translation = np.array([0.1, 0.2, 0.3])
@@ -384,6 +408,7 @@ def test_jacobian_structure(local_frame_task, pink_config):
 
 def test_multiple_target_updates(local_frame_task, pink_config):
     """Test that multiple target updates work correctly."""
+    """测试多个目标更新是否正常工作。"""
     # Set first target
     target1 = pin.SE3.Identity()
     target1.translation = np.array([0.1, 0.0, 0.0])
@@ -404,6 +429,7 @@ def test_multiple_target_updates(local_frame_task, pink_config):
 
 def test_inheritance_behavior(local_frame_task):
     """Test that LocalFrameTask properly overrides parent class methods."""
+    """测试是否LocalFrameTask正确取代了母类方法。"""
     # Check that the class has the expected methods
     assert hasattr(local_frame_task, "set_target")
     assert hasattr(local_frame_task, "set_target_from_configuration")
@@ -418,6 +444,7 @@ def test_inheritance_behavior(local_frame_task):
 
 def test_target_copying_behavior(local_frame_task):
     """Test that target transforms are properly copied."""
+    """测试目标转换是否正确复制。"""
     # Create a target transform
     original_target = pin.SE3.Identity()
     original_target.translation = np.array([0.1, 0.2, 0.3])
@@ -437,6 +464,7 @@ def test_target_copying_behavior(local_frame_task):
 
 def test_error_computation_with_orientation_difference(local_frame_task, pink_config):
     """Test error computation when there's an orientation difference."""
+    """测试错误计算，当有方向差异时。"""
     # Set a target with orientation difference
     target_transform = pin.SE3.Identity()
     target_transform.rotation = pin.exp3(np.array([0.2, 0.0, 0.0]))  # Rotation around X-axis
@@ -455,6 +483,7 @@ def test_error_computation_with_orientation_difference(local_frame_task, pink_co
 
 def test_jacobian_rank_consistency(local_frame_task, pink_config):
     """Test that Jacobian maintains consistent shape across configurations."""
+    """测试Jacobian在配置中保持一致的形状。"""
     # Set a target that we know can be reached by the test robot.
     target_transform = pin.SE3.Identity()
     target_transform.translation = np.array([0.0, 0.0, 0.45])

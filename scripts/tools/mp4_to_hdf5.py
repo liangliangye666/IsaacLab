@@ -16,6 +16,15 @@ required arguments:
     --output_file        Path to save the new HDF5 file with augmented videos.
     --videos_dir         Directory containing the visually augmented MP4 videos.
 """
+"""通过将现有HDF5示范与视觉增强的MP4视频结合起来创建新的数据集。
+
+该脚本采用现有的HDF5数据集，包含示范和MP4视频目录，这些视觉增强版本是原始示范视频 (e.g.，具有不同的照明，颜色方案或视觉效果)。
+它创建了一个新的HDF5数据集，保存了所有原始示范数据 (动作，机器人状态等)，但用增强版本取代了视频框架。
+
+要求的参数:--input_file 输入 HDF5 文件中包含原始示范的路径。
+--output_file拯救新的道路HDF5增加视频的文件。
+包含视觉增强的MP4视频的--videos_dir目录。
+"""
 
 import argparse
 import glob
@@ -28,6 +37,7 @@ import numpy as np
 
 def parse_args():
     """Parse command line arguments."""
+    """分析命令行参数。"""
     parser = argparse.ArgumentParser(description="Create a new dataset with visually augmented videos.")
     parser.add_argument(
         "--input_file",
@@ -63,6 +73,18 @@ def get_frames_from_mp4(video_path, target_height=None, target_width=None):
 
     Returns:
         np.ndarray: Array of frames from the video in RGB format.
+    """
+    """从MP4视频文件中提取框架。
+
+    参数：
+        video_path (str): 进入MP4视频文件的路径。
+        target_height (int, optional): 目标高度用于调整框架。
+                                       如果 None，则不会进行任何调整。
+        target_width (int, optional): 目标宽度用于调整框架。
+                                      如果 None，则不会进行任何调整。
+
+    返回：
+        np.ndarray: 在RGB格式的视频中的框架阵列。
     """
     # Open the video file
     video = cv2.VideoCapture(video_path)
@@ -100,6 +122,15 @@ def process_video_and_demo(f_in, f_out, video_path, orig_demo_id, new_demo_id):
         orig_demo_id (int): ID of the original demo to copy.
         new_demo_id (int): ID for the new demo.
     """
+    """处理单个视频并创建一个新的演示，
+
+    参数：
+        f_in (h5py.File): 输入HDF5文件。
+        f_out (h5py.File): 输出HDF5文件。
+        video_path (str): 增加视频文件的路径。
+        orig_demo_id (int): ID在本文中，
+        new_demo_id (int): ID在新演示中。
+    """
     # Get original demo data
     actions = f_in[f"data/demo_{str(orig_demo_id)}/actions"]
     eef_pos = f_in[f"data/demo_{str(orig_demo_id)}/obs/eef_pos"]
@@ -132,6 +163,7 @@ def process_video_and_demo(f_in, f_out, video_path, orig_demo_id, new_demo_id):
 
 def main():
     """Main function to create a new dataset with augmented videos."""
+    """创建一个新的数据集，"""
     # Parse command line arguments
     args = parse_args()
 

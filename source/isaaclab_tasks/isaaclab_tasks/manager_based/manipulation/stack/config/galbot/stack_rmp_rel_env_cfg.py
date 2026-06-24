@@ -37,6 +37,7 @@ from isaaclab.markers.config import FRAME_MARKER_CFG  # isort: skip
 @configclass
 class RmpFlowGalbotLeftArmCubeStackEnvCfg(stack_joint_pos_env_cfg.GalbotLeftArmCubeStackEnvCfg):
     """Configuration for the Galbot Left Arm Cube Stack Environment."""
+    """对于Galbot左臂立方体堆环境的配置。"""
 
     def __post_init__(self):
         # post init of parent

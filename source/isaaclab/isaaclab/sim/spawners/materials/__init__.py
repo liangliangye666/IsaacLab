@@ -51,6 +51,53 @@ Usage:
 .. _USD Material Binding API: https://openusd.org/dev/api/class_usd_shade_material_binding_a_p_i.html
 .. _Physics Scene: https://openusd.org/dev/api/usd_physics_page_front.html
 """
+"""对于产物产物以USD和PhysX为基础的材料的子模块。
+
+`Materials`_用于定义仿真中的对象的外观和物理性质。
+在全宇宙中，它们是用NVIDIA的`Material Definition Language (MDL)`_定义的。
+MDL是基于基于物理的渲染 (PBR) 模型，这是一组描述光与表面相互作用的方程。
+采用PBR模型来制造现实看似的材料。
+
+虽然MDL主要用于定义对象的外观，但可以扩展到对象的物理特性。
+例如，材料的摩擦和恢复系数。
+可以将`physics material`_分配给物理对象来定义其物理特性。
+物理材料有不同的类型，例如硬体材料，可变形材料和流体材料。
+
+为了将物质应用到物体上，我们将物体的几何结构"绑定"到物体上。
+我们使用`USD Material Binding API`_。
+材料结合API接收到几何的路径和材料的路径，并将它们结合在一起。
+
+对于物理材料，材料与"物理"目的的物理对象有关。
+在对象的物理材料属性分析时，使用以下优先级:
+
+1. "物理"目的的材料 (物理材料)
+2. 无目的的结合材料 (视觉材料)
+3. 在`Physics Scene`_prim上具有"物理"目的的材料结合。
+4. 在PhysX内部的材料性能的默认值。
+
+Usage:
+    .. code-block:: python
+
+        import isaaclab.sim as sim_utils
+
+        # create a visual material
+        visual_material_cfg = sim_utils.GlassMdlCfg(glass_ior=1.0, thin_walled=True)
+        visual_material_cfg.func("/World/Looks/glassMaterial", visual_material_cfg)
+
+        # create a mesh prim
+        cube_cfg = sim_utils.CubeCfg(size=[1.0, 1.0, 1.0])
+        cube_cfg.func("/World/Primitives/Cube", cube_cfg)
+
+        # bind the cube to the visual material
+        sim_utils.bind_visual_material("/World/Primitives/Cube", "/World/Looks/glassMaterial")
+
+
+.. _Material Definition Language (MDL): https://raytracing-docs.nvidia.com/mdl/introduction/index.html#mdl_introduction#
+.. _Materials: https://docs.omniverse.nvidia.com/materials-and-rendering/latest/materials.html
+.. _physics material: https://isaac-sim.github.io/IsaacLab/main/source/api/lab/isaaclab.sim.html#isaaclab.sim.SimulationCfg.physics_material
+.. _USD Material Binding API: https://openusd.org/dev/api/class_usd_shade_material_binding_a_p_i.html
+.. _Physics Scene: https://openusd.org/dev/api/usd_physics_page_front.html
+"""
 
 from .physics_materials import spawn_deformable_body_material, spawn_rigid_body_material
 from .physics_materials_cfg import DeformableBodyMaterialCfg, PhysicsMaterialCfg, RigidBodyMaterialCfg

@@ -87,6 +87,7 @@ class WandbArgs:
 
 def dump_env_sizes():
     """Print summary of environment variable usage (count, bytes, top-5 largest, SC_ARG_MAX)."""
+    """打印环境变量使用总结 (数量，字节，最大5个，SC_ARG_MAX)。"""
 
     n = len(os.environ)
     # total bytes in "KEY=VAL\0" for all envp entries
@@ -107,6 +108,7 @@ def dump_env_sizes():
 
 def flatten_dict(d, prefix="", separator="."):
     """Flatten nested dictionaries into a flat dict with keys joined by `separator`."""
+    """方平的字典嵌入一个方平的句子，关键连接到`separator`。"""
 
     res = dict()
     for key, value in d.items():
@@ -120,6 +122,7 @@ def flatten_dict(d, prefix="", separator="."):
 
 def find_free_port(max_tries: int = 20) -> int:
     """Return an OS-assigned free TCP port, with a few retries; fall back to a random high port."""
+    """返回一个 OS分配的免费TCP端口，再尝试几次；回到一个随机高端口。"""
     for _ in range(max_tries):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             try:
@@ -132,6 +135,7 @@ def find_free_port(max_tries: int = 20) -> int:
 
 def filter_params(params, params_to_mutate):
     """Filter `params` to only those in `params_to_mutate`, converting str floats (e.g. '1e-4') to float."""
+    """仅将`params`过到`params_to_mutate`中，将str floats (e.g。 '1e-4') 转换为 float。"""
 
     def try_float(v):
         if isinstance(v, str):
@@ -146,6 +150,7 @@ def filter_params(params, params_to_mutate):
 
 def save_pbt_checkpoint(workspace_dir, curr_policy_score, curr_iter, algo, params):
     """Save a PBT checkpoint (.pth and .yaml) with policy state, score, and metadata (rank 0 only)."""
+    """保存一个PBT检查点 (.pth和 .yaml) 与策略状态，分数和元数据 (仅排名为0)。"""
     if int(os.environ.get("RANK", "0")) == 0:
         checkpoint_file = os.path.join(workspace_dir, f"{curr_iter:06d}.pth")
         safe_save(algo.get_full_state_weights(), checkpoint_file)
@@ -169,6 +174,10 @@ def load_pbt_ckpts(workspace_dir, cur_policy_id, num_policies, pbt_iteration) ->
     """
     Load the latest available PBT checkpoint for each policy (≤ current iteration).
     Returns a dict mapping policy_idx → checkpoint dict or None. (rank 0 only)
+    """
+    """输入每个策略的最新可用PBT检查点 (≤当前代)。
+    返回一个直角地图 policy_idx →检查点直角或 None。
+    (仅排名为0)
     """
     if int(os.environ.get("RANK", "0")) != 0:
         return None
@@ -208,6 +217,10 @@ def cleanup(checkpoints: dict[int, dict], policy_dir, keep_back: int = 20, max_y
     - Delete files older than (oldest iteration - keep_back).
     - Keep at most `max_yaml` latest YAML iterations.
     """
+    """清除现行策略目录的旧检查点 (仅排名为0)。
+    - 删除较老的文件 (最老的回复 - keep_back)。
+    - 保持最多`max_yaml`最新YAML代。
+    """
     if int(os.environ.get("RANK", "0")) == 0:
         oldest = min((ckpt["iteration"] if ckpt else 0) for ckpt in checkpoints.values())
         threshold = max(0, oldest - keep_back)
@@ -235,6 +248,7 @@ def cleanup(checkpoints: dict[int, dict], policy_dir, keep_back: int = 20, max_y
 
 class PbtTablePrinter:
     """All PrettyTable-related rendering lives here."""
+    """所有与PrettyTable相关的转载都在这里。"""
 
     def __init__(self, *, float_digits: int = 6, path_maxlen: int = 52):
         self.float_digits = float_digits

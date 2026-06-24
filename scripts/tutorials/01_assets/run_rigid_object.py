@@ -12,8 +12,16 @@ This script demonstrates how to create a rigid object and interact with it.
     ./isaaclab.sh -p scripts/tutorials/01_assets/run_rigid_object.py
 
 """
+"""这本脚本展示了如何创建一个硬体和与它交互。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/01_assets/run_rigid_object.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -32,6 +40,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -43,6 +52,7 @@ from isaaclab.sim import SimulationContext
 
 def design_scene():
     """Designs the scene."""
+    """他设计了场景。"""
     # Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
     cfg.func("/World/defaultGroundPlane", cfg)
@@ -84,6 +94,7 @@ def design_scene():
 
 def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, RigidObject], origins: torch.Tensor):
     """Runs the simulation loop."""
+    """运行仿真循环。"""
     # Extract scene entities
     # note: we only do this here for readability. In general, it is better to access the entities directly from
     #   the dictionary. This dictionary is replaced by the InteractiveScene class in the next tutorial.
@@ -135,6 +146,7 @@ def run_simulator(sim: sim_utils.SimulationContext, entities: dict[str, RigidObj
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
     sim = SimulationContext(sim_cfg)

@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -16,6 +17,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import numpy as np
 import torch
@@ -26,6 +28,7 @@ from isaaclab.envs.utils.spaces import deserialize_space, sample_space, serializ
 
 def test_spec_to_gym_space():
     """Test conversion of specs to gym spaces."""
+    """测试将规格转换为Gym空间。"""
     # fundamental spaces
     # Box
     space = spec_to_gym_space(1)
@@ -71,6 +74,7 @@ def test_spec_to_gym_space():
 
 def test_sample_space():
     """Test sampling from gym spaces."""
+    """在体育场所进行测试。"""
     device = "cpu"
     # fundamental spaces
     # Box
@@ -98,6 +102,7 @@ def test_sample_space():
 
 def test_space_serialization_deserialization():
     """Test serialization and deserialization of gym spaces."""
+    """测试Gym空间的序列化和反序列化。"""
     # fundamental spaces
     # Box
     space = 1
@@ -153,6 +158,7 @@ def test_space_serialization_deserialization():
 
 def _check_tensorized(sample, batch_size):
     """Helper function to check if a sample is properly tensorized."""
+    """帮助函数检查样本是否正确缩。"""
     if isinstance(sample, (tuple, list)):
         list(map(_check_tensorized, sample, [batch_size] * len(sample)))
     elif isinstance(sample, dict):

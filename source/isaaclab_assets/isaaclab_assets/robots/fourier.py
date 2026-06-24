@@ -13,6 +13,15 @@ The following configuration parameters are available:
 
 Reference: https://www.fftai.com/products-gr1
 """
+"""福利尔机器人的配置。
+
+下列配置参数可用:
+
+* :obj:`GR1T2_CFG`其他:GR1T2人类型。
+* :obj:`GR1T2_HIGH_PD_CFG`:GR1T2的人类型配置在上部关节上获得高的PD增长，用于选择位置操纵任务。
+
+Reference: https://www.fftai.com/products-gr1
+"""
 
 import torch
 
@@ -125,6 +134,7 @@ GR1T2_CFG = ArticulationCfg(
     },
 )
 """Configuration for the GR1T2 Humanoid robot."""
+"""对于GR1T2人形机器人的配置。"""
 
 
 GR1T2_HIGH_PD_CFG = GR1T2_CFG.replace(
@@ -162,3 +172,4 @@ GR1T2_HIGH_PD_CFG = GR1T2_CFG.replace(
     },
 )
 """Configuration for the GR1T2 Humanoid robot configured for with high PD gains for pick-place manipulation tasks."""
+"""配置GR1T2人形机器人，为选择位置操纵任务配置PD高效率。"""

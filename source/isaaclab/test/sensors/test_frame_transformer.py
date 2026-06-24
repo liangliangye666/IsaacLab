@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import math
 
@@ -34,12 +36,14 @@ from isaaclab_assets.robots.anymal import ANYMAL_C_CFG  # isort:skip
 
 def quat_from_euler_rpy(roll, pitch, yaw, degrees=False):
     """Converts Euler XYZ to Quaternion (w, x, y, z)."""
+    """转换Euler XYZ为四元数 (w，x，y，z)。"""
     quat = tf.Rotation.from_euler("xyz", (roll, pitch, yaw), degrees=degrees).as_quat()
     return tuple(quat[[3, 0, 1, 2]].tolist())
 
 
 def euler_rpy_apply(rpy, xyz, degrees=False):
     """Applies rotation from Euler XYZ on position vector."""
+    """在位置向量上，从Euler XYZ进行旋转。"""
     rot = tf.Rotation.from_euler("xyz", rpy, degrees=degrees)
     return tuple(rot.apply(xyz).tolist())
 
@@ -47,6 +51,7 @@ def euler_rpy_apply(rpy, xyz, degrees=False):
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
     """Example scene configuration."""
+    """例如场景配置。"""
 
     # terrain - flat terrain plane
     terrain = TerrainImporterCfg(prim_path="/World/ground", terrain_type="plane")
@@ -74,6 +79,7 @@ class MySceneCfg(InteractiveSceneCfg):
 @pytest.fixture
 def sim():
     """Create a simulation context."""
+    """创建一个仿真环境。"""
     # Create a new stage
     sim_utils.create_new_stage()
     # Load kit helper
@@ -90,6 +96,11 @@ def test_frame_transformer_feet_wrt_base(sim):
     """Test feet transformations w.r.t. base source frame.
 
     In this test, the source frame is the robot base.
+    """
+    """测试脚变化w.r.t。
+    基源框架。
+
+    在这个测试中，源框架是机器人基。
     """
     # Spawn things into stage
     scene_cfg = MySceneCfg(num_envs=32, env_spacing=5.0, lazy_sensor_update=False)
@@ -210,6 +221,9 @@ def test_frame_transformer_feet_wrt_base(sim):
 
 def test_frame_transformer_feet_wrt_thigh(sim):
     """Test feet transformation w.r.t. thigh source frame."""
+    """测试脚转换w.r.t。
+    腿部源框架。
+    """
     # Spawn things into stage
     scene_cfg = MySceneCfg(num_envs=32, env_spacing=5.0, lazy_sensor_update=False)
     scene_cfg.frame_transformer = FrameTransformerCfg(
@@ -307,6 +321,7 @@ def test_frame_transformer_feet_wrt_thigh(sim):
 
 def test_frame_transformer_robot_body_to_external_cube(sim):
     """Test transformation from robot body to a cube in the scene."""
+    """试验从机器人身体转化为场景的立方体。"""
     # Spawn things into stage
     scene_cfg = MySceneCfg(num_envs=2, env_spacing=5.0, lazy_sensor_update=False)
     scene_cfg.frame_transformer = FrameTransformerCfg(
@@ -388,6 +403,11 @@ def test_frame_transformer_offset_frames(sim):
     """Test body transformation w.r.t. base source frame.
 
     In this test, the source frame is the cube frame.
+    """
+    """测试体变化w.r.t。
+    基源框架。
+
+    在这个测试中，源框是立方框。
     """
     # Spawn things into stage
     scene_cfg = MySceneCfg(num_envs=2, env_spacing=5.0, lazy_sensor_update=False)
@@ -487,6 +507,13 @@ def test_frame_transformer_all_bodies(sim):
 
     The target_frames are all bodies in the robot, implemented using .* pattern.
     """
+    """测试所有机体的转换 w.r.t。
+    基源框架。
+
+    在这个测试中，源框架是机器人基。
+
+    所有的target_frames都是机器人中的体，
+    """
     # Spawn things into stage
     scene_cfg = MySceneCfg(num_envs=2, env_spacing=5.0, lazy_sensor_update=False)
     scene_cfg.frame_transformer = FrameTransformerCfg(
@@ -572,6 +599,7 @@ def test_frame_transformer_all_bodies(sim):
 @pytest.mark.isaacsim_ci
 def test_sensor_print(sim):
     """Test sensor print is working correctly."""
+    """测试传感器打印正确工作。"""
     # Spawn things into stage
     scene_cfg = MySceneCfg(num_envs=2, env_spacing=5.0, lazy_sensor_update=False)
     scene_cfg.frame_transformer = FrameTransformerCfg(
@@ -620,11 +648,31 @@ def test_frame_transformer_duplicate_body_names(sim, source_robot, path_prefix):
                       duplicate body names.
         path_prefix: The path prefix to use ("{ENV_REGEX_NS}" for env patterns or "/World" for direct paths).
     """
+    """在不同层次的层次上测试具有相同的叶子名称的追踪机体。
+
+    本测试验验证，相同的叶子名称但不同的路径 (e.g.，机器人/LF_SHANK vs Robot_1/LF_SHANK，或手臂/链接与腿/链接) 的物体通过内部使用它们的完全相对路径进行单独跟踪。
+
+    试验采用4个目标框架来覆盖两种情况:
+
+    显而易见的框架名称 (建议在机体共享相同的叶子名称时):用户提供"Robot_LF_SHANK"和"Robot_1_LF_SHANK"等独特名称，以区分不同层次的机体。
+    这使得很容易识别哪个转变属于哪个身体。
+
+    暗示框架名称 (后退兼容性):如果没有提供名称，则默认地将其设置为页面体名称 (e.g.， "RF_SHANK")。
+    这可以保证`idx = target_frame_names.index("RF_SHANK")`等现有代码的用户的后退兼容性。
+    但是，当多个体有相同的叶子名称时，这会导致重复的框架名称。
+    转变仍然是不同的，因为身体内部跟踪使用了完全相对的路径。
+
+    参数：
+        source_robot: 作为源框架使用的机器人 ("机器人"或"机器人_1")。
+                      在有重复体名时，这项测试表明两个源框架都正常工作。
+        path_prefix: 使用的路径前 ("{ENV_REGEX_NS}"用于env模式或"/世界"用于直接路径)。
+    """
 
     # Create a custom scene config with two robots
     @configclass
     class MultiRobotSceneCfg(InteractiveSceneCfg):
         """Scene with two robots having bodies with same names."""
+        """两个机器人有相同的名字的尸体。"""
 
         terrain = TerrainImporterCfg(prim_path="/World/ground", terrain_type="plane")
 

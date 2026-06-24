@@ -4,3 +4,4 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Fixed-arm environments with end-effector pose tracking commands."""
+"""固定臂环境，末端执行器设置跟踪命令。"""

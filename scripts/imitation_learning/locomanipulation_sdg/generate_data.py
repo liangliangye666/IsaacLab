@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to replay demonstrations with Isaac Lab environments."""
+"""脚本将与艾萨克实验室环境进行演示。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -138,50 +140,65 @@ from isaaclab_tasks.utils import parse_env_cfg
 
 class LocomanipulationSDGDataGenerationState(enum.IntEnum):
     """States for the locomanipulation SDG data generation state machine."""
+    """位置操作SDG数据生成状态机的状态。"""
 
     GRASP_OBJECT = 0
     """Robot grasps object at start position"""
+    """机器人在起始位置抓住物体"""
 
     LIFT_OBJECT = 1
     """Robot lifts object while stationary"""
+    """机器人在静止时提起物体"""
 
     NAVIGATE = 2
     """Robot navigates to approach position with object"""
+    """机器人导航接近物体的位置"""
 
     APPROACH = 3
     """Robot approaches final goal position"""
+    """机器人接近最终目标位置"""
 
     DROP_OFF_OBJECT = 4
     """Robot places object at end position"""
+    """机器人将物体置于终点位置"""
 
     DONE = 5
     """Task completed"""
+    """完成任务"""
 
 
 @configclass
 class LocomanipulationSDGControlConfig:
     """Configuration for navigation control parameters."""
+    """对导航控制参数的配置。"""
 
     angular_gain: float = 2.0
     """Proportional gain for angular velocity control"""
+    """对角速度控制的比例增长"""
 
     linear_gain: float = 1.0
     """Proportional gain for linear velocity control"""
+    """对线性速度控制的比例增长"""
 
     linear_max: float = 1.0
     """Maximum allowed linear velocity (m/s)"""
+    """最允许的线性速度 (m/s)"""
 
     distance_threshold: float = 0.1
     """Distance threshold for state transitions (m)"""
+    """国家过渡的距离门 (m)"""
 
     following_offset: float = 0.6
     """Look-ahead distance for path following (m)"""
+    """沿途的前视距离 (m)"""
 
     angle_threshold: float = 0.2
     """Angular threshold for orientation control (rad)"""
+    """导向控制的角度门 (rad)"""
 
     approach_distance: float = 1.0
     """Buffer distance from final goal (m)"""
+    """缓冲距离最终目标 (m)"""
 
 
 def compute_navigation_velocity(
@@ -196,6 +213,16 @@ def compute_navigation_velocity(
 
     Returns:
         Tuple of (linear_velocity, angular_velocity)
+    """
+    """为导航控制计算线性和角性速度。
+
+    参数：
+        current_pose: 现在的机器人姿势 [x，y， yaw]
+        target_xy: 目标位置 [x，y]
+        config: 导航控制配置
+
+    返回：
+        (linear_velocity，angular_velocity) 的两倍
     """
     current_xy = current_pose[:2]
     current_yaw = current_pose[2]
@@ -237,6 +264,18 @@ def load_and_transform_recording_data(
     Returns:
         Tuple of transformed (left_hand_pose, right_hand_pose)
     """
+    """输入记录数据并将手指目标转换为当前的参考框架。
+
+    参数：
+        env: 位置操纵 SDG环境
+        input_episode_data: 静态操纵的输入事件数据
+        recording_step: 记录中的当前步骤
+        reference_pose: 针对手指目标的原始参考姿势
+        target_pose: 目前的目标姿势将转变为
+
+    返回：
+        转换的双 (left_hand_pose，right_hand_pose)
+    """
     recording_item = env.load_input_data(input_episode_data, recording_step)
     if recording_item is None:
         return None, None
@@ -263,6 +302,17 @@ def setup_navigation_scene(
 
     Returns:
         Tuple of (occupancy_map, path_helper, base_goal, base_goal_approach)
+    """
+    """设置导航场景，使用居住地图和路径规划。
+
+    参数：
+        env: 位置操纵 SDG环境
+        input_episode_data: 输入事件数据
+        approach_distance: 缓冲距离最终目标
+        randomize_placement: 是否随机定位固定装置
+
+    返回：
+        双 (occupancy_map，path_helper，base_goal，base_goal_approach)
     """
     # Create base occupancy map
     occupancy_map = merge_occupancy_maps(
@@ -317,6 +367,18 @@ def handle_grasp_state(
     Returns:
         Tuple of (next_recording_step, next_state)
     """
+    """处理GRASP_OBJECT状态逻辑。
+
+    参数：
+        env: 环境
+        input_episode_data: 输入事件数据
+        recording_step: 目前记录步骤
+        lift_step: 过渡到升降阶段的步骤
+        output_data: 输出数据进行填充
+
+    返回：
+        (next_recording_step，next_state) 的两倍
+    """
     recording_item = env.load_input_data(input_episode_data, recording_step)
 
     # Set control targets - robot stays stationary during grasping
@@ -364,6 +426,18 @@ def handle_lift_state(
 
     Returns:
         Tuple of (next_recording_step, next_state)
+    """
+    """处理LIFT_OBJECT状态逻辑。
+
+    参数：
+        env: 环境
+        input_episode_data: 输入事件数据
+        recording_step: 目前记录步骤
+        navigate_step: 转向导航阶段的步骤
+        output_data: 输出数据进行填充
+
+    返回：
+        (next_recording_step，next_state) 的两倍
     """
     recording_item = env.load_input_data(input_episode_data, recording_step)
 
@@ -415,6 +489,20 @@ def handle_navigate_state(
 
     Returns:
         Next state
+    """
+    """处理NAVIGATE状态逻辑。
+
+    参数：
+        env: 环境
+        input_episode_data: 输入事件数据
+        recording_step: 目前记录步骤
+        base_path_helper: 参数化导航路径
+        base_goal_approach: 接近目标
+        config: 导航控制配置
+        output_data: 输出数据进行填充
+
+    返回：
+        下一个州
     """
     recording_item = env.load_input_data(input_episode_data, recording_step)
     current_pose = env.get_base().get_pose_2d()[0]
@@ -473,6 +561,19 @@ def handle_approach_state(
     Returns:
         Next state
     """
+    """处理APPROACH状态逻辑。
+
+    参数：
+        env: 环境
+        input_episode_data: 输入事件数据
+        recording_step: 目前记录步骤
+        base_goal: 最后的目标姿势
+        config: 导航控制配置
+        output_data: 输出数据进行填充
+
+    返回：
+        下一个州
+    """
     recording_item = env.load_input_data(input_episode_data, recording_step)
     current_pose = env.get_base().get_pose_2d()[0]
 
@@ -525,6 +626,19 @@ def handle_drop_off_state(
 
     Returns:
         Tuple of (next_recording_step, next_state)
+    """
+    """处理DROP_OFF_OBJECT状态逻辑。
+
+    参数：
+        env: 环境
+        input_episode_data: 输入事件数据
+        recording_step: 目前记录步骤
+        base_goal: 最后的目标姿势
+        config: 导航控制配置
+        output_data: 输出数据进行填充
+
+    返回：
+        (next_recording_step，next_state) 的两倍
     """
     recording_item = env.load_input_data(input_episode_data, recording_step)
     if recording_item is None:
@@ -582,6 +696,15 @@ def populate_output_data(
         base_goal_approach: Approach goal pose
         base_path: Planned navigation path
     """
+    """填充剩余输出数据字段。
+
+    参数：
+        env: 环境
+        output_data: 输出数据进行填充
+        base_goal: 最后的目标姿势
+        base_goal_approach: 接近目标姿势
+        base_path: 规划的导航路径
+    """
     output_data.base_pose = env.get_base().get_pose()
     output_data.object_pose = env.get_object().get_pose()
     output_data.start_fixture_pose = env.get_start_fixture().get_pose()
@@ -638,6 +761,30 @@ def replay(
         angle_threshold: Angular threshold for orientation control (rad)
         approach_distance: Buffer distance from final goal (m)
         randomize_placement: Whether to randomize obstacle placement
+    """
+    """带着机器控制的位置操纵SDG集。
+
+    这种函数实现了位置操纵SDG的状态机，机器人:
+    1. 在起始位置抓住物体
+    2. 在静止时抬起物体
+    3. 导航对象到接近位置
+    4. 接近最终目标位置
+    5. 将物体放在最后位置
+
+    参数：
+        env: 位置操纵 SDG环境
+        input_episode_data: 静态操纵事件数据进行重播
+        lift_step: 举起阶段开始的记录步骤
+        navigate_step: 导航阶段开始的记录步骤
+        draw_visualization: 查看居住地图和路径
+        angular_gain: 对角速度控制的比例增长
+        linear_gain: 对线性速度控制的比例增长
+        linear_max: 最长线性速度 (m/s)
+        distance_threshold: 国家过渡的距离门 (m)
+        following_offset: 沿途的前视距离 (m)
+        angle_threshold: 导向控制的角度门 (rad)
+        approach_distance: 缓冲距离最终目标 (m)
+        randomize_placement: 是否随机定位障碍
     """
 
     # Initialize environment to starting state

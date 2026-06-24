@@ -10,12 +10,14 @@ from typing import Any
 
 def mutate_float(x: float, change_min: float = 1.1, change_max: float = 1.5) -> float:
     """Multiply or divide by a random factor in [change_min, change_max]."""
+    """在 [change_min，change_max]中乘以随机因子或分为"""
     k = random.uniform(change_min, change_max)
     return x / k if random.random() < 0.5 else x * k
 
 
 def mutate_discount(x: float, **kwargs) -> float:
     """Conservative change near 1.0 by mutating (1 - x) in [1.1, 1.2]."""
+    """在 [1.1，1.2] 中，通过突变 (1 - x) 改变1.0附近的保守变化。"""
     inv = 1.0 - x
     new_inv = mutate_float(inv, change_min=1.1, change_max=1.2)
     return 1.0 - new_inv

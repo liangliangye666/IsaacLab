@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Configuration for custom terrains."""
+"""定制地形的配置。"""
 
 import isaaclab.terrains as terrain_gen
 
@@ -50,3 +51,4 @@ ROUGH_TERRAINS_CFG = TerrainGeneratorCfg(
     },
 )
 """Rough terrains configuration."""
+"""粗的地形配置。"""

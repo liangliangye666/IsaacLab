@@ -49,12 +49,41 @@ class SurfaceGripper(AssetBase):
         The SurfaceGripper is only supported on CPU for now. Please set the simulation backend to run on CPU.
         Use `--device cpu` to run the simulation on CPU.
     """
+    """一个表面抓紧机动机类。
+
+    表面抓住器是能够在接近物体时抓住物体的驱动器。
+
+    收藏中的每一个表面必须是`Isaac Sim SurfaceGripper`原始。
+    在播放仿真时，物理引擎将自动注册表面抓住器在SurfaceGripperView对象中。
+    这个对象可以使用:attr:`gripper_view`属性访问。
+
+    用户可以使用:attr:`state`来获取抓住器的当前状态，:attr:`command`来将当前命令发送给抓住器，:func:`update_gripper_properties`可以在运行时更新
+    抓住器的性能。
+    最后，应使用:func:`set_grippers_command`函数来设置对抓住器所需的命令。
+
+    说明：
+        The :函数:`set_grippers_command`函数不会写入仿真。
+             自动仿真
+         calls :函数:`write_data_to_sim`函数用于编写命令到仿真中。
+                同样，更新
+         每个仿真步骤都会自动调用函数，不需要被用户调用。
+
+    说明：
+        目前，SurfaceGripper仅支持CPU。
+        请设置仿真后端在CPU上运行。
+        使用`--device cpu`来运行CPU的仿真。
+    """
 
     def __init__(self, cfg: SurfaceGripperCfg):
         """Initialize the surface gripper.
 
         Args:
             cfg: A configuration instance.
+        """
+        """启动表面抓住器。
+
+        参数：
+            cfg: 一个配置实例。
         """
         # copy the configuration
         self._cfg = cfg.copy()
@@ -76,6 +105,8 @@ class SurfaceGripper(AssetBase):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def data(self):
@@ -86,6 +117,10 @@ class SurfaceGripper(AssetBase):
         """Number of instances of the gripper.
 
         This is equal to the total number of grippers (the view can only contain one gripper per environment).
+        """
+        """抓住器的例数。
+
+        这等于抓住器的总数 (视图只能包含每个环境的抓住器)。
         """
         return self._num_envs
 
@@ -98,6 +133,13 @@ class SurfaceGripper(AssetBase):
         - 0 --> Closing
         - 1 --> Closed
         """
+        """返回抓住器状态缓冲器。
+
+        抓住器状态是整数列表:
+        - -1 --> 开放
+        - 0 --> 关闭
+        - 1 --> 关闭
+        """
         return self._gripper_state
 
     @property
@@ -109,15 +151,25 @@ class SurfaceGripper(AssetBase):
         - [-0.3, 0.3] --> Do nothing
         - [0.3, 1] --> Close
         """
+        """返回抓住器命令缓冲器。
+
+        抓住器指令是浮动器的列表:
+        - [-1， -0.3] --> 开放
+        - [-0.3，0.3] --> 别做什么
+        - [0.3， 1] --> 关闭
+        """
         return self._gripper_command
 
     @property
     def gripper_view(self) -> GripperView:
         """Returns the gripper view object."""
+        """返回抓住器视图对象。"""
         return self._gripper_view
 
     """
     Operations
+    """
+    """运营
     """
 
     def update_gripper_properties(
@@ -136,6 +188,20 @@ class SurfaceGripper(AssetBase):
             shear_force_limit: The shear force limit of the gripper. Should be a tensor of shape (num_envs,).
             retry_interval: The retry interval of the gripper. Should be a tensor of shape (num_envs,).
             indices: The indices of the grippers to update the properties for. Can be a tensor of any shape.
+        """
+        """更新抓住器性能。
+
+        参数：
+            max_grip_distance: 抓住器的最大抓住距离。
+                               应该是形状张量 (num_envs，)。
+            coaxial_force_limit: 抓住器的同轴力限制。
+                                 应该是形状张量 (num_envs，)。
+            shear_force_limit: 抓住器的切割力限制。
+                               应该是形状张量 (num_envs，)。
+            retry_interval: 抓住器的重试间隔。
+                            应该是形状张量 (num_envs，)。
+            indices: 为了更新性能，抓住器的指标。
+                     它可以是任何形状的子。
         """
 
         if indices is None:
@@ -178,6 +244,23 @@ class SurfaceGripper(AssetBase):
             We need to do this conversion for every single step of the simulation because the gripper can lose contact
             with the object if some conditions are met: such as if a large force is applied to the gripped object.
         """
+        """通过SurfaceGripperView更新抓住器状态。
+
+        这种函数被称为每个仿真步骤。
+        从抓住器视图中获取的数据是包含3种可能状态的字符串列表:
+            - "开放" --> 0
+            - "关闭" --> 1
+            - "关闭" --> 2
+
+        为了使这个神经网络更加友好， 我们将字符串列表转换为浮动列表:
+            - "开放" --> -1.0
+            - "关闭" --> 0.0
+            - "关闭" --> 1.0
+
+        说明：
+            我们需要在仿真的每一步都进行这种转换，因为抓住器可能会失去接触
+            with the object if some conditions are met: such as if a large force is applied to the gripped object.
+        """
         state_list: list[int] = self._gripper_view.get_surface_gripper_status()
         self._gripper_state = torch.tensor(state_list, dtype=torch.float32, device=self._device) - 1.0
 
@@ -190,6 +273,15 @@ class SurfaceGripper(AssetBase):
             - [0.3, 1] --> Closed
 
         The Do nothing command is not applied, and is only used to indicate whether the gripper state has changed.
+        """
+        """给SurfaceGripperView写下抓住器命令。
+
+        抓住器命令是整数列表，需要转换为字符串列表:
+            - [-1， -0.3] --> 开放
+            - [-0.3，0.3[ --> 什么都不要做
+            - 关闭
+
+        没有执行命令，只用于表示抓住器状态是否改变。
         """
         # Remove the SurfaceGripper indices that have a commanded value of 2
         indices = (
@@ -214,6 +306,20 @@ class SurfaceGripper(AssetBase):
             indices: A tensor of integers representing the indices of the grippers to set the command for. Defaults
                      to None, in which case all grippers are set.
         """
+        """设置内置抓住器命令缓冲器。
+        这种函数不会写入仿真。
+
+        抓住器指令的可能值是:
+            - [-1， -0.3] --> 开放
+            - [-0.3，0.3[ --> 什么都不要做
+            - [0.3， 1] --> 关闭
+
+        参数：
+            states: 一个代表抓住器命令的整数数。
+                    它们的形状必须与指标的形状相匹配。
+            indices: 一个代表控制器索引的整数数。
+                     默认设置None，在这种情况下，所有抓住器都设置。
+        """
         if indices is None:
             indices = self._ALL_INDICES
 
@@ -225,6 +331,12 @@ class SurfaceGripper(AssetBase):
         Args:
             indices: A tensor of integers representing the indices of the grippers to reset the command for. Defaults
                      to None, in which case all grippers are reset.
+        """
+        """恢复抓住器命令缓冲器。
+
+        参数：
+            indices: 一个代表控制器的索引的整数数。
+                     默认设置为None，在这种情况下，所有抓住器都会重置。
         """
         # Would normally set the buffer to 0, for now we won't do that
         if indices is None:
@@ -241,6 +353,8 @@ class SurfaceGripper(AssetBase):
     """
     Initialization.
     """
+    """启动。
+    """
 
     def _initialize_impl(self) -> None:
         """Initializes the gripper-related handles and internal buffers.
@@ -252,6 +366,17 @@ class SurfaceGripper(AssetBase):
         Note:
             The SurfaceGripper is only supported on CPU for now. Please set the simulation backend to run on CPU.
             Use `--device cpu` to run the simulation on CPU.
+        """
+        """启动与抓住器相关的句柄和内部缓冲器。
+
+        异常：
+            ValueError: 如果仿真后端不是CPU。
+            RuntimeError: 如果仿真文本未启动或没有找到prims抓住器。
+
+        说明：
+            目前，SurfaceGripper仅支持CPU。
+            请设置仿真后端在CPU上运行。
+            使用`--device cpu`来运行CPU的仿真。
         """
 
         enable_extension("isaacsim.robot.surface_gripper")
@@ -326,6 +451,7 @@ class SurfaceGripper(AssetBase):
 
     def _create_buffers(self) -> None:
         """Create the buffers for storing the gripper state, command, and properties."""
+        """创建缓冲器来存储抓住器状态，命令和属性。"""
         self._gripper_state = torch.zeros(self._num_envs, device=self._device, dtype=torch.float32)
         self._gripper_command = torch.zeros(self._num_envs, device=self._device, dtype=torch.float32)
         self._ALL_INDICES = torch.arange(self._num_envs, device=self._device, dtype=torch.long)
@@ -337,6 +463,7 @@ class SurfaceGripper(AssetBase):
 
     def _process_cfg(self) -> None:
         """Process the configuration for the gripper properties."""
+        """处理对抓住器性能的配置。"""
         # Get one of the grippers as defined in the default stage
         gripper_prim = self._parent_prims[0]
         try:
@@ -379,6 +506,8 @@ class SurfaceGripper(AssetBase):
     """
     Helper functions.
     """
+    """辅助函数。
+    """
 
     def parse_gripper_parameter(
         self, cfg_value: float | int | tuple | None, default_value: float | int | tuple | None, ndim: int = 0
@@ -389,6 +518,16 @@ class SurfaceGripper(AssetBase):
             cfg_value: The value to parse. Can be a float, int, tuple, or None.
             default_value: The default value to use if cfg_value is None. Can be a float, int, tuple, or None.
             ndim: The number of dimensions of the parameter. Defaults to 0.
+        """
+        """检查抓住器参数。
+
+        参数：
+            cfg_value: 分析的价值。
+                       可以是浮动， int，tuple，或None。
+            default_value: 如果cfg_value是None，则使用的默认值。
+                           可以是浮动， int，tuple，或None。
+            ndim: 参数的维度数。
+                  默认为0。
         """
         # Adjust the buffer size based on the number of dimensions
         if ndim == 0:

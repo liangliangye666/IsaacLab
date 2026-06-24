@@ -11,8 +11,15 @@ and we currently can't re-build the simulation app in a script.
 If you need to make a change to this test, please make sure to also make the same change to
 ``test_build_simulation_context_headless.py``.
 """
+"""这个测试与``test_build_simulation_context_headless.py``有很多重复。
+
+这是为了确保测试运行在无头和无头模式，
+
+如果您需要对此测试进行改变，请确保对``test_build_simulation_context_headless.py``进行相同的改变。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -20,6 +27,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 
@@ -32,6 +40,7 @@ from isaaclab.sim.simulation_context import build_simulation_context
 @pytest.mark.parametrize("dt", [0.01, 0.1])
 def test_build_simulation_context_no_cfg(gravity_enabled, device, dt):
     """Test that the simulation context is built when no simulation cfg is passed in."""
+    """测试在没有传输仿真 cfg时构建仿真环境。"""
     with build_simulation_context(gravity_enabled=gravity_enabled, device=device, dt=dt) as sim:
         if gravity_enabled:
             assert sim.cfg.gravity == (0.0, 0.0, -9.81)
@@ -45,6 +54,7 @@ def test_build_simulation_context_no_cfg(gravity_enabled, device, dt):
 @pytest.mark.parametrize("add_ground_plane", [True, False])
 def test_build_simulation_context_ground_plane(add_ground_plane):
     """Test that the simulation context is built with the correct ground plane."""
+    """测试仿真环境是用正确的地面平面构建的。"""
     with build_simulation_context(add_ground_plane=add_ground_plane) as sim:
         # Ensure that ground plane got added
         if add_ground_plane:
@@ -57,6 +67,7 @@ def test_build_simulation_context_ground_plane(add_ground_plane):
 @pytest.mark.parametrize("auto_add_lighting", [True, False])
 def test_build_simulation_context_auto_add_lighting(add_lighting, auto_add_lighting):
     """Test that the simulation context is built with the correct lighting."""
+    """测试仿真环境是否有正确的照明。"""
     with build_simulation_context(add_lighting=add_lighting, auto_add_lighting=auto_add_lighting) as sim:
         if auto_add_lighting or add_lighting:
             # Ensure that dome light got added
@@ -68,6 +79,7 @@ def test_build_simulation_context_auto_add_lighting(add_lighting, auto_add_light
 
 def test_build_simulation_context_cfg():
     """Test that the simulation context is built with the correct cfg and values don't get overridden."""
+    """测试仿真环境是用正确的cfg构建的，并且值不会被覆盖。"""
     dt = 0.001
     # Non-standard gravity
     gravity = (0.0, 0.0, -1.81)

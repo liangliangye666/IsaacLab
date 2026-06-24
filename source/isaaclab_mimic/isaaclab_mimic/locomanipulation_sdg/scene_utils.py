@@ -16,6 +16,7 @@ from .transform_utils import transform_mul
 
 class HasOccupancyMap:
     """An abstract base class for entities that have an associated occupancy map."""
+    """对于具有相关占用地图的实体来说，一个抽象的基础类。"""
 
     def get_occupancy_map(self) -> OccupancyMap:
         raise NotImplementedError
@@ -23,13 +24,16 @@ class HasOccupancyMap:
 
 class HasPose2d:
     """An abstract base class for entities that have an associated 2D pose."""
+    """对于具有相关2D姿势的实体来说是一个抽象的基础类。"""
 
     def get_pose_2d(self) -> torch.Tensor:
         """Get the 2D pose of the entity."""
+        """得到实体的二维姿势。"""
         raise NotImplementedError
 
     def get_transform_2d(self):
         """Get the 2D transformation matrix of the entity."""
+        """得到实体的二维转换矩阵。"""
 
         pose = self.get_pose_2d()
 
@@ -55,13 +59,16 @@ class HasPose2d:
 
 class HasPose(HasPose2d):
     """An abstract base class for entities that have an associated 3D pose."""
+    """对于具有相关的3D姿势的实体来说是一个抽象的基础类。"""
 
     def get_pose(self):
         """Get the 3D pose of the entity."""
+        """得到实体的3D姿势。"""
         raise NotImplementedError
 
     def get_pose_2d(self):
         """Get the 2D pose of the entity."""
+        """得到实体的二维姿势。"""
         pose = self.get_pose()
         axis_angle = math_utils.axis_angle_from_quat(pose[..., 3:])
 
@@ -75,6 +82,7 @@ class HasPose(HasPose2d):
 
 class SceneBody(HasPose):
     """A helper class for working with rigid body objects in a scene."""
+    """在场景中使用硬体物体的辅助班。"""
 
     def __init__(self, scene, entity_name: str, body_name: str):
         self.scene = scene
@@ -83,6 +91,7 @@ class SceneBody(HasPose):
 
     def get_pose(self):
         """Get the 3D pose of the entity."""
+        """得到实体的3D姿势。"""
         pose = self.scene[self.entity_name].data.body_link_state_w[
             :,
             self.scene[self.entity_name].data.body_names.index(self.body_name),
@@ -93,6 +102,7 @@ class SceneBody(HasPose):
 
 class SceneAsset(HasPose):
     """A helper class for working with assets in a scene."""
+    """一个帮手班，可以在场景中处理资产。"""
 
     def __init__(self, scene, entity_name: str):
         self.scene = scene
@@ -100,6 +110,7 @@ class SceneAsset(HasPose):
 
     def get_pose(self):
         """Get the 3D pose of the entity."""
+        """得到实体的3D姿势。"""
         xform_prim = self.scene[self.entity_name]
         position, orientation = xform_prim.get_world_poses()
         pose = torch.cat([position, orientation], dim=-1)
@@ -107,6 +118,7 @@ class SceneAsset(HasPose):
 
     def set_pose(self, pose: torch.Tensor):
         """Set the 3D pose of the entity."""
+        """设置实体的3D姿势。"""
         xform_prim = self.scene[self.entity_name]
         position = pose[..., :3]
         orientation = pose[..., 3:]
@@ -115,6 +127,7 @@ class SceneAsset(HasPose):
 
 class RelativePose(HasPose):
     """A helper class for computing the pose of an entity given it's relative pose to a parent."""
+    """一个帮助类计算一个实体的姿势，因为它与父母相对的姿势。"""
 
     def __init__(self, relative_pose: torch.Tensor, parent: HasPose):
         self.relative_pose = relative_pose
@@ -122,6 +135,7 @@ class RelativePose(HasPose):
 
     def get_pose(self):
         """Get the 3D pose of the entity."""
+        """得到实体的3D姿势。"""
 
         parent_pose = self.parent.get_pose()
 
@@ -132,6 +146,7 @@ class RelativePose(HasPose):
 
 class SceneFixture(SceneAsset, HasOccupancyMap):
     """A helper class for working with assets in a scene that have an associated occupancy map."""
+    """在场景中与资产合作的辅助班，"""
 
     def __init__(
         self, scene, entity_name: str, occupancy_map_boundary: np.ndarray, occupancy_map_resolution: float = 0.05
@@ -156,6 +171,7 @@ def place_randomly(
     fixture: SceneFixture, background_occupancy_map: OccupancyMap, num_iter: int = 100, area_threshold: float = 1e-5
 ):
     """Place a scene fixture randomly in an unoccupied region of an occupancy."""
+    """随机将场景固定在一个居住区的未占区域。"""
 
     # sample random xy in bounds
     bottom_left = background_occupancy_map.bottom_left_pixel_world_coords()

@@ -52,6 +52,54 @@ Usage with a class modifier:
     my_modified_tensor = my_modifier(my_tensor)
 
 """
+"""包含不同修改器实现的子模块。
+
+修改器用于对 data子数据进行状态或无状态修改。
+他们采用一个子和一个配置，然后将一个子返回了修改。
+这样，用户可以定义定制操作，
+例如，可以使用修改器来正常化输入数据或应用滚动平均值。
+
+它们主要用于在:class:`~isaaclab.managers.ObservationManager`中应用定制操作，代替内置的噪音，裁剪和尺度后处理操作。
+更多详情请见
+the :类:`~isaaclab.managers.ObservationTermCfg`类。
+
+使用函数修改器:
+
+.. code-block:: python
+
+    import torch
+    from isaaclab.utils import modifiers
+
+    # create a random tensor
+    my_tensor = torch.rand(256, 128, device="cuda")
+
+    # create a modifier configuration
+    cfg = modifiers.ModifierCfg(func=modifiers.clip, params={"bounds": (0.0, torch.inf)})
+
+    # apply the modifier
+    my_modified_tensor = cfg.func(my_tensor, cfg)
+
+
+用于类修改器:
+
+.. code-block:: python
+
+    import torch
+    from isaaclab.utils import modifiers
+
+    # create a random tensor
+    my_tensor = torch.rand(256, 128, device="cuda")
+
+    # create a modifier configuration
+    # a digital filter with a simple delay of 1 timestep
+    cfg = modifiers.DigitalFilterCfg(A=[0.0], B=[0.0, 1.0])
+
+    # create the modifier instance
+    my_modifier = modifiers.DigitalFilter(cfg, my_tensor.shape, "cuda")
+
+    # apply the modifier as a callable object
+    my_modified_tensor = my_modifier(my_tensor)
+"""
 
 # isort: off
 from .modifier_cfg import ModifierCfg

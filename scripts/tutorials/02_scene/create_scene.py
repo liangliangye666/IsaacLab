@@ -11,8 +11,16 @@
     ./isaaclab.sh -p scripts/tutorials/02_scene/create_scene.py --num_envs 32
 
 """
+"""这本脚本展示了如何使用交互式场景接口来设置多个prims的场景。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/02_scene/create_scene.py --num_envs 32
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -32,6 +40,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -50,6 +59,7 @@ from isaaclab_assets import CARTPOLE_CFG  # isort:skip
 @configclass
 class CartpoleSceneCfg(InteractiveSceneCfg):
     """Configuration for a cart-pole scene."""
+    """设置车杆场景。"""
 
     # ground plane
     ground = AssetBaseCfg(prim_path="/World/defaultGroundPlane", spawn=sim_utils.GroundPlaneCfg())
@@ -65,6 +75,7 @@ class CartpoleSceneCfg(InteractiveSceneCfg):
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     """Runs the simulation loop."""
+    """运行仿真循环。"""
     # Extract scene entities
     # note: we only do this here for readability.
     robot = scene["cartpole"]
@@ -109,6 +120,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(device=args_cli.device)
     sim = SimulationContext(sim_cfg)

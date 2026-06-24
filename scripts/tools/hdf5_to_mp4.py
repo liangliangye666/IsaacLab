@@ -22,6 +22,22 @@ optional arguments:
     --video_width        Width of the output video in pixels. (default: 1280)
     --framerate          Frames per second for the output video. (default: 30)
 """
+"""转换HDF5示范文件为MP4视频。
+
+这种脚本将存储在HDF5示范文件中的相机框架转换为MP4视频。
+它支持多种摄像头模式，包括RGB，细分和正常地图。
+输出视频存储在指定目录中，并有适当的命名。
+
+要求的参数:--input_file 进入输入HDF5文件的路径。
+保存输出MP4文件的--output_dir目录。
+
+选项参数:--input_keys 从HDF5文件中处理的输入键列表。
+(默认: ["table_cam"， "wrist_cam"， "table_cam_segmentation"， "table_cam_normals"，
+"table_cam_shaded_segmentation"]) --video_height输出视频的高度在像素中。
+(默认704) --video_width输出视频宽度在像素中。
+(默认:1280) 输出视频的每秒 --framerate图像。
+(默认:30)
+"""
 
 import argparse
 import os
@@ -49,6 +65,7 @@ MAX_DEPTH = 1.5
 
 def parse_args():
     """Parse command line arguments."""
+    """分析命令行参数。"""
     parser = argparse.ArgumentParser(description="Convert HDF5 demonstration files to MP4 videos.")
     parser.add_argument(
         "--input_file",
@@ -116,6 +133,19 @@ def write_demo_to_mp4(
         video_width (int): Width of the output video in pixels.
         framerate (int, optional): Frames per second for the output video. Defaults to 30.
     """
+    """将HDF5文件转换为MP4视频。
+
+    参数：
+        hdf5_file (str): 包含框架的HDF5文件的路径。
+        demo_id (int): 演示的ID转换。
+        frames_path (str): 在HDF5文件中的框架数据的路径。
+        input_key (str): 转换输入键的名称
+        output_dir (str): 保存输出MP4文件的目录。
+        video_height (int): 在像素中输出视频的高度。
+        video_width (int): 在像素中输出视频宽度。
+        framerate (int, optional): 输出视频的每秒。
+                                   默认到30
+    """
     with h5py.File(hdf5_file, "r") as f:
         # Get frames based on input key type
         if "shaded_segmentation" in input_key:
@@ -172,12 +202,21 @@ def get_num_demos(hdf5_file):
     Returns:
         int: Number of demonstrations found in the file.
     """
+    """在HDF5文件中查看示例数量。
+
+    参数：
+        hdf5_file (str): 进入HDF5文件的路径。
+
+    返回：
+        int: 在文件中发现的示范数量。
+    """
     with h5py.File(hdf5_file, "r") as f:
         return len(f["data"].keys())
 
 
 def main():
     """Main function to convert all demonstrations to MP4 videos."""
+    """主要功能是将所有演示转换为MP4视频。"""
     # Parse command line arguments
     args = parse_args()
 

@@ -6,6 +6,7 @@
 """Sub-module containing command generators for the 2D-pose for locomotion tasks."""
 
 from __future__ import annotations
+"""含有2D位置机动任务命令生成器的子模块。"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -33,9 +34,17 @@ class UniformPose2dCommand(CommandTerm):
     This can be configured through the :attr:`Pose2dCommandCfg.simple_heading` parameter in
     the configuration.
     """
+    """命令生成器，生成包含3D位置和方向的姿势命令。
+
+    命令生成器在环境来源周围采样一致的2D位置。
+    它设置位置命令的高度为机器人的默认根高度。
+    方向指令要么设置向目标指向，要么采样均。
+    这可以通过配置中的:attr:`Pose2dCommandCfg.simple_heading`参数进行配置。
+    """
 
     cfg: UniformPose2dCommandCfg
     """Configuration for the command generator."""
+    """命令生成器的配置。"""
 
     def __init__(self, cfg: UniformPose2dCommandCfg, env: ManagerBasedEnv):
         """Initialize the command generator class.
@@ -43,6 +52,12 @@ class UniformPose2dCommand(CommandTerm):
         Args:
             cfg: The configuration parameters for the command generator.
             env: The environment object.
+        """
+        """启动命令生成器类。
+
+        参数：
+            cfg: 命令生成器的配置参数。
+            env: 环境对象。
         """
         # initialize the base class
         super().__init__(cfg, env)
@@ -70,14 +85,21 @@ class UniformPose2dCommand(CommandTerm):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def command(self) -> torch.Tensor:
         """The desired 2D-pose in base frame. Shape is (num_envs, 4)."""
+        """在基础框架中所需的2D姿势。
+        形状是 (num_envs， 4)。
+        """
         return torch.cat([self.pos_command_b, self.heading_command_b.unsqueeze(1)], dim=1)
 
     """
     Implementation specific functions.
+    """
+    """具体执行功能。
     """
 
     def _update_metrics(self):
@@ -117,6 +139,7 @@ class UniformPose2dCommand(CommandTerm):
 
     def _update_command(self):
         """Re-target the position command to the current root state."""
+        """将位置命令重定向到当前的根状态。"""
         target_vec = self.pos_command_w - self.robot.data.root_pos_w[:, :3]
         self.pos_command_b[:] = quat_apply_inverse(yaw_quat(self.robot.data.root_quat_w), target_vec)
         self.heading_command_b[:] = wrap_to_pi(self.heading_command_w - self.robot.data.heading_w)
@@ -152,9 +175,17 @@ class TerrainBasedPose2dCommand(UniformPose2dCommand):
 
     It expects the terrain to have a valid flat patches under the key 'target'.
     """
+    """根据地形生成姿势命令的命令生成器。
+
+    这种命令生成器从地形的有效地块中采样位置命令。
+    方向指令要么设置向目标指向，要么采样均。
+
+    它预计地形将在"目标"键下有一个有效的平坦地板。
+    """
 
     cfg: TerrainBasedPose2dCommandCfg
     """Configuration for the command generator."""
+    """命令生成器的配置。"""
 
     def __init__(self, cfg: TerrainBasedPose2dCommandCfg, env: ManagerBasedEnv):
         # initialize the base class

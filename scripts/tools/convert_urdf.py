@@ -28,8 +28,30 @@ optional arguments:
   --joint-target-type       The type of control to use for the joint drive. (default: "position")
 
 """
+"""工具将URDF转换为USD格式。
+
+统一机器人描述格式 (URDF) 是XML文件格式，用于ROS描述机器人的所有元素。
+更多信息请见:http://wiki.ros.org/urdf
+
+该脚本使用来自Isaac Sim的URDF进口扩展 (``isaacsim.asset.importer.urdf``) 将URDF资产转换为USD格式。
+它被设计为命令行使用的便利脚本。
+关于URDF进口商的更多信息，请参见延期文件:
+https://docs.isaacsim.omniverse.nvidia.com最后一次robot_setup/ext_isaacsim_asset_importer_urdf.html
+
+
+位置参数:输入输入URDF文件的路径。
+输出存储USD文件的路径。
+
+选择性参数: -h， --help 显示此帮助信息，然后退出 --merge-joints 通过固定关节连接的连接。
+(默认:False) --fix-base 固定基在进口地点。
+(默认:False) --joint-stiffness 联合驱动的硬度。
+(默认: 100.0) --joint-damping 关联驱动的缩。
+(默认: 1.0) --joint-target-type用于联合驱动的控制类型。
+(默认:"位置")
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -76,6 +98,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import contextlib
 import os

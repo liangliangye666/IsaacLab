@@ -6,6 +6,7 @@
 # NOTE: While we don't actually use the simulation app in this test, we still need to launch it
 #       because warp is only available in the context of a running simulation
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +14,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import random
 
@@ -21,16 +23,19 @@ import isaaclab.utils.dict as dict_utils
 
 def _test_function(x):
     """Test function for string <-> callable conversion."""
+    """测试函数用于串 <->调用式转换。"""
     return x**2
 
 
 def _test_lambda_function(x):
     """Test function for string <-> callable conversion."""
+    """测试函数用于串 <->调用式转换。"""
     return x**2
 
 
 def test_print_dict():
     """Test printing of dictionary."""
+    """试图打印字典。"""
     # create a complex nested dictionary
     test_dict = {
         "a": 1,
@@ -46,6 +51,7 @@ def test_print_dict():
 
 def test_string_callable_function_conversion():
     """Test string <-> callable conversion for function."""
+    """测试字符串 <->可调用转换函数。"""
 
     # convert function to string
     test_string = dict_utils.callable_to_string(_test_function)
@@ -57,6 +63,7 @@ def test_string_callable_function_conversion():
 
 def test_string_callable_function_with_lambda_in_name_conversion():
     """Test string <-> callable conversion for function which has lambda in its name."""
+    """测试字符串 <->可调用的转换函数，其名称有 lambda。"""
 
     # convert function to string
     test_string = dict_utils.callable_to_string(_test_lambda_function)
@@ -68,6 +75,7 @@ def test_string_callable_function_with_lambda_in_name_conversion():
 
 def test_string_callable_lambda_conversion():
     """Test string <-> callable conversion for lambda expression."""
+    """测试字符串 <->可调用转换为lambda表达。"""
 
     # create lambda function
     func = lambda x: x**2  # noqa: E731
@@ -82,6 +90,7 @@ def test_string_callable_lambda_conversion():
 
 def test_dict_to_md5():
     """Test MD5 hash generation for dictionary."""
+    """测试字典的MD5哈希生成。"""
     # create a complex nested dictionary
     test_dict = {
         "a": 1,

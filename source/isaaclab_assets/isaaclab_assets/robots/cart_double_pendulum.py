@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Configuration for a simple inverted Double Pendulum on a Cart robot."""
+"""在车载机器人上设置一个简单的反向双。"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -51,3 +52,4 @@ CART_DOUBLE_PENDULUM_CFG = ArticulationCfg(
     },
 )
 """Configuration for a simple inverted Double Pendulum on a Cart robot."""
+"""在车载机器人上设置一个简单的反向双。"""

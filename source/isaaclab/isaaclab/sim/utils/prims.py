@@ -6,6 +6,7 @@
 """Utilities for creating and manipulating USD prims."""
 
 from __future__ import annotations
+"""用于创建和操纵USD prims的工具。"""
 
 import functools
 import inspect
@@ -38,6 +39,8 @@ logger = logging.getLogger(__name__)
 
 """
 General Utils
+"""
+"""乌蒂尔斯将军
 """
 
 
@@ -133,6 +136,82 @@ def create_prim(
         ... )
         Usd.Prim(</World/Parent/Sphere>)
     """
+    """在提供的USD阶段创建prim。
+
+    该方法应用了指定转换，语义标签，并设定了指定属性。
+    转换可以在世界空间 (使用``position``) 或本地空间 (使用``translation``) 中指定。
+
+    函数根据提供的参数确定了转换的坐标系统。
+
+    * 如果提供``position``，则假设导向也提供在世界框架中。
+    * 如果提供``translation``，则假设在本地框架中也提供了导向。
+
+    尺度总是在本地框架中应用。
+
+    该函数处理各种序列类型 (列表，tuple，numpy array，火) 并将它们转换为prim操作的正确类型的tuple。
+
+    .. 说明::
+        转换操作是按照USD公约标准化的:按照这个顺序翻译，定向 (四元数) 和尺度。
+        看看:func:`standardize_xform_ops`了解更多细节。
+
+    参数：
+        prim_path: 新的prim的路径。
+        prim_type: 基本类型名称。
+                   默认的"Xform"，在这种情况下创建一个简单的Xform prim。
+        position: 在世界空间中的原定位置为 (x，y，z)。
+                  如果prim有母体，则自动转换为与母体相比的本地空间。
+                  不能与``translation``一起使用。
+                  在 None 时的默认情况，在这种情况下，没有立场。
+        translation: 在本地空间中将原数转化为 (x，y，z)。
+                     这是在没有任何坐标转换的情况下直接应用的。
+                     不能与``position``一起使用。
+                     在 None 中，默认情况下，没有翻译。
+        orientation: 作为四元数的原旋转 (w，x，y，z)。
+                     在使用``position``时，导向也从世界空间转换为本地空间。
+                     当与``translation``一起使用时，它将直接作为本地导向应用。
+                     默认为 None。
+        scale: 在 x，y，z 中的扩展因子。
+               适用于本地空间。
+               在 None 中，默认设置，在这种情况下，应使用1.0的均尺度。
+        usd_path: 这一prim将引用的USD文件的路径。
+                  默认为 None。
+        semantic_label: 语义标签适用于prim。
+                        默认为 None，在这种情况下没有添加标签。
+        semantic_type: 标签的语义类型。
+                       默认的"类"。
+        attributes: 设置的prim属性的关键值对
+                    默认对 None的设置，此时没有设置属性。
+        stage: 在prim创建的舞台上。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        创建的USDprim。
+
+    异常：
+        ValueError: 如果已有prim在提供的prim路径上。
+        ValueError: 如果提供位置和翻译。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> # Create a cube at world position (1.0, 0.5, 0.0)
+        >>> sim_utils.create_prim(
+        ...     prim_path="/World/Parent/Cube",
+        ...     prim_type="Cube",
+        ...     position=(1.0, 0.5, 0.0),
+        ...     attributes={"size": 2.0},
+        ... )
+        Usd.Prim(世界/父母/立方)
+        >>>
+        >>> # Create a sphere with local translation relative to its parent
+        >>> sim_utils.create_prim(
+        ...     prim_path="/World/Parent/Sphere",
+        ...     prim_type="Sphere",
+        ...     translation=(0.5, 0.0, 0.0),
+        ...     scale=(2.0, 2.0, 2.0),
+        ... )
+        Usd.Prim(</世界/父母/领域>)
+    """
     # Ensure that user doesn't provide both position and translation
     if position is not None and translation is not None:
         raise ValueError("Cannot provide both position and translation. Please provide only one.")
@@ -202,6 +281,22 @@ def delete_prim(prim_path: str | Sequence[str], stage: Usd.Stage | None = None) 
         >>>
         >>> sim_utils.delete_prim("/World/Cube")
     """
+    """如果能够，将USD Prim及其后代从场景移除。
+
+    参数：
+        prim_path: 删除prim的路径。
+                   如果提供路径列表，函数将删除列表中的所有prims。
+        stage: 删除prim的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        True如果prim或prims成功删除，False否则。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> sim_utils.delete_prim("/World/Cube")
+    """
     # convert prim_path to list if it is a string
     if isinstance(prim_path, str):
         prim_path = [prim_path]
@@ -251,6 +346,33 @@ def move_prim(path_from: str, path_to: str, keep_world_transform: bool = True, s
         >>> # given the stage: /World/Cube. Move the prim Cube outside the prim World
         >>> sim_utils.move_prim("/World/Cube", "/Cube")
     """
+    """在USD阶段，将prim从一个路径转向另一个路径。
+
+    这种函数将prim从源路向目的路移动。
+    如果设置:attr:`keep_world_transform`为True，则保持prim的世界转换。
+    这意味着prim的本地转换被重置，使prim的世界转换与源路径的世界转换相同。
+    如果设置为False，则保留prim的本地转换。
+
+    .. 警告::
+        在USD中修复或移动prims是一个昂贵的操作，可能会导致显著的重组成本，特别是在大型或深层阶段。
+
+    参数：
+        path_from: 你想要移动的USDPrim的路径
+        path_to: prim的最终目的地
+        keep_world_transform: 让世界变化prim。
+                              默认为 True。
+        stage: 在prim移动的舞台上。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        True如果prim顺利移动，False否则。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> # given the stage: /World/Cube. Move the prim Cube outside the prim World
+        >>> sim_utils.move_prim("/World/Cube", "/Cube")
+    """
     # get stage handle
     stage = get_current_stage() if stage is None else stage
     # move prim
@@ -266,6 +388,8 @@ def move_prim(path_from: str, path_to: str, keep_world_transform: bool = True, s
 
 """
 USD Prim properties and attributes.
+"""
+"""USD Prim 属性和属性。
 """
 
 
@@ -284,6 +408,22 @@ def make_uninstanceable(prim_path: str | Sdf.Path, stage: Usd.Stage | None = Non
 
     Raises:
         ValueError: If the prim path is not global (i.e: does not start with '/').
+    """
+    """检查一个prim及其后代是否是实例化，并使它们不可实例化。
+
+    这项函数检查了指定的prim路径上的prim及其后代是否被实例化。
+    如果是这样，它将对应的prim不可实现，通过在prim上禁用实例化。
+
+    这很有用，当我们想要修改实例 prim 的属性时。
+    例如，如果我们想将不同的材料应用到一个实例prim上，我们需要首先使prim不实例X。
+
+    参数：
+        prim_path: 我们要检查prim路径。
+        stage: 在prim存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+
+    异常：
+        ValueError: 如果prim路径不是全球 (i.e:不以"/"开始)。
     """
     # get stage handle
     if stage is None:
@@ -330,6 +470,23 @@ def set_prim_visibility(prim: Usd.Prim, visible: bool) -> None:
         >>> prim = sim_utils.get_prim_at_path("/World/Cube")
         >>> sim_utils.set_prim_visibility(prim, False)
     """
+    """在开放阶段设置prim的可见性。
+
+    .. 说明::
+
+        这种方法通过USDAPI来实现。
+
+    参数：
+        prim: 在USD prim
+        visible: 标志设置USD prim的可见性。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> # given the stage: /World/Cube. Make the Cube not visible
+        >>> prim = sim_utils.get_prim_at_path("/World/Cube")
+        >>> sim_utils.set_prim_visibility(prim, False)
+    """
     imageable = UsdGeom.Imageable(prim)
     if visible:
         imageable.MakeVisible()
@@ -352,6 +509,21 @@ def safe_set_attribute_on_usd_schema(schema_api: Usd.APISchemaBase, name: str, v
 
     Raises:
         TypeError: When the input attribute name does not exist on the provided schema API.
+    """
+    """设置一个属性的值在其USD方案上，如果它存在。
+
+    一个USD API方案作为一个界面或API编写和提取一组属性。
+    它们通常来自:class:`pxr.Usd.SchemaBase`类。
+    该函数检查该属性是否存在于方案中，并设定该属性的值，如果存在。
+
+    参数：
+        schema_api: 设置属性的USD方案。
+        name: 属性的名称。
+        value: 设置属性值
+        camel_case: 是否将属性名称转换为驼案例。
+
+    异常：
+        TypeError: 当输入属性名称不存在于提供的方案 API。
     """
     # if value is None, do nothing
     if value is None:
@@ -386,6 +558,18 @@ def safe_set_attribute_on_usd_prim(prim: Usd.Prim, attr_name: str, value: Any, c
         attr_name: The name of the attribute.
         value: The value to set the attribute to.
         camel_case: Whether to convert the attribute name to camel case.
+    """
+    """设置属性的值在 USD prim 上。
+
+    如果它不存在于prim上，该函数会创建一个新的属性。
+    这是因为在某些情况下 (如Shader)，它们的属性不会被曝光为可改变的USD prim属性。
+    这种函数允许我们设置这些情况下的属性值。
+
+    参数：
+        prim: 在USD prim设置属性。
+        attr_name: 属性的名称。
+        value: 设置属性值
+        camel_case: 是否将属性名称转换为驼案例。
     """
     # if value is None, do nothing
     if value is None:
@@ -471,6 +655,54 @@ def change_prim_property(
         ... )
         True
     """
+    """在USD prim上改变或创建一个属性值。
+
+    这是一个简单的属性设置器，与当前的编辑目标工作。
+    如果您需要复杂的层管理，使用:class:`omni.kit.commands.ChangePropertyCommand`而不是。
+
+    默认情况下，这个函数在存在时改变了财产的值。
+    如果这个财产不存在，则必须提供:attr:`type_to_create_if_not_exist`来创建它。
+
+    说明：
+        属性:attr:`value`必须是对属性的正确类型。
+        例如，如果财产是浮动的，则价值必须是浮动的。
+        如果它应该是RGB颜色，则值必须是:class:`Gf.Vec3f`类型的。
+
+    参数：
+        prop_path: 在``/World/Prim.propertyName``格式的属性路径。
+        value: 设置值。
+               如果 None，属性值将返回默认值。
+               如果属性没有默认值，则是无声无关。
+        stage: 在USD阶段。
+               在 None 上默认设置，此时使用当前阶段。
+        type_to_create_if_not_exist: 如果不是None，并且没有属性，则将创建一个新的属性，
+                                     默认为 None。
+        is_custom: 如果该属性创建，请指定它是否是自定义属性 (不是该方案的一部分)。
+                   默认为 False。
+
+    返回：
+        如果物件成功改变，则True，否则False。
+
+    异常：
+        ValueError: 如果prim不在指定路径上。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>> from pxr import Sdf
+        >>>
+        >>> # Change an existing property
+        >>> sim_utils.change_prim_property(prop_path="/World/Cube.size", value=2.0)
+        True
+        >>>
+        >>> # Create a new custom property
+        >>> sim_utils.change_prim_property(
+        ...     prop_path="/World/Cube.customValue",
+        ...     value=42,
+        ...     type_to_create_if_not_exist=Sdf.ValueTypeNames.Int,
+        ...     is_custom=True,
+        ... )
+        True
+    """
     # get stage handle
     stage = get_current_stage() if stage is None else stage
 
@@ -508,6 +740,8 @@ def change_prim_property(
 """
 Exporting.
 """
+"""我们出口。
+"""
 
 
 def export_prim_to_file(
@@ -532,6 +766,23 @@ def export_prim_to_file(
 
     Raises:
         ValueError: If the prim paths are not global (i.e: do not start with '/').
+    """
+    """从一个特定阶段输出prim到USD文件。
+
+    函数在提供路径上创建一个新的层次，并复制prim到层次。
+    它将复制的prim设置为目标层中的默认prim。
+    此外，它还更新了阶段上轴和单位均米，以匹配当前阶段。
+
+    参数：
+        path: 导出prim的文件路径。
+        source_prim_path: 运输的prim路径。
+        target_prim_path: 在目标层中设置为默认prim的prim路径。
+                          在 None 上默认设置，在这种情况下使用源prim路径。
+        stage: 在prim存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+
+    异常：
+        ValueError: 如果prim路径不是全球 (i.e:不要用"/"开始)。
     """
     # get stage handle
     if stage is None:
@@ -582,6 +833,8 @@ def export_prim_to_file(
 """
 Decorators
 """
+"""装饰品
+"""
 
 
 def apply_nested(func: Callable) -> Callable:
@@ -609,6 +862,28 @@ def apply_nested(func: Callable) -> Callable:
 
     Raises:
         ValueError: If the prim-path does not exist on the stage.
+    """
+    """装饰器在指定prim路径下将函数应用于所有prims。
+
+    该函数在提供 prim 路径和其所有子女上进行反复执行，以便在指定 prim 路径下将输入函数应用于所有 prims。
+
+    如果这个函数成功地适用于prim，它不会看看那个prim的孩子。
+    这基于物理行为， 嵌套方案不允许。
+    例如，父母prim和其孩子prim都不能对它们施加硬体方案，或者不能嵌套关节。
+
+    在指定的prim路径下穿越prims时，如果不能将函数应用于任何prim，函数将发出警告。
+    这是因为用户可能打算将函数应用到没有有效属性的prim上，或者prim可能是实例 prim。
+
+    参数：
+        func: 在指定prim路径下适用于所有prims的函数。
+              函数必须采用prim路径和其他参数。
+              它应该返回一个表示函数是否成功或否的布鲁尔函数。
+
+    返回：
+        在指定prim-路径下将函数应用于所有prims的包裹函数。
+
+    异常：
+        ValueError: 如果prim路线没有在舞台上。
     """
 
     @functools.wraps(func)
@@ -679,6 +954,24 @@ def clone(func: Callable) -> Callable:
     Returns:
         The decorated function that spawns the prim and clones it at each matching prim path.
         It returns the spawned source prim, i.e., the first prim in the list of matching prim paths.
+    """
+    """基于匹配prim的父母prim路径的克隆prim的装饰器。
+
+    装饰师检查母prim路径是否与舞台中的任何prim路径相匹配。
+    如果是这样，它将在每个匹配的prim路径中克隆生成的prim。
+    例如，如果输入prim路径是:``/World/Table_[0-9]/Bottle``，装饰师将克隆prim在每次匹配时prim父母的路径prim:
+    ``/World/Table_0/Bottle``， ``/World/Table_1/Bottle``其他
+
+    说明：
+        为了匹配prim路径，装饰师假设所有匹配prim路径都存在有效prims。
+        如果没有找到相匹配的prim路径，装饰师会提升``RuntimeError``。
+
+    参数：
+        func: 装饰的功能。
+
+    返回：
+        装饰式函数，产生prim并在每个匹配prim路径中克隆它。
+        它返回产生的源prim，i.e.，在匹配prim路径列表中的第一个prim。
     """
 
     @functools.wraps(func)
@@ -765,6 +1058,8 @@ def clone(func: Callable) -> Callable:
 """
 Material bindings.
 """
+"""材料结合。
+"""
 
 
 @apply_nested
@@ -794,6 +1089,26 @@ def bind_visual_material(
 
     Raises:
         ValueError: If the provided prim paths do not exist on stage.
+    """
+    """将视觉材料绑定到prim。
+
+    这个函数是围绕USD命令`BindMaterialCommand`_的包装。
+
+    .. 说明::
+        该函数以:meth:`apply_nested`装饰，以便将函数应用于prim路径及其所有后代。
+
+    .. _BindMaterialCommand: https://docs.omniverse.nvidia.com/kit/docs/omni.usd/latest/omni.usd.commands/omni.usd.commands.BindMaterialCommand.html
+
+    参数：
+        prim_path: 应用材料的prim路径。
+        material_path: 应用材料的prim路径。
+        stage: 在prim和材料存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+        stronger_than_descendants: 材料是否应取代其后代的材料。
+                                   默认为 True。
+
+    异常：
+        ValueError: 如果在舞台上没有提供的prim路径。
     """
     # get stage handle
     if stage is None:
@@ -854,6 +1169,28 @@ def bind_physics_material(
     Raises:
         ValueError: If the provided prim paths do not exist on stage.
     """
+    """将物理材料绑定到prim。
+
+    只有一个有物理功能的prim上才能应用`Physics material`_。
+    这包括碰撞APIs，或变形体APIs，或是粒子系统。
+    如果prim没有这些APIs，函数将不应用材料并返回False。
+
+    .. 说明::
+        该函数以:meth:`apply_nested`装饰，以便将函数应用于prim路径及其所有后代。
+
+    .. _Physics material: https://isaac-sim.github.io/IsaacLab/main/source/api/lab/isaaclab.sim.html#isaaclab.sim.SimulationCfg.physics_material
+
+    参数：
+        prim_path: 应用材料的prim路径。
+        material_path: 应用材料的prim路径。
+        stage: 在prim和材料存在的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+        stronger_than_descendants: 材料是否应取代其后代的材料。
+                                   默认为 True。
+
+    异常：
+        ValueError: 如果在舞台上没有提供的prim路径。
+    """
     # get stage handle
     if stage is None:
         stage = get_current_stage()
@@ -899,6 +1236,8 @@ def bind_physics_material(
 """
 USD References and Variants.
 """
+"""USD 参考和变体
+"""
 
 
 def add_usd_reference(
@@ -925,6 +1264,31 @@ def add_usd_reference(
     Raises:
         FileNotFoundError: When the input USD file is not found at the specified path.
     """
+    """在提供阶段的指定prim路径上添加USD参考。
+
+    该函数添加了引用给定的阶段的指定prim路径上的外部USD文件。
+    如果prim不存在，则将使用指定类型创建。
+
+    该函数还处理阶段单元验证以确保兼容性。
+    例如，
+    if the current stage is in meters and the referenced USD file is in centimeters, the function will
+    将单元调整为匹配。
+    通过:mod:`omni.metrics.assembler`功能完成。
+
+    参数：
+        prim_path: 标签:prim路径
+        usd_path: 引用USD文件的路径。
+        prim_type: 如果它不存在，那么它是 prim 的类型。
+                   在"Xform"上默认设置。
+        stage: 增加引用的阶段。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        在指定的prim路径上 USD prim。
+
+    异常：
+        FileNotFoundError: 当输入 USD 文件在指定路径上没有找到时。
+    """
     # get current stage
     stage = get_current_stage() if stage is None else stage
     # get prim at path
@@ -934,6 +1298,7 @@ def add_usd_reference(
 
     def _add_reference_to_prim(prim: Usd.Prim) -> Usd.Prim:
         """Helper function to add a reference to a prim."""
+        """辅助函数添加一个 prim 的引用。"""
         success_bool = prim.GetReferences().AddReference(usd_path)
         if not success_bool:
             raise RuntimeError(
@@ -982,6 +1347,19 @@ def get_usd_references(prim_path: str, stage: Usd.Stage | None = None) -> list[s
 
     Raises:
         ValueError: If the prim at the specified path is not valid.
+    """
+    """在所提供的阶段的指定prim路径上获得USD引用。
+
+    参数：
+        prim_path: 在 prim 路径中获得 USD 引用。
+        stage: 为了获得USD的参考。
+               在 None 上默认设置，此时使用当前阶段。
+
+    返回：
+        一个USD参考路径列表。
+
+    异常：
+        ValueError: 如果指定路径的prim不有效。
     """
     # get stage handle
     stage = get_current_stage() if stage is None else stage
@@ -1044,6 +1422,53 @@ def select_usd_variants(prim_path: str, variants: object | dict[str, str], stage
 
     .. _USD Variants: https://graphics.pixar.com/usd/docs/USD-Glossary.html#USDGlossary-Variant
     """
+    """在USD prim上设置了指定变体集合中的变体选择。
+
+    在USD组合中，`USD Variants`_是一个非常强大的工具，允许prims在单个资产上拥有不同的选项。
+    这可以通过对一组的变量选项来修改相同的prim参数的变化。
+    这个函数作为一个基于脚本的实用程序来设置USD prim上指定的变量组的变量选择。
+
+    该函数将字典或配置类映射变体集合名称带入变体选择中。
+    例如，
+    if we have a prim at ``"/World/Table"`` with two variant sets: "color" and "size", we can set the variant
+    选项如下:
+
+    .. code-block:: python
+
+        select_usd_variants(
+            prim_path="/World/Table",
+            variants={
+                "color": "red",
+                "size": "large",
+            },
+        )
+
+    我们可以使用配置类来定义变量选择:
+
+    .. code-block:: python
+
+        @configclass
+        class TableVariants:
+            color: Literal["blue", "red"] = "red"
+            size: Literal["small", "large"] = "large"
+
+
+        select_usd_variants(
+            prim_path="/World/Table",
+            variants=TableVariants(),
+        )
+
+    参数：
+        prim_path: 这就是USDprim的路径。
+        variants: 一个字典或配置类映射变量设置变量选择的名称。
+        stage: 在USD阶段。
+               在 None 时的默认情况下，使用当前阶段。
+
+    异常：
+        ValueError: 如果指定路径的prim不有效。
+
+    .. _USD Variants: https://graphics.pixar.com/usd/docs/USD-Glossary.html#USDGlossary-Variant
+    """
     # get stage handle
     if stage is None:
         stage = get_current_stage()
@@ -1075,6 +1500,8 @@ def select_usd_variants(prim_path: str, variants: object | dict[str, str], stage
 
 """
 Internal Helpers.
+"""
+"""内部助理。
 """
 
 
@@ -1111,6 +1538,38 @@ def _to_tuple(value: Any) -> tuple[float, ...]:
         >>> _to_tuple((1.0, 2.0, 3.0))
         (1.0, 2.0, 3.0)
 
+    """
+    """将各种序列类型转换为Python浮动图。
+
+    这种函数提供了从不同阵列类型 (列表，tuple，numpy阵列，火 Tensor) 强大的转换到 Python tuples。
+    它处理了像错形序列，CUDA子和单体尺寸的阵列等边缘案例。
+
+    参数：
+        value: 一个类似顺序的物体，含有浮物。
+               支持类型包括:
+            - 字符串列表或图普
+            - NumPy阵列 (任何设备)
+            - 子 PyTorch (CPU或CUDA)
+            - 混合序列，含 sca/火的尺度元素和浮值
+
+    返回：
+        一个一维的浮游器。
+
+    异常：
+        ValueError: 如果输入值在压缩单个尺寸后不是一维。
+
+    示例：
+        >>> import torch
+        >>> import numpy as np
+        >>>
+        >>> _to_tuple([1.0, 2.0, 3.0])
+        (1.0, 2.0, 3.0)
+        >>> _to_tuple(torch.tensor([[1.0, 2.0]]))  # Squeezes first dimension
+        (1.0, 2.0)
+        >>> _to_tuple(np.array([1.0, 2.0, 3.0]))
+        (1.0, 2.0, 3.0)
+        >>> _to_tuple((1.0, 2.0, 3.0))
+        (1.0, 2.0, 3.0)
     """
     # Normalize to tensor if value is a plain sequence (list with mixed types, etc.)
     # This handles cases like [np.float32(1.0), 2.0, torch.tensor(3.0)]

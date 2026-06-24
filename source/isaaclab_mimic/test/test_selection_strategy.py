@@ -29,12 +29,14 @@ NUM_ITERS = 1000
 @pytest.fixture
 def nearest_neighbor_object_strategy():
     """Fixture for NearestNeighborObjectStrategy."""
+    """适用于NearestNeighborObjectStrategy的固定装置。"""
     return NearestNeighborObjectStrategy()
 
 
 @pytest.fixture
 def nearest_neighbor_robot_distance_strategy():
     """Fixture for NearestNeighborRobotDistanceStrategy."""
+    """适用于NearestNeighborRobotDistanceStrategy的固定装置。"""
     return NearestNeighborRobotDistanceStrategy()
 
 
@@ -44,6 +46,11 @@ def test_select_source_demo_identity_orientations_object_strategy(nearest_neighb
     This method generates two clusters of object poses and randomly adjusts the current object pose within
     specified deviations. It then simulates multiple selections to verify that when the current pose is close
     to cluster 1, all selected indices correspond to that cluster, and that the same holds true for cluster 2.
+    """
+    """使用两个不同的object_pose集群来测试选择源示范。
+
+    这种方法产生了两个对象姿势的集群，并在指定偏差内随机调整当前对象姿势。
+    然后仿真多个选择，以验证当当前姿势接近集群1，所有选择的索引都与该集群相符，并且对集群2也是如此。
     """
 
     # Define ranges for two clusters of object poses
@@ -149,6 +156,11 @@ def test_select_source_demo_identity_orientations_robot_distance_strategy(neares
     This method generates two clusters of object poses and randomly adjusts the current object pose within
     specified deviations. It then simulates multiple selections to verify that when the current pose is close
     to cluster 1, all selected indices correspond to that cluster, and that the same holds true for cluster 2.
+    """
+    """根据不同位置的身份定向姿势，测试选择源示范。
+
+    这种方法产生了两个对象姿势的集群，并在指定偏差内随机调整当前对象姿势。
+    然后仿真多个选择，以验证当当前姿势接近集群1，所有选择的索引都与该集群相符，并且对集群2也是如此。
     """
 
     # Define ranges for two clusters of object poses

@@ -15,8 +15,21 @@ while the deformable meshes are spawned with deformable body properties.
     ./isaaclab.sh -p source/isaaclab/test/sim/check_meshes.py
 
 """
+"""这部剧本展示了场景中不同的硬和可变的网格。
+
+在场景中随机产生不同类型的网格。
+基于0.5的概率，网格可以刚性或变形性。
+的网格具有的体质和碰撞性质，
+while the deformable meshes are spawned with deformable body properties.
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p source/isaaclab/test/sim/check_meshes.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -34,6 +47,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import random
 
@@ -46,6 +60,7 @@ import isaaclab.sim as sim_utils
 
 def define_origins(num_origins: int, spacing: float) -> list[list[float]]:
     """Defines the origins of the the scene."""
+    """确定场景的起源。"""
     # create tensor based on number of environments
     env_origins = torch.zeros(num_origins, 3)
     # create a grid of origins
@@ -61,6 +76,7 @@ def define_origins(num_origins: int, spacing: float) -> list[list[float]]:
 
 def design_scene():
     """Designs the scene by spawning ground plane, light, and deformable meshes."""
+    """通过生育地面平面，光线和可变的网格来设计场景。"""
     # Ground-plane
     cfg_ground = sim_utils.GroundPlaneCfg()
     cfg_ground.func("/World/defaultGroundPlane", cfg_ground)
@@ -140,6 +156,7 @@ def design_scene():
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Initialize the simulation context
     sim_cfg = sim_utils.SimulationCfg(dt=0.01)
     sim = sim_utils.SimulationContext(sim_cfg)

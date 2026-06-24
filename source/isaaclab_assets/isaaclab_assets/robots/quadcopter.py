@@ -6,6 +6,7 @@
 """Configuration for the quadcopters"""
 
 from __future__ import annotations
+"""四旋翼的配置"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg
@@ -55,3 +56,4 @@ CRAZYFLIE_CFG = ArticulationCfg(
     },
 )
 """Configuration for the Crazyflie quadcopter."""
+"""对于"疯狂飞机"四旋翼的配置。"""

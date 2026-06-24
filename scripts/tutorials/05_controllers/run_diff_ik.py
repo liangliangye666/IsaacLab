@@ -15,8 +15,20 @@ PhysX. This helps perform parallelized computation of the inverse kinematics.
     ./isaaclab.sh -p scripts/tutorials/05_controllers/run_diff_ik.py
 
 """
+"""这本脚本展示了如何使用仿真器的分化逆动力控制器。
+
+区别IK控制器可以在不同的模式下配置。
+它使用了PhysX计算的雅科比人。
+这有助于执行逆动力学的并行计算。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/tutorials/05_controllers/run_diff_ik.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -36,6 +48,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -59,6 +72,7 @@ from isaaclab_assets import FRANKA_PANDA_HIGH_PD_CFG, UR10_CFG  # isort:skip
 @configclass
 class TableTopSceneCfg(InteractiveSceneCfg):
     """Configuration for a cart-pole scene."""
+    """设置车杆场景。"""
 
     # ground plane
     ground = AssetBaseCfg(
@@ -91,6 +105,7 @@ class TableTopSceneCfg(InteractiveSceneCfg):
 
 def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
     """Runs the simulation loop."""
+    """运行仿真循环。"""
     # Extract scene entities
     # note: we only do this here for readability.
     robot = scene["robot"]
@@ -189,6 +204,7 @@ def run_simulator(sim: sim_utils.SimulationContext, scene: InteractiveScene):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(dt=0.01, device=args_cli.device)
     sim = sim_utils.SimulationContext(sim_cfg)

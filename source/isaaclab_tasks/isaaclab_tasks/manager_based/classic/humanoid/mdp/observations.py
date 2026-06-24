@@ -19,6 +19,7 @@ if TYPE_CHECKING:
 
 def base_yaw_roll(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Yaw and roll of the base in the simulation world frame."""
+    """在仿真世界框架中，"""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # extract euler angles (in world frame)
@@ -32,6 +33,7 @@ def base_yaw_roll(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityC
 
 def base_up_proj(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Projection of the base up vector onto the world up vector."""
+    """投射基向向向向向向向向向向。"""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # compute base up vector
@@ -44,6 +46,9 @@ def base_heading_proj(
     env: ManagerBasedEnv, target_pos: tuple[float, float, float], asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
     """Projection of the base forward vector onto the world forward vector."""
+    """基向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向
+    向向向向向向向向向向向向向向向向向向向向向向向向向向向向。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # compute desired heading direction
@@ -62,6 +67,10 @@ def base_angle_to_target(
     env: ManagerBasedEnv, target_pos: tuple[float, float, float], asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
     """Angle between the base forward vector and the vector to the target."""
+    """基向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向
+    向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向
+    向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向向
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # compute desired heading direction

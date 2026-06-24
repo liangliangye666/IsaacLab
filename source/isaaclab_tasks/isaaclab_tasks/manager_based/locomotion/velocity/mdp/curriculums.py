@@ -10,6 +10,10 @@ the curriculum introduced by the function.
 """
 
 from __future__ import annotations
+"""可用于为学习环境创建课程的共同功能。
+
+函数可以传递到:class:`isaaclab.managers.CurriculumTermCfg`对象，使函数引入的课程能够实现。
+"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -38,6 +42,17 @@ def terrain_levels_vel(
 
     Returns:
         The mean terrain level for the given environment ids.
+    """
+    """根据机器人在指令以想要的速度移动时行走的距离。
+
+    这一项用于增加机器人行走足够远时的地形难度，并且减少机器人行走指令速度所需的距离不到一半。
+
+    .. 说明::
+        只有地形类型``generator``才能使用这个项。
+        对于不同地形类型的更多信息，请查看:class:`isaaclab.terrains.TerrainImporter`类。
+
+    返回：
+        给定的环境ID的平均地形水平。
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]

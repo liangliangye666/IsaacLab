@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Test dataset generation with SkillGen for Isaac Lab Mimic workflow."""
+"""测试数据集生成与 Isaac Lab Mimic 工作流的SkillGen。"""
 
 from isaaclab.app import AppLauncher
 
@@ -27,6 +28,7 @@ NUCLEUS_SKILLGEN_ANNOTATED_DATASET_PATH = os.path.join(
 @pytest.fixture
 def setup_skillgen_test_environment():
     """Prepare environment for SkillGen dataset generation test."""
+    """为SkillGen数据集生成测试准备环境。"""
     # Create the datasets directory if it does not exist
     if not os.path.exists(DATASETS_DOWNLOAD_DIR):
         print("Creating directory : ", DATASETS_DOWNLOAD_DIR)
@@ -55,6 +57,7 @@ def setup_skillgen_test_environment():
 
 def test_generate_dataset_skillgen(setup_skillgen_test_environment):
     """Test dataset generation with SkillGen enabled."""
+    """测试数据集生成，使用SkillGen启用。"""
     workflow_root = setup_skillgen_test_environment
 
     input_file = os.path.join(DATASETS_DOWNLOAD_DIR, "annotated_dataset_skillgen.hdf5")

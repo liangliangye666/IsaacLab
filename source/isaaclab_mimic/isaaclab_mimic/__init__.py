@@ -4,5 +4,6 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Package containing implementation of Isaac Lab Mimic data generation."""
+"""包含实施Isaac Lab Mimic数据生成的包。"""
 
 __version__ = "1.0.0"

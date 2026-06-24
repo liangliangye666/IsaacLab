@@ -7,6 +7,7 @@
 # pyright: reportPrivateUsage=none
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -14,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import copy
 import os
@@ -87,6 +89,7 @@ def teardown(sim: sim_utils.SimulationContext):
 @pytest.fixture
 def setup_sim_camera():
     """Create a simulation context."""
+    """创建一个仿真环境。"""
     sim, camera_cfg, dt = setup()
     yield sim, camera_cfg, dt
     teardown(sim)
@@ -94,6 +97,7 @@ def setup_sim_camera():
 
 def test_camera_init(setup_sim_camera):
     """Test camera initialization."""
+    """测试摄像头启动。"""
     # Create camera configuration
     sim, camera_cfg, dt = setup_sim_camera
     # Create camera
@@ -136,6 +140,7 @@ def test_camera_init(setup_sim_camera):
 
 def test_camera_init_offset(setup_sim_camera):
     """Test camera initialization with offset using different conventions."""
+    """测试摄像头初始化，使用不同的规范。"""
     sim, camera_cfg, dt = setup_sim_camera
     # define the same offset in all conventions
     # -- ROS convention
@@ -216,6 +221,7 @@ def test_camera_init_offset(setup_sim_camera):
 
 def test_multi_camera_init(setup_sim_camera):
     """Test multi-camera initialization."""
+    """测试多摄像头启动。"""
     sim, camera_cfg, dt = setup_sim_camera
     # create two cameras with different prim paths
     # -- camera 1
@@ -250,6 +256,7 @@ def test_multi_camera_init(setup_sim_camera):
 
 def test_multi_camera_with_different_resolution(setup_sim_camera):
     """Test multi-camera initialization with cameras having different image resolutions."""
+    """测试多摄像头初始化，使用不同图像分辨率的摄像头。"""
     sim, camera_cfg, dt = setup_sim_camera
     # create two cameras with different prim paths
     # -- camera 1
@@ -283,6 +290,7 @@ def test_multi_camera_with_different_resolution(setup_sim_camera):
 
 def test_camera_init_intrinsic_matrix(setup_sim_camera):
     """Test camera initialization from intrinsic matrix."""
+    """从内在矩阵开始测试摄像头。"""
     sim, camera_cfg, dt = setup_sim_camera
     # get the first camera
     camera_1 = Camera(cfg=camera_cfg)
@@ -336,6 +344,7 @@ def test_camera_init_intrinsic_matrix(setup_sim_camera):
 
 def test_camera_set_world_poses(setup_sim_camera):
     """Test camera function to set specific world pose."""
+    """测试摄像头功能，设置特定的世界姿势。"""
     sim, camera_cfg, dt = setup_sim_camera
     # enable update latest camera pose
     camera_cfg.update_latest_camera_pose = True
@@ -363,6 +372,7 @@ def test_camera_set_world_poses(setup_sim_camera):
 
 def test_camera_set_world_poses_from_view(setup_sim_camera):
     """Test camera function to set specific world pose from view."""
+    """测试摄像头功能，以设置特定的世界姿势。"""
     sim, camera_cfg, dt = setup_sim_camera
     # enable update latest camera pose
     camera_cfg.update_latest_camera_pose = True
@@ -391,6 +401,7 @@ def test_camera_set_world_poses_from_view(setup_sim_camera):
 
 def test_intrinsic_matrix(setup_sim_camera):
     """Checks that the camera's set and retrieve methods work for intrinsic matrix."""
+    """检查相机的设置和检索方法是否适用于内在矩阵。"""
     sim, camera_cfg, dt = setup_sim_camera
     # enable update latest camera pose
     camera_cfg.update_latest_camera_pose = True
@@ -429,6 +440,12 @@ def test_depth_clipping(setup_sim_camera):
     .. note::
 
         This test is the same for all camera models to enforce the same clipping behavior.
+    """
+    """测试深度裁剪。
+
+    .. 说明::
+
+        这种测试对所有相机模型都相同，以执行相同的裁剪行为。
     """
     # get camera cfgs
     sim, _, dt = setup_sim_camera
@@ -537,6 +554,7 @@ def test_depth_clipping(setup_sim_camera):
 
 def test_camera_resolution_all_colorize(setup_sim_camera):
     """Test camera resolution is correctly set for all types with colorization enabled."""
+    """测试摄像头的分辨率为所有类型都设置了正确，且启用了彩色。"""
     # Add all types
     sim, camera_cfg, dt = setup_sim_camera
     camera_cfg.data_types = [
@@ -601,6 +619,7 @@ def test_camera_resolution_all_colorize(setup_sim_camera):
 
 def test_camera_resolution_no_colorize(setup_sim_camera):
     """Test camera resolution is correctly set for all types with no colorization enabled."""
+    """测试摄像头的分辨率为所有类型都设置了正确，没有启用彩色。"""
     # Add all types
     sim, camera_cfg, dt = setup_sim_camera
     camera_cfg.data_types = [
@@ -664,6 +683,7 @@ def test_camera_resolution_no_colorize(setup_sim_camera):
 
 def test_camera_large_resolution_all_colorize(setup_sim_camera):
     """Test camera resolution is correctly set for all types with colorization enabled."""
+    """测试摄像头的分辨率为所有类型都设置了正确，且启用了彩色。"""
     # Add all types
     sim, camera_cfg, dt = setup_sim_camera
     camera_cfg.data_types = [
@@ -730,6 +750,7 @@ def test_camera_large_resolution_all_colorize(setup_sim_camera):
 
 def test_camera_resolution_rgb_only(setup_sim_camera):
     """Test camera resolution is correctly set for RGB only."""
+    """测试摄像头的分辨率仅为RGB准确设置。"""
     # Add all types
     sim, camera_cfg, dt = setup_sim_camera
     camera_cfg.data_types = ["rgb"]
@@ -757,6 +778,7 @@ def test_camera_resolution_rgb_only(setup_sim_camera):
 
 def test_camera_resolution_rgba_only(setup_sim_camera):
     """Test camera resolution is correctly set for RGBA only."""
+    """测试摄像头的分辨率仅为RGBA准确设置。"""
     # Add all types
     sim, camera_cfg, dt = setup_sim_camera
     camera_cfg.data_types = ["rgba"]
@@ -784,6 +806,7 @@ def test_camera_resolution_rgba_only(setup_sim_camera):
 
 def test_camera_resolution_depth_only(setup_sim_camera):
     """Test camera resolution is correctly set for depth only."""
+    """测试摄像头的分辨率仅适用于深度。"""
     # Add all types
     sim, camera_cfg, dt = setup_sim_camera
     camera_cfg.data_types = ["depth"]
@@ -811,6 +834,7 @@ def test_camera_resolution_depth_only(setup_sim_camera):
 
 def test_throughput(setup_sim_camera):
     """Checks that the single camera gets created properly with a rig."""
+    """检查单个摄像头是否通过设备进行正确的创建。"""
     # Create directory temp dir to dump the results
     file_dir = os.path.dirname(os.path.realpath(__file__))
     temp_dir = os.path.join(file_dir, "output", "camera", "throughput")
@@ -864,6 +888,7 @@ def test_throughput(setup_sim_camera):
 
 def test_sensor_print(setup_sim_camera):
     """Test sensor print is working correctly."""
+    """测试传感器打印正确工作。"""
     # Create sensor
     sim, camera_cfg, dt = setup_sim_camera
     sensor = Camera(cfg=camera_cfg)
@@ -875,6 +900,7 @@ def test_sensor_print(setup_sim_camera):
 
 def _populate_scene():
     """Add prims to the scene."""
+    """添加prims到场景。"""
     # Ground-plane
     cfg = sim_utils.GroundPlaneCfg()
     cfg.func("/World/defaultGroundPlane", cfg)

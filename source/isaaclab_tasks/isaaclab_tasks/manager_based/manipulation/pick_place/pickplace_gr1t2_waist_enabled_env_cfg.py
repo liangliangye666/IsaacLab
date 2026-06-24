@@ -18,6 +18,7 @@ from .pickplace_gr1t2_env_cfg import ActionsCfg, EventCfg, ObjectTableSceneCfg, 
 @configclass
 class PickPlaceGR1T2WaistEnabledEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the GR1T2 environment."""
+    """对GR1T2环境的配置。"""
 
     # Scene settings
     scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=1, env_spacing=2.5, replicate_physics=True)
@@ -47,6 +48,7 @@ class PickPlaceGR1T2WaistEnabledEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 6
         self.episode_length_s = 20.0

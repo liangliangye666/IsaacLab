@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Keyboard device for SE(2) and SE(3) control."""
+"""对SE(2) 和SE(3) 控制的键盘装置。"""
 
 from .se2_keyboard import Se2Keyboard, Se2KeyboardCfg
 from .se3_keyboard import Se3Keyboard, Se3KeyboardCfg

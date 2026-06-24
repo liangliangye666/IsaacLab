@@ -11,6 +11,7 @@ HEADLESS = True
 simulation_app = AppLauncher(headless=HEADLESS).app
 
 """Rest of imports follows"""
+"""剩下的进口"""
 
 from types import SimpleNamespace
 
@@ -20,6 +21,7 @@ import torch
 
 def make_thruster_cfg(num_motors: int):
     """Create a minimal Thruster-like config object for tests."""
+    """为测试创建一个最小的推进器类似的配置对象。"""
     return SimpleNamespace(
         dt=0.01,
         num_motors=num_motors,
@@ -40,6 +42,7 @@ def make_thruster_cfg(num_motors: int):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_zero_thrust_const_is_handled(num_envs, num_motors, device):
     """When thrust_const_range contains zeros, Thruster clamps values and compute returns finite outputs."""
+    """当thrust_const_range包含零时，推进器将值紧缩，计算返回有限的输出。"""
     from isaaclab_contrib.actuators import Thruster
 
     cfg = make_thruster_cfg(num_motors)
@@ -64,6 +67,7 @@ def test_zero_thrust_const_is_handled(num_envs, num_motors, device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_negative_thrust_range_results_finite(num_envs, num_motors, device):
     """Negative configured thrust ranges are clamped and yield finite outputs after hardening."""
+    """负配置的推力范围被紧缩，在硬化后产生有限的输出。"""
     from isaaclab_contrib.actuators import Thruster
 
     cfg = make_thruster_cfg(num_motors)
@@ -89,6 +93,7 @@ def test_negative_thrust_range_results_finite(num_envs, num_motors, device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_tensor_vs_slice_indices_and_subset_reset(num_envs, num_motors, device):
     """Compute should accept tensor or slice thruster indices, and reset_idx should affect only specified envs."""
+    """计算应接受子或切片推进器索引，reset_idx应只影响指定envs。"""
     from isaaclab_contrib.actuators import Thruster
 
     cfg = make_thruster_cfg(num_motors)
@@ -125,6 +130,7 @@ def test_tensor_vs_slice_indices_and_subset_reset(num_envs, num_motors, device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_mixing_and_integration_modes(num_envs, num_motors, device):
     """Verify mixing factor selection and integration kernel choice reflect the config."""
+    """验证混合因素选择和集成内核选择反映配置。"""
     from isaaclab_contrib.actuators import Thruster
 
     cfg = make_thruster_cfg(num_motors)
@@ -156,6 +162,7 @@ def test_mixing_and_integration_modes(num_envs, num_motors, device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_thruster_compute_clamps_and_shapes(num_envs, num_motors, device):
     """Thruster.compute should return thrusts with correct shape and within clamp bounds."""
+    """Thruster.compute应以正确的形状，在门边界内返回推力。"""
     from isaaclab_contrib.actuators import Thruster
 
     cfg = make_thruster_cfg(num_motors)
@@ -183,6 +190,7 @@ def test_thruster_compute_clamps_and_shapes(num_envs, num_motors, device):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_thruster_reset_idx_changes_state(num_envs, num_motors, device):
     """reset_idx should re-sample parameters for specific env indices."""
+    """对于特定env索引，reset_idx应重新采样参数。"""
     from isaaclab_contrib.actuators import Thruster
 
     cfg = make_thruster_cfg(num_motors)

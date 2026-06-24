@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module for rigid object assets."""
+"""固体物体资产子模块"""
 
 from .rigid_object import RigidObject
 from .rigid_object_cfg import RigidObjectCfg

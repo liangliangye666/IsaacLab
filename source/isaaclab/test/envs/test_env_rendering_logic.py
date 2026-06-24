@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -12,6 +13,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -34,16 +36,19 @@ from isaaclab.utils import configclass
 @configclass
 class EmptyManagerCfg:
     """Empty specifications for the environment."""
+    """环境的空格规格。"""
 
     pass
 
 
 def create_manager_based_env(render_interval: int):
     """Create a manager based environment."""
+    """建立一个基于管理器的环境。"""
 
     @configclass
     class EnvCfg(ManagerBasedEnvCfg):
         """Configuration for the test environment."""
+        """对测试环境的配置。"""
 
         decimation: int = 4
         episode_length_s: float = 100.0
@@ -57,10 +62,12 @@ def create_manager_based_env(render_interval: int):
 
 def create_manager_based_rl_env(render_interval: int):
     """Create a manager based RL environment."""
+    """创建一个基于管理器的RL环境。"""
 
     @configclass
     class EnvCfg(ManagerBasedRLEnvCfg):
         """Configuration for the test environment."""
+        """对测试环境的配置。"""
 
         decimation: int = 4
         episode_length_s: float = 100.0
@@ -76,10 +83,12 @@ def create_manager_based_rl_env(render_interval: int):
 
 def create_direct_rl_env(render_interval: int):
     """Create a direct RL environment."""
+    """创建一个直接的RL环境。"""
 
     @configclass
     class EnvCfg(DirectRLEnvCfg):
         """Configuration for the test environment."""
+        """对测试环境的配置。"""
 
         decimation: int = 4
         action_space: int = 0
@@ -90,6 +99,7 @@ def create_direct_rl_env(render_interval: int):
 
     class Env(DirectRLEnv):
         """Test environment."""
+        """测试环境。"""
 
         def _pre_physics_step(self, actions):
             pass
@@ -112,6 +122,7 @@ def create_direct_rl_env(render_interval: int):
 @pytest.fixture
 def physics_callback():
     """Create a physics callback for tracking physics steps."""
+    """创建一个物理回调来跟踪物理步骤。"""
     physics_time = 0.0
     num_physics_steps = 0
 
@@ -126,6 +137,7 @@ def physics_callback():
 @pytest.fixture
 def render_callback():
     """Create a render callback for tracking render steps."""
+    """创建一个转换回调来跟踪转换步骤。"""
     render_time = 0.0
     num_render_steps = 0
 
@@ -141,6 +153,7 @@ def render_callback():
 @pytest.mark.parametrize("render_interval", [1, 2, 4, 8, 10])
 def test_env_rendering_logic(env_type, render_interval, physics_callback, render_callback):
     """Test the rendering logic of the different environment workflows."""
+    """测试不同环境工作流的 logic渲染逻辑。"""
     physics_cb, get_physics_stats = physics_callback
     render_cb, get_render_stats = render_callback
 

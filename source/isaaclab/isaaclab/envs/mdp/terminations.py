@@ -10,6 +10,10 @@ the termination introduced by the function.
 """
 
 from __future__ import annotations
+"""可用于激活某些终止的共同函数。
+
+函数可以传递到:class:`isaaclab.managers.TerminationTermCfg`对象，以实现函数引入的终止。
+"""
 
 from typing import TYPE_CHECKING
 
@@ -26,10 +30,13 @@ if TYPE_CHECKING:
 """
 MDP terminations.
 """
+"""MDP终止。
+"""
 
 
 def time_out(env: ManagerBasedRLEnv) -> torch.Tensor:
     """Terminate the episode when the episode length exceeds the maximum episode length."""
+    """当回合的长度超过最高回合的长度时，结束回合。"""
     return env.episode_length_buf >= env.max_episode_length
 
 
@@ -39,12 +46,19 @@ def command_resample(env: ManagerBasedRLEnv, command_name: str, num_resamples: i
     This makes the maximum episode length fluid in nature as it depends on how the commands are
     sampled. It is useful in situations where delayed rewards are used :cite:`rudin2022advanced`.
     """
+    """根据命令重新采样的总数，结束回合。
+
+    这使得回合长度最大的流体在自然中，因为这取决于命令如何采样。
+    在使用延迟奖励的情况下，它是有用的:`rudin2022advanced`。
+    """
     command: CommandTerm = env.command_manager.get_term(command_name)
     return torch.logical_and((command.time_left <= env.step_dt), (command.command_counter == num_resamples))
 
 
 """
 Root terminations.
+"""
+"""根源终结。
 """
 
 
@@ -54,6 +68,10 @@ def bad_orientation(
     """Terminate when the asset's orientation is too far from the desired orientation limits.
 
     This is computed by checking the angle between the projected gravity vector and the z-axis.
+    """
+    """当资产的导向远离所需的导向限制时，终止。
+
+    通过检查投射重力向量和z轴之间的角度来计算。
     """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
@@ -68,6 +86,11 @@ def root_height_below_minimum(
     Note:
         This is currently only supported for flat terrains, i.e. the minimum height is in the world frame.
     """
+    """在资产的根高度低于最低高度时终止。
+
+    说明：
+        目前仅支持平面地形，最低高度是世界框架的i.e.。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_pos_w[:, 2] < minimum_height
@@ -76,10 +99,13 @@ def root_height_below_minimum(
 """
 Joint terminations.
 """
+"""联合终止。
+"""
 
 
 def joint_pos_out_of_limit(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Terminate when the asset's joint positions are outside of the soft joint limits."""
+    """在资产的关节位置在软联合限度之外时，终止。"""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     if asset_cfg.joint_ids is None:
@@ -99,6 +125,11 @@ def joint_pos_out_of_manual_limit(
     Note:
         This function is similar to :func:`joint_pos_out_of_limit` but allows the user to specify the bounds manually.
     """
+    """在资产的关节位置在配置边界之外时终止。
+
+    说明：
+        这个函数与:func:`joint_pos_out_of_limit`类似，但允许用户手动指定边界。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     if asset_cfg.joint_ids is None:
@@ -111,6 +142,7 @@ def joint_pos_out_of_manual_limit(
 
 def joint_vel_out_of_limit(env: ManagerBasedRLEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Terminate when the asset's joint velocities are outside of the soft joint limits."""
+    """当资产的关节速度超出柔软关节限制时，停止。"""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # compute any violations
@@ -122,6 +154,7 @@ def joint_vel_out_of_manual_limit(
     env: ManagerBasedRLEnv, max_velocity: float, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
 ) -> torch.Tensor:
     """Terminate when the asset's joint velocities are outside the provided limits."""
+    """当资产的关节速度超出所提供的限制时，终止。"""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # compute any violations
@@ -137,6 +170,13 @@ def joint_effort_out_of_limit(
     the computed torques to the joint limits. Hence, we check if the computed torques are equal to the applied
     torques. If they are not, it means that clipping has occurred.
     """
+    """在资产的关节上施加的努力在软关节限制之外时，终止。
+
+    在执行器中，应用的扭矩是对关节施加的努力。
+    通过将计算的扭矩裁剪到关节极限来计算这些扭矩。
+    因此，我们检查计算的扭矩是否等于应用的扭矩。
+    如果没有，这意味着已经发生了裁剪。
+    """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     # check if any joint effort is out of limit
@@ -149,10 +189,13 @@ def joint_effort_out_of_limit(
 """
 Contact sensor.
 """
+"""接触传感器。
+"""
 
 
 def illegal_contact(env: ManagerBasedRLEnv, threshold: float, sensor_cfg: SceneEntityCfg) -> torch.Tensor:
     """Terminate when the contact force on the sensor exceeds the force threshold."""
+    """当传感器的接触力超过力门时，停止。"""
     # extract the used quantities (to enable type-hinting)
     contact_sensor: ContactSensor = env.scene.sensors[sensor_cfg.name]
     net_contact_forces = contact_sensor.data.net_forces_w_history

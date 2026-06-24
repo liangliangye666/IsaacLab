@@ -36,21 +36,50 @@ class ActuatorBase(ABC):
 
     To see how the class is used, check the :class:`isaaclab.assets.Articulation` class.
     """
+    """动机模型的基类在关节中的动机关联的集合上。
+
+    动机模型通过外部驱动动动力模型增强仿真的关节。
+    该模型用于将用户提供的联合命令 (位置，速度和努力) 转换为用于仿真关节的所需关节位置，速度和努力。
+
+    基本类为动机模型提供了接口。
+    它负责从配置中分析执行器参数，并将它们作为缓冲器存储。
+    它还提供了重置执行器状态的接口，并计算了仿真所需的联合命令。
+
+    对于每个动机模型，提供相应的配置类。
+    配置类用于从配置中分析执行器参数。
+    它还规定了共同名称
+    for which the actuator model is applied. These names can be specified as regular expressions, which
+    它们与文本中的联合名称相匹配。
+
+    查看:class:`isaaclab.assets.Articulation`类。
+    """
 
     is_implicit_model: ClassVar[bool] = False
     """Flag indicating if the actuator is an implicit or explicit actuator model.
 
     If a class inherits from :class:`ImplicitActuator`, then this flag should be set to :obj:`True`.
     """
+    """标志显示动机是否是隐含或明确的动机模型。
+
+    如果一个类继承:class:`ImplicitActuator`，则该旗应设置为:obj:`True`。
+    """
 
     computed_effort: torch.Tensor
     """The computed effort for the actuator group. Shape is (num_envs, num_joints)."""
+    """执行器组的计算力。
+    形状是 (num_envs，num_joints)。
+    """
 
     applied_effort: torch.Tensor
     """The applied effort for the actuator group. Shape is (num_envs, num_joints).
 
     This is the effort obtained after clipping the :attr:`computed_effort` based on the
     actuator characteristics.
+    """
+    """执行器组所做的努力。
+    形状是 (num_envs，num_joints)。
+
+    这是在根据动机特性裁剪:attr:`computed_effort`后获得的努力。
     """
 
     effort_limit: torch.Tensor
@@ -62,6 +91,14 @@ class ActuatorBase(ABC):
       (e.g., motor torque limits in DC motor models).
     - **Implicit actuators**: Same as :attr:`effort_limit_sim` (aliased for consistency).
     """
+    """执行器组的努力限制。
+    形状是 (num_envs，num_joints)。
+
+    根据执行器类型，这种限制使用不同:
+
+    - **显而易见的动力驱动器**:用于动力驱动器模型内部扭矩裁剪 (e.g.，DC电机模型中的电动扭矩限制)。
+    - **隐含执行器**:与:attr:`effort_limit_sim`相同 (以一致性命名)。
+    """
 
     effort_limit_sim: torch.Tensor
     """The effort limit for the actuator group in the simulation. Shape is (num_envs, num_joints).
@@ -72,11 +109,24 @@ class ActuatorBase(ABC):
       since the actuator model already clips efforts using :attr:`effort_limit`.
     - **Implicit actuators**: Same as :attr:`effort_limit` (both values are synchronized).
     """
+    """在仿真中执行器组的功耗限制。
+    形状是 (num_envs，num_joints)。
+
+    对于隐含动机，:attr:`effort_limit`和:attr:`effort_limit_sim`是相同的。
+
+    - **明确执行器**:通常设置为大值 (1.0e9) 避免双切，因为执行器模型已经使用:attr:`effort_limit`来切断努力。
+    - **隐含执行器**:与:attr:`effort_limit`相同 (两个值都同步)。
+    """
 
     velocity_limit: torch.Tensor
     """The velocity limit for the actuator group. Shape is (num_envs, num_joints).
 
     For implicit actuators, the :attr:`velocity_limit` and :attr:`velocity_limit_sim` are the same.
+    """
+    """执行器组的速度限制。
+    形状是 (num_envs，num_joints)。
+
+    对于隐含动机，:attr:`velocity_limit`和:attr:`velocity_limit_sim`是相同的。
     """
 
     velocity_limit_sim: torch.Tensor
@@ -84,30 +134,58 @@ class ActuatorBase(ABC):
 
     For implicit actuators, the :attr:`velocity_limit` and :attr:`velocity_limit_sim` are the same.
     """
+    """在仿真中执行器组的速度限制。
+    形状是 (num_envs，num_joints)。
+
+    对于隐含动机，:attr:`velocity_limit`和:attr:`velocity_limit_sim`是相同的。
+    """
 
     stiffness: torch.Tensor
     """The stiffness (P gain) of the PD controller. Shape is (num_envs, num_joints)."""
+    """PD控制器的硬度 (P增长)。
+    形状是 (num_envs，num_joints)。
+    """
 
     damping: torch.Tensor
     """The damping (D gain) of the PD controller. Shape is (num_envs, num_joints)."""
+    """PD控制器的缩 (D增长)。
+    形状是 (num_envs，num_joints)。
+    """
 
     armature: torch.Tensor
     """The armature of the actuator joints. Shape is (num_envs, num_joints)."""
+    """执行器关节的 armature。
+    形状是 (num_envs，num_joints)。
+    """
 
     friction: torch.Tensor
     """The joint static friction of the actuator joints. Shape is (num_envs, num_joints)."""
+    """执行器关节的静态摩擦。
+    形状是 (num_envs，num_joints)。
+    """
 
     dynamic_friction: torch.Tensor
     """The joint dynamic friction of the actuator joints. Shape is (num_envs, num_joints)."""
+    """执行器关节的动态摩擦。
+    形状是 (num_envs，num_joints)。
+    """
 
     viscous_friction: torch.Tensor
     """The joint viscous friction of the actuator joints. Shape is (num_envs, num_joints)."""
+    """执行器关节的粘摩擦。
+    形状是 (num_envs，num_joints)。
+    """
 
     _DEFAULT_MAX_EFFORT_SIM: ClassVar[float] = 1.0e9
     """The default maximum effort for the actuator joints in the simulation. Defaults to 1.0e9.
 
     If the :attr:`ActuatorBaseCfg.effort_limit_sim` is not specified and the actuator is an explicit
     actuator, then this value is used.
+    """
+    """在仿真中执行器关节的默认最大功耗。
+    在1.0e9上默认设置。
+
+    如果没有指定:attr:`ActuatorBaseCfg.effort_limit_sim`，并且执行器是明确的执行器，则使用此值。
     """
 
     def __init__(
@@ -161,6 +239,48 @@ class ActuatorBase(ABC):
                 If a tensor, then the shape is (num_envs, num_joints).
             velocity_limit: The default velocity limit. Defaults to infinity.
                 If a tensor, then the shape is (num_envs, num_joints).
+        """
+        """启动执行器。
+
+        执行器参数从配置中分析并作为缓冲器存储。
+        如果参数在配置中未指定，则使用在构造器中提供的值。
+
+        .. 说明::
+            在构造器中的值通常通过 PhysX API调用中传递的USD值来获得，这些值是执行器模型中的关节；如果参数不在cfg中指定，这些值将作为默认值。
+
+
+
+        参数：
+            cfg: 执行器模型的配置。
+            joint_names: 关键词中的共同名称。
+            joint_ids: 关节中的索引。
+                       如果是:obj:`slice(None)`，那么关节中的所有关节都是集团的一部分。
+            num_envs: 视图中的关节数量
+            device: 用于处理的设备。
+            stiffness: 默认关节硬度 (P增长)。
+                       默认为0.0。
+                       如果是子，则形状是 (num_envs，num_joints)。
+            damping: 默认关节缩 (D增长)。
+                     默认为0.0。
+                     如果是子，则形状是 (num_envs，num_joints)。
+            armature: 默认的关节 armature。
+                      默认为0.0。
+                      如果是子，则形状是 (num_envs，num_joints)。
+            friction: 默认的关节静态摩擦。
+                      默认为0.0。
+                      如果是子，则形状是 (num_envs，num_joints)。
+            dynamic_friction: 默认的关节动态摩擦。
+                              默认为0.0。
+                              如果是子，则形状是 (num_envs，num_joints)。
+            viscous_friction: 默认关节粘性摩擦。
+                              默认为0.0。
+                              如果是子，则形状是 (num_envs，num_joints)。
+            effort_limit: 默认的努力限制。
+                          默认到无限。
+                          如果是子，则形状是 (num_envs，num_joints)。
+            velocity_limit: 默认速度限制。
+                            默认到无限。
+                            如果是子，则形状是 (num_envs，num_joints)。
         """
         # save parameters
         self.cfg = cfg
@@ -221,6 +341,7 @@ class ActuatorBase(ABC):
 
     def __str__(self) -> str:
         """Returns: A string representation of the actuator group."""
+        """Returns: 执行器组的字符串表示。"""
         # resolve joint indices for printing
         joint_indices = self.joint_indices
         if joint_indices == slice(None):
@@ -240,15 +361,19 @@ class ActuatorBase(ABC):
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def num_joints(self) -> int:
         """Number of actuators in the group."""
+        """集团中的执行器数量"""
         return len(self._joint_names)
 
     @property
     def joint_names(self) -> list[str]:
         """Articulation's joint names that are part of the group."""
+        """关节的共同名字是集团的一部分。"""
         return self._joint_names
 
     @property
@@ -259,10 +384,18 @@ class ActuatorBase(ABC):
             If :obj:`slice(None)` is returned, then the group contains all the joints in the articulation.
             We do this to avoid unnecessary indexing of the joints for performance reasons.
         """
+        """关节的关节索引是组的一部分。
+
+        说明：
+            If :转换为obj:`slice(None)`，然后组包含关节中的所有关节。
+            我们这样做是为了避免由于性能原因，
+        """
         return self._joint_indices
 
     """
     Operations.
+    """
+    """操作。
     """
 
     @abstractmethod
@@ -271,6 +404,11 @@ class ActuatorBase(ABC):
 
         Args:
             env_ids: List of environment IDs to reset.
+        """
+        """在组内部重置。
+
+        参数：
+            env_ids: 设置环境 IDs的列表。
         """
         raise NotImplementedError
 
@@ -291,10 +429,26 @@ class ActuatorBase(ABC):
         Returns:
             The computed desired joint positions, joint velocities and joint efforts.
         """
+        """处理动机组操作和计算关节操作。
+
+        它根据执行器模型类型计算关节动作
+
+        参数：
+            control_action: 联合动作实例，包括所需的关节位置，关节速度和 (向前) 联合努力。
+            joint_pos: 组中关节的当前关节位置。
+                       形状是 (num_envs，num_joints)。
+            joint_vel: 组中的关节的当前关节速度。
+                       形状是 (num_envs，num_joints)。
+
+        返回：
+            计算了所需的关节位置，关节速度和联合努力。
+        """
         raise NotImplementedError
 
     """
     Helper functions.
+    """
+    """辅助函数。
     """
 
     def _record_actuator_resolution(self, cfg_val, new_val, usd_val, joint_names, joint_ids, actuator_param: str):
@@ -327,6 +481,23 @@ class ActuatorBase(ABC):
             TypeError: If the default value is not of the expected type.
             ValueError: If the parameter value is None and no default value is provided.
             ValueError: If the default value tensor is the wrong shape.
+        """
+        """从配置中分析联合参数。
+
+        参数：
+            cfg_value: 配置中的参数值。
+                       如果 None，则使用默认值。
+            default_value: 如果参数是None，则使用的默认值。
+                           如果它也是None，则出现错误。
+
+        返回：
+            分析参数值。
+
+        异常：
+            TypeError: 如果参数值不符合预期类型。
+            TypeError: 如果默认值不符合预期类型。
+            ValueError: 如果参数值为 None，并且没有提供默认值。
+            ValueError: 如果默认值子是错误的形状。
         """
         # create parameter buffer
         param = torch.zeros(self._num_envs, self.num_joints, device=self._device)
@@ -377,5 +548,13 @@ class ActuatorBase(ABC):
 
         Returns:
             The clipped torques.
+        """
+        """根据发动机限制，切断所需的扭矩。
+
+        参数：
+            desired_torques: 需要的扭矩来切断。
+
+        返回：
+            切断的扭矩。
         """
         return torch.clip(effort, min=-self.effort_limit, max=self.effort_limit)

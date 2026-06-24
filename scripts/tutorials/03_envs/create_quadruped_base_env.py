@@ -16,8 +16,20 @@ the terrain.
     ./isaaclab.sh -p scripts/tutorials/03_envs/create_quadruped_base_env.py --num_envs 32
 
 """
+"""这部脚本展示了四足机器人机器人的环境，
+
+在这个例子中，我们使用机器人控制的机动策略。
+机器人被命令以恒定的速度前进。
+高度扫描传感器用于检测地形的高度。
+
+.. code-block:: bash
+
+    # Run the script
+    ./isaaclab.sh -p scripts/tutorials/03_envs/create_quadruped_base_env.py --num_envs 32
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 
 import argparse
@@ -38,6 +50,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -70,6 +83,7 @@ from isaaclab_assets.robots.anymal import ANYMAL_C_CFG  # isort: skip
 
 def constant_commands(env: ManagerBasedEnv) -> torch.Tensor:
     """The generated command from the command generator."""
+    """命令生成器的命令。"""
     return torch.tensor([[1, 0, 0]], device=env.device).repeat(env.num_envs, 1)
 
 
@@ -81,6 +95,7 @@ def constant_commands(env: ManagerBasedEnv) -> torch.Tensor:
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
     """Example scene configuration."""
+    """例如场景配置。"""
 
     # add terrain
     terrain = TerrainImporterCfg(
@@ -126,6 +141,7 @@ class MySceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     joint_pos = mdp.JointPositionActionCfg(asset_name="robot", joint_names=[".*"], scale=0.5, use_default_offset=True)
 
@@ -133,10 +149,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # observation terms (order preserved)
         base_lin_vel = ObsTerm(func=mdp.base_lin_vel, noise=Unoise(n_min=-0.1, n_max=0.1))
@@ -167,6 +185,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_scene = EventTerm(func=mdp.reset_scene_to_default, mode="reset")
 
@@ -179,6 +198,7 @@ class EventCfg:
 @configclass
 class QuadrupedEnvCfg(ManagerBasedEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
+    """机动速度跟踪环境的配置。"""
 
     # Scene settings
     scene: MySceneCfg = MySceneCfg(num_envs=args_cli.num_envs, env_spacing=2.5)
@@ -189,6 +209,7 @@ class QuadrupedEnvCfg(ManagerBasedEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 4  # env decimation -> 50 Hz control
         # simulation settings
@@ -203,6 +224,7 @@ class QuadrupedEnvCfg(ManagerBasedEnvCfg):
 
 def main():
     """Main function."""
+    """主要功能。"""
     # setup base environment
     env_cfg = QuadrupedEnvCfg()
     env = ManagerBasedEnv(cfg=env_cfg)

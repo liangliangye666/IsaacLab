@@ -43,6 +43,14 @@ def set_finger_joint_pos_robotiq_2f140(
         finger_joints: List of finger joint indices
         finger_joint_position: Target position for finger joints
     """
+    """设置Robotiq 2F-140抓住器的指关节位置。
+
+    参数：
+        joint_pos: 关节位置子
+        reset_ind_joint_pos: 排列索引进入切片 joint_pos子
+        finger_joints: 指关节索引列表
+        finger_joint_position: 指关节的目标位置
+    """
     for idx in reset_ind_joint_pos:
         # For 2F-140 gripper (8 joints expected)
         # Joint structure: [finger_joint, finger_joint, outer_joints x2, inner_finger_joints x2, pad_joints x2]
@@ -78,6 +86,14 @@ def set_finger_joint_pos_robotiq_2f85(
         finger_joints: List of finger joint indices
         finger_joint_position: Target position for finger joints
     """
+    """设置Robotiq 2F-85抓住器的指关节位置。
+
+    参数：
+        joint_pos: 关节位置子
+        reset_ind_joint_pos: 排列索引进入切片 joint_pos子
+        finger_joints: 指关节索引列表
+        finger_joint_position: 指关节的目标位置
+    """
     for idx in reset_ind_joint_pos:
         # For 2F-85 gripper (6 joints expected)
         # Joint structure: [finger_joint, finger_joint, inner_finger_joints x2, inner_finger_knuckle_joints x2]
@@ -103,6 +119,7 @@ def set_finger_joint_pos_robotiq_2f85(
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     robot_joint_stiffness_and_damping = EventTerm(
         func=mdp.randomize_actuator_gains,
@@ -235,6 +252,11 @@ class UR10eGearAssemblyEnvCfg(GearAssemblyEnvCfg):
     This class contains common setup shared across different gripper configurations.
     Subclasses should configure gripper-specific parameters.
     """
+    """对于UR10e轮装配环境的基本配置。
+
+    这种类型包含在不同的抓住器配置中共享的共同设置。
+    亚类应配置特定的杆参数。
+    """
 
     def __post_init__(self):
         # post init of parent
@@ -308,6 +330,7 @@ class UR10eGearAssemblyEnvCfg(GearAssemblyEnvCfg):
 @configclass
 class UR10e2F140GearAssemblyEnvCfg(UR10eGearAssemblyEnvCfg):
     """Configuration for UR10e with Robotiq 2F-140 gripper."""
+    """配置UR10e用Robotiq 2F-140抓住器。"""
 
     def __post_init__(self):
         # post init of parent
@@ -397,6 +420,7 @@ class UR10e2F140GearAssemblyEnvCfg(UR10eGearAssemblyEnvCfg):
 @configclass
 class UR10e2F85GearAssemblyEnvCfg(UR10eGearAssemblyEnvCfg):
     """Configuration for UR10e with Robotiq 2F-85 gripper."""
+    """配置UR10e用Robotiq 2F-85抓住器。"""
 
     def __post_init__(self):
         # post init of parent
@@ -495,6 +519,7 @@ class UR10e2F85GearAssemblyEnvCfg(UR10eGearAssemblyEnvCfg):
 @configclass
 class UR10e2F140GearAssemblyEnvCfg_PLAY(UR10e2F140GearAssemblyEnvCfg):
     """Play configuration for UR10e with Robotiq 2F-140 gripper."""
+    """用Robotiq 2F-140抓住器来播放UR10e的配置。"""
 
     def __post_init__(self):
         # post init of parent
@@ -509,6 +534,7 @@ class UR10e2F140GearAssemblyEnvCfg_PLAY(UR10e2F140GearAssemblyEnvCfg):
 @configclass
 class UR10e2F85GearAssemblyEnvCfg_PLAY(UR10e2F85GearAssemblyEnvCfg):
     """Play configuration for UR10e with Robotiq 2F-85 gripper."""
+    """用Robotiq 2F-85抓住器来播放UR10e的配置。"""
 
     def __post_init__(self):
         # post init of parent

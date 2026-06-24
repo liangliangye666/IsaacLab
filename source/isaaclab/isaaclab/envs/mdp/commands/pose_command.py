@@ -6,6 +6,7 @@
 """Sub-module containing command generators for pose tracking."""
 
 from __future__ import annotations
+"""含有可追踪姿势的命令生成器的子模块。"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -41,9 +42,24 @@ class UniformPoseCommand(CommandTerm):
         from euler angles to rotations is not one-to-one.
 
     """
+    """命令生成器，以生成统一的姿势命令。
+
+    命令生成器通过采样位置在卡特西亚空间的特定区域内均地生成姿势。
+    为了导向，它均地采样圆角 (roll-pitch-yaw) 并将它们转化为四角形表示 (w， x， y， z)。
+
+    位置和导向命令是在机器人的基架中生成的，而不是仿真世界架。
+    这意味着用户需要自行处理从基础框架到仿真世界框架的转型。
+
+    .. 谨慎::
+
+        采样方向均不完全与采样角均相同。
+        因为旋转是由3D非尤克利德空间定义的，
+        from euler angles to rotations is not one-to-one.
+    """
 
     cfg: UniformPoseCommandCfg
     """Configuration for the command generator."""
+    """命令生成器的配置。"""
 
     def __init__(self, cfg: UniformPoseCommandCfg, env: ManagerBasedEnv):
         """Initialize the command generator class.
@@ -51,6 +67,12 @@ class UniformPoseCommand(CommandTerm):
         Args:
             cfg: The configuration parameters for the command generator.
             env: The environment object.
+        """
+        """启动命令生成器类。
+
+        参数：
+            cfg: 命令生成器的配置参数。
+            env: 环境对象。
         """
         # initialize the base class
         super().__init__(cfg, env)
@@ -77,6 +99,8 @@ class UniformPoseCommand(CommandTerm):
     """
     Properties
     """
+    """产品
+    """
 
     @property
     def command(self) -> torch.Tensor:
@@ -84,10 +108,17 @@ class UniformPoseCommand(CommandTerm):
 
         The first three elements correspond to the position, followed by the quaternion orientation in (w, x, y, z).
         """
+        """想要的姿势命令。
+        形状是 (num_envs， 7)。
+
+        第3个元素与位置相匹配，然后是 (w，x，y，z) 中的四元数方向。
+        """
         return self.pose_command_b
 
     """
     Implementation specific functions.
+    """
+    """具体执行功能。
     """
 
     def _update_metrics(self):

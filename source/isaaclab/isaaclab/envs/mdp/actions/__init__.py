@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Various action terms that can be used in the environment."""
+"""在环境中可以使用的各种动作项。"""
 
 from .actions_cfg import *
 from .binary_joint_actions import *

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Package containing task implementations for the extension."""
+"""包含扩展任务实施方案的包。"""
 
 ##
 # Register Gym environments.

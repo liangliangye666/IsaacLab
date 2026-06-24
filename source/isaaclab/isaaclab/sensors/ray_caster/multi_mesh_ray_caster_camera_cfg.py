@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Configuration for the ray-cast camera sensor."""
+"""射线摄像头传感器的配置。"""
 
 import logging
 
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 @configclass
 class MultiMeshRayCasterCameraCfg(RayCasterCameraCfg, MultiMeshRayCasterCfg):
     """Configuration for the multi-mesh ray-cast camera sensor."""
+    """多网射线摄像头传感器的配置。"""
 
     class_type: type = MultiMeshRayCasterCamera
 

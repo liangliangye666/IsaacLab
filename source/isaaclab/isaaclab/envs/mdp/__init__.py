@@ -14,6 +14,14 @@ the environment. However, they are not part of the environment directly, but
 are used to define the environment through their managers.
 
 """
+"""执行管理项的子模块
+
+这些职能可以交给负责MDP的不同方面的不同管理器。
+这些包括观测，奖励，终止，动作，事件和课程管理器。
+
+这些项在``envs``模块中定义，因为它们用于定义环境。
+然而，它们不是直接的环境的一部分，而是通过管理器来定义环境。
+"""
 
 from .actions import *  # noqa: F401, F403
 from .commands import *  # noqa: F401, F403

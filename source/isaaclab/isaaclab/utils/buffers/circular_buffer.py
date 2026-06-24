@@ -19,6 +19,16 @@ class CircularBuffer:
     The shape of the appended data is expected to be (batch_size, ...), where the first dimension is the
     batch dimension. Correspondingly, the shape of the ring buffer is (max_len, batch_size, ...).
     """
+    """为了存储批量光数据的历史记录。
+
+    这个类实现了一个循环缓冲器来存储批量 data数数据的历史。
+    缓冲器初始化为最大长度和批量大小。
+    数据是以循环方式存储的，数据可以以LIFO (Last-In-First-Out) 方式获取。
+    缓冲器设计用于多环境设置，每个环境都有自己的数据。
+
+    预计附加数据的形状将是 (batch_size， ...)，其中第一个维度是批量维度。
+    相应地，环缓冲器的形状是 (max_len，batch_size，...)。
+    """
 
     def __init__(self, max_len: int, batch_size: int, device: str):
         """Initialize the circular buffer.
@@ -30,6 +40,17 @@ class CircularBuffer:
 
         Raises:
             ValueError: If the buffer size is less than one.
+        """
+        """启动循环缓冲器。
+
+        参数：
+            max_len: 循环缓冲的最大长度。
+                     最低允许值为1。
+            batch_size: 数据的批量尺寸。
+            device: 用于加工的装置。
+
+        异常：
+            ValueError: 如果缓冲器大小不到一个。
         """
         if max_len < 1:
             raise ValueError(f"The buffer size should be greater than zero. However, it is set to {max_len}!")
@@ -51,20 +72,25 @@ class CircularBuffer:
     """
     Properties.
     """
+    """属性。
+    """
 
     @property
     def batch_size(self) -> int:
         """The batch size of the ring buffer."""
+        """环境器的批量。"""
         return self._batch_size
 
     @property
     def device(self) -> str:
         """The device used for processing."""
+        """用于加工的装置。"""
         return self._device
 
     @property
     def max_length(self) -> int:
         """The maximum length of the ring buffer."""
+        """环境缓冲的最大长度。"""
         return int(self._max_len[0].item())
 
     @property
@@ -73,6 +99,11 @@ class CircularBuffer:
 
         Since the buffer is circular, the current length is the minimum of the number of pushes
         and the maximum length.
+        """
+        """缓冲器的当前长度。
+        形状是 (batch_size，)。
+
+        由于缓冲器是圆形的，所以电流长度是按压数最小和最大长度。
         """
         return torch.minimum(self._num_pushes, self._max_len)
 
@@ -85,6 +116,13 @@ class CircularBuffer:
         Note:
             The oldest entry is at the beginning of dimension 1.
         """
+        """完整的圆形缓冲，最后最新的输入和开始最古老的输入。
+
+        缓冲器的形状是 (batch_size，max_length，...)。
+
+        说明：
+            最古老的输入是在第一维度开始。
+        """
         buf = self._buffer.clone()
         buf = torch.roll(buf, shifts=self.max_length - self._pointer - 1, dims=0)
         return torch.transpose(buf, dim0=0, dim1=1)
@@ -92,12 +130,20 @@ class CircularBuffer:
     """
     Operations.
     """
+    """操作。
+    """
 
     def reset(self, batch_ids: Sequence[int] | None = None):
         """Reset the circular buffer at the specified batch indices.
 
         Args:
             batch_ids: Elements to reset in the batch dimension. Default is None, which resets all the batch indices.
+        """
+        """将循环缓冲器重置到指定批量索引。
+
+        参数：
+            batch_ids: 在批量维度中重置元素。
+                       默认是None，它重置了所有批量索引。
         """
         # resolve all indices
         if batch_ids is None:
@@ -118,6 +164,16 @@ class CircularBuffer:
 
         Raises:
             ValueError: If the input data has a different batch size than the buffer.
+        """
+        """将数据添加到循环缓冲器中。
+
+        参数：
+            data: 将数据添加到循环缓冲中。
+                  第一个维度应该是批量维度。
+                  形状是 (batch_size， ...)。
+
+        异常：
+            ValueError: 如果输入数据的批量大小与缓冲器不同。
         """
         # check the batch size
         if data.shape[0] != self.batch_size:
@@ -156,6 +212,23 @@ class CircularBuffer:
         Raises:
             ValueError: If the input key has a different batch size than the buffer.
             RuntimeError: If the buffer is empty.
+        """
+        """从循环缓冲器中获取数据以最后的第一 (LIFO) 方式。
+
+        如果请求的索引超过自最后一次调用到:meth:`reset`以来的推数，则将返回最古老的存储数据。
+
+        参数：
+            key: 从循环缓冲中获取的索引。
+                 索引应小于自最后一次调用到:meth:`reset`以来的推力数量。
+                 形状是 (batch_size，)。
+
+        返回：
+            循环缓冲器的数据。
+            形状是 (batch_size， ...)。
+
+        异常：
+            ValueError: 如果输入键的批量与缓冲器不同。
+            RuntimeError: 如果缓冲器空。
         """
         # check the batch size
         if len(key) != self.batch_size:

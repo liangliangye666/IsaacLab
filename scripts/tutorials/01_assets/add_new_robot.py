@@ -119,6 +119,7 @@ InteractiveSceneCfg:Isaac Lab 里的“场景配置模板”。
 '''
 class NewRobotsSceneCfg(InteractiveSceneCfg):
     """Designs the scene."""
+    """设计场景。"""
 
     # Ground-plane  在 /World/defaultGroundPlane 位置生成一个默认地面。
     ground = AssetBaseCfg(prim_path="/World/defaultGroundPlane", spawn=sim_utils.GroundPlaneCfg())

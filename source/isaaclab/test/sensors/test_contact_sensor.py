@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Tests to verify contact sensor functionality on rigid object prims."""
+"""试验验验证硬物体prims的接触传感器功能。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +15,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 from dataclasses import MISSING
 from enum import Enum
@@ -40,11 +43,14 @@ from isaaclab.utils import configclass
 
 class ContactTestMode(Enum):
     """Enum to declare the type of contact sensor test to execute."""
+    """声明要执行的接触传感器测试类型。"""
 
     IN_CONTACT = 0
     """Enum to test the condition where the test object is in contact with the ground plane."""
+    """测试对象与地面平面接触的条件。"""
     NON_CONTACT = 1
     """Enum to test the condition where the test object is not in contact with the ground plane (air time)."""
+    """试验对象与地面平面无接触的条件 (空气时间) 的测试。"""
 
 
 @configclass
@@ -53,36 +59,56 @@ class ContactSensorRigidObjectCfg(RigidObjectCfg):
 
     This contains the expected values in the configuration to simplify test fixtures.
     """
+    """用于接触传感器测试的硬体配置。
+
+    这里包含了预期的配置值，以简化测试装置。
+    """
 
     contact_pose: torch.Tensor = MISSING
     """6D pose of the rigid object under test when it is in contact with the ground surface."""
+    """在与地面接触时，试验中的硬物体的6D姿势。"""
     non_contact_pose: torch.Tensor = MISSING
     """6D pose of the rigid object under test when it is not in contact."""
+    """在未接触的情况下，试验中的硬物体的6D姿势。"""
 
 
 @configclass
 class ContactSensorSceneCfg(InteractiveSceneCfg):
     """Configuration of the scene used by the contact sensor test."""
+    """接触传感器测试所使用的场景配置。"""
 
     terrain: TerrainImporterCfg = MISSING
     """Terrain configuration within the scene."""
+    """在场景的地形配置。"""
 
     shape: ContactSensorRigidObjectCfg = MISSING
     """RigidObject contact prim configuration."""
+    """RigidObject接触 prim配置。"""
 
     contact_sensor: ContactSensorCfg = MISSING
     """Contact sensor configuration."""
+    """接触传感器配置。"""
 
     shape_2: ContactSensorRigidObjectCfg = None
     """RigidObject contact prim configuration. Defaults to None, i.e. not included in the scene.
 
     This is a second prim used for testing contact filtering.
     """
+    """RigidObject接触 prim配置。
+    在场景中没有包含None，i.e.的默认。
+
+    这是第二个prim用于测试接触过。
+    """
 
     contact_sensor_2: ContactSensorCfg = None
     """Contact sensor configuration. Defaults to None, i.e. not included in the scene.
 
     This is a second contact sensor used for testing contact filtering.
+    """
+    """接触传感器配置。
+    在场景中没有包含None，i.e.的默认。
+
+    这是一个用于测试接触过的第二个接触传感器。
     """
 
 
@@ -109,6 +135,7 @@ CUBE_CFG = ContactSensorRigidObjectCfg(
     non_contact_pose=torch.tensor([0, -1.0, 1.0, 1, 0, 0, 0]),
 )
 """Configuration of the cube prim."""
+"""立方体prim的配置。"""
 
 SPHERE_CFG = ContactSensorRigidObjectCfg(
     prim_path="/World/Objects/Sphere",
@@ -128,6 +155,7 @@ SPHERE_CFG = ContactSensorRigidObjectCfg(
     non_contact_pose=torch.tensor([0, 1.0, 1.0, 1, 0, 0, 0]),
 )
 """Configuration of the sphere prim."""
+"""球 prim的配置。"""
 
 CYLINDER_CFG = ContactSensorRigidObjectCfg(
     prim_path="/World/Objects/Cylinder",
@@ -149,6 +177,7 @@ CYLINDER_CFG = ContactSensorRigidObjectCfg(
     non_contact_pose=torch.tensor([0, 0, 1.0, 1, 0, 0, 0]),
 )
 """Configuration of the cylinder prim."""
+"""X prim的配置"""
 
 CAPSULE_CFG = ContactSensorRigidObjectCfg(
     prim_path="/World/Objects/Capsule",
@@ -170,6 +199,7 @@ CAPSULE_CFG = ContactSensorRigidObjectCfg(
     non_contact_pose=torch.tensor([1.0, 0.0, 1.5, 1, 0, 0, 0]),
 )
 """Configuration of the capsule prim."""
+"""囊 prim 的配置。"""
 
 CONE_CFG = ContactSensorRigidObjectCfg(
     prim_path="/World/Objects/Cone",
@@ -191,9 +221,11 @@ CONE_CFG = ContactSensorRigidObjectCfg(
     non_contact_pose=torch.tensor([-1.0, 0.0, 1.0, 1, 0, 0, 0]),
 )
 """Configuration of the cone prim."""
+"""子 prim的配置"""
 
 FLAT_TERRAIN_CFG = TerrainImporterCfg(prim_path="/World/ground", terrain_type="plane")
 """Configuration of the flat ground plane."""
+"""飞机的配置。"""
 
 COBBLESTONE_TERRAIN_CFG = TerrainImporterCfg(
     prim_path="/World/ground",
@@ -212,11 +244,13 @@ COBBLESTONE_TERRAIN_CFG = TerrainImporterCfg(
     ),
 )
 """Configuration of the generated mesh terrain."""
+"""产生的网格地形的配置。"""
 
 
 @pytest.fixture(scope="module")
 def setup_simulation():
     """Fixture to set up simulation parameters."""
+    """设置仿真参数的固定装置。"""
     sim_dt = 0.0025
     durations = [sim_dt, sim_dt * 2, sim_dt * 32, sim_dt * 128]
     terrains = [FLAT_TERRAIN_CFG, COBBLESTONE_TERRAIN_CFG]
@@ -229,6 +263,7 @@ def setup_simulation():
 @flaky(max_runs=3, min_passes=1)
 def test_cube_contact_time(setup_simulation, disable_contact_processing):
     """Checks contact sensor values for contact time and air time for a cube collision primitive."""
+    """检查接触时间和空气时间的接触传感器值。"""
     # check for both contact processing enabled and disabled
     # internally, the contact sensor should enable contact processing so it should always work.
     sim_dt, durations, terrains, devices, carb_settings_iface = setup_simulation
@@ -240,6 +275,7 @@ def test_cube_contact_time(setup_simulation, disable_contact_processing):
 @flaky(max_runs=3, min_passes=1)
 def test_sphere_contact_time(setup_simulation, disable_contact_processing):
     """Checks contact sensor values for contact time and air time for a sphere collision primitive."""
+    """检查接触时间和空气时间的接触传感器值。"""
     # check for both contact processing enabled and disabled
     # internally, the contact sensor should enable contact processing so it should always work.
     sim_dt, durations, terrains, devices, carb_settings_iface = setup_simulation
@@ -251,6 +287,7 @@ def test_sphere_contact_time(setup_simulation, disable_contact_processing):
 @pytest.mark.parametrize("num_envs", [1, 6, 24])
 def test_cube_stack_contact_filtering(setup_simulation, device, num_envs):
     """Checks contact sensor reporting for filtering stacked cube prims."""
+    """检查接触传感器报告是否过堆叠立方体prims。"""
     sim_dt, durations, terrains, devices, carb_settings_iface = setup_simulation
     with build_simulation_context(device=device, dt=sim_dt, add_lighting=True) as sim:
         sim._app_control_on_stop_handle = None
@@ -315,6 +352,10 @@ def test_no_contact_reporting(setup_simulation):
 
     We borrow the test :func:`test_cube_stack_contact_filtering` to test this and force disable contact processing.
     """
+    """测试是否强制禁用接触处理导致没有联系报告。
+
+    我们借用测试:func:`test_cube_stack_contact_filtering`来测试这个，并强迫禁用接触处理。
+    """
     # TODO: This test only works on CPU. For GPU, it seems the contact processing is not disabled.
     sim_dt, durations, terrains, devices, carb_settings_iface = setup_simulation
     with build_simulation_context(device="cpu", dt=sim_dt, add_lighting=True) as sim:
@@ -376,6 +417,7 @@ def test_no_contact_reporting(setup_simulation):
 @pytest.mark.isaacsim_ci
 def test_sensor_print(setup_simulation):
     """Test sensor print is working correctly."""
+    """测试传感器打印正确工作。"""
     sim_dt, durations, terrains, devices, carb_settings_iface = setup_simulation
     with build_simulation_context(device="cuda:0", dt=sim_dt, add_lighting=False) as sim:
         sim._app_control_on_stop_handle = None
@@ -401,6 +443,7 @@ def test_sensor_print(setup_simulation):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_contact_sensor_threshold(setup_simulation, device):
     """Test that the contact sensor USD threshold attribute is set to 0.0."""
+    """检测接触传感器USD门属性设置为0.0。"""
     sim_dt, durations, terrains, devices, carb_settings_iface = setup_simulation
     with build_simulation_context(device=device, dt=sim_dt, add_lighting=False) as sim:
         sim._app_control_on_stop_handle = None
@@ -448,6 +491,11 @@ def test_friction_reporting(setup_simulation, grav_dir):
 
     This test places a contact sensor enabled cube onto a ground plane under different gravity directions.
     It then compares the normalized friction force dir with the direction of gravity to ensure they are aligned.
+    """
+    """测试接触传感器的摩擦力报告。
+
+    这种测试将接触传感器启动的立方位放在不同重力方向的地面平面上。
+    然后它将正常摩擦力与重力方向进行比较，以确保它们一致。
     """
     sim_dt, _, _, _, carb_settings_iface = setup_simulation
     carb_settings_iface.set_bool("/physics/disableContactProcessing", True)
@@ -573,6 +621,8 @@ def test_invalid_max_contact_points_config(setup_simulation):
 """
 Internal helpers.
 """
+"""内部助理。
+"""
 
 
 def _run_contact_sensor_test(
@@ -588,6 +638,10 @@ def _run_contact_sensor_test(
 
     This method iterates through each device and terrain combination in the simulation environment,
     running tests for contact sensors.
+    """
+    """运行对给定的接触原始配置的硬体测试。
+
+    这种方法在仿真环境中通过每个设备和地形组合进行代，运行接触传感器测试。
     """
     for device in devices:
         for terrain in terrains:
@@ -675,6 +729,19 @@ def _test_sensor_contact(
         shape: The contact prim used for the contact sensor test.
         sensor: The sensor reporting data to be verified by the contact sensor test.
         mode: The contact test mode: either contact with ground plane or air time.
+    """
+    """检测接触传感器。
+
+    这种测试将接触 prim 定位在与地面平面接触或离接触的姿势上，持续时间已知。
+    一旦接触时间过去了，与接触prim相关的接触传感器内存储的数据将与预期值进行检查。
+
+    这种过程应在:attr:`TestContactSensor.durations`中的所有元素中重复，每个连续的接触时间测试都通过设置接触prim为所需接触模式的补充器进行分期。
+    for 1 sim time-step.
+
+    参数：
+        shape: 接触传感器测试使用的接触prim。
+        sensor: 传感器报告数据应通过接触传感器测试验证。
+        mode: 接触测试模式:与地面飞机或空气时间接触。
     """
     # reset the test state
     sensor.reset()
@@ -776,6 +843,12 @@ def _test_contact_position(shape: RigidObject, sensor: ContactSensor, mode: Cont
         sensor: The sensor reporting data to be verified by the contact sensor test.
         mode: The contact test mode: either contact with ground plane or air time.
     """
+    """对接触位置的测试 (仅适用于球体和平面地形) 检查接触位置距离物体根半径距离
+    参数：
+        shape: 接触传感器测试使用的接触prim。
+        sensor: 传感器报告数据应通过接触传感器测试验证。
+        mode: 接触测试模式:与地面飞机或空气时间接触。
+    """
     if not sensor.cfg.track_contact_points:
         assert sensor._data.contact_pos_w is None
         return
@@ -814,6 +887,17 @@ def _check_prim_contact_state_times(
         dt: Time since previous contact mode switch. If the contact prim left contact 0.1 seconds ago,
             dt should be 0.1 + simulation dt seconds.
     """
+    """检查接触传感器数据与预期值相匹配。
+
+    参数：
+        sensor: 包含要测试的数据的ContactSensor。
+        expected_air_time: 空气时间的真相。
+        expected_contact_time: 联系时间是真实的。
+        expected_last_air_time: 最后的空中时间地图真相。
+        expected_last_contact_time: 最后的接触时间是真相。
+        dt: 接觸模式切換後的時間。
+            如果接触 prim 0.1 秒前离开接触，dt 应该是 0.1 + 仿真 dt 秒。
+    """
     # store current state of the contact prim
     in_air = False
     in_contact = False
@@ -838,6 +922,7 @@ def _check_prim_contact_state_times(
 
 def _perform_sim_step(sim, scene, sim_dt):
     """Updates sensors and steps the contact sensor test scene."""
+    """更新传感器和接触传感器测试场景。"""
     # write data to simulation
     scene.write_data_to_sim()
     # simulate

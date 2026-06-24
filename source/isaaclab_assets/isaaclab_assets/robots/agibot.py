@@ -11,6 +11,12 @@ The following configurations are available:
 
 
 """
+"""对于Agibot A2D的人类机器人进行配置。
+
+下列配置可用:
+
+* :obj:`AGIBOT_A2D_CFG`:Agibot A2D机器人
+"""
 
 import isaaclab.sim as sim_utils
 from isaaclab.actuators import ImplicitActuatorCfg

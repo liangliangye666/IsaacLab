@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -11,6 +12,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 
@@ -26,6 +28,7 @@ from isaaclab.sim.converters import MjcfConverter, MjcfConverterCfg
 @pytest.fixture(autouse=True)
 def test_setup_teardown():
     """Setup and teardown for each test."""
+    """每次测试的设置和拆除。"""
     # Setup: Create a new stage
     sim_utils.create_new_stage()
 
@@ -56,6 +59,9 @@ def test_setup_teardown():
 @pytest.mark.isaacsim_ci
 def test_no_change(test_setup_teardown):
     """Call conversion twice. This should not generate a new USD file."""
+    """两次打电话转换。
+    这不应该产生新的USD文件。
+    """
     sim, mjcf_config = test_setup_teardown
 
     mjcf_converter = MjcfConverter(mjcf_config)
@@ -74,6 +80,9 @@ def test_no_change(test_setup_teardown):
 @pytest.mark.isaacsim_ci
 def test_config_change(test_setup_teardown):
     """Call conversion twice but change the config in the second call. This should generate a new USD file."""
+    """在第二次调用时，调用转换，但在第二次调用时，调用配置。
+    这应该生成一个新的USD文件。
+    """
     sim, mjcf_config = test_setup_teardown
 
     mjcf_converter = MjcfConverter(mjcf_config)
@@ -94,6 +103,7 @@ def test_config_change(test_setup_teardown):
 @pytest.mark.isaacsim_ci
 def test_create_prim_from_usd(test_setup_teardown):
     """Call conversion and create a prim from it."""
+    """打电话转换并从中创建prim。"""
     sim, mjcf_config = test_setup_teardown
 
     urdf_converter = MjcfConverter(mjcf_config)

@@ -15,6 +15,8 @@ class RmpFlowGalbotCubeStackRelMimicEnv(FrankaCubeStackIKRelMimicEnv):
     """
     Isaac Lab Mimic environment wrapper class for Galbot Cube Stack RmpFlow Rel env.
     """
+    """艾萨克实验室仿真环境包装类型，用于Galbot Cube Stack RmpFlowRel env。
+    """
 
     def get_object_poses(self, env_ids: Sequence[int] | None = None):
         """
@@ -26,6 +28,15 @@ class RmpFlowGalbotCubeStackRelMimicEnv(FrankaCubeStackIKRelMimicEnv):
 
         Returns:
             A dictionary that maps object names to object pose matrix in base frame of robot (4x4 torch.Tensor)
+        """
+        """转写这个函数，以获得每个对象的姿势，
+
+        参数：
+            env_ids: 环境索引，让你做好姿势。
+                     如果是None，则考虑所有envs。
+
+        返回：
+            一个字典，将物体名称映射到机器人的基架中的物体姿势矩阵 (4x4 torch.Tensor)
         """
 
         if env_ids is None:

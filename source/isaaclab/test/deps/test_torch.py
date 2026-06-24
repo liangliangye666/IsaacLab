@@ -11,6 +11,7 @@ import torch.utils.benchmark as benchmark
 @pytest.mark.isaacsim_ci
 def test_array_slicing():
     """Check that using ellipsis and slices work for torch tensors."""
+    """检查使用 ellipsis和切片是否适用于火。"""
 
     size = (400, 300, 5)
     my_tensor = torch.rand(size, device="cuda:0")
@@ -34,6 +35,7 @@ def test_array_slicing():
 @pytest.mark.isaacsim_ci
 def test_array_circular():
     """Check circular buffer implementation in torch."""
+    """检查在火中循环缓冲执行。"""
 
     size = (10, 30, 5)
     my_tensor = torch.rand(size, device="cuda:0")
@@ -78,6 +80,7 @@ def test_array_circular():
 @pytest.mark.isaacsim_ci
 def test_array_circular_copy():
     """Check that circular buffer implementation in torch is copying data."""
+    """检查火中的循环缓冲实现是否复制数据。"""
 
     size = (10, 30, 5)
     my_tensor = torch.rand(size, device="cuda:0")
@@ -97,6 +100,7 @@ def test_array_circular_copy():
 @pytest.mark.isaacsim_ci
 def test_array_multi_indexing():
     """Check multi-indexing works for torch tensors."""
+    """检查多索引工作，查看火。"""
 
     size = (400, 300, 5)
     my_tensor = torch.rand(size, device="cuda:0")
@@ -109,6 +113,7 @@ def test_array_multi_indexing():
 @pytest.mark.isaacsim_ci
 def test_array_single_indexing():
     """Check how indexing effects the returned tensor."""
+    """检查索引如何影响返回的张量。"""
 
     size = (400, 300, 5)
     my_tensor = torch.rand(size, device="cuda:0")
@@ -133,6 +138,7 @@ def test_array_single_indexing():
 @pytest.mark.isaacsim_ci
 def test_logical_or():
     """Test bitwise or operation."""
+    """试点或操作。"""
 
     size = (400, 300, 5)
     my_tensor_1 = torch.rand(size, device="cuda:0") > 0.5

@@ -52,15 +52,43 @@ class Imu(SensorBase):
         in the body frame of the rigid source prim.
 
     """
+    """动力测量单位 (IMU) 传感器。
+
+    传感器可以连接到任何prim路径，其树里有一个刚性祖先，并产生体框架线性加速和角度速度，以及世界框架姿势和体框架线性和角度加速/速度。
+
+    如果提供的路径不是刚体，则用于仿真查询使用最接近的刚体祖先。
+    在初始化过程中，从那个祖先到目标prim的固定转换一次计算，并由配置的传感器偏移组成。
+
+    .. 说明::
+
+        我们使用数值与速度的分化来计算加速。
+        因此，IMU传感器的精度取决于所选择的phsyx时间步骤。
+        为了获得足够的准确性，我们建议保持时间步骤至少为200Hz。
+
+    .. 说明::
+
+        用户可以在配置文件中配置传感器偏移。
+        偏移应对硬源prim进行。
+        如果目标prim不是硬体，则偏移组由固定转换组成
+        from the rigid ancestor to the target prim. The offset is applied in the body frame of the rigid source prim.
+        偏移被定义为位置向量和四元数旋转，它们按位置，然后旋转的顺序运行。
+        位置应在硬源prim的体体框架中转换，旋转则应在硬源prim的体体框架中转换。
+    """
 
     cfg: ImuCfg
     """The configuration parameters."""
+    """配置参数。"""
 
     def __init__(self, cfg: ImuCfg):
         """Initializes the Imu sensor.
 
         Args:
             cfg: The configuration parameters.
+        """
+        """启动Imu传感器。
+
+        参数：
+            cfg: 配置参数。
         """
         # initialize base class
         super().__init__(cfg)
@@ -72,6 +100,7 @@ class Imu(SensorBase):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
         return (
             f"Imu sensor @ '{self.cfg.prim_path}': \n"
             f"\tview type         : {self._view.__class__}\n"
@@ -81,6 +110,8 @@ class Imu(SensorBase):
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -96,6 +127,8 @@ class Imu(SensorBase):
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -126,6 +159,8 @@ class Imu(SensorBase):
     """
     Implementation.
     """
+    """执行。
+    """
 
     def _initialize_impl(self):
         """Initializes the sensor handles and internal buffers.
@@ -133,6 +168,11 @@ class Imu(SensorBase):
         - If the target prim path is a rigid body, build the view directly on it.
         - Otherwise find the closest rigid-body ancestor, cache the fixed transform from that ancestor
           to the target prim, and build the view on the ancestor expression.
+        """
+        """启动传感器句柄和内部缓冲器。
+
+        - 如果目标prim路径是一个刚性体， 直接建立视图。
+        - 否则找到最接近的固体祖先，从那个祖先到目标prim的固定转换，并建立对祖先表达的视图。
         """
         # Initialize parent class
         super()._initialize_impl()
@@ -191,6 +231,7 @@ class Imu(SensorBase):
 
     def _update_buffers_impl(self, env_ids: Sequence[int]):
         """Fills the buffers of the sensor data."""
+        """填充传感器数据的缓冲器。"""
 
         # default to all sensors
         if len(env_ids) == self._num_envs:
@@ -237,6 +278,7 @@ class Imu(SensorBase):
 
     def _initialize_buffers_impl(self):
         """Create buffers for storing data."""
+        """创建存储数据的缓冲器。"""
         # data buffers
         self._data.pos_w = torch.zeros(self._view.count, 3, device=self._device)
         self._data.quat_w = torch.zeros(self._view.count, 4, device=self._device)

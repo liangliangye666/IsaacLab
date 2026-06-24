@@ -181,6 +181,7 @@ class DigitObservations:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = TerminationTermCfg(func=mdp.time_out, time_out=True)
     base_contact = TerminationTermCfg(
@@ -199,6 +200,7 @@ class TerminationsCfg:
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     joint_pos = mdp.JointPositionActionCfg(
         asset_name="robot",

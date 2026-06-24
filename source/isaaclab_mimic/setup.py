@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: Apache-2.0
 
 """Installation script for the 'isaaclab_mimic' python package."""
+""""isaaclab_mimic" Python 包的安装脚本。"""
 
 import itertools
 import os

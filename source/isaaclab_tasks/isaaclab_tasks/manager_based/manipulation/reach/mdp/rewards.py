@@ -24,6 +24,11 @@ def position_command_error(env: ManagerBasedRLEnv, command_name: str, asset_cfg:
     current position of the asset's body (in world frame). The position error is computed as the L2-norm
     of the difference between the desired and current positions.
     """
+    """使用L2规范来惩罚位置错误的跟踪。
+
+    函数计算了所需位置 (从命令) 和资产体当前位置 (在世界框架中) 之间的位置错误。
+    位置错误计算为期望和当前位置之间的差异的L2标准。
+    """
     # extract the asset (to enable type hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     command = env.command_manager.get_command(command_name)
@@ -42,6 +47,10 @@ def position_command_error_tanh(
     The function computes the position error between the desired position (from the command) and the
     current position of the asset's body (in world frame) and maps it with a tanh kernel.
     """
+    """奖励位置跟踪使用tanh核。
+
+    该函数计算了所需位置 (从命令) 和资产体的当前位置 (在世界框架中) 之间的位置错误，并用tanh内核绘图它。
+    """
     # extract the asset (to enable type hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     command = env.command_manager.get_command(command_name)
@@ -59,6 +68,11 @@ def orientation_command_error(env: ManagerBasedRLEnv, command_name: str, asset_c
     The function computes the orientation error between the desired orientation (from the command) and the
     current orientation of the asset's body (in world frame). The orientation error is computed as the shortest
     path between the desired and current orientations.
+    """
+    """使用最短的路径来惩罚跟踪方向错误。
+
+    函数计算了所需的方向 (从命令) 和资产体的当前方向 (在世界框架中) 之间的导向错误。
+    导向错误被计算为所需方向和当前方向之间的最短路径。
     """
     # extract the asset (to enable type hinting)
     asset: RigidObject = env.scene[asset_cfg.name]

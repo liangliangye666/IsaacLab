@@ -11,6 +11,12 @@ create arbitrarily small triangles. Instead, the terrain is represented as a sin
 tri-mesh primitive. Thus, this representation is more computationally and memory
 efficient than the height-field representation, but it is not as flexible.
 """
+"""该子模块提供使用``trimesh``库创建不同地形的方法。
+
+与高度场表示不同，三角形表示不会任意创建小三角形。
+而地形则被表示为单个三网格原始。
+因此，这种表示比高度场表示更具计算效率和存储效率，但它并不灵活。
+"""
 
 from .mesh_terrains_cfg import (
     MeshBoxTerrainCfg,

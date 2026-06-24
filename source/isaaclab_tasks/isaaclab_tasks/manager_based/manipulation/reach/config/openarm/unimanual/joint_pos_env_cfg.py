@@ -24,6 +24,7 @@ from isaaclab_assets.robots.openarm import OPENARM_UNI_CFG
 @configclass
 class OpenArmReachEnvCfg(ReachEnvCfg):
     """Configuration for the single-arm OpenArm Reach Environment."""
+    """单臂OpenArm Reach环境的配置。"""
 
     def __post_init__(self):
         # post init of parent

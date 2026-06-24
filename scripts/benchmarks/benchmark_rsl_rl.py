@@ -9,8 +9,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to benchmark RL agent with RSL-RL."""
+"""脚本将RL代理与RSL-RL进行基准。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import os
@@ -128,6 +130,7 @@ benchmark = BaseIsaacBenchmark(
 @hydra_task_config(args_cli.task, "rsl_rl_cfg_entry_point")
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlOnPolicyRunnerCfg):
     """Train with RSL-RL agent."""
+    """搭乘RSL-RL代理。"""
     # parse configuration
     benchmark.set_phase("loading", start_recording_frametime=False, start_recording_runtime=True)
     # override configurations with non-hydra CLI arguments

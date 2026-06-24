@@ -38,9 +38,25 @@ class MultiMeshRayCasterCamera(RayCasterCamera, MultiMeshRayCaster):
     - ``"distance_to_image_plane"``: An image containing distances of 3D points from camera plane along camera's z-axis.
     - ``"normals"``: An image containing the local surface normal vectors at each pixel.
     """
+    """一个多射射线摄像头传感器。
+
+    射线摄像机使用一组射线，
+    在传感器的本地坐标框架中定义了射线。
+    传感器与:class:`isaaclab.sensors.Camera`相同的界面，通过USD相机prims实现了相机类。
+    然而，这个类提供更快的图像生成。
+    传感器将在配置中提供的原始路径列表中的网格转换为Warp网格。
+    然后，相机只向这些变形网射。
+
+    目前，仅支持以下注释符:
+
+    - ``"distance_to_camera"``:包含到相机光学中心的距离的图像。
+    - ``"distance_to_image_plane"``:包含3D点距离相机平面的图像，沿着相机的z轴。
+    - ``"normals"``:包含每个像素的本地表面正常向量的图像。
+    """
 
     cfg: MultiMeshRayCasterCameraCfg
     """The configuration parameters."""
+    """配置参数。"""
 
     def __init__(self, cfg: MultiMeshRayCasterCameraCfg):
         """Initializes the camera object.
@@ -51,6 +67,14 @@ class MultiMeshRayCasterCamera(RayCasterCamera, MultiMeshRayCaster):
         Raises:
             ValueError: If the provided data types are not supported by the ray-caster camera.
         """
+        """启动摄像头对象。
+
+        参数：
+            cfg: 配置参数。
+
+        异常：
+            ValueError: 如果提供的数据类型不支持射线摄像头。
+        """
         self._check_supported_data_types(cfg)
         # initialize base class
         MultiMeshRayCaster.__init__(self, cfg)
@@ -59,6 +83,7 @@ class MultiMeshRayCasterCamera(RayCasterCamera, MultiMeshRayCaster):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
         return (
             f"Multi-Mesh Ray-Caster-Camera @ '{self.cfg.prim_path}': \n"
             f"\tview type            : {self._view.__class__}\n"
@@ -72,6 +97,8 @@ class MultiMeshRayCasterCamera(RayCasterCamera, MultiMeshRayCaster):
 
     """
     Implementation.
+    """
+    """执行。
     """
 
     def _initialize_warp_meshes(self):
@@ -114,6 +141,7 @@ class MultiMeshRayCasterCamera(RayCasterCamera, MultiMeshRayCaster):
 
     def _update_ray_infos(self, env_ids: Sequence[int]):
         """Updates the ray information buffers."""
+        """更新射线信息缓冲器。"""
 
         # compute poses from current view
         pos_w, quat_w = obtain_world_pose_from_view(self._view, env_ids)
@@ -135,6 +163,7 @@ class MultiMeshRayCasterCamera(RayCasterCamera, MultiMeshRayCaster):
 
     def _update_buffers_impl(self, env_ids: Sequence[int] | torch.Tensor | None):
         """Fills the buffers of the sensor data."""
+        """填充传感器数据的缓冲器。"""
         self._update_ray_infos(env_ids)
 
         # increment frame count

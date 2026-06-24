@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import sys
 
@@ -22,6 +23,7 @@ simulation_app = app_launcher.app
 from isaaclab.utils.version import get_isaac_sim_version
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 

@@ -65,6 +65,7 @@ def _env_step_with_action(env: ManagerBasedEnv, action: torch.Tensor) -> None:
 
 def _execute_plan(env: ManagerBasedEnv, planner: CuroboPlanner, gripper_binary_action: float, env_id: int = 0) -> None:
     """Execute planner's EEF planned poses using env.step with IK-relative controller actions."""
+    """执行规划器的EEF计划姿势，使用env.step与IK相关控制器操作。"""
     planned_poses = planner.get_planned_poses()
     if not planned_poses:
         return
@@ -77,6 +78,7 @@ def _execute_gripper_action(
     env: ManagerBasedEnv, robot: Articulation, gripper_binary_action: float, steps: int = 12, env_id: int = 0
 ) -> None:
     """Hold current EEF pose and toggle gripper for a few steps."""
+    """保持当前EEF姿势，并转换抓住器几步。"""
     eef = _eef_name(env)
     curr_pose = env.get_robot_eef_pose(eef_name=eef, env_ids=[env_id])[0]
     for _ in range(steps):
@@ -90,6 +92,7 @@ DOWN_FACING_QUAT = torch.tensor([0.0, 1.0, 0.0, 0.0], dtype=torch.float32)
 @pytest.fixture(scope="class")
 def cube_stack_test_env() -> Generator[dict[str, Any], None, None]:
     """Create the environment and motion planner once for the test suite and yield them."""
+    """一次为测试套件创建环境和运动规划器，"""
     random.seed(SEED)
     torch.manual_seed(SEED)
 
@@ -149,12 +152,14 @@ class TestCubeStackPlanner:
 
     def _visualize_goal_pose(self, pos: torch.Tensor, quat: torch.Tensor) -> None:
         """Visualize the goal frame markers at pos, quat (xyzw)."""
+        """在 pos， quat (xyzw) 设想目标框架标记。"""
         if headless or self.goal_pose_visualizer is None:
             return
         self.goal_pose_visualizer.visualize(translations=pos.unsqueeze(0), orientations=quat.unsqueeze(0))
 
     def _pose_from_xy_quat(self, xy: torch.Tensor, z: float, quat: torch.Tensor) -> torch.Tensor:
         """Build a 4×4 pose given xy (Tensor[2]), z, and quaternion."""
+        """构建一个4×4姿势给了xy (ensor[2])，z，和四元数。"""
         device = xy.device
         dtype = xy.dtype
         pos = torch.cat([xy, torch.tensor([z], dtype=dtype, device=device)])
@@ -163,16 +168,19 @@ class TestCubeStackPlanner:
 
     def _get_cube_pos(self, cube_name: str) -> torch.Tensor:
         """Return the current world position of a cube's root (x, y, z)."""
+        """返回立方体根的当前世界位置 (x，y，z)。"""
         obj: RigidObject = self.env.scene[cube_name]
         return obj.data.root_pos_w[0, :3].clone().detach()
 
     def _place_pose_over_cube(self, cube_name: str, height_offset: float) -> torch.Tensor:
         """Compute a goal pose directly above the named cube using the latest pose."""
+        """使用最新的姿势计算一个目标姿势。"""
         base_pos = self._get_cube_pos(cube_name)
         return self._pose_from_xy_quat(base_pos[:2], base_pos[2].item() + height_offset, DOWN_FACING_QUAT)
 
     def test_pick_and_stack(self) -> None:
         """Plan and execute pick-and-place to stack cube_1 on cube_2, then cube_3 on the stack."""
+        """在cube_2上堆叠cube_1，然后在cube_3上堆叠。"""
         cube_1_pos = self._get_cube_pos("cube_1")
         cube_2_pos = self._get_cube_pos("cube_2")
         cube_3_pos = self._get_cube_pos("cube_3")

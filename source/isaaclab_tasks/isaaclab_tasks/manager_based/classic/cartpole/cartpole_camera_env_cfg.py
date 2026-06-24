@@ -22,6 +22,7 @@ from .cartpole_env_cfg import CartpoleEnvCfg, CartpoleSceneCfg
 @configclass
 class CartpoleRGBCameraSceneCfg(CartpoleSceneCfg):
     """Configuration for the cartpole environment with RGB camera."""
+    """用RGB摄像头配置车杆环境。"""
 
     # add camera to the scene
     tiled_camera: TiledCameraCfg = TiledCameraCfg(
@@ -59,10 +60,12 @@ class CartpoleDepthCameraSceneCfg(CartpoleSceneCfg):
 @configclass
 class RGBObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class RGBCameraPolicyCfg(ObsGroup):
         """Observations for policy group with RGB images."""
+        """策略群体的观测以RGB图像。"""
 
         image = ObsTerm(func=mdp.image, params={"sensor_cfg": SceneEntityCfg("tiled_camera"), "data_type": "rgb"})
 
@@ -76,10 +79,12 @@ class RGBObservationsCfg:
 @configclass
 class DepthObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class DepthCameraPolicyCfg(ObsGroup):
         """Observations for policy group with depth images."""
+        """策略组的观测，深度图像。"""
 
         image = ObsTerm(
             func=mdp.image, params={"sensor_cfg": SceneEntityCfg("tiled_camera"), "data_type": "distance_to_camera"}
@@ -91,10 +96,12 @@ class DepthObservationsCfg:
 @configclass
 class ResNet18ObservationCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class ResNet18FeaturesCameraPolicyCfg(ObsGroup):
         """Observations for policy group with features extracted from RGB images with a frozen ResNet18."""
+        """策略组的观测，从RGB有结的图像ResNet18。"""
 
         image = ObsTerm(
             func=mdp.image_features,
@@ -107,10 +114,12 @@ class ResNet18ObservationCfg:
 @configclass
 class TheiaTinyObservationCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class TheiaTinyFeaturesCameraPolicyCfg(ObsGroup):
         """Observations for policy group with features extracted from RGB images with a frozen Theia-Tiny Transformer"""
+        """对策略组的观测，这些特征是通过 The结的Theia-Tiny变压器从RGB图像中提取出来的"""
 
         image = ObsTerm(
             func=mdp.image_features,
@@ -133,6 +142,7 @@ class TheiaTinyObservationCfg:
 @configclass
 class CartpoleRGBCameraEnvCfg(CartpoleEnvCfg):
     """Configuration for the cartpole environment with RGB camera."""
+    """用RGB摄像头配置车杆环境。"""
 
     scene: CartpoleRGBCameraSceneCfg = CartpoleRGBCameraSceneCfg(num_envs=512, env_spacing=20)
     observations: RGBObservationsCfg = RGBObservationsCfg()
@@ -149,6 +159,7 @@ class CartpoleRGBCameraEnvCfg(CartpoleEnvCfg):
 @configclass
 class CartpoleDepthCameraEnvCfg(CartpoleEnvCfg):
     """Configuration for the cartpole environment with depth camera."""
+    """用深度摄像头配置车杆环境。"""
 
     scene: CartpoleDepthCameraSceneCfg = CartpoleDepthCameraSceneCfg(num_envs=512, env_spacing=20)
     observations: DepthObservationsCfg = DepthObservationsCfg()
@@ -165,6 +176,7 @@ class CartpoleDepthCameraEnvCfg(CartpoleEnvCfg):
 @configclass
 class CartpoleResNet18CameraEnvCfg(CartpoleRGBCameraEnvCfg):
     """Configuration for the cartpole environment with ResNet18 features as observations."""
+    """作为观测的ResNet18特征的车杆环境配置。"""
 
     observations: ResNet18ObservationCfg = ResNet18ObservationCfg()
 
@@ -172,5 +184,6 @@ class CartpoleResNet18CameraEnvCfg(CartpoleRGBCameraEnvCfg):
 @configclass
 class CartpoleTheiaTinyCameraEnvCfg(CartpoleRGBCameraEnvCfg):
     """Configuration for the cartpole environment with Theia-Tiny features as observations."""
+    """作为观测的特征，Theia-Tiny的车杆环境配置。"""
 
     observations: TheiaTinyObservationCfg = TheiaTinyObservationCfg()

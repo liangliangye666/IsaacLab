@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Tests for GelSight utility functions - primarily focused on GelsightRender."""
+"""对GelSight的实用功能进行测试 - 主要集中在GelsightRender上。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -26,6 +28,7 @@ from isaaclab_contrib.sensors.tacsl_sensor.visuotactile_sensor_cfg import GelSig
 
 def test_gelsight_render_custom_path_missing_file():
     """Test initializing GelsightRender with custom path when file doesn't exist."""
+    """测试在没有文件时使用自定义路径启动GelsightRender。"""
     # Assuming 'non_existent_path' is treated as a local path or Nucleus path
     # If we pass a path that definitely doesn't exist locally or on Nucleus, it should fail
     cfg = GelSightRenderCfg(
@@ -42,6 +45,7 @@ def test_gelsight_render_custom_path_missing_file():
 
 def test_gelsight_render_custom_path_success():
     """Test initializing GelsightRender with valid custom path and files."""
+    """测试初始化GelsightRender有有效的定制路径和文件。"""
     with tempfile.TemporaryDirectory() as tmpdir:
         data_dir = "gelsight_r15_data"
         full_dir = os.path.join(tmpdir, data_dir)
@@ -84,6 +88,7 @@ def test_gelsight_render_custom_path_success():
 @pytest.fixture
 def gelsight_render_setup():
     """Fixture to set up GelsightRender for testing with default (Nucleus/Cache) files."""
+    """设置GelsightRender用于测试默认 (核/缓存) 文件。"""
     # Use default GelSight R1.5 configuration
     cfg = GelSightRenderCfg(
         sensor_data_dir_name="gelsight_r15_data", image_height=320, image_width=240, mm_per_pixel=0.0877
@@ -101,6 +106,7 @@ def gelsight_render_setup():
 
 def test_gelsight_render_initialization(gelsight_render_setup):
     """Test GelsightRender initialization with default files."""
+    """使用默认文件测试GelsightRender初始化。"""
     render, device = gelsight_render_setup
 
     # Check that render object was created
@@ -115,6 +121,7 @@ def test_gelsight_render_initialization(gelsight_render_setup):
 
 def test_gelsight_render_compute(gelsight_render_setup):
     """Test the render method of GelsightRender."""
+    """测试GelsightRender的渲染方法。"""
     render, device = gelsight_render_setup
 
     # Create dummy height map

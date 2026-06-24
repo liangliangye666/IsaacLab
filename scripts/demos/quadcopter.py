@@ -12,8 +12,16 @@ This script demonstrates how to simulate a quadcopter.
     ./isaaclab.sh -p scripts/demos/quadcopter.py
 
 """
+"""这本脚本展示了如何仿真四旋翼。
+
+.. code-block:: bash
+
+    # Usage
+    ./isaaclab.sh -p scripts/demos/quadcopter.py
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -31,6 +39,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import torch
 
@@ -46,6 +55,7 @@ from isaaclab_assets import CRAZYFLIE_CFG  # isort:skip
 
 def main():
     """Main function."""
+    """主要功能。"""
     # Load kit helper
     sim_cfg = sim_utils.SimulationCfg(dt=0.005, device=args_cli.device)
     sim = SimulationContext(sim_cfg)

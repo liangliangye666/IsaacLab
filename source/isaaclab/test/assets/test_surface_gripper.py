@@ -8,6 +8,7 @@
 
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -15,6 +16,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -55,6 +57,18 @@ def generate_surface_gripper_cfgs(
 
     Returns:
         A tuple containing the surface gripper cfg and the articulation cfg.
+    """
+    """产生一个表面 cfg 和一个关节 cfg。
+
+    参数：
+        max_grip_distance: 表面抓住器的最大抓住距离
+        coaxial_force_limit: 表面抓紧器的同轴力限制。
+        shear_force_limit: 表面抓住器的切割力极限。
+        retry_interval: 表面的重试间隔。
+        reset_xform_op_properties: 是否重置表面的xform op特性。
+
+    返回：
+        含有表面抓住器cfg和关节 cfg的管。
     """
     articulation_cfg = ArticulationCfg(
         spawn=sim_utils.UsdFileCfg(
@@ -104,6 +118,17 @@ def generate_surface_gripper(
     Returns:
         A tuple containing the surface gripper, the articulation, and the translations of the surface grippers.
     """
+    """产生表面抓住器和关节。
+
+    参数：
+        surface_gripper_cfg: 表面 cfg。
+        articulation_cfg: 关节 cfg。
+        num_surface_grippers: 需要生成的表面抓住器数量。
+        device: 测试的设备。
+
+    返回：
+        含有表面抓住器，关节和表面抓住器的翻译。
+    """
     # Generate translations of 2.5 m in x for each articulation
     translations = torch.zeros(num_surface_grippers, 3, device=device)
     translations[:, 0] = torch.arange(num_surface_grippers) * 2.5
@@ -138,6 +163,7 @@ def generate_grippable_object(sim, num_grippable_objects: int):
 @pytest.fixture
 def sim(request):
     """Create simulation context with the specified device."""
+    """使用指定设备创建仿真环境。"""
     device = request.getfixturevalue("device")
     if "gravity_enabled" in request.fixturenames:
         gravity_enabled = request.getfixturevalue("gravity_enabled")
@@ -170,6 +196,18 @@ def test_initialization(sim, num_articulations, device, add_ground_plane) -> Non
         num_articulations: The number of articulations to initialize.
         device: The device to run the test on.
         add_ground_plane: Whether to add a ground plane to the simulation.
+    """
+    """测试初始化，用表面抓住器进行关节。
+
+    本测试证实:
+    1. 表面抓住器正确启动。
+    2. 命令和状态缓冲有正确的形状。
+    3. 命令和状态初始化为正确的值。
+
+    参数：
+        num_articulations: 必须初始化的关节数量。
+        device: 测试的设备。
+        add_ground_plane: 增加地面飞机是否在仿真中。
     """
     if get_isaac_sim_version().major < 5:
         return
@@ -205,6 +243,7 @@ def test_initialization(sim, num_articulations, device, add_ground_plane) -> Non
 @pytest.mark.isaacsim_ci
 def test_raise_error_if_not_cpu(sim, device, add_ground_plane) -> None:
     """Test that the SurfaceGripper raises an error if the device is not CPU."""
+    """测试如果设备不是CPU，SurfaceGripper会产生错误。"""
     if get_isaac_sim_version().major < 5:
         return
     num_articulations = 1

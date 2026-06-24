@@ -44,6 +44,7 @@ from isaaclab.controllers.config.rmp_flow import AGIBOT_RIGHT_ARM_RMPFLOW_CFG  #
 @configclass
 class EventCfgPlaceToy2Box:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_all = EventTerm(func=mdp.reset_scene_to_default, mode="reset", params={"reset_joint_targets": True})
 
@@ -83,10 +84,12 @@ class EventCfgPlaceToy2Box:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group with state values."""
+        """对国家价值观的策略组的观测。"""
 
         actions = ObsTerm(func=mdp.last_action)
         joint_pos = ObsTerm(func=mdp.joint_pos_rel)
@@ -117,6 +120,7 @@ class ObservationsCfg:
     @configclass
     class SubtaskCfg(ObsGroup):
         """Observations for subtask group."""
+        """部分任务组的观测。"""
 
         grasp = ObsTerm(
             func=place_mdp.object_grasped,
@@ -140,6 +144,7 @@ class ObservationsCfg:
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     # will be set by agent env cfg
     arm_action: mdp.JointPositionActionCfg = MISSING
@@ -149,6 +154,7 @@ class ActionsCfg:
 @configclass
 class TerminationsCfg:
     """Termination terms for the MDP."""
+    """关于MDP的终止项。"""
 
     time_out = DoneTerm(func=mdp.time_out, time_out=True)
 
@@ -172,6 +178,7 @@ class TerminationsCfg:
 @configclass
 class PlaceToy2BoxEnvCfg(ManagerBasedRLEnvCfg):
     """Configuration for the stacking environment."""
+    """对堆叠环境的配置。"""
 
     # Scene settings
     scene: ObjectTableSceneCfg = ObjectTableSceneCfg(num_envs=4096, env_spacing=3.0, replicate_physics=False)
@@ -189,6 +196,7 @@ class PlaceToy2BoxEnvCfg(ManagerBasedRLEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
 
         self.sim.render_interval = self.decimation
 
@@ -206,10 +214,13 @@ class PlaceToy2BoxEnvCfg(ManagerBasedRLEnvCfg):
 """
 Env to Replay Sim2Lab Demonstrations with JointSpaceAction
 """
+"""通过JointSpaceAction来重播Sim2Lab演示
+"""
 
 
 class RmpFlowAgibotPlaceToy2BoxEnvCfg(PlaceToy2BoxEnvCfg):
     """Configuration for the Agibot Place Toy2Box RMP Rel Environment."""
+    """对Agibot Place Toy2Box RMP轨道环境的配置。"""
 
     def __post_init__(self):
         # post init of parent

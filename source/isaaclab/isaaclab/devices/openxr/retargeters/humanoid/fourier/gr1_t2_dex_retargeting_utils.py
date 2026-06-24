@@ -73,6 +73,10 @@ class GR1TR2DexRetargeting:
 
     Handles retargeting of OpenXRhand tracking data to GR1T2 robot hand joint angles.
     """
+    """一个课程用于GR1Fourier的手动重定向。
+
+    处理OpenXRhand跟踪数据转向GR1T2机器人手关角。
+    """
 
     def __init__(
         self,
@@ -88,6 +92,13 @@ class GR1TR2DexRetargeting:
             hand_joint_names: Names of hand joints in the robot model
             right_hand_config_filename: Config file for right hand retargeting
             left_hand_config_filename: Config file for left hand retargeting
+        """
+        """启动重定位手。
+
+        参数：
+            hand_joint_names: 机器人模型中的手关节名称
+            right_hand_config_filename: 配置文件用于右手重定位
+            left_hand_config_filename: 配置文件用于左手重定位
         """
         data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "data/"))
         config_dir = os.path.join(data_dir, "configs/dex-retargeting")
@@ -120,6 +131,12 @@ class GR1TR2DexRetargeting:
             yaml_path: Path to the YAML configuration file
             urdf_path: Path to the URDF file to use
         """
+        """更新YAML文件以正确的URDF路径。
+
+        参数：
+            yaml_path: 进入YAML配置文件的路径
+            urdf_path: 使用 URDF文件的路径
+        """
         try:
             # Read the YAML file
             with open(yaml_path) as file:
@@ -149,6 +166,15 @@ class GR1TR2DexRetargeting:
         Returns:
             Joint positions with shape (21, 3)
         """
+        """准备手关键数据进行重定位。
+
+        参数：
+            hand_poses: 含有双手姿势数据的字典
+            operator2mano: 转换从运营商到MANO框架的转换矩阵
+
+        返回：
+            有形状的关节位置 (21， 3)
+        """
         joint_position = np.zeros((21, 3))
         hand_joints = list(hand_poses.values())
         for i in range(len(_HAND_JOINTS_INDEX)):
@@ -174,6 +200,16 @@ class GR1TR2DexRetargeting:
         Returns:
             Reference value in cartesian space
         """
+        """计算重定向的参考值。
+
+        参数：
+            joint_position: 关节位置阵列
+            indices: 目标链接索引
+            retargeting_type: 转向类型 ("POSITION"或其他)
+
+        返回：
+            在卡特西亚空间中的参考值
+        """
         if retargeting_type == "POSITION":
             return joint_position[indices, :]
         else:
@@ -195,6 +231,16 @@ class GR1TR2DexRetargeting:
         Returns:
             Retargeted joint angles
         """
+        """计算一个手的关节角度。
+
+        参数：
+            hand_joints: 包含手关数据的字典
+            retargeting: 重定位配置对象
+            operator2mano: 从操作员转换为MANO框架的转换矩阵
+
+        返回：
+            转向关节角
+        """
         joint_pos = self.convert_hand_joints(hand_joints, operator2mano)
         ref_value = self.compute_ref_value(
             joint_pos,
@@ -210,14 +256,17 @@ class GR1TR2DexRetargeting:
 
     def get_joint_names(self) -> list[str]:
         """Returns list of all joint names."""
+        """返回所有共同名称的列表。"""
         return self.dof_names
 
     def get_left_joint_names(self) -> list[str]:
         """Returns list of left hand joint names."""
+        """返回左手联名列表。"""
         return self.left_dof_names
 
     def get_right_joint_names(self) -> list[str]:
         """Returns list of right hand joint names."""
+        """返回右手联名列表。"""
         return self.right_dof_names
 
     def get_hand_indices(self, robot) -> np.ndarray:
@@ -229,6 +278,14 @@ class GR1TR2DexRetargeting:
         Returns:
             Array of joint indices
         """
+        """在机器人的DOF阵列中得到了手关节的索引。
+
+        参数：
+            robot: 包含DOF信息的机器人对象
+
+        返回：
+            联合索引阵列
+        """
         return np.array([robot.dof_names.index(name) for name in self.dof_names], dtype=np.int64)
 
     def compute_left(self, left_hand_poses: dict[str, np.ndarray]) -> np.ndarray:
@@ -239,6 +296,14 @@ class GR1TR2DexRetargeting:
 
         Returns:
             Retargeted joint angles for left hand
+        """
+        """计算机将左手关节重新定向。
+
+        参数：
+            left_hand_poses: 左手关节姿势字典
+
+        返回：
+            左手的重定向关节角
         """
         if left_hand_poses is not None:
             left_hand_q = self.compute_one_hand(left_hand_poses, self._dex_left_hand, _OPERATOR2MANO_LEFT)
@@ -254,6 +319,14 @@ class GR1TR2DexRetargeting:
 
         Returns:
             Retargeted joint angles for right hand
+        """
+        """计算了右手的关节。
+
+        参数：
+            right_hand_poses: 右手关节姿势字典
+
+        返回：
+            右手的重定向关节角
         """
         if right_hand_poses is not None:
             right_hand_q = self.compute_one_hand(right_hand_poses, self._dex_right_hand, _OPERATOR2MANO_RIGHT)

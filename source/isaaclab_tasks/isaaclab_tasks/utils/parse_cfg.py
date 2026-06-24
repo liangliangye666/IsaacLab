@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module with utilities for parsing and loading configurations."""
+"""具有解析和加载配置工具的子模块。"""
 
 import collections
 import importlib
@@ -53,6 +54,43 @@ def load_cfg_from_registry(task_name: str, entry_point_key: str) -> dict | objec
 
     Raises:
         ValueError: If the entry point key is not available in the gym registry for the task.
+    """
+    """根据体育馆登记处的入口点，加载默认配置。
+
+    这个函数将从Gym注册表中加载给定的任务名称的配置对象。
+    它支持YAML和 Python配置文件。
+
+    它预计配置将被注册在Gym注册表中为:
+
+    .. code-block:: python
+
+        gym.register(
+            id="My-Awesome-Task-v0",
+            ...
+            kwargs={"env_entry_point_cfg": "path.to.config:ConfigClass"},
+        )
+
+
+    在上述例子中，解析配置对象可以得到为:
+
+    .. code-block:: python
+
+        from isaaclab_tasks.utils.parse_cfg import load_cfg_from_registry
+
+        cfg = load_cfg_from_registry("My-Awesome-Task-v0", "env_entry_point_cfg")
+
+
+    参数：
+        task_name: 环境的名称。
+        entry_point_key: 输入点键解决配置文件。
+
+    返回：
+        分析的配置对象。
+        如果输入点是YAML文件，则将其解析成字典。
+        如果输入点是Python类，则将其实时化并返回。
+
+    异常：
+        ValueError: 如果体育馆注册表中没有进入点键，
     """
     # obtain the configuration entry point
     cfg_entry_point = gym.spec(task_name.split(":")[-1]).kwargs.get(entry_point_key)
@@ -137,6 +175,26 @@ def parse_env_cfg(
         RuntimeError: If the configuration for the task is not a class. We assume users always use a class for the
             environment configuration.
     """
+    """对环境进行分析配置，并根据输入进行覆盖。
+
+    参数：
+        task_name: 环境的名称。
+        device: 仿真的设备。
+                在"cuda:0"上默认设置。
+        num_envs: 创建的环境数量。
+                  在 None 上默认，在这种情况下它保持不变。
+        use_fabric: 是否启用/禁用布料接口。
+                    如果错误，所有读写操作都通过USD。
+                    这可以减缓仿真，但可以通过USD阶段看到USD的变化。
+                    在 None 上默认，在这种情况下它保持不变。
+
+    返回：
+        分析的配置对象。
+
+    异常：
+        RuntimeError: 如果任务的配置不是一个类。
+                      我们假设用户总是使用一个类的环境配置。
+    """
     # load the default configuration
     cfg = load_cfg_from_registry(task_name.split(":")[-1], "env_cfg_entry_point")
 
@@ -186,6 +244,34 @@ def get_checkpoint_path(
         ValueError: When no runs are found in the input directory.
         ValueError: When no checkpoints are found in the input directory.
 
+    """
+    """在输入目录中找到模型检查点的路径。
+
+    检查点文件的解答为:``<log_path>/<run_dir>/<*other_dirs>/<checkpoint>``，其中:attr:`other_dirs`是连接的中间文件名称。
+    这些不能是Regex表达式。
+
+    If :attr:`run_dir`和:attr:`checkpoint`是regex表达式，然后是最近的 (最高字母顺序)
+    选择运行和检查点。
+    为了禁用这种行为，设置:attr:`sort_alpha`到False。
+
+    参数：
+        log_path: 在日志目录中找到模型的路径。
+        run_dir: 包含运行的目录名称的regex表达式。
+                 在:attr:`log_path`中创建的最新目录的默认文件。
+        other_dirs: 运行目录和检查点文件之间的中间目录。
+                    默认为 None，这意味着检查点文件直接位于运行目录下。
+        checkpoint: 模型检查站文件的regex表达式。
+                    在:attr:`run_dir`目录中保存的最新火模型的默认设置。
+        sort_alpha: 是否按字母顺序排序排序。
+                    默认为 True。
+                    如果 False，:attr:`run_dir`中的文件按最后一次修改时间进行排序。
+
+    返回：
+        走到模型检查站的路径。
+
+    异常：
+        ValueError: 在输入目录中没有运行。
+        ValueError: 在输入目录中没有检查点。
     """
     # check if runs present in directory
     try:

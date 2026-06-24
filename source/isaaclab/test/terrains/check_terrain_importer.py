@@ -25,8 +25,30 @@ Example usage:
     # plane terrain
     ./isaaclab.sh -p source/isaaclab/test/terrains/check_terrain_importer.py --terrain_type plane
 """
+"""这本脚本显示了如何使用来自Isaac Lab框架的地形生成器。
+
+采用:class:`TerrainGenerator`类的地形，并采用:class:`TerrainImporter`进口
+class. The terrains can be imported from a file or generated procedurally.
+
+例如使用:
+
+.. code-block:: bash
+
+    # generate terrain
+    # -- use physics sphere mesh
+    ./isaaclab.sh -p source/isaaclab/test/terrains/check_terrain_importer.py --terrain_type generator
+    # -- usd usd sphere geom
+    ./isaaclab.sh -p source/isaaclab/test/terrains/check_terrain_importer.py --terrain_type generator --geom_sphere
+
+    # usd terrain
+    ./isaaclab.sh -p source/isaaclab/test/terrains/check_terrain_importer.py --terrain_type usd
+
+    # plane terrain
+    ./isaaclab.sh -p source/isaaclab/test/terrains/check_terrain_importer.py --terrain_type plane
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -60,6 +82,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 
 import numpy as np
@@ -85,6 +108,7 @@ enable_extension("omni.kit.primitive.mesh")
 
 def main():
     """Generates a terrain from isaaclab."""
+    """创建了来自伊萨克拉布的地形。"""
 
     # Load kit helper
     sim = SimulationContext(SimulationCfg())

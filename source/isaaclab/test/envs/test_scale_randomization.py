@@ -9,8 +9,11 @@ This script checks the functionality of scale randomization.
 """
 
 from __future__ import annotations
+"""这个脚本检查了规模随机化的功能。
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -19,6 +22,7 @@ app_launcher = AppLauncher(headless=True, enable_cameras=True)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 import torch
@@ -59,9 +63,23 @@ class CubeActionTerm(ActionTerm):
     The processed actions are then applied to the cube asset by implementing a PD controller to
     track the target position.
     """
+    """简单的操作项，实现PD控制器来跟踪目标位置。
+
+    动作项适用于立方资产。
+    这包括两个步骤:
+
+    1. **处理原始动作**:通常包括任何原始动作的变化，需要将它们映射到所需的空间。
+    2. **应用处理动作**:此步骤将处理动作应用于资产。
+
+    在这种情况下，动作项仅仅适用于原产品的立方资产。
+    原动作是环境框架中的立方体所需的目标位置。
+    预处理步骤简单地将原始动作复制到加工操作中，因为不需要额外的处理。
+    然后通过实施PD控制器来跟踪目标位置，将处理的操作应用于立方资产。
+    """
 
     _asset: RigidObject
     """The articulation asset on which the action term is applied."""
+    """动作项适用于的关节资产。"""
 
     def __init__(self, cfg: CubeActionTermCfg, env: ManagerBasedEnv):
         # call super constructor
@@ -76,6 +94,8 @@ class CubeActionTerm(ActionTerm):
 
     """
     Properties.
+    """
+    """属性。
     """
 
     @property
@@ -92,6 +112,8 @@ class CubeActionTerm(ActionTerm):
 
     """
     Operations
+    """
+    """运营
     """
 
     def process_actions(self, actions: torch.Tensor):
@@ -112,14 +134,18 @@ class CubeActionTerm(ActionTerm):
 @configclass
 class CubeActionTermCfg(ActionTermCfg):
     """Configuration for the cube action term."""
+    """立方形动作项的配置。"""
 
     class_type: type = CubeActionTerm
     """The class corresponding to the action term."""
+    """与动作项相应的类。"""
 
     p_gain: float = 5.0
     """Proportional gain of the PD controller."""
+    """控制器PD的比例增长。"""
     d_gain: float = 0.5
     """Derivative gain of the PD controller."""
+    """PD控制器的衍生收益。"""
 
 
 ##
@@ -129,6 +155,7 @@ class CubeActionTermCfg(ActionTermCfg):
 
 def base_position(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
     """Root linear velocity in the asset's root frame."""
+    """在资产的根框架中的根线性速度。"""
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_pos_w - env.scene.env_origins
@@ -144,6 +171,10 @@ class MySceneCfg(InteractiveSceneCfg):
     """Example scene configuration.
 
     The scene comprises of a ground plane, light source and floating cubes (gravity disabled).
+    """
+    """例如场景配置。
+
+    场景包括地面平面，光源和浮动立方体 (重力禁用)。
     """
 
     # add terrain
@@ -190,6 +221,7 @@ class MySceneCfg(InteractiveSceneCfg):
 @configclass
 class ActionsCfg:
     """Action specifications for the MDP."""
+    """对MDP的动作规格。"""
 
     joint_pos = CubeActionTermCfg(asset_name="cube1")
 
@@ -197,10 +229,12 @@ class ActionsCfg:
 @configclass
 class ObservationsCfg:
     """Observation specifications for the MDP."""
+    """对MDP的观测规格。"""
 
     @configclass
     class PolicyCfg(ObsGroup):
         """Observations for policy group."""
+        """策略组的意见。"""
 
         # cube velocity
         position = ObsTerm(func=base_position, params={"asset_cfg": SceneEntityCfg("cube1")})
@@ -216,6 +250,7 @@ class ObservationsCfg:
 @configclass
 class EventCfg:
     """Configuration for events."""
+    """为事件的配置。"""
 
     reset_base = EventTerm(
         func=mdp.reset_root_state_uniform,
@@ -260,6 +295,7 @@ class EventCfg:
 @configclass
 class CubeEnvCfg(ManagerBasedEnvCfg):
     """Configuration for the locomotion velocity-tracking environment."""
+    """机动速度跟踪环境的配置。"""
 
     # Scene settings
     scene: MySceneCfg = MySceneCfg(num_envs=10, env_spacing=2.5, replicate_physics=False)
@@ -270,6 +306,7 @@ class CubeEnvCfg(ManagerBasedEnvCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # general settings
         self.decimation = 2
         # simulation settings
@@ -281,6 +318,7 @@ class CubeEnvCfg(ManagerBasedEnvCfg):
 @pytest.mark.parametrize("device", ["cpu", "cuda"])
 def test_scale_randomization(device):
     """Test scale randomization for cube environment."""
+    """对立方环境进行测试规模随机化。"""
     # create a new stage
     omni.usd.get_context().new_stage()
 
@@ -338,6 +376,7 @@ def test_scale_randomization(device):
 
 def test_scale_randomization_failure_replicate_physics():
     """Test scale randomization failure when replicate physics is set to True."""
+    """当复制物理设置为True时，测试规模随机化失败。"""
     # create a new stage
     omni.usd.get_context().new_stage()
     # set the arguments

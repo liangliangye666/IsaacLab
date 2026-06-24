@@ -26,8 +26,28 @@ optional arguments:
   --make-instanceable       Make the asset instanceable for efficient cloning. (default: False)
 
 """
+"""工具将MJCF转换为USD格式。
+
+MuJoCo XML格式 (MJCF) 是XML文件格式，用于MuJoCo描述机器人的所有元素。
+更多信息请见:http://www.mujoco.org/book/XMLreference.html
+
+该脚本使用来自Isaac Sim的MJCF进口扩展 (``isaacsim.asset.importer.mjcf``) 将MJCF资产转换为USD格式。
+它被设计为命令行使用的便利脚本。
+关于MJCF进口商的更多信息，请参见延期文件:
+https://docs.isaacsim.omniverse.nvidia.com最后一次robot_setup/ext_isaacsim_asset_importer_mjcf.html
+
+
+位置参数:输入输入URDF文件的路径。
+输出存储USD文件的路径。
+
+选择性参数: -h，--help 显示此帮助消息，然后退出--fix-base 固定基向导入的地方。
+(默认:False) --import-sites通过解析 <site>标签进口网站。
+(默认:True) --make-instanceable 让资产可以实现高效克隆。
+(默认:False)
+"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 
@@ -58,6 +78,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import contextlib
 import os

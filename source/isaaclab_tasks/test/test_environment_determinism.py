@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +14,7 @@ simulation_app = app_launcher.app
 
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import gymnasium as gym
 import pytest
@@ -43,6 +45,7 @@ def setup_environment():
 @pytest.mark.parametrize("device", ["cuda", "cpu"])
 def test_manipulation_env_determinism(task_name, device):
     """Check deterministic environment creation for manipulation."""
+    """检查对操纵的确定性环境创建。"""
     _test_environment_determinism(task_name, device)
 
 
@@ -57,6 +60,7 @@ def test_manipulation_env_determinism(task_name, device):
 @pytest.mark.parametrize("device", ["cuda", "cpu"])
 def test_locomotion_env_determinism(task_name, device):
     """Check deterministic environment creation for locomotion."""
+    """检查机动的确定性环境。"""
     _test_environment_determinism(task_name, device)
 
 
@@ -70,11 +74,13 @@ def test_locomotion_env_determinism(task_name, device):
 @pytest.mark.parametrize("device", ["cuda", "cpu"])
 def test_dextrous_env_determinism(task_name, device):
     """Check deterministic environment creation for dextrous manipulation."""
+    """检查确定性环境的创建，以查看是否存在无力操纵。"""
     _test_environment_determinism(task_name, device)
 
 
 def _test_environment_determinism(task_name: str, device: str):
     """Check deterministic environment creation."""
+    """检查确定性环境的创建。"""
     # fix number of steps
     num_envs = 32
     num_steps = 100
@@ -92,6 +98,7 @@ def _test_environment_determinism(task_name: str, device: str):
 
 def _obtain_transition_tuples(task_name: str, num_envs: int, device: str, num_steps: int) -> tuple[dict, torch.Tensor]:
     """Run random actions and obtain transition tuples after fixed number of steps."""
+    """运行随机操作，并在固定数量的步骤后获得过渡双倍。"""
     # create a new stage
     omni.usd.get_context().new_stage()
     try:

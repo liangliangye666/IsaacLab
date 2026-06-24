@@ -49,6 +49,18 @@ async def run_data_generator(
         pause_subtask: Whether to pause the subtask during generation.
         motion_planner: The motion planner to use.
     """
+    """在指定环境索引中运行从给定的数据生成器中仿真数据生成。
+
+    参数：
+        env: 运行数据生成器的环境。
+        env_id: 运行数据生成的环境索引。
+        env_reset_queue: 为了发送环境 (对于这个特定的env_id) 的异步队列重置请求。
+        env_action_queue: 执行操作的执行行列。
+        data_generator: 需要使用的数据生成器。
+        success_term: 使用成功终止项。
+        pause_subtask: 在生成过程中是否暂停子任务。
+        motion_planner: 我需要使用的运动规划器。
+    """
     global num_success, num_failures, num_attempts
     while True:
         try:
@@ -87,6 +99,15 @@ def env_loop(
         env_action_queue: The asyncio queue to handle actions to for executing actions.
         shared_datagen_info_pool: The shared datagen info pool that stores source demo info.
         asyncio_event_loop: The main asyncio event loop.
+    """
+    """环境的主要异步循环。
+
+    参数：
+        env: 运行主步循环的环境。
+        env_reset_queue: 处理重置的异步队列要求环境。
+        env_action_queue: 执行操作的异步队列。
+        shared_datagen_info_pool: 存储了源头信息。
+        asyncio_event_loop: 它们是主要的异步事件循环。
     """
     global num_success, num_failures, num_attempts
     env_id_tensor = torch.tensor([0], dtype=torch.int64, device=env.device)
@@ -170,6 +191,24 @@ def setup_env_config(
     Raises:
         NotImplementedError: If no success termination term found
     """
+    """配置数据生成环境。
+
+    参数：
+        env_name: 环境名称
+        output_dir: 输出存储目录
+        output_file_name: 输出文件名称
+        num_envs: 运行环境数量
+        device: 运行设备
+        generation_num_trials: 在试验数量上，可选择过失
+
+    返回：
+        含有:
+            - env_cfg:环境配置
+            - success_term:成功终止条件
+
+    异常：
+        NotImplementedError: 如果没有成功终止项
+    """
     env_cfg = parse_env_cfg(env_name, device=device, num_envs=num_envs)
 
     if generation_num_trials is not None:
@@ -225,6 +264,19 @@ def setup_async_generation(
 
     Returns:
         List of asyncio tasks for data generation
+    """
+    """设置异步数据生成任务。
+
+    参数：
+        env: 环境实例
+        num_envs: 运行环境数量
+        input_file: 输入数据集文件的路径
+        success_term: 成功终止条件
+        pause_subtask: 在次任务后是否暂停
+        motion_planners: 所有环境的运动规划器实例
+
+    返回：
+        数据生成的非同步任务列表
     """
     asyncio_event_loop = asyncio.get_event_loop()
     env_reset_queue = asyncio.Queue()

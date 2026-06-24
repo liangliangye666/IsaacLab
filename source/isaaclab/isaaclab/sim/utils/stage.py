@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Utilities for operating on the USD stage."""
+"""在USD阶段运营的设施。"""
 
 import builtins
 import contextlib
@@ -45,6 +46,22 @@ def create_new_stage() -> Usd.Stage:
                        sessionLayer=Sdf.Find('anon:0x7fba6c01c5c0:World7-session.usda'),
                        pathResolverContext=<invalid repr>)
     """
+    """创建一个新阶段与USD文本连接。
+
+    返回：
+        Usd.Stage: 创建了USD阶段。
+
+    异常：
+        RuntimeError: 没有创建一个新的舞台。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> sim_utils.create_new_stage()
+        Usd.Stage.Open(根层=Sdf.Find('anon:0x7fba6c04f840:World7.usd')，
+                       sessionLayer=Sdf.Find('anon:0x7fba6c01c5c0:World7-session.usda'),
+                       pathResolverContext=<invalid repr>)
+    """
     result = omni.usd.get_context().new_stage()
     if result:
         return omni.usd.get_context().get_stage()
@@ -70,6 +87,23 @@ def create_new_stage_in_memory() -> Usd.Stage:
                        sessionLayer=Sdf.Find('anon:0xf7cd2e0:tmp-session.usda'),
                        pathResolverContext=<invalid repr>)
     """
+    """如果支持，它会在记忆中创建一个新的阶段。
+
+    ..
+    此功能可用于Isaac Sim 5.0及后版本。
+    对于反向兼容性来说，它回归于创建一个新的阶段USD环境。
+
+    返回：
+        记忆中的新阶段。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> sim_utils.create_new_stage_in_memory()
+        Usd.Stage.Open(根层=Sdf.Find('anon:0xf7b00e0:tmp.usda')，
+                       sessionLayer=Sdf.Find('anon:0xf7cd2e0:tmp-session.usda'),
+                       pathResolverContext=<invalid repr>)
+    """
     if get_isaac_sim_version().major < 5:
         logger.warning(
             "Isaac Sim < 5.0 does not support creating a new stage in memory. Falling back to creating a new"
@@ -87,6 +121,13 @@ def is_current_stage_in_memory() -> bool:
 
     Returns:
         Whether the current stage is in memory.
+    """
+    """检查当前阶段是否存储。
+
+    这个函数将当前USD阶段的阶段 id与USD文本阶段的阶段 id进行比较。
+
+    返回：
+        现在的阶段是否记得。
     """
     # grab current stage id
     stage_id = get_current_stage_id()
@@ -111,6 +152,17 @@ def open_stage(usd_path: str) -> bool:
 
     Raises:
         ValueError: When input path is not a supported file type by USD.
+    """
+    """打开给定的 usd 文件，并取代目前打开的阶段。
+
+    参数：
+        usd_path: 进入USD文件的路径。
+
+    返回：
+        如果操作成功，则True，否则False。
+
+    异常：
+        ValueError: 当输入路径不是USD支持的文件类型时。
     """
     # check if USD file is supported
     if not Usd.Stage.IsSupportedFile(usd_path):
@@ -160,6 +212,35 @@ def use_stage(stage: Usd.Stage) -> Generator[None, None, None]:
         ...     pass
         >>> # operate on the default stage attached to the USD context
     """
+    """如果支持，设置线程本地阶段的语境管理器。
+
+    这个函数将阶段连接到语境管理器的持续时间。
+    在文本管理器期间，任何对 :func:`get_current_stage`的调用将返回文本管理器中指定的阶段。
+    后文本管理器退出，该阶段恢复到附加到USD文本的默认阶段。
+
+    ..
+    此功能可用于Isaac Sim 5.0及后版本。
+    对于反向兼容性，它回归于Isaac Sim <5.0中的无操作环境管理器。
+
+    参数：
+        stage: 在本文中设置的舞台。
+
+    返回：
+        一个环境管理器，在环境中设置舞台。
+
+    异常：
+        AssertionError: 如果阶段不是USD阶段实例。
+
+    示例：
+        >>> from pxr import Usd
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> stage_in_memory = Usd.Stage.CreateInMemory()
+        >>> with sim_utils.use_stage(stage_in_memory):
+        ...     # operate on the specified stage
+        ...     pass
+        >>> # operate on the default stage attached to the USD context
+    """
     if get_isaac_sim_version().major < 5:
         logger.warning("Isaac Sim < 5.0 does not support thread-local stage contexts. Skipping use_stage().")
         yield  # no-op
@@ -199,6 +280,19 @@ def update_stage() -> None:
         >>>
         >>> sim_utils.update_stage()
     """
+    """通过启动应用程序更新周期来更新当前阶段。
+
+    这种函数触发了应用界面的单个更新周期，从而更新了阶段和所有相关系统 (渲染，物理等)。
+    这需要确保对阶段的变化进行适当处理，并反映在仿真中。
+
+    说明：
+        这个函数称应用更新界面而不是直接更新阶段，因为阶段更新是包括渲染，物理和其他系统的更广泛应用更新周期的一部分。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> sim_utils.update_stage()
+    """
     # TODO: Why is this updating the simulation and not the stage?
     omni.kit.app.get_app_interface().update()
 
@@ -218,6 +312,22 @@ def save_stage(usd_path: str, save_and_reload_in_place: bool = True) -> bool:
     Raises:
         ValueError: When input path is not a supported file type by USD.
         RuntimeError: When layer creation or save operation fails.
+    """
+    """将当前阶段的根层内容保存到指定USD文件中。
+
+    如果文件已经存在，将被覆盖。
+
+    参数：
+        usd_path: 保存当前阶段的文件路径到
+        save_and_reload_in_place: 是否打开保存的USD文件。
+                                  默认为 True。
+
+    返回：
+        如果操作成功，则True，否则False。
+
+    异常：
+        ValueError: 当输入路径不是USD支持的文件类型时。
+        RuntimeError: 当层创建或保存操作失败时。
     """
     # check if USD file is supported
     if not Usd.Stage.IsSupportedFile(usd_path):
@@ -281,6 +391,38 @@ def close_stage(callback_fn: Callable[[bool, str], None] | None = None) -> bool:
         callback: (False, 'Stage opening or closing already in progress!!') {}
         False
     """
+    """关闭目前的USD阶段。
+
+    .. 说明::
+
+        一旦阶段结束，就必须打开一个新的阶段或创建一个新的阶段，以便在此工作。
+
+    参数：
+        callback_fn: 在关闭舞台时调用回调函数。
+                     函数应采用两个参数:一个表示阶段是否关闭的布尔式和一个表示阶段关闭失败的错误信息的字符串。
+                     默认为 None，在这种情况下，
+
+    返回：
+        如果操作成功，则True，否则False。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> sim_utils.close_stage()
+        True
+        >>>
+
+    使用回调函数的例子:
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> def callback(*args, **kwargs):
+        ...     print("callback:", args, kwargs)
+        >>> sim_utils.close_stage(callback)
+        True
+        >>> sim_utils.close_stage(callback)
+        callback: (False， "开放或关闭阶段已经在进行中!!") {}
+        False
+    """
     if callback_fn is None:
         result = omni.usd.get_context().close_stage()
     else:
@@ -312,12 +454,34 @@ def clear_stage(predicate: Callable[[Usd.Prim], bool] | None = None) -> None:
         >>> predicate = lambda _prim: _prim.GetTypeName() == "Cube"
         >>> sim_utils.clear_stage(predicate)  # after the execution the stage will be /World
     """
+    """删除所有prims在阶段，而不填充撤销命令缓冲。
+
+    函数将删除满足预言的阶段中的所有prims。
+    如果预言是None，则将使用一个默认预言，删除所有prims。
+    默认预告删除所有不是根 prim 的 prims，不在 /Render 命名空间下，具有 ``no_delete`` 传输数据，不是任何其他 prim 的祖先，并没有隐藏在阶段窗口。
+
+    参数：
+        predicate: 用户定义的函数，将USD prim作为参数，返回一个表示prim是否应该被删除的布尔式函数。
+                   如果预言是None，则将使用一个默认预言，删除所有prims。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> # clear the whole stage
+        >>> sim_utils.clear_stage()
+        >>>
+        >>> # given the stage: /World/Cube, /World/Cube_01, /World/Cube_02.
+        >>> # Delete only the prims of type Cube
+        >>> predicate = lambda _prim: _prim.GetTypeName() == "Cube"
+        >>> sim_utils.clear_stage(predicate)  # after the execution the stage will be /World
+    """
     # Note: Need to import this here to prevent circular dependencies.
     from .prims import delete_prim
     from .queries import get_all_matching_child_prims
 
     def _default_predicate(prim: Usd.Prim) -> bool:
         """Check if the prim should be deleted."""
+        """检查是否应该删除prim。"""
         prim_path = prim.GetPath().pathString
         if prim_path == "/":
             return False
@@ -362,6 +526,17 @@ def is_stage_loading() -> bool:
         >>> sim_utils.is_stage_loading()
         False
     """
+    """检查是否正在加载任何文件的便利功能。
+
+    返回：
+        如果加载，True，否则False
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> sim_utils.is_stage_loading()
+        False
+    """
     context = omni.usd.get_context()
     if context is None:
         return False
@@ -387,6 +562,24 @@ def get_current_stage(fabric: bool = False) -> Usd.Stage:
                        sessionLayer=Sdf.Find('anon:0x7fba6c01c5c0:World7-session.usda'),
                        pathResolverContext=<invalid repr>)
     """
+    """获取当前开放的USD或布料阶段
+
+    参数：
+        fabric: True让我们进入织阶段。
+                False为了得到USD在这个阶段。
+                默认为 False。
+
+    返回：
+        按输入 arg 织物规定的USD或 Fabric 阶段。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> sim_utils.get_current_stage()
+        Usd.Stage.Open(根层=Sdf.Find('anon:0x7fba6c04f840:World7.usd')，
+                       sessionLayer=Sdf.Find('anon:0x7fba6c01c5c0:World7-session.usda'),
+                       pathResolverContext=<invalid repr>)
+    """
     stage = getattr(_context, "stage", omni.usd.get_context().get_stage())
 
     if fabric:
@@ -406,6 +599,17 @@ def get_current_stage_id() -> int:
         The current open stage id.
 
     Example:
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> sim_utils.get_current_stage_id()
+        1234567890
+    """
+    """现在的开放舞台ID。
+
+    返回：
+        现在的开放舞台身份证。
+
+    示例：
         >>> import isaaclab.sim as sim_utils
         >>>
         >>> sim_utils.get_current_stage_id()
@@ -435,6 +639,19 @@ def attach_stage_to_usd_context(attaching_early: bool = False):
 
     Args:
         attaching_early: Whether to attach the stage to the usd context before stage is created. Defaults to False.
+    """
+    """将当前USD阶段的内存连接到USD文本。
+
+    在场景创建后或在场景仿真或渲染之前应调用这个函数。
+    如果阶段不在内存中，或者没有启用渲染，则该函数将返回而不连接。
+
+    ..
+    此功能可用于Isaac Sim 5.0及后版本。
+    为了回复兼容性，它返回不连接到USD文本。
+
+    参数：
+        attaching_early: 在创建舞台之前是否将舞台连接到USD文本上。
+                         默认为 False。
     """
 
     import carb

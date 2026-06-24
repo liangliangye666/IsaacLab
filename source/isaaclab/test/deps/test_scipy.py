@@ -17,6 +17,7 @@ import scipy.interpolate as interpolate
 @pytest.mark.isaacsim_ci
 def test_interpolation():
     """Test scipy interpolation 2D method."""
+    """测试二维插射方法。"""
     # parameters
     size = (10.0, 12.0)
     horizontal_scale = 0.1

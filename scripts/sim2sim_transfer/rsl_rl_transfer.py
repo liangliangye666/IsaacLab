@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to play a checkpoint of an RL agent from RSL-RL with policy transfer capabilities."""
+"""剧本将播放一个RL代理的检查点从RSL-RL，"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import os
@@ -56,6 +58,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 import time
@@ -93,6 +96,15 @@ def get_joint_mappings(args_cli, action_space_dim):
 
     Returns:
             tuple: (source_to_target_list, target_to_source_list, source_to_target_obs_list)
+    """
+    """根据命令行参数进行联合映射。
+
+    参数：
+            args_cli: 命令行参数
+            action_space_dim: 动作空间的尺寸 (关节数量)
+
+    返回：
+            tuple: (source_to_target_list，target_to_source_list，source_to_target_obs_list)
     """
     num_joints = action_space_dim
     if args_cli.policy_transfer_file:
@@ -148,6 +160,7 @@ def get_joint_mappings(args_cli, action_space_dim):
 @hydra_task_config(args_cli.task, args_cli.agent)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlBaseRunnerCfg):
     """Play with RSL-RL agent with policy transfer capabilities."""
+    """玩RSL-RL代理，有策略转让能力。"""
 
     # override configurations with non-hydra CLI arguments
     agent_cfg = cli_args.update_rsl_rl_cfg(agent_cfg, args_cli)
@@ -245,12 +258,14 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
 
     def remap_obs(obs):
         """Remap the observation to the target observation space."""
+        """将观测重新映射到目标观测空间。"""
         if obs_map_tensor is not None:
             obs = obs[:, obs_map_tensor]
         return obs
 
     def remap_actions(actions):
         """Remap the actions to the target action space."""
+        """重新映射动作到目标动作空间。"""
         if target_to_source_tensor is not None:
             actions = actions[:, target_to_source_tensor]
         return actions

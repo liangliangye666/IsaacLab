@@ -6,6 +6,7 @@
 """Functions to generate height fields for different terrains."""
 
 from __future__ import annotations
+"""为不同地形生成高度场的功能。"""
 
 from typing import TYPE_CHECKING
 
@@ -40,6 +41,28 @@ def random_uniform_terrain(difficulty: float, cfg: hf_terrains_cfg.HfRandomUnifo
 
     Raises:
         ValueError: When the downsampled scale is smaller than the horizontal scale.
+    """
+    """从一个特定范围以均的高度样本生成地形。
+
+    ..
+    图片: 静态/地形/height_field/random_uniform_terrain.jpg
+       :width: 40%
+       :align: 中央
+
+    说明：
+        The :对于这个地形，`difficulty`参数被忽略。
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        地形的高度场面作为一个2D的形阵列，具有微观的高度。
+        阵列的形状是 (宽度，长度)，宽度和长度分别是x和y轴沿线的点数。
+
+    异常：
+        ValueError: 低样本尺度小于水平尺度时。
     """
     # check parameters
     # -- horizontal scale
@@ -105,6 +128,31 @@ def pyramid_sloped_terrain(difficulty: float, cfg: hf_terrains_cfg.HfPyramidSlop
         The height field of the terrain as a 2D numpy array with discretized heights.
         The shape of the array is (width, length), where width and length are the number of points
         along the x and y axis, respectively.
+    """
+    """建立一个 terra缩的金字塔结构的地形。
+
+    地形是一个金字塔形状的斜面，斜率为:obj:`slope`，
+    倾斜是以 x 轴沿 x 轴的高度变化与 x 轴沿宽度的比例定义的。
+    例如，一个1.0的斜率意味着每1个宽度单位的高度变化为1个单位。
+
+    如果 :obj:`cfg.inverted` 旗设置为 :obj:`True`，地形将倒向，使平台处于底部。
+
+    ..
+    图片: 静态/地形/height_field/pyramid_sloped_terrain.jpg
+       :width: 40%
+
+    ..
+    图片: 静态/地形/height_field/inverted_pyramid_sloped_terrain.jpg
+       :width: 40%
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        地形的高度场面作为一个2D的形阵列，具有微观的高度。
+        阵列的形状是 (宽度，长度)，宽度和长度分别是x和y轴沿线的点数。
     """
     # resolve terrain configuration
     if cfg.inverted:
@@ -173,6 +221,29 @@ def pyramid_stairs_terrain(difficulty: float, cfg: hf_terrains_cfg.HfPyramidStai
         The shape of the array is (width, length), where width and length are the number of points
         along the x and y axis, respectively.
     """
+    """创建一个具有金字塔楼梯图案的地形。
+
+    地形是一个金字塔楼梯图案，在地形中心的平坦平台上。
+
+    如果 :obj:`cfg.inverted` 旗设置为 :obj:`True`，地形将倒向，使平台处于底部。
+
+    ..
+    图片: 静态/地形/height_field/pyramid_stairs_terrain.jpg
+       :width: 40%
+
+    ..
+    图片: 静态/地形/height_field/inverted_pyramid_stairs_terrain.jpg
+       :width: 40%
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        地形的高度场面作为一个2D的形阵列，具有微观的高度。
+        阵列的形状是 (宽度，长度)，宽度和长度分别是x和y轴沿线的点数。
+    """
     # resolve terrain configuration
     step_height = cfg.step_height_range[0] + difficulty * (cfg.step_height_range[1] - cfg.step_height_range[0])
     if cfg.inverted:
@@ -231,6 +302,28 @@ def discrete_obstacles_terrain(difficulty: float, cfg: hf_terrains_cfg.HfDiscret
         The height field of the terrain as a 2D numpy array with discretized heights.
         The shape of the array is (width, length), where width and length are the number of points
         along the x and y axis, respectively.
+    """
+    """创建一个随机生成的障碍的地形，
+
+    地形是一个平坦的平台在地形的中心随机生成的障碍作为支柱
+    with positive and negative height. The obstacles are randomly generated cuboids with a random width and
+    它们的高度。
+    它们被随机放置在地形上，最小距离为:obj:`cfg.platform_width`
+    from the center of the terrain.
+
+    ..
+    图片: 静态/地形/height_field/discrete_obstacles_terrain.jpg
+       :width: 40%
+       :align: 中央
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        地形的高度场面作为一个2D的形阵列，具有微观的高度。
+        阵列的形状是 (宽度，长度)，宽度和长度分别是x和y轴沿线的点数。
     """
     # resolve terrain configuration
     obs_height = cfg.obstacle_height_range[0] + difficulty * (
@@ -320,6 +413,36 @@ def wave_terrain(difficulty: float, cfg: hf_terrains_cfg.HfWaveTerrainCfg) -> np
     Raises:
         ValueError: When the number of waves is non-positive.
     """
+    """创建一个带有波纹的地形。
+
+    地形是一个平坦的平台，在地形的中心有一个波纹。
+    基于波数量和波的幅度，加出阴影形波的波格。
+
+    在一个点上的地形的高度:数学:`(x， y)`由:
+
+    .. math::
+
+        h(x, y) =  A \left(\sin\left(\frac{2 \pi x}{\lambda}\right) + \cos\left(\frac{2 \pi y}{\lambda}\right) \right)
+
+    where :数学:`A`是波的宽度，`\lambda`是波长。
+
+    ..
+    图片: 静态/地形/height_field/wave_terrain.jpg
+       :width: 40%
+       :align: 中央
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        地形的高度场面作为一个2D的形阵列，具有微观的高度。
+        阵列的形状是 (宽度，长度)，宽度和长度分别是x和y轴沿线的点数。
+
+    异常：
+        ValueError: 当波的数量是非积极的。
+    """
     # check number of waves
     if cfg.num_waves < 0:
         raise ValueError(f"Number of waves must be a positive integer. Got: {cfg.num_waves}.")
@@ -368,6 +491,24 @@ def stepping_stones_terrain(difficulty: float, cfg: hf_terrains_cfg.HfSteppingSt
         The height field of the terrain as a 2D numpy array with discretized heights.
         The shape of the array is (width, length), where width and length are the number of points
         along the x and y axis, respectively.
+    """
+    """创建一个具有梯石图案的地形。
+
+    地形是一个梯石图案，它在地形中心的平坦平台。
+
+    ..
+    图片: 静态/地形/height_field/stepping_stones_terrain.jpg
+       :width: 40%
+       :align: 中央
+
+    参数：
+        difficulty: 土地的困难。
+                    这是一个0到1之间的值。
+        cfg: 土地的配置。
+
+    返回：
+        地形的高度场面作为一个2D的形阵列，具有微观的高度。
+        阵列的形状是 (宽度，长度)，宽度和长度分别是x和y轴沿线的点数。
     """
     # resolve terrain configuration
     stone_width = cfg.stone_width_range[1] - difficulty * (cfg.stone_width_range[1] - cfg.stone_width_range[0])

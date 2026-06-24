@@ -32,18 +32,29 @@ logger = logging.getLogger(__name__)
 @configclass
 class ManagerLiveVisualizerCfg:
     """Configuration for the :class:`ManagerLiveVisualizer` class."""
+    """为:class:`ManagerLiveVisualizer`类的配置。"""
 
     debug_vis: bool = False
     """Flag used to set status of the live visualizers on startup. Defaults to False, which means closed."""
+    """在启动时使用旗设置场景可视化器的状态。
+    默认为 False，这意味着关闭。
+    """
 
     manager_name: str = MISSING
     """Manager name that corresponds to the manager of interest in the ManagerBasedEnv and ManagerBasedRLEnv"""
+    """对 ManagerBasedEnv和 ManagerBasedRLEnv的利益管理器相应的管理器名称"""
 
     term_names: list[str] | dict[str, list[str]] | None = None
     """Specific term names specified in a Manager config that are chosen to be plotted. Defaults to None.
 
     If None all terms will be plotted. For managers that utilize Groups (i.e. ObservationGroup) use a dictionary of
     {group_names: [term_names]}.
+    """
+    """在管理器配置中指定的特定项名称，这些项被选为图表。
+    默认为 None。
+
+    如果是None，所有的条件都会被绘制出来。
+    对于使用组 (i.e。 ObservationGroup) 的管理器使用{group_names: [term_names]}的字典。
     """
 
 
@@ -56,6 +67,14 @@ class ManagerLiveVisualizer(UiVisualizerBase):
     it creates an :class:`ImagePlot`. The visualizer can be toggled on and off using the
     :attr:`ManagerLiveVisualizerCfg.debug_vis` flag in the configuration.
     """
+    """用于将数据从管理器传输到UI小工具的接口对象。
+
+    这个类处理为给出:class:`ManagerLiveVisualizerCfg`的选定的项创建UI Widgets。
+    它通过管理器的项进行反复，并为每个项创建一个可视化器。
+    如果这个项是单个变量或多变量信号，它会产生:class:`LiveLinePlot`。
+    如果这个项是图像 (2D或RGB)，它会产生:class:`ImagePlot`。
+    视图器可以通过配置中的:attr:`ManagerLiveVisualizerCfg.debug_vis`旗开关。
+    """
 
     def __init__(self, manager: ManagerBase, cfg: ManagerLiveVisualizerCfg = ManagerLiveVisualizerCfg()):
         """Initialize ManagerLiveVisualizer.
@@ -64,6 +83,13 @@ class ManagerLiveVisualizer(UiVisualizerBase):
             manager: The manager with terms to be plotted. The manager must have a
                 :meth:`~isaaclab.managers.manager_base.ManagerBase.get_active_iterable_terms` method.
             cfg: The configuration file used to select desired manager terms to be plotted.
+        """
+        """启动ManagerLiveVisualizer。
+
+        参数：
+            manager: 管理器要制定项。
+                     管理器必须有:meth:`~isaaclab.managers.manager_base.ManagerBase.get_active_iterable_terms`方法。
+            cfg: 配置文件用于选择图表所需的管理项。
         """
 
         self._manager = manager
@@ -121,11 +147,13 @@ class ManagerLiveVisualizer(UiVisualizerBase):
     @property
     def get_vis_frame(self) -> omni.ui.Frame:
         """Returns the UI Frame object tied to this visualizer."""
+        """返回与这个可视化器绑定的UI Frame对象。"""
         return self._vis_frame
 
     @property
     def get_vis_window(self) -> omni.ui.Window:
         """Returns the UI Window object tied to this visualizer."""
+        """返回 UI窗口对象与这个可视化器绑定。"""
         return self._vis_window
 
     #
@@ -137,6 +165,11 @@ class ManagerLiveVisualizer(UiVisualizerBase):
 
         Args:
             debug_vis: Whether to enable or disable the debug visualization.
+        """
+        """设置外面视图功能。
+
+        参数：
+            debug_vis: 是否启用或禁用调试可视化。
         """
         self._set_debug_vis_impl(debug_vis)
 
@@ -150,6 +183,11 @@ class ManagerLiveVisualizer(UiVisualizerBase):
         Args:
             env_idx: The index of the selected environment.
         """
+        """更新选定的环境索引。
+
+        参数：
+            env_idx: 选择环境的索引。
+        """
         if env_idx > 0 and env_idx < self._manager.num_envs:
             self._env_idx = env_idx
         else:
@@ -161,10 +199,16 @@ class ManagerLiveVisualizer(UiVisualizerBase):
         Args:
             frame: The debug visualization frame.
         """
+        """更新可用于可视化的分配框架。
+
+        参数：
+            frame: 错误可视化框架。
+        """
         self._vis_frame = frame
 
     def _debug_vis_callback(self, event):
         """Callback for the debug visualization event."""
+        """检查错误视觉事件。"""
 
         if not SimulationContext.instance().is_playing():
             # Visualizers have not been created yet.
@@ -184,6 +228,11 @@ class ManagerLiveVisualizer(UiVisualizerBase):
 
         Args:
             debug_vis: Whether to enable or disable debug visualization.
+        """
+        """设置调试可视化实现。
+
+        参数：
+            debug_vis: 是否启用或禁用故障可视化。
         """
 
         if not hasattr(self, "_vis_frame"):
@@ -244,6 +293,9 @@ class ManagerLiveVisualizer(UiVisualizerBase):
 @configclass
 class DefaultManagerBasedEnvLiveVisCfg:
     """Default configuration to use for the ManagerBasedEnv. Each chosen manager assumes all terms will be plotted."""
+    """默认配置用于ManagerBasedEnv。
+    每个选定的管理器都假设所有项都会被绘制出来。
+    """
 
     action_live_vis = ManagerLiveVisualizerCfg(manager_name="action_manager")
     observation_live_vis = ManagerLiveVisualizerCfg(manager_name="observation_manager")
@@ -252,6 +304,9 @@ class DefaultManagerBasedEnvLiveVisCfg:
 @configclass
 class DefaultManagerBasedRLEnvLiveVisCfg(DefaultManagerBasedEnvLiveVisCfg):
     """Default configuration to use for the ManagerBasedRLEnv. Each chosen manager assumes all terms will be plotted."""
+    """默认配置用于ManagerBasedRLEnv。
+    每个选定的管理器都假设所有项都会被绘制出来。
+    """
 
     curriculum_live_vis = ManagerLiveVisualizerCfg(manager_name="curriculum_manager")
     command_live_vis = ManagerLiveVisualizerCfg(manager_name="command_manager")
@@ -261,6 +316,7 @@ class DefaultManagerBasedRLEnvLiveVisCfg(DefaultManagerBasedEnvLiveVisCfg):
 
 class EnvLiveVisualizer:
     """A class to handle all ManagerLiveVisualizers used in an Environment."""
+    """一个可以处理在环境中使用的所有ManagerLiveVisualizers的类。"""
 
     def __init__(self, cfg: object, managers: dict[str, ManagerBase]):
         """Initialize the EnvLiveVisualizer.
@@ -268,6 +324,13 @@ class EnvLiveVisualizer:
         Args:
             cfg: The configuration file containing terms of ManagerLiveVisualizers.
             managers: A dictionary of labeled managers. i.e. {"manager_name",manager}.
+        """
+        """启动EnvLiveVisualizer。
+
+        参数：
+            cfg: 包含ManagerLiveVisualizers的项的配置文件。
+            managers: 一个标签的管理器字典。
+                      i.e。 {"manager_name"，manager}。
         """
         self.cfg = cfg
         self.managers = managers
@@ -299,4 +362,5 @@ class EnvLiveVisualizer:
     @property
     def manager_visualizers(self) -> dict[str, ManagerLiveVisualizer]:
         """A dictionary of labeled ManagerLiveVisualizers associated manager name as key."""
+        """标记为ManagerLiveVisualizers相关管理器名称的字典作为关键。"""
         return self._manager_visualizers

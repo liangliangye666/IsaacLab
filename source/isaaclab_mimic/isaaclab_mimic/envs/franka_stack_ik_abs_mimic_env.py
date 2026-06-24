@@ -15,9 +15,12 @@ class FrankaCubeStackIKAbsMimicEnv(ManagerBasedRLMimicEnv):
     """
     Isaac Lab Mimic environment wrapper class for Franka Cube Stack IK Abs env.
     """
+    """艾萨克实验室仿真环境包装类IK子env。
+    """
 
     def get_robot_eef_pose(self, eef_name: str, env_ids: Sequence[int] | None = None) -> torch.Tensor:
         """Get current robot end effector pose."""
+        """现在就把机器人最终效果姿势。"""
         if env_ids is None:
             env_ids = slice(None)
 
@@ -54,6 +57,29 @@ class FrankaCubeStackIKAbsMimicEnv(ManagerBasedRLMimicEnv):
         Returns:
             torch.Tensor: A single action tensor combining pose and gripper commands.
         """
+        """将目标姿势转换为动作。
+
+        这种方法将目标末端执行器姿势和抓住器操作的字典转化为一个可以被环境使用的单一动作张量。
+
+        功能:
+        1. 从姿势字典中提取目标位置和旋转
+        2. 提取对最终效应器的抓住作用
+        3. 转移到一个姿势动作
+        4. 选择性地增加噪音，为探测的姿势动作
+        5. 结合了与抓住器的作用，成为最终的动作张量
+
+        参数：
+            target_eef_pose_dict: 含有目标终端效应剂姿势的字典，
+                with keys as eef names and values as pose tensors.
+            gripper_action_dict: 含有抓住器操作的字典，
+                with keys as eef names and values as action tensors.
+            noise: 适用于探测的姿势动作的可选噪音大小。
+                   如果提供，随机噪音会产生，并加入姿势操作。
+            env_id: 环境ID多环境设置，默认到0。
+
+        返回：
+            torch.Tensor: 一个单一的动作张量，结合姿势和抓住指令。
+        """
         # target position and rotation
         (target_eef_pose,) = target_eef_pose_dict.values()
         target_pos, target_rot = PoseUtils.unmake_pose(target_eef_pose)
@@ -71,6 +97,7 @@ class FrankaCubeStackIKAbsMimicEnv(ManagerBasedRLMimicEnv):
 
     def action_to_target_eef_pose(self, action: torch.Tensor) -> dict[str, torch.Tensor]:
         """Convert action to target pose."""
+        """将动作转换为目标姿势。"""
         eef_name = list(self.cfg.subtask_configs.keys())[0]
 
         target_pos = action[:, :3]
@@ -83,11 +110,13 @@ class FrankaCubeStackIKAbsMimicEnv(ManagerBasedRLMimicEnv):
 
     def actions_to_gripper_actions(self, actions: torch.Tensor) -> dict[str, torch.Tensor]:
         """Extract gripper actions."""
+        """提取抓住器的作用。"""
         # last dimension is gripper action
         return {list(self.cfg.subtask_configs.keys())[0]: actions[:, -1:]}
 
     def get_subtask_term_signals(self, env_ids: Sequence[int] | None = None) -> dict[str, torch.Tensor]:
         """Get subtask termination signals."""
+        """收到子任务终止信号。"""
         if env_ids is None:
             env_ids = slice(None)
 

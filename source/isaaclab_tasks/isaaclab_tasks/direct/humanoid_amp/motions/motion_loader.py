@@ -15,6 +15,8 @@ class MotionLoader:
     """
     Helper class to load and sample motion data from NumPy-file format.
     """
+    """从NumPy文件格式上载和样本运动数据的辅助类。
+    """
 
     def __init__(self, motion_file: str, device: torch.device) -> None:
         """Load a motion file and initialize the internal variables.
@@ -25,6 +27,15 @@ class MotionLoader:
 
         Raises:
             AssertionError: If the specified motion file doesn't exist.
+        """
+        """运载一个动作文件，并初始化内部变量。
+
+        参数：
+            motion_file: 移动文件路径进行加载。
+            device: 输入数据的设备。
+
+        异常：
+            AssertionError: 如果指定的运动文件不存在。
         """
         assert os.path.isfile(motion_file), f"Invalid file path: {motion_file}"
         data = np.load(motion_file)
@@ -52,21 +63,25 @@ class MotionLoader:
     @property
     def dof_names(self) -> list[str]:
         """Skeleton DOF names."""
+        """骨架DOF名字。"""
         return self._dof_names
 
     @property
     def body_names(self) -> list[str]:
         """Skeleton rigid body names."""
+        """骨硬体名字。"""
         return self._body_names
 
     @property
     def num_dofs(self) -> int:
         """Number of skeleton's DOFs."""
+        """骨的数量是DOFs。"""
         return len(self._dof_names)
 
     @property
     def num_bodies(self) -> int:
         """Number of skeleton's rigid bodies."""
+        """骨的硬体数量。"""
         return len(self._body_names)
 
     def _interpolate(
@@ -91,6 +106,23 @@ class MotionLoader:
 
         Returns:
             Interpolated values. Shape is (N, X) or (N, M, X).
+        """
+        """连续值之间的线性插角。
+
+        参数：
+            a: 第一个值。
+               形状是 (N，X) 或 (N，M，X)。
+            b: 第二个值。
+               形状是 (N，X) 或 (N，M，X)。
+            blend: 在0 (a) 到1 (b) 间的插射系数。
+            start: 索引以获得第一个值。
+                   如果指定``start``和 ``end`，则第一值和第二值将是从参数``a`` (维度0) 中得到的。
+            end: 索引以获取第二个值。
+                 如果指定``start``和 ``end`，则第一值和第二值将是从参数``a`` (维度0) 中得到的。
+
+        返回：
+            间接值。
+            形状是 (N，X) 或 (N，M，X)。
         """
         if start is not None and end is not None:
             return self._interpolate(a=a[start], b=a[end], blend=blend)
@@ -122,6 +154,23 @@ class MotionLoader:
 
         Returns:
             Interpolated quaternions. Shape is (N, 4) or (N, M, 4).
+        """
+        """连续旋转之间的回合 (球状线性回合)。
+
+        参数：
+            q0: 第一个四 (wxyz)。
+                形状是 (N， 4) 或 (N， M， 4)。
+            q1: 第二个四nion (wxyz)。
+                形状是 (N， 4) 或 (N， M， 4)。
+            blend: 在0 (q0) 和1 (q1) 间的插射系数。
+            start: 索引找出第一个四元数。
+                   如果指定了``start``和 ``end`，则第一个和第二个四分母将是从参数``q0`` (维度0) 中取出的。
+            end: 索引取第二个四元数。
+                 如果指定了``start``和 ``end`，则第一个和第二个四分母将是从参数``q0`` (维度0) 中取出的。
+
+        返回：
+            交叉的四元数。
+            形状是 (N， 4) 或 (N， M， 4)。
         """
         if start is not None and end is not None:
             return self._slerp(q0=q0[start], q1=q0[end], blend=blend)
@@ -171,6 +220,15 @@ class MotionLoader:
         Returns:
             First value indexes, Second value indexes, and blending time between 0 (first value) and 1 (second value).
         """
+        """计算第一个和第二个值的索引，以及它们和给定的时间之间的混合时间。
+
+        参数：
+            times: 时间在0到运动时间之间，以样本运动值。
+                   指定时间将被裁剪，以使其进入运动时间范围。
+
+        返回：
+            第一个值索引，第二值索引和0 (第一个值) 和1 (第二值) 之间的混合时间。
+        """
         phase = np.clip(times / self.duration, 0.0, 1.0)
         index_0 = (phase * (self.num_frames - 1)).round(decimals=0).astype(int)
         index_1 = np.minimum(index_0 + 1, self.num_frames - 1)
@@ -190,6 +248,19 @@ class MotionLoader:
 
         Returns:
             Time samples, between 0 and the specified/motion duration.
+        """
+        """随机运动时间均。
+
+        参数：
+            num_samples: 需要生成的时间样本数。
+            duration: 检测时间:
+                      如果没有定义，样本将在运动时间范围内。
+
+        异常：
+            AssertionError: 如果指定时间比运动时间长。
+
+        返回：
+            时间样本，在0到指定/运动时间之间。
         """
         duration = self.duration if duration is None else duration
         assert duration <= self.duration, (
@@ -219,6 +290,26 @@ class MotionLoader:
                 - Body linear velocities (with shape (N, num_bodies, 3))
                 - Body angular velocities (with shape (N, num_bodies, 3))
         """
+        """运动数据样本。
+
+        参数：
+            num_samples: 需要生成的时间样本数。
+                         如果定义``times``，则忽略这个参数。
+            times: 用于采样的运动时间。
+                   如果没有定义，运动数据将随机抽取时间均。
+            duration: 检测时间:
+                      如果没有定义，样本将在运动时间范围内。
+                      如果定义``times``，则忽略这个参数。
+
+        返回：
+            含有采样运动数据的图普:
+                - DOF位置 (形状 (N， num_dofs))
+                - DOF速度 (形状 (N， num_dofs))
+                - 身体位置 (形状 (N，num_bodies，3))
+                - 身体旋转 (形状 (N，num_bodies，4) 作为wxyz四元数)
+                - 身体线性速度 (形状 (N，num_bodies，3))
+                - 体角速度 (形状 (N，num_bodies，3))
+        """
         times = self.sample_times(num_samples, duration) if times is None else times
         index_0, index_1, blend = self._compute_frame_blend(times)
         blend = torch.tensor(blend, dtype=torch.float32, device=self.device)
@@ -244,6 +335,17 @@ class MotionLoader:
         Returns:
             List of DOFs indexes.
         """
+        """按DOFs名字进行 DOFs索引。
+
+        参数：
+            dof_names: 列出DOFs的名字。
+
+        异常：
+            AssertionError: 如果指定的DOFs名称不存在。
+
+        返回：
+            列出DOFs索引。
+        """
         indexes = []
         for name in dof_names:
             assert name in self._dof_names, f"The specified DOF name ({name}) doesn't exist: {self._dof_names}"
@@ -261,6 +363,17 @@ class MotionLoader:
 
         Returns:
             List of body indexes.
+        """
+        """按身体名字查看骨架身体索引。
+
+        参数：
+            dof_names: 尸体名单。
+
+        异常：
+            AssertionError: 如果没有指定的尸体名称。
+
+        返回：
+            列表的索引。
         """
         indexes = []
         for name in body_names:

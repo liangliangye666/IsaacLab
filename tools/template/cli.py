@@ -17,6 +17,7 @@ from InquirerPy import inquirer, separator
 
 class CLIHandler:
     """CLI handler for the Isaac Lab template."""
+    """艾萨克实验室模板的CLI处理器。"""
 
     def __init__(self):
         self.console = rich.console.Console()
@@ -31,6 +32,12 @@ class CLIHandler:
         Args:
             table: The table to print.
             new_line_start: Whether to print a new line before the table.
+        """
+        """打印一个丰富的桌子。
+
+        参数：
+            table: 打印的桌子。
+            new_line_start: 在桌面前是否打印新行。
         """
         self.console.print(table, new_line_start=new_line_start)
 
@@ -47,6 +54,17 @@ class CLIHandler:
 
         Returns:
             str: The selected choice.
+        """
+        """提示用户从选项列表中选择选项。
+
+        参数：
+            message: 显示给用户的信息。
+            choices: 显示给用户的选项列表。
+            default: 默认的选择。
+            long_instruction: 给用户显示的长时间说明。
+
+        返回：
+            str: 选择的选择。
         """
         return inquirer.select(
             message=message,
@@ -68,6 +86,16 @@ class CLIHandler:
 
         Returns:
             The selected choices.
+        """
+        """要求用户从选项列表中选择一个或多个选项。
+
+        参数：
+            message: 显示给用户的信息。
+            choices: 显示给用户的选项列表。
+            default: 默认的选择。
+
+        返回：
+            选择的选择。
         """
 
         def transformer(result: list[str]) -> str:
@@ -106,6 +134,17 @@ class CLIHandler:
         Returns:
             The input path.
         """
+        """要求用户输入路径。
+
+        参数：
+            message: 显示给用户的信息。
+            default: 默认的路径。
+            validate: 一个呼叫证实路径。
+            invalid_message: 如果路径是无效的，则向用户显示信息。
+
+        返回：
+            输入路径。
+        """
         return inquirer.filepath(
             message=message,
             default=default if default is not None else "",
@@ -131,6 +170,17 @@ class CLIHandler:
         Returns:
             The input text.
         """
+        """要求用户输入文本。
+
+        参数：
+            message: 显示给用户的信息。
+            default: 默认的文字。
+            validate: 一个调用来验证文本。
+            invalid_message: 如果文本是无效的，则向用户显示的信息。
+
+        返回：
+            输入文本。
+        """
         return inquirer.text(
             message=message,
             default=default if default is not None else "",
@@ -146,6 +196,7 @@ class State(str, enum.Enum):
 
 def main() -> None:
     """Main function to run template generation from CLI."""
+    """从CLI运行模板生成的主要功能。"""
     cli_handler = CLIHandler()
 
     lab_module = importlib.import_module("isaaclab")

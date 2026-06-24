@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Test cases for MP4 to HDF5 conversion script."""
+"""对MP4到HDF5转换脚本的测试案例。"""
 
 import os
 import tempfile
@@ -19,6 +20,7 @@ from scripts.tools.mp4_to_hdf5 import get_frames_from_mp4, main, process_video_a
 @pytest.fixture(scope="class")
 def temp_hdf5_file():
     """Create temporary HDF5 file with test data."""
+    """创建一个临时的HDF5文件。"""
     temp_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=False)  # noqa: SIM115
     with h5py.File(temp_file.name, "w") as h5f:
         # Create test data structure for 2 demos
@@ -55,6 +57,7 @@ def temp_hdf5_file():
 @pytest.fixture(scope="class")
 def temp_videos_dir():
     """Create temporary MP4 files."""
+    """创建临时MP4文件。"""
     temp_dir = tempfile.mkdtemp()  # noqa: SIM115
     video_paths = []
 
@@ -83,6 +86,7 @@ def temp_videos_dir():
 @pytest.fixture
 def temp_output_file():
     """Create temporary output file."""
+    """创建临时输出文件。"""
     temp_file = tempfile.NamedTemporaryFile(suffix=".h5", delete=False)  # noqa: SIM115
     yield temp_file.name
     # Cleanup
@@ -91,9 +95,11 @@ def temp_output_file():
 
 class TestMP4ToHDF5:
     """Test cases for MP4 to HDF5 conversion functionality."""
+    """对MP4到HDF5转换功能的测试案例。"""
 
     def test_get_frames_from_mp4(self, temp_videos_dir):
         """Test extracting frames from MP4 video."""
+        """测试从MP4视频中提取框架。"""
         _, video_paths = temp_videos_dir
         frames = get_frames_from_mp4(video_paths[0])
 
@@ -104,6 +110,7 @@ class TestMP4ToHDF5:
 
     def test_get_frames_from_mp4_resize(self, temp_videos_dir):
         """Test extracting frames with resizing."""
+        """测试采集框架，用改尺寸。"""
         _, video_paths = temp_videos_dir
         target_height, target_width = 352, 640
         frames = get_frames_from_mp4(video_paths[0], target_height, target_width)
@@ -115,6 +122,7 @@ class TestMP4ToHDF5:
 
     def test_process_video_and_demo(self, temp_hdf5_file, temp_videos_dir, temp_output_file):
         """Test processing a single video and creating a new demo."""
+        """测试处理单个视频并创建一个新的演示。"""
         _, video_paths = temp_videos_dir
         with h5py.File(temp_hdf5_file, "r") as f_in, h5py.File(temp_output_file, "w") as f_out:
             process_video_and_demo(f_in, f_out, video_paths[0], 0, 2)
@@ -141,6 +149,7 @@ class TestMP4ToHDF5:
 
     def test_main_function(self, temp_hdf5_file, temp_videos_dir, temp_output_file):
         """Test the main function."""
+        """测试主要功能。"""
         # Mock command line arguments
         import sys
 

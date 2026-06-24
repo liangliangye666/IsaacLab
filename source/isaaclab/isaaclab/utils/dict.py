@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Sub-module for utilities for working with dictionaries."""
+"""用于使用字典的工具子模块。"""
 
 import collections.abc
 import hashlib
@@ -18,6 +19,8 @@ from .string import callable_to_string, string_to_callable, string_to_slice
 
 """
 Dictionary <-> Class operations.
+"""
+"""字典 <-> 类操作
 """
 
 
@@ -35,6 +38,20 @@ def class_to_dict(obj: object) -> dict[str, Any]:
 
     Returns:
         Converted dictionary mapping.
+    """
+    """转换一个对象成字典。
+
+    说明：
+        忽略以"__"开始的所有名称 (i.e.内置方法)。
+
+    参数：
+        obj: 一个转换类的例子。
+
+    异常：
+        ValueError: 当输入参数不是对象时。
+
+    返回：
+        转换字典映射。
     """
     # check that input data is class instance
     if not hasattr(obj, "__class__"):
@@ -87,6 +104,22 @@ def update_class_from_dict(obj, data: dict[str, Any], _ns: str = "") -> None:
         TypeError: When input is not a dictionary.
         ValueError: When dictionary has a value that does not match default config type.
         KeyError: When dictionary has a key that does not exist in the default config type.
+    """
+    """阅读字典，并递归设置对象变量。
+
+    这个函数执行了类成员属性的场景更新。
+
+    参数：
+        obj: 一个需要更新的课程。
+        data: 输入字典更新。
+        _ns: 目前对象的名称空间。
+             这对于嵌入式配置类或字典是有用的。
+             默认的"
+
+    异常：
+        TypeError: 当输入不是字典时。
+        ValueError: 当字典的值不符合默认配置类型时。
+        KeyError: 当字典有一个没有默认配置类型的键时。
     """
     for key, value in data.items():
         # key_ns is the full namespace of the key
@@ -170,6 +203,8 @@ def update_class_from_dict(obj, data: dict[str, Any], _ns: str = "") -> None:
 """
 Dictionary <-> Hashable operations.
 """
+"""字典 <-> 形操作。
+"""
 
 
 def dict_to_md5_hash(data: object) -> str:
@@ -180,6 +215,14 @@ def dict_to_md5_hash(data: object) -> str:
 
     Returns:
         A string object of double length containing only hexadecimal digits.
+    """
+    """使用MD5哈希将字典转换为可键。
+
+    参数：
+        data: 输入字典或配置对象转换。
+
+    返回：
+        具有双长度的弦物体，仅含六位数。
     """
     # convert to dictionary
     if isinstance(data, dict):
@@ -195,6 +238,8 @@ def dict_to_md5_hash(data: object) -> str:
 
 """
 Dictionary operations.
+"""
+"""字典操作。
 """
 
 
@@ -225,6 +270,31 @@ def convert_dict_to_backend(
 
     Returns:
         The updated dict with the data converted to the desired backend.
+    """
+    """将字典中的所有数组或数转换为给定的后端。
+
+    这种函数在字典中反复演变，将所有配列或 given子转换到所需的后端，并将它们存储在新的字典中。
+    它还可以使用嵌套字典。
+
+    目前支持的后端是"numpy"，"torch"和"warp"。
+
+    说明：
+        这个函数只转换数组或子。
+        其他类型的数据保持不变。
+        新字典引用可变类型 (e.g.列表)，因此它们不会被复制。
+
+    参数：
+        data: 一个包含数组或数数据作为值的输入命令。
+        backend: 在本文中，应该转换列的后端 ("numpy"，"torch"，"warp")。
+                 默认的"numpy"。
+        array_types: 列表包含需要转换到所需后端的数组类型。
+                     默认的" (numpy"，"torch"，"warp")。
+
+    异常：
+        ValueError: 如果指定``backend``或``array_types``未知，i.e.不在支持后端列表中 ("numpy"，"torch"，"warp")。
+
+    返回：
+        更新的命令将数据转换为所需的后端。
     """
     # THINK: Should we also support converting to a specific device, e.g. "cuda:0"?
     # Check the backend is valid.
@@ -280,6 +350,18 @@ def update_dict(orig_dict: dict, new_dict: collections.abc.Mapping) -> dict:
     Returns:
         The updated dictionary.
     """
+    """更新现有字典，使用从新字典中取出的值。
+
+    这个函数模仿了dict.update() 函数。
+    但它也适用于嵌套字典。
+
+    参数：
+        orig_dict: 在原始字典中插入。
+        new_dict: 新的字典将项目插入。
+
+    返回：
+        更新的字典。
+    """
     for keyname, value in new_dict.items():
         if isinstance(value, collections.abc.Mapping):
             orig_dict[keyname] = update_dict(orig_dict.get(keyname, {}), value)
@@ -296,6 +378,14 @@ def replace_slices_with_strings(data: dict) -> dict:
 
     Returns:
         The dictionary with slice objects replaced by their string representations.
+    """
+    """在字典中取代切片物体以其字符串表示。
+
+    参数：
+        data: 处理字典。
+
+    返回：
+        有切片物体的字典被它们的字符串表示取代。
     """
     if isinstance(data, dict):
         return {k: replace_slices_with_strings(v) for k, v in data.items()}
@@ -316,6 +406,14 @@ def replace_strings_with_slices(data: dict) -> dict:
     Returns:
         The dictionary with string representations of slices replaced by slice objects.
     """
+    """在字典中，取代切片的字符串表示用切片对象。
+
+    参数：
+        data: 处理字典。
+
+    返回：
+        字典中，切片的字符串表示被切片对象所取代。
+    """
     if isinstance(data, dict):
         return {k: replace_strings_with_slices(v) for k, v in data.items()}
     elif isinstance(data, list):
@@ -328,6 +426,7 @@ def replace_strings_with_slices(data: dict) -> dict:
 
 def print_dict(val, nesting: int = -4, start: bool = True):
     """Outputs a nested dictionary."""
+    """输出一个嵌套的字典。"""
     if isinstance(val, dict):
         if not start:
             print("")

@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -12,6 +13,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True, enable_cameras=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pytest
 
@@ -24,6 +26,7 @@ from isaaclab.utils.assets import ISAAC_NUCLEUS_DIR, ISAACLAB_NUCLEUS_DIR
 @pytest.fixture(autouse=True)
 def test_setup_teardown():
     """Create a blank new stage for each test."""
+    """创建一个空白的新阶段。"""
     # Setup: Create a new stage
     sim_utils.create_new_stage()
     sim_utils.update_stage()
@@ -38,10 +41,13 @@ def test_setup_teardown():
 """
 USD Stage Querying.
 """
+"""USD查询阶段。
+"""
 
 
 def test_get_next_free_prim_path():
     """Test get_next_free_prim_path() function."""
+    """测试get_next_free_prim_path() 函数。"""
     # create scene
     sim_utils.create_prim("/World/Floor")
     sim_utils.create_prim("/World/Floor/Box", "Cube", position=[75, 75, -150.1], attributes={"size": 300})
@@ -61,6 +67,7 @@ def test_get_next_free_prim_path():
 
 def test_get_first_matching_ancestor_prim():
     """Test get_first_matching_ancestor_prim() function."""
+    """测试get_first_matching_ancestor_prim() 函数。"""
     # create scene
     sim_utils.create_prim("/World/Floor")
     sim_utils.create_prim("/World/Floor/Box", "Cube", position=[75, 75, -150.1], attributes={"size": 300})
@@ -89,6 +96,7 @@ def test_get_first_matching_ancestor_prim():
 
 def test_get_all_matching_child_prims():
     """Test get_all_matching_child_prims() function."""
+    """测试get_all_matching_child_prims() 函数。"""
     # create scene
     sim_utils.create_prim("/World/Floor")
     sim_utils.create_prim("/World/Floor/Box", "Cube", position=[75, 75, -150.1], attributes={"size": 300})
@@ -120,6 +128,7 @@ def test_get_all_matching_child_prims():
 
 def test_get_first_matching_child_prim():
     """Test get_first_matching_child_prim() function."""
+    """测试get_first_matching_child_prim() 函数。"""
     # create scene
     sim_utils.create_prim("/World/Floor")
     sim_utils.create_prim(
@@ -149,6 +158,7 @@ def test_get_first_matching_child_prim():
 
 def test_find_global_fixed_joint_prim():
     """Test find_global_fixed_joint_prim() function."""
+    """测试find_global_fixed_joint_prim() 函数。"""
     # create scene
     sim_utils.create_prim("/World")
     sim_utils.create_prim("/World/ANYmal", usd_path=f"{ISAACLAB_NUCLEUS_DIR}/Robots/ANYbotics/ANYmal-C/anymal_c.usd")

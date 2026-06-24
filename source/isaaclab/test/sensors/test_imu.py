@@ -4,6 +4,7 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -12,6 +13,7 @@ app_launcher = AppLauncher(headless=True, enable_cameras=True)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import pathlib
 
@@ -46,6 +48,7 @@ PEND_ROT_OFFSET = (0.5, 0.5, 0.5, 0.5)
 @configclass
 class MySceneCfg(InteractiveSceneCfg):
     """Example scene configuration."""
+    """例如场景配置。"""
 
     # terrain - flat terrain plane
     terrain = TerrainImporterCfg(
@@ -186,6 +189,7 @@ class MySceneCfg(InteractiveSceneCfg):
 
     def __post_init__(self):
         """Post initialization."""
+        """在初始化后。"""
         # change position of the robot
         self.robot.init_state.pos = (0.0, 2.0, 1.0)
         self.pendulum.init_state.pos = (-2.0, 1.0, 0.5)
@@ -201,6 +205,7 @@ class MySceneCfg(InteractiveSceneCfg):
 @pytest.fixture
 def setup_sim():
     """Create a simulation context and scene."""
+    """创建一个仿真背景和场景。"""
     # Create a new stage
     sim_utils.create_new_stage()
     # Load simulation context
@@ -224,6 +229,10 @@ def test_constant_velocity(setup_sim):
 
     Expected behavior is that the linear and angular are approx the same at every time step as in each step we set
     the same velocity and therefore reset the physx buffers.
+    """
+    """测试Imu传感器以恒定的速度。
+
+    预期的行为是，每一步的线性和角性都是相似的，每一步的速度都相同，因此我们重置了物理缓冲器。
     """
     sim, scene = setup_sim
     prev_lin_acc_ball = torch.zeros((scene.num_envs, 3), dtype=torch.float32, device=scene.device)
@@ -310,6 +319,7 @@ def test_constant_velocity(setup_sim):
 @pytest.mark.isaacsim_ci
 def test_constant_acceleration(setup_sim):
     """Test the Imu sensor with a constant acceleration."""
+    """测试Imu传感器以恒定的加速。"""
     sim, scene = setup_sim
     for idx in range(100):
         # set acceleration
@@ -354,6 +364,7 @@ def test_constant_acceleration(setup_sim):
 @pytest.mark.isaacsim_ci
 def test_single_dof_pendulum(setup_sim):
     """Test imu against analytical pendulum problem."""
+    """对分析问题进行测试。"""
     sim, scene = setup_sim
     # pendulum length
     pend_length = PEND_POS_OFFSET[0]
@@ -487,6 +498,7 @@ def test_single_dof_pendulum(setup_sim):
 @pytest.mark.isaacsim_ci
 def test_indirect_attachment(setup_sim):
     """Test attaching the imu through an xForm primitive configuration argument."""
+    """测试通过xForm原始配置参数将图像连接。"""
     sim, scene = setup_sim
     # pendulum length
     pend_length = PEND_POS_OFFSET[0]
@@ -628,6 +640,7 @@ def test_indirect_attachment(setup_sim):
 @pytest.mark.isaacsim_ci
 def test_offset_calculation(setup_sim):
     """Test offset configuration argument."""
+    """测试抵消配置参数"""
     sim, scene = setup_sim
 
     # should achieve same results between the two imu sensors on the robot
@@ -705,6 +718,10 @@ def test_offset_calculation(setup_sim):
 def test_attachment_validity(setup_sim):
     """Test invalid imu attachment. An imu cannot be attached directly to the world. It must be somehow attached to
     something implementing physics."""
+    """测试无效的图像附件。
+    一个图像不能直接连接到世界。
+    它一定与某种物理实践的东西有关。
+    """
     sim, scene = setup_sim
     imu_world_cfg = ImuCfg(
         prim_path="/World/envs/env_0",
@@ -719,6 +736,7 @@ def test_attachment_validity(setup_sim):
 @pytest.mark.isaacsim_ci
 def test_env_ids_propagation(setup_sim):
     """Test that env_ids argument propagates through update and reset methods"""
+    """测试env_ids参数通过更新和重置方法传播"""
     sim, scene = setup_sim
     scene.reset()
 
@@ -750,6 +768,7 @@ def test_env_ids_propagation(setup_sim):
 @pytest.mark.isaacsim_ci
 def test_sensor_print(setup_sim):
     """Test sensor print is working correctly."""
+    """测试传感器打印正确工作。"""
     sim, scene = setup_sim
     # Create sensor
     sensor = scene.sensors["imu_ball"]

@@ -13,6 +13,7 @@ from isaaclab.envs import ManagerBasedRLMimicEnv
 
 class PickPlaceGR1T2MimicEnv(ManagerBasedRLMimicEnv):
     """GR1T2 Pick Place Mimic environment."""
+    """GR1T2选择一个模仿环境。"""
 
     def get_robot_eef_pose(self, eef_name: str, env_ids: Sequence[int] | None = None) -> torch.Tensor:
         """
@@ -24,6 +25,18 @@ class PickPlaceGR1T2MimicEnv(ManagerBasedRLMimicEnv):
 
         Returns:
             A torch.Tensor eef pose matrix. Shape is (len(env_ids), 4, 4)
+        """
+        """现在就把机器人最终效果姿势。
+        机器人终端效应控制器使用的框架应该相同。
+
+        参数：
+            eef_name: 终端有效者的名称。
+            env_ids: 环境索引，让你做好姿势。
+                     如果是None，则考虑所有envs。
+
+        返回：
+            一个torch.Tensoreef姿势矩阵。
+            形状是 (len(env_ids)， 4， 4)
         """
         if env_ids is None:
             env_ids = slice(None)
@@ -56,6 +69,19 @@ class PickPlaceGR1T2MimicEnv(ManagerBasedRLMimicEnv):
 
         Returns:
             An action torch.Tensor that's compatible with env.step().
+        """
+        """执行目标姿势和对最终效果控制器的抓住作用，并返回一个操作 (通常是正常化的三角形姿势) 试图实现目标姿势。
+        如果指定，将噪音添加到目标姿势操作中。
+
+        参数：
+            target_eef_pose_dict: 每个末端执行器的4×4目标效应。
+            gripper_action_dict: 每个末端执行器的抓住器操作字典。
+            action_noise_dict: 噪音增加了动作。
+                               如果None，则不会增加噪音。
+            env_id: 环境索引，以获得动作。
+
+        返回：
+            一个与env.step兼容的torch.Tensor动作。
         """
 
         # target position and rotation
@@ -104,6 +130,18 @@ class PickPlaceGR1T2MimicEnv(ManagerBasedRLMimicEnv):
         Returns:
             A dictionary of eef pose torch.Tensor that @action corresponds to.
         """
+        """将动作 (与env.step兼容) 转换为最终效应控制器的目标姿势。
+        转换为 @target_eef_pose_to_action。
+        通常用于推断目标控制器姿势的序列
+        from a demonstration trajectory using the recorded actions.
+
+        参数：
+            action: 环境动作
+                    形状是 (num_envs，action_dim)。
+
+        返回：
+            一个eef字典 torch.Tensor的字典， @action与。
+        """
         target_poses = {}
 
         target_left_wrist_position = action[:, 0:3]
@@ -127,5 +165,15 @@ class PickPlaceGR1T2MimicEnv(ManagerBasedRLMimicEnv):
 
         Returns:
             A dictionary of torch.Tensor gripper actions. Key to each dict is an eef_name.
+        """
+        """从一系列env动作中提取抓住器动力部分 (与env.step兼容)。
+
+        参数：
+            actions: 环境动作。
+                     形状是 (num_envs，演示中的步骤数，action_dim)。
+
+        返回：
+            一个torch.Tensor抓住器动作字典。
+            每个句子的关键是eef_name。
         """
         return {"left": actions[:, 14:25], "right": actions[:, 25:]}

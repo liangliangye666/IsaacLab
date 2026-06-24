@@ -4,8 +4,10 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Script to an environment with random action agent."""
+"""脚本到一个随机动作代理的环境。"""
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 import argparse
 import os
@@ -27,6 +29,7 @@ app_launcher = AppLauncher(args_cli)
 simulation_app = app_launcher.app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import gymnasium as gym
 import torch
@@ -39,6 +42,7 @@ from isaaclab_tasks.utils import parse_env_cfg
 
 def main():
     """Random actions agent with Isaac Lab environment."""
+    """随机动作代理与艾萨克实验室环境。"""
     # create environment configuration
     env_cfg = parse_env_cfg(args_cli.task, device=args_cli.device, num_envs=1, use_fabric=True)
     # create environment

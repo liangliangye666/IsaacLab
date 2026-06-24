@@ -42,6 +42,18 @@ class BaseEnvWindow:
         >>>     ui.Label("My UI element")
 
     """
+    """基础环境的窗口管理器。
+
+    这类创建一个用于控制环境的窗口。
+    窗口包含渲染，调试可视化和其他环境特定的UI元素的控制。
+
+    用户可以通过`with`文本管理器将自己的UI元素添加到窗口中。
+    这可以通过继承类或直接从独立执行脚本中使用`env.window`对象进行。
+
+    从独立执行脚本中添加UI元素的例子:
+        >>> with env.window.ui_window_elements["main_vstack"]:
+        >>>     ui.Label("My UI element")
+    """
 
     def __init__(self, env: ManagerBasedEnv, window_name: str = "IsaacLab"):
         """Initialize the window.
@@ -49,6 +61,13 @@ class BaseEnvWindow:
         Args:
             env: The environment object.
             window_name: The name of the window. Defaults to "IsaacLab".
+        """
+        """启动窗口。
+
+        参数：
+            env: 环境对象。
+            window_name: 窗户的名字。
+                         在"IsaacLab"上默认。
         """
         # store inputs
         self.env = env
@@ -97,6 +116,7 @@ class BaseEnvWindow:
 
     def __del__(self):
         """Destructor for the window."""
+        """破坏机的窗户。"""
         # destroy the window
         if self.ui_window is not None:
             self.ui_window.visible = False
@@ -106,9 +126,12 @@ class BaseEnvWindow:
     """
     Build sub-sections of the UI.
     """
+    """建立UI的子部分。
+    """
 
     def _build_sim_frame(self):
         """Builds the sim-related controls frame for the UI."""
+        """建立了sim-相关控制框架UI。"""
         # create collapsable frame for controls
         self.ui_window_elements["sim_frame"] = omni.ui.CollapsableFrame(
             title="Simulation Settings",
@@ -153,6 +176,7 @@ class BaseEnvWindow:
 
     def _build_viewer_frame(self):
         """Build the viewer-related control frame for the UI."""
+        """为UI构建与观众相关的控制框架。"""
         # create collapsable frame for viewer
         self.ui_window_elements["viewer_frame"] = omni.ui.CollapsableFrame(
             title="Viewer Settings",
@@ -220,6 +244,11 @@ class BaseEnvWindow:
         that has it implemented. If the element does not have a debug visualization implemented,
         a label is created instead.
         """
+        """构建各种场景元素的调试可视化框架。
+
+        这个函数查询了实现bug视觉化的所有元素的场景，并创建了一个选项框来切换实现bug视觉化的每个元素。
+        如果元素没有实现bug视觉化，则创建标签。
+        """
         # create collapsable frame for debug visualization
         self.ui_window_elements["debug_frame"] = omni.ui.CollapsableFrame(
             title="Scene Debug Visualization",
@@ -258,6 +287,13 @@ class BaseEnvWindow:
             title: The title of the manager visualization frame.
             class_name: The name of the manager to visualize.
         """
+        """检查"class_name"名称的属性是否可可可视化。
+        如果是，请创建VIS界面。
+
+        参数：
+            title: 管理器可视化框架的标题。
+            class_name: 管理器的姓名要想象。
+        """
 
         if hasattr(self.env, class_name) and class_name in self.env.manager_visualizers:
             manager = self.env.manager_visualizers[class_name]
@@ -274,9 +310,12 @@ class BaseEnvWindow:
     """
     Custom callbacks for UI elements.
     """
+    """针对UI元素的定制回调。
+    """
 
     def _toggle_recording_animation_fn(self, value: bool):
         """Toggles the animation recording."""
+        """关闭了动画录音。"""
         if value:
             # log directory to save the recording
             if not hasattr(self, "animation_log_dir"):
@@ -355,6 +394,9 @@ class BaseEnvWindow:
 
     def _set_viewer_origin_type_fn(self, value: str):
         """Sets the origin of the viewport's camera. This is based on the drop-down menu in the UI."""
+        """设置视野摄像头的来源。
+        这基于UI中随机菜单。
+        """
         # Extract the viewport camera controller from environment
         vcc = self.env.viewport_camera_controller
         if vcc is None:
@@ -375,6 +417,7 @@ class BaseEnvWindow:
 
     def _set_viewer_location_fn(self, model: omni.ui.SimpleFloatModel):
         """Sets the viewport camera location based on the UI."""
+        """根据UI设置了视角摄像头位置。"""
         # access the viewport camera controller (for brevity)
         vcc = self.env.viewport_camera_controller
         if vcc is None:
@@ -387,6 +430,7 @@ class BaseEnvWindow:
 
     def _set_viewer_env_index_fn(self, model: omni.ui.SimpleIntModel):
         """Sets the environment index and updates the camera if in 'env' origin mode."""
+        """设置环境索引，并在"env"原始模式下更新相机。"""
         # access the viewport camera controller (for brevity)
         vcc = self.env.viewport_camera_controller
         if vcc is None:
@@ -400,9 +444,12 @@ class BaseEnvWindow:
     """
     Helper functions - UI building.
     """
+    """助理功能 - UI建筑。
+    """
 
     def _create_debug_vis_ui_element(self, name: str, elem: object):
         """Create a checkbox for toggling debug visualization for the given element."""
+        """创建一个对给定的元素进行调试视图的选项框。"""
         from omni.kit.window.extensions import SimpleCheckBox
 
         with omni.ui.HStack():
@@ -444,6 +491,7 @@ class BaseEnvWindow:
 
     async def _dock_window(self, window_title: str):
         """Docks the custom UI window to the property window."""
+        """关闭自定义UI窗口到房产窗口。"""
         # wait for the window to be created
         for _ in range(5):
             if omni.ui.Workspace.get_window(window_title):

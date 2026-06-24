@@ -5,6 +5,8 @@
 """
 Franka-Cabinet environment.
 """
+"""弗兰卡-内环境。
+"""
 
 import gymnasium as gym
 

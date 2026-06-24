@@ -30,6 +30,12 @@ class UnitreeG1Retargeter(RetargeterBase):
     It handles both left and right hands, converting poses of the hands in OpenXR format joint angles
     for the GR1T2 robot's hands.
     """
+    """返回OpenXR手跟踪数据到GR1T2手末端执行器命令。
+
+    这种重定位器将OpenXR的手跟踪数据映射到GR1T2机器人的手。
+    它处理左手和右手，将手的姿势转换为OpenXR格式的关节角
+    for the GR1T2 robot's hands.
+    """
 
     def __init__(
         self,
@@ -42,6 +48,14 @@ class UnitreeG1Retargeter(RetargeterBase):
             num_open_xr_hand_joints: Number of joints tracked by OpenXR
             device: PyTorch device for computations
             hand_joint_names: List of robot hand joint names
+        """
+        """启动UnitreeG1手提目标器。
+
+        参数：
+            enable_visualization: 如果 True，可视化跟踪手关节
+            num_open_xr_hand_joints: 由OpenXR追踪的关节数量
+            device: 计算的PyTorch设备
+            hand_joint_names: 机器人手联名列表
         """
 
         super().__init__(cfg)
@@ -75,6 +89,14 @@ class UnitreeG1Retargeter(RetargeterBase):
                 Left wrist pose
                 Right wrist pose in USD frame
                 Retargeted hand joint angles
+        """
+        """转换手关姿势为机器人末端执行器命令。
+
+        参数：
+            data: 根据"数据字典"的定义，
+
+        返回：
+            含有:左手腕姿势 右手腕姿势在USD框架中
         """
 
         # Access the left and right hand data using the enum key
@@ -131,6 +153,15 @@ class UnitreeG1Retargeter(RetargeterBase):
         Returns:
             Retargeted wrist pose in USD control frame.
         """
+        """处理绝对的姿势重定向。
+
+        参数：
+            wrist: 从OpenXR的手腕姿势数据。
+            is_left: 给左手True，给右手False
+
+        返回：
+            在USD控制框架中重定位手腕姿势。
+        """
         # Note: This was determined through trial, use the target quat and cloudXR quat,
         # to estimate a most reasonable transformation matrix
 
@@ -157,6 +188,7 @@ class UnitreeG1Retargeter(RetargeterBase):
 @dataclass
 class UnitreeG1RetargeterCfg(RetargeterCfg):
     """Configuration for the UnitreeG1 retargeter."""
+    """设置UnitreeG1回器。"""
 
     enable_visualization: bool = False
     num_open_xr_hand_joints: int = 100

@@ -13,6 +13,13 @@ transforms in a consistent way across different USD assets.
 """
 
 from __future__ import annotations
+"""用于处理USD转换 (xform) 操作的工具。
+
+该模块为prims操作USD转换操作 (xform ops) 提供工具。
+在USD中转换操作定义了几何在3D空间中如何定位，定向和扩展。
+
+在此模块中的工具帮助标准化转换堆，清晰操作，并以一致的方式对不同USD资产进行转换操作。
+"""
 
 import logging
 
@@ -34,6 +41,7 @@ _INVALID_XFORM_OPS = [
     "xformOp:transform",
 ]
 """List of invalid xform ops that should be removed."""
+"""必须删除的无效的xform操作列表。"""
 
 
 def standardize_xform_ops(
@@ -102,6 +110,86 @@ def standardize_xform_ops(
         ValueError: If the prim is not valid (i.e., does not exist or is an invalid prim).
 
     Example:
+        >>> import isaaclab.sim as sim_utils
+        >>>
+        >>> # Standardize a prim with non-standard transform operations
+        >>> prim = stage.GetPrimAtPath("/World/ImportedAsset")
+        >>> result = sim_utils.standardize_xform_ops(prim)
+        >>> if result:
+        ...     print("Transform stack standardized successfully")
+        >>> # The prim now uses: [translate, orient, scale] in that order
+        >>>
+        >>> # Standardize and set new transform values
+        >>> sim_utils.standardize_xform_ops(
+        ...     prim,
+        ...     translation=(1.0, 2.0, 3.0),
+        ...     orientation=(1.0, 0.0, 0.0, 0.0),  # identity rotation (w, x, y, z)
+        ...     scale=(2.0, 2.0, 2.0),
+        ... )
+        >>>
+        >>> # Batch processing for performance
+        >>> prims_to_standardize = [stage.GetPrimAtPath(p) for p in prim_paths]
+        >>> for prim in prims_to_standardize:
+        ...     sim_utils.standardize_xform_ops(prim)  # Each call uses Sdf.ChangeBlock
+    """
+    """在USDprim上，将转换操作堆标准化成正文形式。
+
+    这个函数将prim的转换堆转换为使用标准USD转换操作
+    order: [翻译，方向，规模]。
+           该函数执行以下操作:
+
+    1. 验证prim是Xformable的
+    2. 捕捉当前的本地转换 (翻译，旋转，规模)
+    3. 解决和烤单位规模转换 (xformOp:scale:unitsResolve)
+    4. 创建或重复使用标准转换操作 (翻译，定向，规模)
+    5. 设置转换操作顺序为 [翻译，方向，规模]
+    6. 应用保存或用户指定的转换值
+
+    在处理多个prims时，整个修改都在``Sdf.ChangeBlock``内进行，以实现最佳性能。
+
+    .. 说明::
+        **标准转换命令:** 该函数执行USD最佳实践顺序:``xformOp:translate``，``xformOp:orient``，``xformOp:scale``。
+        这种顺序与大多数USD工具和工作流兼容，并使用四元数进行旋转 (避免关键锁问题)。
+
+    .. 说明::
+        **位置保存:**默认情况下，该函数保留prim的本地转换 (相对于其母体)。
+        除非提供明确的``translation``，``orientation``或``scale``值外，prim的世界空间位置保持不变。
+
+    .. 警告::
+        **动画数据丢失:** 这个函数仅保留默认时间代码 (``Usd.TimeCode.Default()``) 的转换值。
+        任何动画或时间样本转换数据都会丢失。
+        在资产进口或准备过程中使用此功能，而不是在动画prims上。
+
+    .. 警告::
+        **单位尺度分辨率:** 如果prim具有``xformOp:scale:unitsResolve``属性 (在进口资产中常见的单位不匹配)，则将其入尺度并移除。
+        例如，一个 (1， 1， 1) 的尺度，以 (100， 100， 100 的单位Resolve) 成为最终的尺度 (100， 100， 100)。
+
+    参数：
+        prim: 在USD prim标准化。
+              必须是有效的prim，支持UsdGeom.Xformable方案 (e.g.，Xform， Mesh， Cube等)。
+              材料和Shader prims是不 Xformable，将返回False。
+        translation: 在本地空间中可选的翻译向量 (x，y，z)。
+                     如果提供，则取消prim的当前翻译。
+                     如果是None，则保存当前的本地翻译。
+                     默认为 None。
+        orientation: 在本地空间中可选的导向四角形 (w，x，y，z)。
+                     如果提供，则取消prim的当前方向。
+                     如果 None，保持当前的本地方向。
+                     默认为 None。
+        scale: 选择性规模向量 (x，y，z)。
+               如果提供，则取消prim的当前规模。
+               如果None，则保持当前规模 (单元分辨率后) 或使用 (1， 1， 1)
+            if no scale exists. Defaults to None.
+
+    返回：
+        bool: True如果转换操作成功标准化。
+              False如果prim不是可 Xformable (e.g.， 材料，遮光器prims)。
+              函数将在返回False时记录错误信息。
+
+    异常：
+        ValueError: 如果prim不有效 (i.e.，不存在或是无效的prim)。
+
+    示例：
         >>> import isaaclab.sim as sim_utils
         >>>
         >>> # Standardize a prim with non-standard transform operations
@@ -226,6 +314,13 @@ def validate_standard_xform_ops(prim: Usd.Prim) -> bool:
     Args:
         prim: The USD prim to validate.
     """
+    """如果prim上的转换操作是标准化的，则验证。
+
+    这个函数检查prim上的转换操作是否被标准化到正文形式: [翻译，方向，尺度]。
+
+    参数：
+        prim: 验证的USDprim。
+    """
     # check if prim is valid
     if not prim.IsValid():
         logger.error(f"Prim at path '{prim.GetPath().pathString}' is not valid.")
@@ -278,6 +373,46 @@ def resolve_prim_pose(
         ValueError: If the prim or ref prim is not valid.
 
     Example:
+        >>> import isaaclab.sim as sim_utils
+        >>> from pxr import Usd, UsdGeom
+        >>>
+        >>> # Get prim
+        >>> stage = sim_utils.get_current_stage()
+        >>> prim = stage.GetPrimAtPath("/World/ImportedAsset")
+        >>>
+        >>> # Resolve pose
+        >>> pos, quat = sim_utils.resolve_prim_pose(prim)
+        >>> print(f"Position: {pos}")
+        >>> print(f"Orientation: {quat}")
+        >>>
+        >>> # Resolve pose with respect to another prim
+        >>> ref_prim = stage.GetPrimAtPath("/World/Reference")
+        >>> pos, quat = sim_utils.resolve_prim_pose(prim, ref_prim)
+        >>> print(f"Position: {pos}")
+        >>> print(f"Orientation: {quat}")
+    """
+    """解决一个prim与另一个prim的姿势。
+
+    说明：
+        这种函数通过在最后一步实现转换矩阵的正规化，忽略了规模和偏差。
+        然而，如果任何prim的祖先在等级中具有非均的尺度，那个尺度仍然会影响prim的结果位置和方向 (因为它在尺度移除之前被烤成变化)。
+
+        换句话说:尺度**没有层次取消**。
+        如果你需要完全无尺度的姿势，你必须在每个级别上走过转换链和排放尺度。
+        如果您需要该函数，请打开一个问题。
+
+    参数：
+        prim: 在USD prim为了解决这个问题。
+        ref_prim: 对于USDprim来计算姿势。
+                  默认为 None，在这种情况下使用世界框架。
+
+    返回：
+        包含位置 (作为3D向量) 和四元数方向的元组 (w， x， y， z) 格式。
+
+    异常：
+        ValueError: 如果prim或refprim不有效。
+
+    示例：
         >>> import isaaclab.sim as sim_utils
         >>> from pxr import Usd, UsdGeom
         >>>
@@ -355,6 +490,35 @@ def resolve_prim_scale(prim: Usd.Prim) -> tuple[float, float, float]:
         >>> scale = sim_utils.resolve_prim_scale(prim)
         >>> print(f"Scale: {scale}")
     """
+    """在世界框架中解决prim的尺度。
+
+    在属性层面上，USD prim的尺度是对prim的扩展变化，与其母prim相比。
+    这个函数通过计算prim的局部到世界转换来解决了世界框架中的prim的规模。
+    这相当于穿越prim等级，并计算prims的旋转和尺度。
+
+    例如，如果一个prim有一个 (1， 2， 3) 的尺度，它是一个prim的子女，一个尺度为 (4， 5， 6)，那么世界框架中的prim的尺度是 (4， 10， 18)。
+
+    参数：
+        prim: 在USD prim为了解决这个问题。
+
+    返回：
+        在世界框架中的x，y和z方向中的prim的尺度。
+
+    异常：
+        ValueError: 如果prim不有效。
+
+    示例：
+        >>> import isaaclab.sim as sim_utils
+        >>> from pxr import Usd, UsdGeom
+        >>>
+        >>> # Get prim
+        >>> stage = sim_utils.get_current_stage()
+        >>> prim = stage.GetPrimAtPath("/World/ImportedAsset")
+        >>>
+        >>> # Resolve scale
+        >>> scale = sim_utils.resolve_prim_scale(prim)
+        >>> print(f"Scale: {scale}")
+    """
     # check if prim is valid
     if not prim.IsValid():
         raise ValueError(f"Prim at path '{prim.GetPath().pathString}' is not valid.")
@@ -401,6 +565,47 @@ def convert_world_pose_to_local(
         ValueError: If the reference prim is not a valid USD prim.
 
     Example:
+        >>> import isaaclab.sim as sim_utils
+        >>> from pxr import Usd, UsdGeom
+        >>>
+        >>> # Get reference prim
+        >>> stage = sim_utils.get_current_stage()
+        >>> ref_prim = stage.GetPrimAtPath("/World/Reference")
+        >>>
+        >>> # Convert world pose to local (relative to ref_prim)
+        >>> world_pos = (10.0, 5.0, 0.0)
+        >>> world_quat = (1.0, 0.0, 0.0, 0.0)  # identity rotation
+        >>> local_pos, local_quat = sim_utils.convert_world_pose_to_local(world_pos, world_quat, ref_prim)
+        >>> print(f"Local position: {local_pos}")
+        >>> print(f"Local orientation: {local_quat}")
+    """
+    """将世界空间姿势转换为与参考prim相对的本地空间姿势。
+
+    这种函数在世界空间中占据位置和方向，并将它们转换为与给定的参考prim相比的本地空间。
+    这在创建或定位prims时有用，你知道所需的世界位置，但需要与另一个prim相比设置本地转换属性。
+
+    转换使用标准USD转换数学:``local_transform = world_transform * inverse(ref_world_transform)``
+
+    .. 说明::
+        如果参考prim是根prim ("/")，位置和方向将保持不变，因为它们已经有效地在本地/世界空间中。
+
+    参数：
+        position: 世界空间位置为 (x，y，z)。
+        orientation: 作为四元数的世界空间导向 (w，x，y，z)。
+                     如果None，只有位置转换，None返回方向。
+        ref_prim: 参考USDprim计算相对的本地转换。
+                  如果这是根prim ("/")，世界姿势将保持不变。
+
+    返回：
+        一个 (local_translation，local_orientation) 的元组，其中:
+
+        - local_translation是局部空间中的 (x，y，z) 的乘法，相对于 ref_prim
+        - local_orientation是局部空间中的 (w， x， y， z) 乘以 ref_prim，或 None，如果没有提供指导
+
+    异常：
+        ValueError: 如果参考prim不是有效的USD prim。
+
+    示例：
         >>> import isaaclab.sim as sim_utils
         >>> from pxr import Usd, UsdGeom
         >>>

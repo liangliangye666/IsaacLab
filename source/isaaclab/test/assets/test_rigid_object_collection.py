@@ -8,6 +8,7 @@
 
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -15,6 +16,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import ctypes
 
@@ -59,6 +61,19 @@ def generate_cubes_scene(
         A tuple containing the rigid object representing the cubes and the origins of the cubes.
 
     """
+    """创建一个场景，提供数量的立方体。
+
+    参数：
+        num_envs: 需要生成的envs数。
+        num_cubes: 需要生成的立方体数量。
+        height: 立方体的高度。
+        has_api: 立方体是否有硬体API。
+        kinematic_enabled: 立方体是否是动态的。
+        device: 用于仿真的设备。
+
+    返回：
+        包含代表立方体和立方体起源的硬体。
+    """
     origins = torch.tensor([(i * 3.0, 0, height) for i in range(num_envs)]).to(device)
     # Create Top-level Xforms, one for each cube
     for i, origin in enumerate(origins):
@@ -96,6 +111,7 @@ def generate_cubes_scene(
 @pytest.fixture
 def sim(request):
     """Create simulation context with the specified device."""
+    """使用指定设备创建仿真环境。"""
     device = request.getfixturevalue("device")
     if "gravity_enabled" in request.fixturenames:
         gravity_enabled = request.getfixturevalue("gravity_enabled")
@@ -111,6 +127,7 @@ def sim(request):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_initialization(sim, num_envs, num_cubes, device):
     """Test initialization for prim with rigid body API at the provided prim path."""
+    """在提供 prim 路径上对prim进行硬体API测试初始化。"""
     object_collection, _ = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, device=device)
 
     # Check that boundedness of rigid object is correct
@@ -138,6 +155,7 @@ def test_initialization(sim, num_envs, num_cubes, device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_id_conversion(sim, device):
     """Test environment and object index conversion to physics view indices."""
+    """测试环境和对象索引转换为物理视图索引。"""
     object_collection, _ = generate_cubes_scene(num_envs=2, num_cubes=3, device=device)
 
     # Play sim
@@ -173,6 +191,7 @@ def test_id_conversion(sim, device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_initialization_with_kinematic_enabled(sim, num_envs, num_cubes, device):
     """Test that initialization for prim with kinematic flag enabled."""
+    """测试为prim的初始化，"""
     object_collection, origins = generate_cubes_scene(
         num_envs=num_envs, num_cubes=num_cubes, kinematic_enabled=True, device=device
     )
@@ -205,6 +224,7 @@ def test_initialization_with_kinematic_enabled(sim, num_envs, num_cubes, device)
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_initialization_with_no_rigid_body(sim, num_cubes, device):
     """Test that initialization fails when no rigid body is found at the provided prim path."""
+    """测试在提供的prim路径上没有发现硬体时初始化失败。"""
     object_collection, _ = generate_cubes_scene(num_cubes=num_cubes, has_api=False, device=device)
 
     # Check that boundedness of rigid object is correct
@@ -218,6 +238,7 @@ def test_initialization_with_no_rigid_body(sim, num_cubes, device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_external_force_buffer(sim, device):
     """Test if external force buffer correctly updates in the force value is zero case."""
+    """测试是否对外力缓冲正确更新的力值是零案例。"""
     num_envs = 2
     num_cubes = 1
     object_collection, origins = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, device=device)
@@ -272,6 +293,7 @@ def test_external_force_buffer(sim, device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_external_force_on_single_body(sim, num_envs, num_cubes, device):
     """Test application of external force on the base of the object."""
+    """试验对物体底部施加外部力。"""
     object_collection, origins = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, device=device)
     sim.reset()
 
@@ -334,6 +356,11 @@ def test_external_force_on_single_body_at_position(sim, num_envs, num_cubes, dev
     In this test, we apply a force equal to the weight of an object on the base of
     one of the objects at 1m in the Y direction, we check that the object rotates around it's X axis.
     For the other object, we do not apply any force and check that it falls down.
+    """
+    """测试对物体的底部在特定位置施加外部力。
+
+    在这个测试中，我们将一个对象的重量等于对象的重量在Y方向的1m的基础上，
+    对于另一个物体来说，我们不会使用任何力量，
     """
     object_collection, origins = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, device=device)
     sim.reset()
@@ -413,6 +440,11 @@ def test_set_object_state(sim, num_envs, num_cubes, device, gravity_enabled):
         Turn off gravity for this test as we don't want any external forces acting on the object
         to ensure state remains static
     """
+    """测试设置对象的状态。
+
+    .. 说明::
+        关闭重力，因为我们不希望任何外部力量对物体的作用，
+    """
     object_collection, origins = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, device=device)
     sim.reset()
 
@@ -474,6 +506,7 @@ def test_set_object_state(sim, num_envs, num_cubes, device, gravity_enabled):
 @pytest.mark.parametrize("gravity_enabled", [False])
 def test_object_state_properties(sim, num_envs, num_cubes, device, with_offset, gravity_enabled):
     """Test the object_com_state_w and object_link_state_w properties."""
+    """测试object_com_state_w和object_link_state_w属性。"""
     cube_object, env_pos = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, height=0.0, device=device)
     view_ids = torch.tensor([x for x in range(num_cubes * num_envs)])
 
@@ -565,6 +598,7 @@ def test_object_state_properties(sim, num_envs, num_cubes, device, with_offset, 
 @pytest.mark.parametrize("gravity_enabled", [False])
 def test_write_object_state(sim, num_envs, num_cubes, device, with_offset, state_location, gravity_enabled):
     """Test the setters for object_state using both the link frame and center of mass as reference frame."""
+    """测试object_state的设置器，使用链接框架和质量中心作为参考框架。"""
     # Create a scene with random cubes
     cube_object, env_pos = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, height=0.0, device=device)
     view_ids = torch.tensor([x for x in range(num_cubes * num_cubes)])
@@ -624,6 +658,7 @@ def test_write_object_state(sim, num_envs, num_cubes, device, with_offset, state
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_reset_object_collection(sim, num_envs, num_cubes, device):
     """Test resetting the state of the rigid object."""
+    """测试重置硬体状态。"""
     object_collection, _ = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, device=device)
     sim.reset()
 
@@ -655,6 +690,7 @@ def test_reset_object_collection(sim, num_envs, num_cubes, device):
 @pytest.mark.parametrize("device", ["cuda:0", "cpu"])
 def test_set_material_properties(sim, num_envs, num_cubes, device):
     """Test getting and setting material properties of rigid object."""
+    """测试获得和设置硬物体的材料性能。"""
     object_collection, _ = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, device=device)
     sim.reset()
 
@@ -688,6 +724,7 @@ def test_set_material_properties(sim, num_envs, num_cubes, device):
 @pytest.mark.parametrize("gravity_enabled", [True, False])
 def test_gravity_vec_w(sim, num_envs, num_cubes, device, gravity_enabled):
     """Test that gravity vector direction is set correctly for the rigid object."""
+    """测试对硬体的重力向量方向是否正确设置。"""
     object_collection, _ = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, device=device)
 
     # Obtain gravity direction
@@ -724,6 +761,7 @@ def test_write_object_state_functions_data_consistency(
     sim, num_envs, num_cubes, device, with_offset, state_location, gravity_enabled
 ):
     """Test the setters for object_state using both the link frame and center of mass as reference frame."""
+    """测试object_state的设置器，使用链接框架和质量中心作为参考框架。"""
     # Create a scene with random cubes
     cube_object, env_pos = generate_cubes_scene(num_envs=num_envs, num_cubes=num_cubes, height=0.0, device=device)
     view_ids = torch.tensor([x for x in range(num_cubes * num_cubes)])

@@ -52,23 +52,48 @@ class RayCaster(SensorBase):
         Currently, only static meshes are supported. Extending the warp mesh to support dynamic meshes
         is a work in progress.
     """
+    """一个射线传感器。
+
+    射线器使用一组射线来检测场景的网格。
+    在传感器的本地坐标框架中定义了射线。
+    传感器可以配置以对某种射线模式的网格进行射线。
+
+    在配置中提供的原始路径列表中分析了网格。
+    然后将它们转换为变形网，并存储在`warp_meshes`列表中。
+    然后射线器使用配置中提供的射线模式对这些扭曲网格射射。
+
+    .. 说明::
+        目前，仅支持静态网格。
+        扩大 war形网以支持动态网格是正在进行的工作。
+    """
 
     cfg: RayCasterCfg
     """The configuration parameters."""
+    """配置参数。"""
 
     # Class variables to share meshes across instances
     meshes: ClassVar[dict[str, wp.Mesh]] = {}
     """A dictionary to store warp meshes for raycasting, shared across all instances.
 
     The keys correspond to the prim path for the meshes, and values are the corresponding warp Mesh objects."""
+    """一个用于存储光线射线的 war形网格的字典，
+
+    键与网格的prim路径相匹配，值是相应的变形网格对象。
+    """
     _instance_count: ClassVar[int] = 0
     """A counter to track the number of RayCaster instances, used to manage class variable lifecycle."""
+    """用于管理类变量生命周期的RayCaster实例数量的计数器。"""
 
     def __init__(self, cfg: RayCasterCfg):
         """Initializes the ray-caster object.
 
         Args:
             cfg: The configuration parameters.
+        """
+        """启动射线物体。
+
+        参数：
+            cfg: 配置参数。
         """
         RayCaster._instance_count += 1
         # check if sensor path is valid
@@ -88,6 +113,7 @@ class RayCaster(SensorBase):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
         return (
             f"Ray-caster @ '{self.cfg.prim_path}': \n"
             f"\tview type            : {self._view.__class__}\n"
@@ -100,6 +126,8 @@ class RayCaster(SensorBase):
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -115,6 +143,8 @@ class RayCaster(SensorBase):
 
     """
     Operations.
+    """
+    """操作。
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -138,6 +168,8 @@ class RayCaster(SensorBase):
 
     """
     Implementation.
+    """
+    """执行。
     """
 
     def _initialize_impl(self):
@@ -237,6 +269,7 @@ class RayCaster(SensorBase):
 
     def _update_ray_infos(self, env_ids: Sequence[int]):
         """Updates the ray information buffers."""
+        """更新射线信息缓冲器。"""
 
         pos_w, quat_w = obtain_world_pose_from_view(self._view, env_ids)
         pos_w, quat_w = math_utils.combine_frame_transforms(
@@ -293,6 +326,7 @@ class RayCaster(SensorBase):
 
     def _update_buffers_impl(self, env_ids: Sequence[int]):
         """Fills the buffers of the sensor data."""
+        """填充传感器数据的缓冲器。"""
         self._update_ray_infos(env_ids)
 
         # ray cast and store the hits
@@ -331,6 +365,8 @@ class RayCaster(SensorBase):
     """
     Internal Helpers.
     """
+    """内部助理。
+    """
 
     def _obtain_trackable_prim_view(
         self, target_prim_path: str
@@ -353,6 +389,24 @@ class RayCaster(SensorBase):
             - An XFormPrim or a physics prim view (ArticulationView or RigidBodyView).
             - A tuple containing the positions and orientations of the mesh prims in the physics prim frame.
 
+        """
+        """获得prim视图，可以用来追踪prim的姿势。
+
+        目标prim路径是匹配一个或多个网格prims的regex表达式。
+        虽然我们可以直接跟踪他的姿势，使用XFormPrim，但这并不高效，而且可能会慢。
+        而我们创建了一个prim使用物理仿真视图的视图，提供了更有效的方式来跟踪网格的姿势prims。
+
+        函数还解决了网格与其相应物理 prim之间的相对姿势。
+        如果网格不直接与物理prim相连，这尤其有用。
+
+        参数：
+            target_prim_path: 目标prim路径以获得prim视图。
+
+        返回：
+            含有:
+
+            - 一个XFormPrim或物理prim视图 (ArticulationView或RigidBodyView)。
+            - 在物理prim框架中包含网格prims的位置和方向。
         """
 
         mesh_prim = sim_utils.find_first_matching_prim(target_prim_path)
@@ -414,9 +468,12 @@ class RayCaster(SensorBase):
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         # call parent
         super()._invalidate_initialize_callback(event)
         # set all existing views to None to invalidate them

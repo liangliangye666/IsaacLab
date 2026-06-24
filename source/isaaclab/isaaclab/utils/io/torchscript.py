@@ -5,6 +5,7 @@
 
 
 """TorchScript I/O utilities."""
+"""TorchScript电源输入/运输。"""
 
 import os
 
@@ -26,6 +27,22 @@ def load_torchscript_model(model_path: str, device: str = "cpu") -> torch.nn.Mod
 
     Raises:
         FileNotFoundError: If the model file does not exist
+    """
+    """从指定的路径上加载TorchScript模型。
+
+    这个函数只加载TorchScript模型 (.pt或.pth文件由torch.jit.save创建)。
+    它不会与原始PyTorch检查点 (.pth文件创建torch.save)。
+
+    参数：
+        model_path (str): 进入TorchScript模型文件的路径 (.pt或 .pth)
+        device (str, optional): 装载模型的设备。
+                                "CPU"的默认设置
+
+    返回：
+        torch.nn.Module: 在评估模式下装载的TorchScript模型
+
+    异常：
+        FileNotFoundError: 如果模型文件不存在
     """
     if not os.path.exists(model_path):
         raise FileNotFoundError(f"TorchScript model file not found: {model_path}")

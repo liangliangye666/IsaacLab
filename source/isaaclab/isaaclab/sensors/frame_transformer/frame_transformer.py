@@ -59,15 +59,41 @@ class FrameTransformer(SensorBase):
     manipulator.
 
     """
+    """报告框架的传感器转换。
+
+    该类为报告一个或多个框架 (目标框架) 的转换提供了接口
+    with respect to another frame (source frame). The source frame is specified by the user as a prim path
+    (:attr:`FrameTransformerCfg.prim_path`) 和目标框架由用户指定为prim路径
+    (:attr:`FrameTransformerCfg.target_frames`) 的列表。
+
+    据估计，源框架和目标框架是硬体。
+    目标框架的转型
+    with respect to the source frame is computed by first extracting the transform of the source frame
+    然后计算两者之间的相对转变。
+
+    此外，用户可以为源框架和每个目标框架指定一个偏移。
+    这是有用的。
+    for specifying the transform of the desired frame with respect to the body's center of mass, for instance.
+
+    使用这种传感器的一个常见例子是跟踪机器人操纵器的最终效应器的位置和方向。
+    在这种情况下，源框架将是对操作器的基架相应的机体，目标框架将是对最终效果器相应的机体。
+    由于最终效应器通常是虚构的机体，用户可能需要指定从最终效应器到操纵器的机体的偏移。
+    """
 
     cfg: FrameTransformerCfg
     """The configuration parameters."""
+    """配置参数。"""
 
     def __init__(self, cfg: FrameTransformerCfg):
         """Initializes the frame transformer object.
 
         Args:
             cfg: The configuration parameters.
+        """
+        """启动框架变压器对象。
+
+        参数：
+            cfg: 配置参数。
         """
         # initialize base class
         super().__init__(cfg)
@@ -76,6 +102,7 @@ class FrameTransformer(SensorBase):
 
     def __str__(self) -> str:
         """Returns: A string containing information about the instance."""
+        """Returns: 包含有关实例的信息。"""
         return (
             f"FrameTransformer @ '{self.cfg.prim_path}': \n"
             f"\ttracked body frames: {[self._source_frame_body_name] + self._target_frame_body_names} \n"
@@ -86,6 +113,8 @@ class FrameTransformer(SensorBase):
 
     """
     Properties
+    """
+    """产品
     """
 
     @property
@@ -103,6 +132,12 @@ class FrameTransformer(SensorBase):
             This is an alias used for consistency with other sensors. Otherwise, we recommend using
             :attr:`len(data.target_frame_names)` to access the number of target frames.
         """
+        """返回被追踪的目标尸体数量。
+
+        说明：
+            这是一个用于与其他传感器保持一致的名。
+            否则，我们建议使用:attr:`len(data.target_frame_names)`访问目标框架数量。
+        """
         return len(self._target_frame_body_names)
 
     @property
@@ -113,10 +148,18 @@ class FrameTransformer(SensorBase):
             This is an alias used for consistency with other sensors. Otherwise, we recommend using
             :attr:`data.target_frame_names` to access the target frame names.
         """
+        """返回被追踪的目标尸体的名字。
+
+        说明：
+            这是一个用于与其他传感器保持一致的名。
+            否则，我们建议使用:attr:`data.target_frame_names`访问目标框架名称。
+        """
         return self._target_frame_body_names
 
     """
     Operations
+    """
+    """运营
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
@@ -136,10 +179,22 @@ class FrameTransformer(SensorBase):
         Returns:
             A tuple of lists containing the body indices and names.
         """
+        """根据名字键，在关节中找到尸体。
+
+        参数：
+            name_keys: 一个正则表达式或一个与体名相匹配的正则表达式列表。
+            preserve_order: 在输出中是否保留名称键的顺序。
+                            默认为 False。
+
+        返回：
+            一个包含身体指标和名称的列表。
+        """
         return string_utils.resolve_matching_names(name_keys, self._target_frame_names, preserve_order)
 
     """
     Implementation.
+    """
+    """执行。
     """
 
     def _initialize_impl(self):
@@ -271,6 +326,14 @@ class FrameTransformer(SensorBase):
                 Returns:
                     The environment number and the prim_path.
                 """
+                """将环境号码和prim_path与项目分开。
+
+                参数：
+                    item: 取出环境的项目号码。
+                          假设项目是`/World/envs/env_1/blah`或`/World/envs/env_11/blah`形式的。
+                返回：
+                    环境号码和prim_path。
+                """
                 match = re.search(r"env_(\d+)(.*)", item)
                 return (int(match.group(1)), match.group(2))
 
@@ -368,6 +431,7 @@ class FrameTransformer(SensorBase):
 
     def _update_buffers_impl(self, env_ids: Sequence[int]):
         """Fills the buffers of the sensor data."""
+        """填充传感器数据的缓冲器。"""
         # default to all sensors
         if len(env_ids) == self._num_envs:
             env_ids = ...
@@ -476,9 +540,12 @@ class FrameTransformer(SensorBase):
     """
     Internal simulation callbacks.
     """
+    """内部仿真回调。
+    """
 
     def _invalidate_initialize_callback(self, event):
         """Invalidates the scene elements."""
+        """破坏场景元素。"""
         # call parent
         super()._invalidate_initialize_callback(event)
         # set all existing views to None to invalidate them
@@ -486,6 +553,8 @@ class FrameTransformer(SensorBase):
 
     """
     Internal helpers.
+    """
+    """内部助理。
     """
 
     def _get_connecting_lines(
@@ -505,6 +574,22 @@ class FrameTransformer(SensorBase):
             - The positions of each connecting line. Shape is (N, 3).
             - The orientations of each connecting line in quaternion. Shape is (N, 4).
             - The lengths of each connecting line. Shape is (N,).
+        """
+        """绘制相框之间的连接线。
+
+        鉴于开始和结束点，这个函数计算了连接线的位置 (中点)，方向和长度。
+
+        参数：
+            start_pos: 连接线的起点位置。
+                       形状是 (N， 3)。
+            end_pos: 连接线的终端位置。
+                     形状是 (N， 3)。
+
+        返回：
+            含有:
+            - 每个连接线的位置。
+            - 在四元数中每个连接线的方向。
+            - 每条连接线的长度。
         """
         direction = end_pos - start_pos
         lengths = torch.norm(direction, dim=-1)
@@ -555,6 +640,22 @@ class FrameTransformer(SensorBase):
 
         Returns:
             The prim path with `/envs/env_<id>/` removed, preserving `/envs/`.
+        """
+        """从prim路径中提取一个正常的身体路径。
+
+        删除环境实例段 `/envs/env_<id>/`，以正常化多个环境中的路径，同时保留`/envs/`前，以区分环境范围的路径与非环境路径。
+
+        示例：
+        - "/世界/envs/env_0/机器人/torso" -> "/世界/envs/机器人/torso"
+        - "/世界/envs/env_123/机器人/left_hand" -> "/世界/envs/机器人/left_hand"
+        - "/世界/机器人" -> "/世界/机器人"
+        - "/世界/机器人_2/left_hand" -> "/世界/机器人_2/left_hand"
+
+        参数：
+            prim_path: 整个prim路径。
+
+        返回：
+            在prim的路径`/envs/env_<id>/`移除，保存`/envs/`。
         """
         pattern = re.compile(r"/envs/env_[^/]+/")
         return pattern.sub("/envs/", prim_path)

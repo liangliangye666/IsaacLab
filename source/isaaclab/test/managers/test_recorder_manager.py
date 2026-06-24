@@ -6,6 +6,7 @@
 from __future__ import annotations
 
 """Launch Isaac Sim Simulator first."""
+"""首先发射艾萨克仿真器。"""
 
 from isaaclab.app import AppLauncher
 
@@ -13,6 +14,7 @@ from isaaclab.app import AppLauncher
 simulation_app = AppLauncher(headless=True).app
 
 """Rest everything follows."""
+"""休息，一切都跟着。"""
 
 import os
 import shutil
@@ -40,6 +42,7 @@ if TYPE_CHECKING:
 
 class DummyResetRecorderTerm(RecorderTerm):
     """Dummy recorder term that records dummy data."""
+    """假的记录器，记录假的数据。"""
 
     def __init__(self, cfg: RecorderTermCfg, env: ManagerBasedEnv) -> None:
         super().__init__(cfg, env)
@@ -53,6 +56,7 @@ class DummyResetRecorderTerm(RecorderTerm):
 
 class DummyStepRecorderTerm(RecorderTerm):
     """Dummy recorder term that records dummy data."""
+    """假的记录器，记录假的数据。"""
 
     def __init__(self, cfg: RecorderTermCfg, env: ManagerBasedEnv) -> None:
         super().__init__(cfg, env)
@@ -67,16 +71,19 @@ class DummyStepRecorderTerm(RecorderTerm):
 @configclass
 class DummyRecorderManagerCfg(RecorderManagerBaseCfg):
     """Dummy recorder configurations."""
+    """假的录音机配置。"""
 
     @configclass
     class DummyResetRecorderTermCfg(RecorderTermCfg):
         """Configuration for the dummy reset recorder term."""
+        """仿真重置记录器的配置。"""
 
         class_type: type[RecorderTerm] = DummyResetRecorderTerm
 
     @configclass
     class DummyStepRecorderTermCfg(RecorderTermCfg):
         """Configuration for the dummy step recorder term."""
+        """模糊的步骤记录器项的配置"""
 
         class_type: type[RecorderTerm] = DummyStepRecorderTerm
 
@@ -89,6 +96,7 @@ class DummyRecorderManagerCfg(RecorderManagerBaseCfg):
 @configclass
 class EmptyManagerCfg:
     """Empty manager specifications for the environment."""
+    """管理器对环境的规格是空的。"""
 
     pass
 
@@ -96,16 +104,19 @@ class EmptyManagerCfg:
 @configclass
 class EmptySceneCfg(InteractiveSceneCfg):
     """Configuration for an empty scene."""
+    """设置为空场景。"""
 
     pass
 
 
 def get_empty_base_env_cfg(device: str = "cuda", num_envs: int = 1, env_spacing: float = 1.0):
     """Generate base environment config based on device"""
+    """根据设备生成基环境配置"""
 
     @configclass
     class EmptyEnvCfg(ManagerBasedEnvCfg):
         """Configuration for the empty test environment."""
+        """对于空试环境的配置。"""
 
         # Scene settings
         scene: EmptySceneCfg = EmptySceneCfg(num_envs=num_envs, env_spacing=env_spacing)
@@ -116,6 +127,7 @@ def get_empty_base_env_cfg(device: str = "cuda", num_envs: int = 1, env_spacing:
 
         def __post_init__(self):
             """Post initialization."""
+            """在初始化后。"""
             # step settings
             self.decimation = 4  # env step every 4 sim steps: 200Hz / 4 = 50Hz
             # simulation settings
@@ -134,6 +146,13 @@ def get_file_contents(file_name: str, num_steps: int) -> dict[str, np.ndarray]:
         num_steps: number of steps taken in the environment
     Returns:
         dict[str, np.ndarray]: dictionary where keys are HDF5 paths and values are the corresponding data arrays.
+    """
+    """检索hdf5文件的内容
+    参数：
+        file_name: 到 hdf5文件的绝对路径
+        num_steps: 在环境中采取的步骤数
+    返回：
+        dict[str， np.ndarray]:字典，键是HDF5路径，值是相应的数据阵列。
     """
     data = {}
     with h5py.File(file_name, "r") as f:
@@ -155,10 +174,12 @@ def get_file_contents(file_name: str, num_steps: int) -> dict[str, np.ndarray]:
 @configclass
 class DummyEnvCfg:
     """Dummy environment configuration."""
+    """假设环境配置。"""
 
     @configclass
     class DummySimCfg:
         """Configuration for the dummy sim."""
+        """模特sim的配置。"""
 
         dt = 0.01
         render_interval = 1
@@ -166,6 +187,7 @@ class DummyEnvCfg:
     @configclass
     class DummySceneCfg:
         """Configuration for the dummy scene."""
+        """模特场景的配置。"""
 
         num_envs = 1
 
@@ -176,6 +198,7 @@ class DummyEnvCfg:
 
 def create_dummy_env(device: str = "cpu") -> ManagerBasedEnv:
     """Create a dummy environment."""
+    """创建一个仿真的环境。"""
 
     class DummyTerminationManager:
         active_terms = []
@@ -192,6 +215,7 @@ def create_dummy_env(device: str = "cpu") -> ManagerBasedEnv:
 @pytest.fixture
 def dataset_dir():
     """Create directory to dump results."""
+    """创建目录，将结果丢弃。"""
     test_dir = tempfile.mkdtemp()
     yield test_dir
     # Cleanup
@@ -200,6 +224,7 @@ def dataset_dir():
 
 def test_str(dataset_dir):
     """Test the string representation of the recorder manager."""
+    """测试记录器管理器的字符串表示。"""
     # create recorder manager
     cfg = DummyRecorderManagerCfg()
     recorder_manager = RecorderManager(cfg, create_dummy_env())
@@ -210,6 +235,7 @@ def test_str(dataset_dir):
 
 def test_initialize_dataset_file(dataset_dir):
     """Test the initialization of the dataset file."""
+    """测试数据集文件的初始化。"""
     # create recorder manager
     cfg = DummyRecorderManagerCfg()
     cfg.dataset_export_dir_path = dataset_dir
@@ -223,6 +249,7 @@ def test_initialize_dataset_file(dataset_dir):
 @pytest.mark.parametrize("device", ("cpu", "cuda"))
 def test_record(device, dataset_dir):
     """Test the recording of the data."""
+    """测试记录数据。"""
     env = create_dummy_env(device)
     # create recorder manager
     cfg = DummyRecorderManagerCfg()
@@ -259,6 +286,8 @@ def test_record(device, dataset_dir):
 def test_close(device, dataset_dir):
     """Test whether data is correctly exported in the close function when fully integrated with ManagerBasedEnv and
     `export_in_close` is True."""
+    """测试在完全与ManagerBasedEnv和`export_in_close`是True集成时，数据是否正确出口在接近函数中。
+    """
     # create a new stage
     omni.usd.get_context().new_stage()
     # create environment

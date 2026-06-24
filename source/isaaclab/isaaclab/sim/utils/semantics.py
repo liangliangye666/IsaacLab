@@ -6,6 +6,7 @@
 """Utilities for applying and removing semantic labels to USD prims."""
 
 from __future__ import annotations
+"""用于对USD prims的语义标签应用和删除。"""
 
 import contextlib
 import logging
@@ -44,6 +45,28 @@ def add_labels(prim: Usd.Prim, labels: list[str], instance_name: str = "class", 
         instance_name: The name of the semantic instance. Defaults to "class".
         overwrite: Whether to overwrite existing labels for this instance. If False,
           the new labels are appended to existing ones (if any). Defaults to True.
+    """
+    """使用:class:`UsdSemantics.LabelsAPI`将语义标签应用到prim上。
+
+    这个函数是围绕:func:`omni.replicator.core.functional.modify.semantics`函数的包装。
+    它将标签应用于prim使用:class:`UsdSemantics.LabelsAPI`。
+
+    ..
+    这种功能可用于Isaac Sim 5.0及后版本，该版本引入:class:`UsdSemantics.LabelsAPI`。
+    在之前的版本中，函数回归使用过时的:class:`UsdSemantics.SemanticsAPI`。
+
+    示例：
+        >>> prim = sim_utils.create_prim("/World/Test/Sphere", "Sphere", stage=stage, attributes={"radius": 10.0})
+        >>> sim_utils.add_labels(prim, labels=["sphere"], instance_name="class")
+
+    参数：
+        prim: 添加或更新标签的USD prim。
+        labels: 应使用的标签列表。
+        instance_name: 语义实例的名称。
+                       默认的"类"。
+        overwrite: 在本例中是否重写现有标签。
+                   如果是False，新标签将添加到现有的标签 (如有)。
+                   默认为 True。
     """
     # Try modern approach (Isaac Sim >= 5.0)
     try:
@@ -99,6 +122,19 @@ def get_labels(prim: Usd.Prim) -> dict[str, list[str]]:
         A dictionary mapping instance names to a list of labels.
         If no labels are found, it returns an empty dictionary.
     """
+    """让所有语义标签 (:class:`UsdSemantics.LabelsAPI`) 应用到prim上。
+
+    ..
+    此功能可用于Isaac Sim 5.0及后版本。
+    在之前的版本中，请使用:mod:`isaacsim.core.utils.semantics`模块。
+
+    参数：
+        prim: 给USDprim返回标签。
+
+    返回：
+        一个字典将实例名称映射到标签列表中。
+        如果没有标签，它会返回空白的字典。
+    """
     result = {}
     for schema_name in prim.GetAppliedSchemas():
         if schema_name.startswith("SemanticsLabelsAPI:"):
@@ -127,9 +163,23 @@ def remove_labels(prim: Usd.Prim, instance_name: str | None = None, include_desc
         include_descendants: Whether to also traverse children and remove labels recursively.
             Defaults to False.
     """
+    """从prim和其后代中删除语义标签 (:class:`UsdSemantics.LabelsAPI`)。
+
+    ..
+    此功能可用于Isaac Sim 5.0及后版本。
+    在之前的版本中，请使用:mod:`isaacsim.core.utils.semantics`模块。
+
+    参数：
+        prim: 取消标签的USDprim。
+        instance_name: 删除的具体实例名称。
+                       在 None 中，默认情况下， *所有*标签都被删除。
+        include_descendants: 无论是穿越儿童，还要一次性删除标签。
+                             默认为 False。
+    """
 
     def _remove_single_prim_labels(target_prim: Usd.Prim):
         """Helper function to remove labels from a single prim."""
+        """助手功能是从单个prim中删除标签。"""
         schemas_to_remove = []
         for schema_name in target_prim.GetAppliedSchemas():
             if schema_name.startswith("SemanticsLabelsAPI:"):
@@ -164,6 +214,24 @@ def check_missing_labels(prim_path: str | None = None, stage: Usd.Stage | None =
 
     Returns:
         A list containing prim paths to prims with no labels applied.
+    """
+    """检查prim及其后代在所提供的路径是否缺失了语义标签 (:class:`UsdSemantics.LabelsAPI`)。
+
+    .. 说明::
+        函数只检查prims类型的:class:`UsdGeom.Gprim`。
+
+    ..
+    此功能可用于Isaac Sim 5.0及后版本。
+    在之前的版本中，请使用:mod:`isaacsim.core.utils.semantics`模块。
+
+    参数：
+        prim_path: 搜索的prim路径。
+                   如果None，整个阶段都会被检查。
+        stage: 搜索的舞台。
+               如果 None，则使用当前阶段。
+
+    返回：
+        包含prim到prims的路径，没有标签。
     """
     # check if stage is valid
     stage = stage if stage else get_current_stage()
@@ -208,6 +276,25 @@ def count_total_labels(prim_path: str | None = None, stage: Usd.Stage | None = N
     Returns:
         A dictionary mapping individual labels to their total count across all instances.
         The dictionary includes a 'missing_labels' count for prims with no labels.
+    """
+    """计算在提供路径上对prims应用的语义标签数量 (:class:`UsdSemantics.LabelsAPI`)。
+
+    这项函数从提供路径上的所有prims中反复执行，并计算每个标签被应用到prims的次数。
+    它返回了标签的字典及其相应数量。
+
+    ..
+    此功能可用于Isaac Sim 5.0及后版本。
+    在之前的版本中，请使用:mod:`isaacsim.core.utils.semantics`模块。
+
+    参数：
+        prim_path: 搜索的prim路径。
+                   如果None，整个阶段都会被检查。
+        stage: 搜索的舞台。
+               如果 None，则使用当前阶段。
+
+    返回：
+        一个字典将个别标签映射到所有情况下的总数。
+        字典中包含了没有标签的prims"missing_labels"数。
     """
     stage = stage if stage else get_current_stage()
 

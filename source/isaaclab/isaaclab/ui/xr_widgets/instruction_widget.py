@@ -29,6 +29,11 @@ class SimpleTextWidget(ui.Widget):
     track of the configured style and an original width value used by
     higher-level helpers to update the text.
     """
+    """一个为XR覆盖的矩形文本标签小工具。
+
+    插件在矩形背景上呈现一个中心标签。
+    它跟踪配置的风格和更高层次的辅助员用来更新文本的原始宽值。
+    """
 
     def __init__(
         self,
@@ -45,6 +50,14 @@ class SimpleTextWidget(ui.Widget):
             original_width (float): Width used when updating the text.
             **kwargs: Additional keyword arguments forwarded to ``ui.Widget``.
         """
+        """启动文本插件。
+
+        参数：
+            text (str): 显示的初始文本。
+            style (dict[str, Any]): 选择式风格字典 (例如:``{"font_size": 1， "color": 0xFFFFFFFF}``)。
+            original_width (float): 在更新文本时使用的宽度。
+            **kwargs: 其他关键字参数转发到``ui.Widget``。
+        """
         super().__init__(**kwargs)
         if style is None:
             style = {"font_size": 1, "color": 0xFFFFFFFF}
@@ -60,6 +73,11 @@ class SimpleTextWidget(ui.Widget):
         Args:
             text (str): New label text to display.
         """
+        """更新标签显示的文本。
+
+        参数：
+            text (str): 新标签文本显示。
+        """
         self._text = text
         if self._ui_label:
             self._ui_label.text = self._text
@@ -70,6 +88,11 @@ class SimpleTextWidget(ui.Widget):
         Returns:
             float: Font size value.
         """
+        """返回配置的字体大小。
+
+        返回：
+            float: 字体大小值。
+        """
         return self._style.get("font_size", 1)
 
     def get_width(self):
@@ -78,10 +101,16 @@ class SimpleTextWidget(ui.Widget):
         Returns:
             float: Width used when updating the text.
         """
+        """在更新文本时使用的宽度返回。
+
+        返回：
+            float: 在更新文本时使用的宽度。
+        """
         return self._original_width
 
     def _build_ui(self):
         """Build the UI with a window-like rectangle and centered label."""
+        """用像窗户的矩形和中心标签构建UI。"""
         with ui.ZStack():
             ui.Rectangle(style={"Rectangle": {"background_color": 0xFF454545, "border_radius": 0.1}})
             with ui.VStack(alignment=ui.Alignment.CENTER):
@@ -104,6 +133,18 @@ def compute_widget_dimensions(
         ``width`` and ``height`` are the computed widget dimensions, and
         ``wrapped_text`` contains the input text broken into newline-separated
         lines to fit within the width constraints.
+    """
+    """估计 widget 的宽度/高度，然后包装文本。
+
+    参数：
+        text (str): 需要渲染的原始文本。
+        font_size (float): 用于估计字符指标的字体大小。
+        max_width (float): 最多允许的小工具宽度。
+        min_width (float): 最少允许的小工具宽度。
+
+    返回：
+        tuple[float， float， str]:一个 ``(width， height， wrapped_text)`` tuple，其中 ``width`` 和 ``height``
+        是计算的小组件尺寸，而 ``wrapped_text`` 包含输入文本，分成新线分开的线条，以适应宽度限制。
     """
     # Estimate average character width.
     char_width = 0.6 * font_size
@@ -150,6 +191,26 @@ def show_instruction(
 
     Returns:
         UiContainer | None: The container that owns the instruction widget, or ``None`` if creation failed.
+    """
+    """创建和显示一个指令 widget，包含给出的文本。
+
+    按文本和字体大小计算，包装内容以遵守宽度限制。
+    如果提供``display_duration``，并且不是零，则在期限过后，自动隐藏了小程序。
+
+    参数：
+        text (str): 显示指令文本。
+        prim_path_source (str | None): 选项prim路径用于 widget 的空间源。
+        translation (Gf.Vec3d): 世界翻译将用于 widget。
+        display_duration (float | None): 秒钟以保持可见的小工具。
+                                         如果是``None``或``0``，则将保持在手动隐藏之前。
+        max_width (float): 包装使用的最大 widget 宽度。
+        min_width (float): 最低用于包装的小工具宽度。
+        font_size (float): 转载文本的字体大小。
+        text_color (int): RGBA编码为32位整数。
+        target_prim_path (str): 创建/复制prim小工具的首选路径。
+
+    返回：
+        UiContainer None: 控制器拥有指令工具，或者``None``如果创建失败。
     """
     global camera_facing_widget_container, camera_facing_widget_timers
 
@@ -229,6 +290,14 @@ def hide_instruction(target_prim_path: str = "/newPrim") -> None:
     Returns:
         None: This function does not return a value.
     """
+    """隐藏和清理一个特定的指令工具。
+
+    参数：
+        target_prim_path (str): 隐藏的小工具的主要路径。
+
+    返回：
+        None: 这个函数不会返回值。
+    """
 
     global camera_facing_widget_container, camera_facing_widget_timers
 
@@ -250,6 +319,15 @@ def update_instruction(target_prim_path: str = "/newPrim", text: str = ""):
 
     Returns:
         bool: ``True`` if the widget existed and was updated, otherwise ``False``.
+    """
+    """更新现有指令 widget 的文本内容。
+
+    参数：
+        target_prim_path (str): 更新小组件的主要路径。
+        text (str): 显示新的文本内容。
+
+    返回：
+        bool: ``True``如果小工具已经存在并已更新，否则``False``。
     """
     global camera_facing_widget_container
 

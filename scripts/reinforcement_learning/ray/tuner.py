@@ -61,6 +61,33 @@ Usage:
     --cfg_class CartpoleTheiaJobCfg --mlflow_uri <MLFLOW_URI_FROM_GROK_OR_MANUAL>
 
 """
+"""这种脚本将按超参数扫描配置定义的总结调整工作分解为单个工作 (shell命令) 运行在集群的GPU启用节点上。
+默认情况下，每个个别工作的集群中每个GPU启用节点都会创建一个工作者。
+为了使用每节点多个工作者 (可能是多GPU机器的情况)，输入num_workers_per_node参数。
+
+每个超参数扫描配置都应该包括工作流，运行器参数和水力参数。
+
+这假设一个集群中的所有工作者均。
+对于异质工作负载，创建几个异质集群 (每个集群中都有同质节点)，然后提交几个整体集群工作用:file:`../submit_job.py`。
+在Google GKE上可以创建KubeRay集群:文件:`../launch.py`
+
+为了报告集群的调整指标，需要运行一个MLFlow服务器，该集群可以访问已知URI。
+对于配置为:file:`../launch.py`的KubeRay集群，这是自动包含的，并且可以轻松找到与:file:`grok_cluster_with_kubectl.py`
+
+Usage:
+
+.. code-block:: bash
+
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/tuner.py -h
+
+    # Examples
+    # Local
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/tuner.py --run_mode local     --cfg_file scripts/reinforcement_learning/ray/hyperparameter_tuning/vision_cartpole_cfg.py     --cfg_class CartpoleTheiaJobCfg
+    # Local with a custom progress reporter
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/tuner.py     --cfg_file scripts/reinforcement_learning/ray/hyperparameter_tuning/vision_cartpole_cfg.py     --cfg_class CartpoleTheiaJobCfg     --progress_reporter CustomCartpoleProgressReporter
+    # Remote (run grok cluster or create config file mentioned in :file:`submit_job.py`)
+    ./isaaclab.sh -p scripts/reinforcement_learning/ray/submit_job.py     --aggregate_jobs tuner.py     --cfg_file hyperparameter_tuning/vision_cartpole_cfg.py     --cfg_class CartpoleTheiaJobCfg --mlflow_uri <MLFLOW_URI_FROM_GROK_OR_MANUAL>
+"""
 
 DOCKER_PREFIX = "/workspace/isaaclab/"
 BASE_DIR = os.path.expanduser("~")
@@ -79,9 +106,15 @@ class IsaacLabTuneTrainable(tune.Trainable):
     the standalone workflows. This depends on a config generated in the format of
     :class:`JobCfg`
     """
+    """艾萨克实验室雷调训练可。
+    这类使用独立的工作流来启动工作，
+    这类通过阅读单独工作流的电压板日志来实现基于射线的记录。
+    这取决于:class:`JobCfg`格式生成的配置
+    """
 
     def setup(self, config: dict) -> None:
         """Get the invocation command, return quick for easy scheduling."""
+        """快速回来，以便安排。"""
         self.data = None
         self.time_since_last_proc_response = 0.0
         self.invoke_cmd = util.get_invocation_command_from_cfg(cfg=config, python_cmd=PYTHON_EXEC, workflow=WORKFLOW)
@@ -90,6 +123,7 @@ class IsaacLabTuneTrainable(tune.Trainable):
 
     def reset_config(self, new_config: dict):
         """Allow environments to be reused by fetching a new invocation command"""
+        """通过新的调用命令允许环境重复使用"""
         self.setup(new_config)
         return True
 
@@ -170,6 +204,9 @@ class IsaacLabTuneTrainable(tune.Trainable):
     def default_resource_request(self):
         """How many resources each trainable uses. Assumes homogeneous resources across gpu nodes,
         and that each trainable is meant for one node, where it uses all available resources."""
+        """每个可训练的资源使用的数量。
+        假设在 GPU 节点之间具有均的资源，并且每个可训练的节点是用于一个节点，它使用所有可用的资源。
+        """
         resources = util.get_gpu_node_resources(one_node_only=True)
         if NUM_WORKERS_PER_NODE != 1:
             print("[WARNING]: Splitting node into more than one worker")
@@ -185,6 +222,11 @@ class LogExtractionErrorStopper(tune.Stopper):
     Args:
         max_errors: The maximum number of LogExtractionErrors allowed before terminating the experiment.
     """
+    """如果发生多次LogExtractionErrors，停止所有试验。
+
+    参数：
+        max_errors: 在结束实验之前允许的最大数 LogExtractionErrors。
+    """
 
     def __init__(self, max_errors: int):
         self.max_errors = max_errors
@@ -194,6 +236,10 @@ class LogExtractionErrorStopper(tune.Stopper):
         """Increments the error count if trial has encountered a LogExtractionError.
 
         It does not stop the trial based on the metrics, always returning False.
+        """
+        """如果试验遇到LogExtractionError，则增加错误数量。
+
+        它不会停止基于指标的试验，总是返回False。
         """
         if result.get("LOG_EXTRACTION_ERROR_STOPPER_FLAG", False):
             self.error_count += 1
@@ -205,6 +251,7 @@ class LogExtractionErrorStopper(tune.Stopper):
 
     def stop_all(self):
         """Returns true if number of LogExtractionErrors exceeds the maximum allowed, terminating the experiment."""
+        """如果LogExtractionErrors的数量超过允许的最大值，则返回 true，结束了实验。"""
         if self.error_count > self.max_errors:
             print("[FATAL]: Encountered LogExtractionError more than allowed, aborting entire tuning run... ")
             return True
@@ -214,17 +261,21 @@ class LogExtractionErrorStopper(tune.Stopper):
 
 class ProcessCleanupCallback(Callback):
     """Callback to clean up processes when trials are stopped."""
+    """在试验停止时，请调整程序。"""
 
     def on_trial_error(self, iteration, trials, trial, error, **info):
         """Called when a trial encounters an error."""
+        """在试验中遇到错误时，"""
         self._cleanup_trial(trial)
 
     def on_trial_complete(self, iteration, trials, trial, **info):
         """Called when a trial completes."""
+        """在审判结束时，他会打电话。"""
         self._cleanup_trial(trial)
 
     def _cleanup_trial(self, trial):
         """Clean up processes for a trial using SIGKILL."""
+        """通过SIGKILL来清理试验过程。"""
         try:
             subprocess.run(["pkill", "-9", "-f", f"rid {trial.config['runner_args']['-rid']}"], check=False)
             sleep(5)
@@ -246,6 +297,16 @@ def invoke_tuning_run(
         args: Command-line arguments related to tuning.
         progress_reporter: Custom progress reporter. Defaults to CLIReporter or JupyterNotebookReporter if not provided.
         stopper: Custom stopper, optional.
+    """
+    """召唤一个艾萨克-雷调整运行。
+
+    登录到本地目录或MLFlow。
+    参数：
+        cfg: 从工作设置中提取的配置字典
+        args: 与调整相关的命令行参数。
+        progress_reporter: 定制进展记者。
+                           如果未提供，则对CLIReporter或JupyterNotebookReporter的默认设置。
+        stopper: 定制，可选。
     """
     # Allow for early exit
     os.environ["TUNE_DISABLE_STRICT_METRIC_CHECKING"] = "1"
@@ -353,6 +414,8 @@ def invoke_tuning_run(
 class JobCfg:
     """To be compatible with :meth: invoke_tuning_run and :class:IsaacLabTuneTrainable,
     at a minimum, the tune job should inherit from this class."""
+    """为了兼容:meth:invoke_tuning_run和:class:IsaacLabTuneTrainable，至少，调音工作应继承这个类。
+    """
 
     def __init__(self, cfg: dict):
         """
@@ -361,15 +424,25 @@ class JobCfg:
         cfg["runner_args"]["headless_singleton"] = "--headless"
         cfg["runner_args"]["enable_cameras_singleton"] = "--enable_cameras"
         """
+        """运行器args包含传递到任务的命令行参数。
+        例如:cfg["runner_args"]["headless_singleton"] = "--headless"
+        cfg["runner_args"]["enable_cameras_singleton"] = "--enable_cameras"
+        """
         assert "runner_args" in cfg, "No runner arguments specified."
         """
         Task is the desired task to train on. For example:
         cfg["runner_args"]["--task"] = tune.choice(["Isaac-Cartpole-RGB-TheiaTiny-v0"])
         """
+        """任务是需要训练的任务。
+        例如:cfg["runner_args"]["--task"] =tune.choice(["Isaac-Cartpole-RGB-TheiaTiny-v0"])
+        """
         assert "--task" in cfg["runner_args"], "No task specified."
         """
         Hydra args define the hyperparameters varied within the sweep. For example:
         cfg["hydra_args"]["agent.params.network.cnn.activation"] = tune.choice(["relu", "elu"])
+        """
+        """在扫描中变化的超参数是 Hydra args 定义的。
+        例如:cfg["hydra_args"]["agent.params.network.cnn.activation"] =tune.choice(["relu"，"elu"])
         """
         assert "hydra_args" in cfg, "No hyperparameters specified."
         self.cfg = cfg

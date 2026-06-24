@@ -21,6 +21,7 @@ class ForgeEnv(FactoryEnv):
 
     def __init__(self, cfg: ForgeEnvCfg, render_mode: str | None = None, **kwargs):
         """Initialize additional randomization and logging tensors."""
+        """启动额外的随机化和记录数。"""
         super().__init__(cfg, render_mode, **kwargs)
 
         # Success prediction.
@@ -56,6 +57,7 @@ class ForgeEnv(FactoryEnv):
 
     def _compute_intermediate_values(self, dt):
         """Add noise to observations for force sensing."""
+        """增加噪音，以感知力量。"""
         super()._compute_intermediate_values(dt)
 
         # Add noise to fingertip position.
@@ -115,6 +117,7 @@ class ForgeEnv(FactoryEnv):
 
     def _get_observations(self):
         """Add additional FORGE observations."""
+        """添加额外的FORGE观测。"""
         obs_dict, state_dict = self._get_factory_obs_state_dict()
 
         noisy_fixed_pos = self.fixed_pos_obs_frame + self.init_fixed_pos_obs_noise
@@ -147,6 +150,7 @@ class ForgeEnv(FactoryEnv):
 
     def _apply_action(self):
         """FORGE actions are defined as targets relative to the fixed asset."""
+        """作为固定资产的目标，FORGE动作被定义为目标。"""
         if self.last_update_timestamp < self._robot._data._sim_timestamp:
             self._compute_intermediate_values(dt=self.physics_dt)
 
@@ -231,6 +235,7 @@ class ForgeEnv(FactoryEnv):
 
     def _get_rewards(self):
         """FORGE reward includes a contact penalty and success prediction error."""
+        """FORGE奖励包括接触罚款和成功预测错误。"""
         # Use same base rewards as Factory.
         rew_buf = super()._get_rewards()
 
@@ -271,6 +276,7 @@ class ForgeEnv(FactoryEnv):
 
     def _reset_idx(self, env_ids):
         """Perform additional randomizations."""
+        """执行额外的随机化。"""
         super()._reset_idx(env_ids)
 
         # Compute initial action for correct EMA computation.
@@ -336,6 +342,7 @@ class ForgeEnv(FactoryEnv):
 
     def _reset_buffers(self, env_ids):
         """Reset additional logging metrics."""
+        """重置额外的记录指标。"""
         super()._reset_buffers(env_ids)
         # Reset success pred metrics.
         for thresh in [0.5, 0.6, 0.7, 0.8, 0.9]:
@@ -343,6 +350,7 @@ class ForgeEnv(FactoryEnv):
 
     def _log_forge_metrics(self, rew_dict, policy_success_pred):
         """Log metrics to evaluate success prediction performance."""
+        """记录测量以评估成功预测性能。"""
         for rew_name, rew in rew_dict.items():
             self.extras[f"logs_rew_{rew_name}"] = rew.mean()
 
