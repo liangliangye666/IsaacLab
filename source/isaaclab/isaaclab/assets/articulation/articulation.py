@@ -175,7 +175,7 @@ class Articulation(AssetBase):
         return self._data
 
     @property
-    def num_instances(self) -> int:
+    def num_instances(self) -> int:     # 并行环境数量。所有数据 tensor 的第0维大小，示例值 4096
         return self.root_physx_view.count
 
     @property
@@ -183,30 +183,57 @@ class Articulation(AssetBase):
         """Whether the articulation is a fixed-base or floating-base system."""
         """关节是固定基或浮基系统。"""
         return self.root_physx_view.shared_metatype.fixed_base
+    '''
+    是否固定底座。True = 机械臂基座固定在桌上，False = 四足/人形机器人可以自由移动
+    '''
 
     @property
     def num_joints(self) -> int:
         """Number of joints in articulation."""
         """关节的数量"""
         return self.root_physx_view.shared_metatype.dof_count
+    '''
+    可驱动关节数量（自由度 DOF）
+    '''
 
     @property
     def num_fixed_tendons(self) -> int:
         """Number of fixed tendons in articulation."""
         """关节的固定节数量"""
         return self.root_physx_view.max_fixed_tendons
+    '''
+    固定肌腱数量（一种柔体传动机制）
+    '''
 
     @property
     def num_spatial_tendons(self) -> int:
         """Number of spatial tendons in articulation."""
         """关节中的空间的数量。"""
         return self.root_physx_view.max_spatial_tendons
+    '''
+    空间肌腱数量
+    '''
 
     @property
     def num_bodies(self) -> int:
         """Number of bodies in articulation."""
         """关节体的数量"""
         return self.root_physx_view.shared_metatype.link_count
+    '''
+    连杆（刚体）数量，包括 base_link 和所有子连杆，示例值 13（四足 1+4×3）
+    '''
+
+    '''
+    这些告诉你"每个关节/连杆叫什么名字"。名字的顺序和数据 tensor 的列顺序是一一对应的：
+        joint_names[0] = "left_hip_joint"   ←→  joint_pos[:, 0]
+        joint_names[1] = "left_knee_joint"  ←→  joint_pos[:, 1]
+        ...
+        body_names[0] = "base_link"         ←→  body_link_pose_w[:, 0, :]
+        body_names[1] = "left_thigh_link"   ←→  body_link_pose_w[:, 1, :]
+    这在调试和代码可读性上非常有用。比如你想找"左脚"的索引：
+        foot_idx = robot.body_names.index("left_foot_link")
+        foot_pos = robot.data.body_link_pos_w[:, foot_idx, :]
+    '''
 
     @property
     def joint_names(self) -> list[str]:
@@ -246,6 +273,12 @@ class Articulation(AssetBase):
             它需要以特定的方式处理子。
         """
         return self._root_physx_view
+    '''
+    这是 PhysX Tensor API 的底层视图。
+        警告标记 Note: Use this view with caution 是认真的——这个接口返回的 tensor 是 C++ 内存的直接映射，不像 ArticulationData 帮你做了 .clone() 和四元数格式转换。
+        滥用它可能直接破坏仿真状态。
+        除非你在写底层扩展，否则请用 data 属性代替。
+    '''
 
     @property
     def instantaneous_wrench_composer(self) -> WrenchComposer:
@@ -272,6 +305,28 @@ class Articulation(AssetBase):
             在将瞬间的钥匙应用于仿真之前，永久的钥匙组成即时的钥匙。
         """
         return self._instantaneous_wrench_composer
+    
+    '''
+    instantaneous_wrench_composer vs permanent_wrench_composer
+        Wrench = 力（force）+ 力矩（torque）的组合向量 [Fx, Fy, Fz, τx, τy, τz]，形状 (N, B, 6)。
+        这两个 composer 提供了给机器人施加外力的接口：
+            ┌──────────────────────────────────────────────────────┐
+            │              仿 真 步 (sim step)                      │
+            │                                                      │
+            │  ① permanent_wrench_composer    ← 持续力（如电机推力）│
+            │         ↓                                            │
+            │  ② instantaneous_wrench_composer ← 临时力（如空气阻力）│
+            │         ↓                                            │
+            │  ③ 合并后施加到 PhysX                                │
+            │                                                      │
+            │  ④ 清空 instantaneous_wrench_composer ← 仅本次有效    │
+            │                                                      │
+            │  ⑤ permanent_wrench_composer 保留 ← 下一步继续生效    │
+            └──────────────────────────────────────────────────────┘
+        类型	                         生命周期	                        典型用途
+        permanent_wrench_composer	    持续存在，除非手动清除	            电机推力、恒定风力
+        instantaneous_wrench_composer	只在本仿真步有效，下一步自动清零	    空气阻力（依赖实时速度）、碰撞冲量、一次性扰动
+    '''
 
     @property
     def permanent_wrench_composer(self) -> WrenchComposer:
@@ -295,6 +350,29 @@ class Articulation(AssetBase):
             在将瞬间的钥匙应用于仿真之前，永久的钥匙组成即时的钥匙。
         """
         return self._permanent_wrench_composer
+    '''
+    使用示例
+        # 获取机器人基本信息
+        robot = Articulation(cfg)
+        print(f"并行环境数: {robot.num_instances}")
+        print(f"是否是固定底座: {robot.is_fixed_base}")
+        print(f"关节数: {robot.num_joints}, 连杆数: {robot.num_bodies}")
+        print(f"关节名: {robot.joint_names}")
+        print(f"连杆名: {robot.body_names}")
+
+        # 通过名称找索引
+        hip_idx = robot.joint_names.index("left_hip_joint")
+        hip_pos = robot.data.joint_pos[:, hip_idx]  # 读取左髋关节角度
+
+        # 施加瞬时外力（比如推一下机器人身体）
+        from isaaclab.utils.wrench_composer import WrenchComposer
+        # 向所有环境的 base_link (body 0) 施加向上的力
+        robot.instantaneous_wrench_composer.add(
+            body_index=0,
+            wrench=torch.tensor([0.0, 0.0, 100.0, 0.0, 0.0, 0.0]),  # z方向 100N
+        )
+        # 这一步结束时力会自动清零
+    '''
 
     """
     Operations.
@@ -303,16 +381,36 @@ class Articulation(AssetBase):
     """
 
     def reset(self, env_ids: Sequence[int] | None = None):
+        '''
+        类型注解 Sequence[int] | None 意味着你可以传三种值：
+            None：复位所有并行环境
+            [3, 7, 12]：只复位第 3、7、12 号环境
+            slice(0, 100)：复位前 100 个环境
+        '''
         # use ellipses object to skip initial indices.
         if env_ids is None:
             env_ids = slice(None)
         # reset actuators
         for actuator in self.actuators.values():
             actuator.reset(env_ids)
+            '''
+            复位执行器
+                执行器（Actuator）是 Isaac Lab 中的"电机模型"。PD 执行器内部维护着控制器的历史误差（积分项 I），这些历史状态在 episode 重置时必须清零。
+            '''
         # reset external wrenches.
         self._instantaneous_wrench_composer.reset(env_ids)
         self._permanent_wrench_composer.reset(env_ids)
+        '''
+        复位外力
+            清除上一轮 episode 施加的所有外力（wind、push 等）
+        '''
 
+    '''
+    负责把策略输出的动作命令真正"注入"到 PhysX 物理引擎中
+        施加外力 (wrench)
+        执行器模型计算 (PD 控制等)
+        写入 PhysX (力矩/位置/速度目标)
+    '''
     def write_data_to_sim(self):
         """Write external wrenches and joint commands to the simulation.
 
@@ -332,17 +430,17 @@ class Articulation(AssetBase):
             我们写出仿真的外部关键，因为这个函数在仿真步骤之前被调用。
             这确保在每个仿真步骤上使用外部钥匙。
         """
-        # write external wrench
+        # write external wrench     阶段 1：外力处理
         if self._instantaneous_wrench_composer.active or self._permanent_wrench_composer.active:
             if self._instantaneous_wrench_composer.active:
-                # Compose instantaneous wrench with permanent wrench
+                # Compose instantaneous wrench with permanent wrench    # ① merge: 把永久力合入瞬时力
                 self._instantaneous_wrench_composer.add_forces_and_torques(
                     forces=self._permanent_wrench_composer.composed_force,
                     torques=self._permanent_wrench_composer.composed_torque,
                     body_ids=self._ALL_BODY_INDICES_WP,
                     env_ids=self._ALL_INDICES_WP,
                 )
-                # Apply both instantaneous and permanent wrench to the simulation
+                # Apply both instantaneous and permanent wrench to the simulation   # ② apply: 合并后的总力施加到 PhysX
                 self.root_physx_view.apply_forces_and_torques_at_position(
                     force_data=self._instantaneous_wrench_composer.composed_force_as_torch.view(-1, 3),
                     torque_data=self._instantaneous_wrench_composer.composed_torque_as_torch.view(-1, 3),
@@ -350,7 +448,7 @@ class Articulation(AssetBase):
                     indices=self._ALL_INDICES,
                     is_global=False,
                 )
-            else:
+            else:   # 只有永久力，直接施加
                 # Apply permanent wrench to the simulation
                 self.root_physx_view.apply_forces_and_torques_at_position(
                     force_data=self._permanent_wrench_composer.composed_force_as_torch.view(-1, 3),
@@ -359,16 +457,35 @@ class Articulation(AssetBase):
                     indices=self._ALL_INDICES,
                     is_global=False,
                 )
-        self._instantaneous_wrench_composer.reset()
+        self._instantaneous_wrench_composer.reset() # ③ 清空瞬时力（永久力保留给下一步）
+        '''
+        关键常量：
+            变量	                        含义
+            self._ALL_INDICES	            torch.arange(N)，所有环境索引
+            self._ALL_INDICES_WP	        同上，转为 Warp 格式
+            self._ALL_BODY_INDICES_WP	    所有 body 索引，Warp 格式
+        为什么用两个格式？
+            WrenchComposer 内部用 Warp（GPU 加速的 Python 库）做高效计算，而 root_physx_view.apply_forces_and_torques_at_position 用 PyTorch tensor。
+            所以 _ALL_INDICES 是 PyTorch 的，_ALL_INDICES_WP 是 Warp 的。
+        .view(-1, 3) 的作用：
+            WrenchComposer 内部存储的形状是 (N, B, 3)（N 个环境 × B 个 body × 3 维力/力矩），PhysX API 需要 (N*B, 3) 的展平形状。
+            .view(-1, 3) 就是做这个展平。
+        '''
 
-        # apply actuator models
+        # apply actuator models     阶段 2：执行器模型
         self._apply_actuator_model()
-        # write actions into simulation
-        self.root_physx_view.set_dof_actuation_forces(self._joint_effort_target_sim, self._ALL_INDICES)
+        # write actions into simulation     阶段 3：写入 PhysX
+        self.root_physx_view.set_dof_actuation_forces(self._joint_effort_target_sim, self._ALL_INDICES) # ③ 力矩目标写入 PhysX（所有执行器都用）
         # position and velocity targets only for implicit actuators
-        if self._has_implicit_actuators:
+        if self._has_implicit_actuators:    # ④ 位置/速度目标——仅隐式执行器需要
             self.root_physx_view.set_dof_position_targets(self._joint_pos_target_sim, self._ALL_INDICES)
             self.root_physx_view.set_dof_velocity_targets(self._joint_vel_target_sim, self._ALL_INDICES)
+        '''
+        set_dof_actuation_forces：
+            对所有执行器，把算好的力矩 τ 写入 PhysX。PD 控制器算出力矩，PhysX 用这个力矩驱动关节。
+        set_dof_position_targets / set_dof_velocity_targets：
+            只有隐式执行器需要。隐式执行器直接把用户目标透传给 PhysX 内置 PD，所以需要写位置和速度目标。
+        '''
 
     def update(self, dt: float):
         self._data.update(dt)
@@ -379,6 +496,15 @@ class Articulation(AssetBase):
     """搜索器
     """
 
+    '''
+    名字到索引的查找器
+    输入/输出参数
+        参数	            类型	                说明
+        name_keys	        str | Sequence[str]	    正则表达式（字符串）或正则表达式列表。例如 ".*foot" 匹配所有以 "foot" 结尾的名字，["left.*", "right.*"] 分别匹配左、右侧
+        preserve_order	    bool，默认 False	    True = 按 body_names 原始顺序排列结果；False = 按正则表达式匹配顺序排列
+        返回值 [0]	        list[int]	            匹配到的连杆索引列表。可直接用于索引数据 tensor，如 body_link_pose_w[:, indices, :]
+        返回值 [1]	        list[str]	            匹配到的连杆名称列表，和索引一一对应
+    '''
     def find_bodies(self, name_keys: str | Sequence[str], preserve_order: bool = False) -> tuple[list[int], list[str]]:
         """Find bodies in the articulation based on the name keys.
 
@@ -405,6 +531,13 @@ class Articulation(AssetBase):
             一个包含身体指标和名称的列表。
         """
         return string_utils.resolve_matching_names(name_keys, self.body_names, preserve_order)
+    '''
+    使用示例
+        # 找所有脚（正则 .*FOOT 匹配 _FOOT 结尾）
+        self._feet_ids, _ = self._contact_sensor.find_bodies(".*FOOT")
+        # 结果: ([4, 7, 10, 13],
+        #        ["LF_FOOT", "RF_FOOT", "LH_FOOT", "RH_FOOT"])
+    '''
 
     def find_joints(
         self, name_keys: str | Sequence[str], joint_subset: list[str] | None = None, preserve_order: bool = False
@@ -441,6 +574,39 @@ class Articulation(AssetBase):
             joint_subset = self.joint_names
         # find joints
         return string_utils.resolve_matching_names(name_keys, joint_subset, preserve_order)
+    '''
+    和 find_bodies 的对比
+        维度	    find_bodies	                        find_joints
+        搜索范围	固定为 self.body_names（所有连杆）	    默认 self.joint_names，可缩小范围
+        额外参数	无	                                joint_subset：限制搜索范围
+        使用场景	找脚、找末端执行器	                    找手臂关节、找手指、找特定关节组
+        底层引擎	resolve_matching_names	                同一个
+
+    joint_subset 参数的设计
+        这是 find_joints 独有的功能：在搜索时先限定一个子集。
+                if joint_subset is None:
+                    joint_subset = self.joint_names
+        为什么需要 joint_subset？
+            假设一个四足+手臂的复合机器人（如 Spot + 机械臂），它有 18 个关节。你想找"手臂的关节"，但手臂和腿的关节名可能都包含 joint：
+                # 全部 18 个关节名：
+                ["base_arm_joint1", "base_arm_joint2", "base_arm_joint3",
+                "base_arm_joint4", "base_arm_joint5", "base_arm_joint6",
+                "left_front_hip_joint", "left_front_knee_joint", ...]
+
+                # 如果不用 joint_subset，搜 ".*joint.*" 会返回全部 18 个
+                robot.find_joints(".*joint.*")  # → 全部 18 个
+
+                # 先用 joint_subset 限定只搜手臂关节
+                arm_joints = ["base_arm_joint1", "base_arm_joint2", ..., "base_arm_joint6"]
+                robot.find_joints(".*joint.*", joint_subset=arm_joints)  # → 只返回 6 个手臂关节
+            通俗类比：joint_subset 就像搜房时先"筛选区域"——你说"我只在朝阳区找三居室"（joint_subset = 朝阳区的房源列表），而不是在整个北京找。
+
+    示例 1：精确找单个关节
+        # 用配置中的名字精确匹配关节
+        self._cart_dof_idx, _ = self.robot.find_joints(self.cfg.cart_dof_name)
+        # 例如 cfg.cart_dof_name = "cart_joint"
+        # 返回: ([0], ["cart_joint"])
+    '''
 
     def find_fixed_tendons(
         self, name_keys: str | Sequence[str], tendon_subsets: list[str] | None = None, preserve_order: bool = False
@@ -521,6 +687,12 @@ class Articulation(AssetBase):
     """
     """动作 - 国家秘书
     """
+    '''
+    root_state
+        形状 (len(env_ids), 13)。
+        顺序：[pos_x, pos_y, pos_z, quat_w, quat_x, quat_y, quat_z,             前7个
+            lin_vel_x, lin_vel_y, lin_vel_z, ang_vel_x, ang_vel_y, ang_vel_z]   后6个
+    '''
 
     def write_root_state_to_sim(self, root_state: torch.Tensor, env_ids: Sequence[int] | None = None):
         """Set the root state over selected environment indices into the simulation.
@@ -2523,19 +2695,19 @@ class Articulation(AssetBase):
         for actuator in self.actuators.values():
             # prepare input for actuator model based on cached data
             # TODO : A tensor dict would be nice to do the indexing of all tensors together
-            control_action = ArticulationActions(
+            control_action = ArticulationActions(   # ① 从用户缓冲区读取策略输出的目标
                 joint_positions=self._data.joint_pos_target[:, actuator.joint_indices],
                 joint_velocities=self._data.joint_vel_target[:, actuator.joint_indices],
                 joint_efforts=self._data.joint_effort_target[:, actuator.joint_indices],
                 joint_indices=actuator.joint_indices,
             )
             # compute joint command from the actuator model
-            control_action = actuator.compute(
+            control_action = actuator.compute(      # ② 通过执行器模型计算（例如 PD 控制器）
                 control_action,
-                joint_pos=self._data.joint_pos[:, actuator.joint_indices],
-                joint_vel=self._data.joint_vel[:, actuator.joint_indices],
+                joint_pos=self._data.joint_pos[:, actuator.joint_indices],  # 当前实际位置
+                joint_vel=self._data.joint_vel[:, actuator.joint_indices],  # 当前实际速度
             )
-            # update targets (these are set into the simulation)
+            # update targets (these are set into the simulation)    # ③ 计算结果写入仿真缓冲区
             if control_action.joint_positions is not None:
                 self._joint_pos_target_sim[:, actuator.joint_indices] = control_action.joint_positions
             if control_action.joint_velocities is not None:

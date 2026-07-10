@@ -69,6 +69,16 @@ class CurriculumManager(ManagerBase):
         self._term_names: list[str] = list()
         self._term_cfgs: list[CurriculumTermCfg] = list()
         self._class_term_cfgs: list[CurriculumTermCfg] = list()
+        '''
+        容器	            存什么	                                用途
+        _term_names	        ["terrain_level", "speed_limit"]	  term 名字列表
+        _term_cfgs	        所有激活的 CurriculumTermCfg	        运行时调用 func(env, **params)
+        _class_term_cfgs	用类实现的 CurriculumTermCfg	        reset() 时需要调用 func.reset(env_ids)
+
+        _class_term_cfgs 和 _term_cfgs 的区别：
+            _term_cfgs 的 func 是普通函数 → compute() 时调用
+            _class_term_cfgs 的 func 是类实例 → reset() 时额外调用 .reset()
+        '''
 
         # call the base class constructor (this will parse the terms config)
         super().__init__(cfg, env)
@@ -77,7 +87,28 @@ class CurriculumManager(ManagerBase):
         self._curriculum_state = dict()
         for term_name in self._term_names:
             self._curriculum_state[term_name] = None
+        '''
+        课程状态字典
+        存储每个课程 term 的当前状态，供日志使用。初始全部为 None。
+            # 某次 compute 后：
+            _curriculum_state = {
+                "terrain_level": 4.0,      # 训练到 1000 步，难度升到 4
+                "speed_limit": 1.8,        # 速度限制提高到 1.8
+            }
+        '''
 
+    '''
+    输出示例
+        <CurriculumManager> contains 2 active terms.
+        +-------------------------------+
+        | Active Curriculum Terms       |
+        +-------+--------------------+
+        | Index | Name               |
+        +-------+--------------------+
+        |   0   | terrain_level      |
+        |   1   | speed_limit        |
+        +-------+--------------------+
+    '''
     def __str__(self) -> str:
         """Returns: A string representation for curriculum manager."""
         """Returns: 课程管理器。"""
@@ -116,6 +147,15 @@ class CurriculumManager(ManagerBase):
     """操作。
     """
 
+    '''
+    课程状态的日志输出器
+        CurriculumManager.reset() 和其他 Manager 的 reset() 有一个根本不同：它不关心 env_ids。所有环境共享同一个课程状态。
+
+        env_ids 参数被完全忽略——它只是为了和其他 Manager 的 reset() 保持接口一致而存在的。
+        为什么？ 
+        因为课程学习是全局的——所有并行环境共享同一个难度等级，没有"只给环境 3 提高难度"的操作。所以不需要关注哪些特定环境被重置。
+    reset() 把 _curriculum_state 中的课程状态输出为日志：标量直接用 Curriculum/{name}，字典展开为 Curriculum/{name}/{key}。
+    '''
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
         """Returns the current state of individual curriculum terms.
 
@@ -139,7 +179,7 @@ class CurriculumManager(ManagerBase):
         extras = {}
         for term_name, term_state in self._curriculum_state.items():
             if term_state is not None:
-                # deal with dict
+                # deal with dict    # 情况 A: dict（多维状态
                 if isinstance(term_state, dict):
                     # each key is a separate state to log
                     for key, value in term_state.items():
@@ -147,7 +187,7 @@ class CurriculumManager(ManagerBase):
                             value = value.item()
                         extras[f"Curriculum/{term_name}/{key}"] = value
                 else:
-                    # log directly if not a dict
+                    # log directly if not a dict    # 情况 B: 标量（单维状态）
                     if isinstance(term_state, torch.Tensor):
                         term_state = term_state.item()
                     extras[f"Curriculum/{term_name}"] = term_state
@@ -157,6 +197,9 @@ class CurriculumManager(ManagerBase):
         # return logged information
         return extras
 
+    '''
+    只在环境重置时被调用
+    '''
     def compute(self, env_ids: Sequence[int] | None = None):
         """Update the curriculum terms.
 
@@ -182,6 +225,28 @@ class CurriculumManager(ManagerBase):
         for name, term_cfg in zip(self._term_names, self._term_cfgs):
             state = term_cfg.func(self._env, env_ids, **term_cfg.params)
             self._curriculum_state[name] = state
+        '''
+        zip 把两个列表"拉链"到一对：
+            _term_names = ["terrain_level", "speed_limit"]
+            _term_cfgs  = [CurriculumTermCfg(...), CurriculumTermCfg(...)]
+
+            zip(_term_names, _term_cfgs)
+            # → [("terrain_level", CurriculumTermCfg(...)), 
+            #    ("speed_limit", CurriculumTermCfg(...))]
+
+        执行时机
+            训练中:
+            某个环境摔倒 → done=True → _reset_idx([3])
+                │
+                ├── curriculum_manager.compute(env_ids=[3])
+                │     └── 检查当前训练进度 → 是否该提高难度？
+                │
+                └── 之后这个环境用新难度重置
+        一句话总结
+            compute(env_ids) 遍历所有课程 term，调用 func(env, env_ids, **params) 更新全局课程状态（存到 _curriculum_state）。
+            和 RewardManager 每步调用不同，CurriculumManager 只在环境重置时更新，因为课程学习是"回合级别"的。
+            zip 把名字列表和配置列表并行配对遍历。
+        '''
 
     def get_active_iterable_terms(self, env_idx: int) -> Sequence[tuple[str, Sequence[float]]]:
         """Returns the active terms as iterable sequence of tuples.

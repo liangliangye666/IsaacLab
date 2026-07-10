@@ -8,12 +8,12 @@
 The functions can be passed to the :class:`isaaclab.managers.ObservationTermCfg` object to enable
 the observation introduced by the function.
 """
-
-from __future__ import annotations
 """可以用来创建观测项的共同函数。
 
 函数可以传递到:class:`isaaclab.managers.ObservationTermCfg`对象，以实现函数引入的观测。
 """
+
+from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
@@ -45,16 +45,83 @@ Root state.
 """根源状态。
 """
 
+'''
+@generic_io_descriptor(
+    units="m",                              # 物理单位：米
+    axes=["Z"],                             # 轴标签：Z 轴
+    observation_type="RootState",            # 观测类别：根状态
+    on_inspect=[record_shape, record_dtype]  # 自动记录形状和类型
+)
+@generic_io_descriptor(...)
+    是一个装饰器（decorator）。它把 base_pos_z 函数"包装"了一下——在函数被调用时，自动记录输出的元数据（形状、类型），用于后续的模型导出和部署。
 
+on_inspect 钩子的作用
+        on_inspect=[record_shape, record_dtype]
+    这两个是钩子函数，在函数被调用且 inspect=True 时自动执行：
+        # 正常调用（每步训练）:
+        base_pos_z(env)                          # → 正常返回 [N, 1]，不触发钩子
+
+        # inspect 调用（导出描述符时）:
+        base_pos_z(env, inspect=True)            # → 返回 [N, 1]
+                                                # → 同时触发 record_shape → descriptor.shape = (1,)
+                                                # → 同时触发 record_dtype → descriptor.dtype = "torch.float32"
+'''
+
+'''
+返回机器人基座的高度（世界坐标系 Z 坐标）
+    输出： torch.Tensor，形状 [N, 1]，N 个环境各自的基础高度（米）
+'''
 @generic_io_descriptor(units="m", axes=["Z"], observation_type="RootState", on_inspect=[record_shape, record_dtype])
 def base_pos_z(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")) -> torch.Tensor:
     """Root height in the simulation world frame."""
     """在仿真世界框架中的根高度。"""
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
-    return asset.data.root_pos_w[:, 2].unsqueeze(-1)
+    return asset.data.root_pos_w[:, 2].unsqueeze(-1)    # unsqueeze(-1) 在最后一维增加一个维度：[N] → [N, 1]。
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """策略观测：机器人基座高度"""
 
+        base_height = ObservationTermCfg(
+            func=observations.base_pos_z,
+            params={"asset_cfg": SceneEntityCfg("robot")},
+        )
+    效果： 策略的观测向量中多了 1 维——机器人当前离地面多高。
 
+env 是由 ObservationManager 自动注入的，你在配置中不需要也不能手动传。
+    管理器自动注入了什么
+        回顾 EventManager.apply() 的调用方式（观测管理器同理）：
+            # 管理器内部调用观测函数:
+            term_cfg.func(self._env, **term_cfg.params)
+            #             ↑ 自动注入      ↑ 你配置的参数
+        所以函数签名中的前两个参数是被管理器自动填的：
+            def base_lin_vel(env, asset_cfg):
+                            ↑          ↑
+                        管理器自动填    你在 params 中填
+
+            def base_ang_vel(env, asset_cfg):
+                            ↑          ↑
+                        管理器自动填    你在 params 中填
+        正确 vs 错误
+            # ✅ 正确：只写函数自己的参数
+            ObservationTermCfg(
+                func=observations.base_lin_vel,
+                params={"asset_cfg": SceneEntityCfg("robot")},  # 只写 asset_cfg
+            )
+
+            # ❌ 错误：不要把 env 放进 params
+            ObservationTermCfg(
+                func=observations.base_lin_vel,
+                params={"env": env, "asset_cfg": ...},  # ← 这样会出错
+            )
+'''
+
+'''
+返回机器人基座的线速度（在机体坐标系中）
+    输出： torch.Tensor，形状 [N, 3] — [vx, vy, vz]，单位 m/s
+'''
 @generic_io_descriptor(
     units="m/s", axes=["X", "Y", "Z"], observation_type="RootState", on_inspect=[record_shape, record_dtype]
 )
@@ -64,8 +131,27 @@ def base_lin_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCf
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_lin_vel_b
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """观测：机器人速度 + 命令速度"""
+
+        # 机器人实际速度（机体坐标系）
+        base_velocity = ObservationTermCfg(
+            func=observations.base_lin_vel,
+            params={"asset_cfg": SceneEntityCfg("robot")},
+        )
+
+        # 命令速度（也来自机体坐标系，可以直接对比）
+        # 这里通常还有 commands 观测，两者坐标系一致方便对比
+'''
 
 
+'''
+返回机体坐标系下的角速度 [ωx, ωy, ωz]，单位 rad/s
+    输出： [N, 3]
+'''
 @generic_io_descriptor(
     units="rad/s", axes=["X", "Y", "Z"], observation_type="RootState", on_inspect=[record_shape, record_dtype]
 )
@@ -75,8 +161,22 @@ def base_ang_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCf
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_ang_vel_b
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        base_ang_vel = ObservationTermCfg(
+            func=observations.base_ang_vel,
+            # env 由管理器自动注入，不需要写
+        )
+'''
 
 
+'''
+返回重力方向在机体坐标系中的投影。
+用一个 3 维向量隐式地告诉策略"机器人现在往哪边歪"。
+这是 Isaac Lab 行走任务中最重要的观测之一——比欧拉角更好，因为它没有角度表示的不连续问题。
+'''
 @generic_io_descriptor(
     units="m/s^2", axes=["X", "Y", "Z"], observation_type="RootState", on_inspect=[record_shape, record_dtype]
 )
@@ -86,8 +186,41 @@ def projected_gravity(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEnt
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.projected_gravity_b
+'''
+数学原理
+    projected_gravity_b 的计算（articulation_data.py:1192-1197）：
+        projected_gravity_b = quat_apply_inverse(root_quat_w, GRAVITY_VEC_W)
+    把世界坐标系中的重力向量 [0, 0, -9.81]，反向旋转到机体坐标系中：
+        世界系: 重力始终指向 [0, 0, -1]（正下方，归一化后）
+
+        机器人直立:
+        projected_gravity = [0, 0, -1]    → "我感觉重力在我脚下" ✅
+
+        机器人前倾 30°:
+        projected_gravity = [0.5, 0, -0.87]  → "我感觉重力偏前了" ⚠️
+
+        机器人完全倒立:
+        projected_gravity = [0, 0, 1]     → "我感觉重力在头顶" ❌（要摔了！）
+
+        机器人侧倾 45°:
+        projected_gravity = [0, 0.7, -0.7]  → "我感觉重力偏侧面了" ⚠️
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """行走任务的标准观测四件套"""
+
+        base_height     = ObservationTermCfg(func=observations.base_pos_z)      # 1维
+        base_lin_vel    = ObservationTermCfg(func=observations.base_lin_vel)    # 3维
+        base_ang_vel    = ObservationTermCfg(func=observations.base_ang_vel)    # 3维
+        gravity         = ObservationTermCfg(func=observations.projected_gravity) # 3维
+
+    # 总计 10 维基础观测 → 策略的核心"本体感知"
+'''
 
 
+'''
+返回机器人在环境本地坐标系（而非绝对世界坐标系）中的位置
+'''
 @generic_io_descriptor(
     units="m", axes=["X", "Y", "Z"], observation_type="RootState", on_inspect=[record_shape, record_dtype]
 )
@@ -97,8 +230,25 @@ def root_pos_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg(
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_pos_w - env.scene.env_origins
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """用于导航任务的观测 — 需要知道当前位置"""
+
+        robot_position = ObservationTermCfg(
+            func=observations.root_pos_w,
+        )
+
+    # 对于到达目标位置的任务，策略对比:
+    #   error = target_pos - robot_position  → 判断是否到达
+'''
 
 
+'''
+返回机器人的朝向，以四元数 [w, x, y, z] 表示。告诉策略"我面朝哪个方向"。
+    make_quat_unique： bool，默认 False。True 时强制四元数的实部 w ≥ 0
+'''
 @generic_io_descriptor(
     units="unit", axes=["W", "X", "Y", "Z"], observation_type="RootState", on_inspect=[record_shape, record_dtype]
 )
@@ -123,8 +273,39 @@ def root_quat_w(
     quat = asset.data.root_quat_w
     # make the quaternion real-part positive if configured
     return math_utils.quat_unique(quat) if make_quat_unique else quat
+'''
+核心概念：四元数的双覆盖问题
+        q  = [ 0.707,  0.707,  0,  0]  → 绕 X 轴旋转 90°
+        -q = [-0.707, -0.707,  0,  0]  → 绕 X 轴旋转 90°（同一个朝向！）
+    q 和 -q 代表完全相同的空间朝向，但作为观测向量，两者天差地别。
+    如果 PhysX 在连续两帧中返回了 q 然后 -q，策略会看到观测从 [0.7, 0.7, 0, 0] 跳到 [-0.7, -0.7, 0, 0]——这是欧几里得距离 2.0 的巨大跳变，但实际上机器人的朝向根本没变！
+
+    make_quat_unique=True 解决这个问题：
+        quat_unique 检查实部 w，如果 w < 0，就把整个四元数取反（-q）。这样就保证了 w ≥ 0，消除了符号跳变。
+为什么q 和 -q 表示完全相同的空间旋转？
+    因为四元数旋转一个向量时，用的是这个形式：
+        v' = q * v * q^-1
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """朝向观测 — 不唯一化（默认）"""
+
+        orientation = ObservationTermCfg(
+            func=observations.root_quat_w,
+            # make_quat_unique=False（默认）→ 可能跳变，但更快
+        )
+
+        # 或
+        orientation_unique = ObservationTermCfg(
+            func=observations.root_quat_w,
+            params={"make_quat_unique": True},  # 消除符号跳变
+        )
+'''
 
 
+'''
+返回机器人在世界坐标系中的线速度
+'''
 @generic_io_descriptor(
     units="m/s", axes=["X", "Y", "Z"], observation_type="RootState", on_inspect=[record_shape, record_dtype]
 )
@@ -134,8 +315,21 @@ def root_lin_vel_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntity
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_lin_vel_w
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        # 行走任务用机体坐标系（配合速度命令）
+        body_vel = ObservationTermCfg(func=observations.base_lin_vel)
+
+        # 导航任务用世界坐标系（配合全局目标位置）
+        world_vel = ObservationTermCfg(func=observations.root_lin_vel_w)
+'''
 
 
+'''
+返回机器人在世界坐标系中的角速度
+'''
 @generic_io_descriptor(
     units="rad/s", axes=["X", "Y", "Z"], observation_type="RootState", on_inspect=[record_shape, record_dtype]
 )
@@ -145,6 +339,12 @@ def root_ang_vel_w(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntity
     # extract the used quantities (to enable type-hinting)
     asset: RigidObject = env.scene[asset_cfg.name]
     return asset.data.root_ang_vel_w
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        world_ang_vel = ObservationTermCfg(func=observations.root_ang_vel_w)
+'''
 
 
 """
@@ -153,7 +353,16 @@ Body state
 """身体状态
 """
 
+'''
+返回关节体中每个身体（连杆）的位姿，并全部展平成一维。
+    和之前只返回根状态不同——根是"机器人整体在哪"，body 是"机器人的各个部件（腿、手臂、头）分别在哪"。
+输出形状
+    [N, 7 × num_bodies]
+    例如有 4 个身体 (body_ids=[0,3,5,7]) → [N, 28]
 
+    展平前: [N, 4, 7]    每个身体 [x, y, z, qw, qx, qy, qz]
+    展平后: [N, 28]       [x0,y0,z0,qw0,qx0,qy0,qz0, x1,y1,z1,...]
+'''
 @generic_io_descriptor(observation_type="BodyState", on_inspect=[record_shape, record_dtype, record_body_names])
 def body_pose_w(
     env: ManagerBasedEnv,
@@ -193,8 +402,35 @@ def body_pose_w(
         pose = pose.clone()  # if slice or int, make a copy to avoid modifying original data
     pose[..., :3] = pose[..., :3] - env.scene.env_origins.unsqueeze(1)
     return pose.reshape(env.num_envs, -1)
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """观测所有身体的位姿 — 用于全身控制任务"""
+
+        body_poses = ObservationTermCfg(
+            func=observations.body_pose_w,
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot",
+                    body_ids=[0, 3, 6],    # 只观测 3 个身体: 躯干 + 左脚 + 右脚
+                ),
+            },
+        )
+    # 输出: [N, 21]  = 3 个身体 × 7 维
+
+        # 或：观测全体
+        all_body_poses = ObservationTermCfg(
+            func=observations.body_pose_w,
+        )
+    # 输出: [N, 7×num_bodies]  = 全部连杆的位姿
+'''
 
 
+'''
+projected_gravity（我们之前讲的"整体重力方向"）的身体级版本——为每个身体（连杆）独立计算重力方向。
+    根级别只告诉策略"机器人整体歪没歪"，身体级别告诉策略"每条腿、每只手分别往哪歪"。
+'''
 @generic_io_descriptor(observation_type="BodyState", on_inspect=[record_shape, record_dtype, record_body_names])
 def body_projected_gravity_b(
     env: ManagerBasedEnv,
@@ -225,21 +461,62 @@ def body_projected_gravity_b(
         引力投射向量顺序是 [x，y，z]。
         每个机体的输出水平堆叠。
     """
+    '''
+    与 projected_gravity 的对比
+        # projected_gravity（根级别）:
+        asset.data.projected_gravity_b                    → [N, 3]
+        # 对根身体做一次四元数逆旋转 → "整个机器人觉得重力在哪"
+
+        # body_projected_gravity_b（身体级别）:
+        body_quat = asset.data.body_quat_w[:, body_ids]    → [N, B, 4]  B 个身体的朝向
+        quat_apply_inverse(body_quat, GRAVITY_VEC_W)       → [N, B, 3]  每个身体的重力投影
+        .view(N, -1)                                        → [N, 3×B]   展平
+        核心差异：
+            根级别的 projected_gravity_b 是 ArticulationData 的属性（预计算好的），身体级别需要自己手动算——取每个身体的四元数，逐个做逆旋转。
+    '''
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
 
     body_quat = asset.data.body_quat_w[:, asset_cfg.body_ids]
     gravity_dir = asset.data.GRAVITY_VEC_W.unsqueeze(1)
     return math_utils.quat_apply_inverse(body_quat, gravity_dir).view(env.num_envs, -1)
+'''
+① body_quat [N, B, 4]：
+    每个身体在世界坐标系中的朝向四元数
+② gravity_dir [N, 1, 3]：
+    世界坐标系重力方向 [0, 0, -9.81]，unsqueeze(1) 为广播扩充维度
+③ quat_apply_inverse(q, v)：
+    把世界向量 v 用四元数 q 的逆旋转 → "这个向量在身体坐标系中看起来向哪"。结果 [N, B, 3] 展平为 [N, 3*B]
+
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """全身重力感知 — 每条腿的倾斜程度"""
+
+        body_gravity = ObservationTermCfg(
+            func=observations.body_projected_gravity_b,
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot",
+                    body_ids=[3, 4, 5, 6],   # 只有四条腿
+                ),
+            },
+        )
+    # 输出: [N, 12]  = 4 条腿 × 3 维
+'''
 
 
 """
 Joint state.
 """
-"""联合州。
+"""关节状态
 """
 
 
+'''
+返回关节体中指定关节的当前角度。
+    输出： torch.Tensor，形状 [N, J]（J = 选中的关节数），单位 rad
+'''
 @generic_io_descriptor(
     observation_type="JointState", on_inspect=[record_joint_names, record_dtype, record_shape], units="rad"
 )
@@ -255,8 +532,35 @@ def joint_pos(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     return asset.data.joint_pos[:, asset_cfg.joint_ids]
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """标准关节角度观测"""
+
+        joint_positions = ObservationTermCfg(
+            func=observations.joint_pos,
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot",
+                    joint_ids=[0, 1, 2, 3, 4, 5],   # 只观测 6 个腿部关节
+                ),
+            },
+        )
+    # 输出: [N, 6]  = 6 个关节的当前角度 (rad)
+
+        # 或：全部关节
+        all_joints = ObservationTermCfg(
+            func=observations.joint_pos,
+        )
+    # 输出: [N, num_joints]
+'''
 
 
+'''
+joint_pos 的相对版本——不是返回绝对关节角度，而是返回相对于默认姿态的偏移。
+    策略看到的是"我偏离了标准站姿多少"，而不是"我现在的绝对角度是多少"。
+'''
 @generic_io_descriptor(
     observation_type="JointState",
     on_inspect=[record_joint_names, record_dtype, record_shape, record_joint_pos_offsets],
@@ -275,8 +579,28 @@ def joint_pos_rel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityC
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     return asset.data.joint_pos[:, asset_cfg.joint_ids] - asset.data.default_joint_pos[:, asset_cfg.joint_ids]
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """相对关节角度 — 零中心观测"""
+
+        joint_offsets = ObservationTermCfg(
+            func=observations.joint_pos_rel,
+            params={
+                "asset_cfg": SceneEntityCfg("robot", joint_ids=[0,1,2,3]),
+            },
+        )
+    # 默认站姿 → 输出 [0, 0, 0, 0]
+    # 微蹲     → 输出 [0, 0.1, 0, -0.05]  ← 每条腿各自偏离默认多少
+'''
 
 
+'''
+把关节角度归一化到 [-1, 1] 范围。
+    -1 = 关节在下限，0 = 关节在中间，1 = 关节在上限。
+    这是强化学习中处理关节角度最常用的观测形式——神经网络处理 [-1, 1] 的归一化值远比处理 [-2.0, 3.5] 的原始弧度值稳定。
+'''
 @generic_io_descriptor(observation_type="JointState", on_inspect=[record_joint_names, record_dtype, record_shape])
 def joint_pos_limit_normalized(
     env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("robot")
@@ -296,8 +620,33 @@ def joint_pos_limit_normalized(
         asset.data.soft_joint_pos_limits[:, asset_cfg.joint_ids, 0],
         asset.data.soft_joint_pos_limits[:, asset_cfg.joint_ids, 1],
     )
+'''
+数学公式
+    scale_transform(x, lower, upper) = 2 × (x - lower) / (upper - lower) - 1
+    膝关节示例: lower = -2.0, upper = 2.0
+        x = -2.0  →  normalized = -1.0    (完全伸直)
+        x =  0.0  →  normalized =  0.0    (中间位置)
+        x =  2.0  →  normalized =  1.0    (完全弯曲)
+        x =  0.6  →  normalized =  0.3    (微弯，默认站姿)
+为什么用 soft_joint_pos_limits 而非 joint_pos_limits？
+    soft limits = 物理 limits 的 90% 范围（保留了 10% 的安全余量）。
+    if 关节实际到达了物理极限但不在 soft 范围内，归一化值可能略微超出 [-1, 1]——但这也给策略提供了"我已经快到极限了"的信号。
+使用示例
+    @configclass
+    class ObservationsCfg:
+        normalized_joints = ObservationTermCfg(
+            func=observations.joint_pos_limit_normalized,
+            params={
+                "asset_cfg": SceneEntityCfg("robot", joint_ids=[0,1,2,3]),
+            },
+        )
+    # 输出: [N, 4] 均为 [-1, 1] 范围
+'''
 
 
+'''
+返回关节角速度
+'''
 @generic_io_descriptor(
     observation_type="JointState", on_inspect=[record_joint_names, record_dtype, record_shape], units="rad/s"
 )
@@ -313,8 +662,23 @@ def joint_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
     return asset.data.joint_vel[:, asset_cfg.joint_ids]
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """标准本体感知：位置 + 速度"""
+
+        joint_positions = ObservationTermCfg(func=observations.joint_pos)
+        joint_velocities = ObservationTermCfg(func=observations.joint_vel)
+    # 输出: [N, 2J] — 每个关节的位置 + 速度
+'''
 
 
+'''
+返回关节角速度相对于默认角速度的偏移
+    由于 default_joint_vel 通常是全零，joint_vel_rel 和 joint_vel 在数值上相同。
+    但语义上，_rel 版本强调了"这是相对于默认状态的偏移"——提供了零中心的观测，即使将来改了默认速度也不会影响代码行为。
+'''
 @generic_io_descriptor(
     observation_type="JointState",
     on_inspect=[record_joint_names, record_dtype, record_shape, record_joint_vel_offsets],
@@ -335,6 +699,9 @@ def joint_vel_rel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityC
     return asset.data.joint_vel[:, asset_cfg.joint_ids] - asset.data.default_joint_vel[:, asset_cfg.joint_ids]
 
 
+'''
+回每个关节实际承受的力矩（扭矩）
+'''
 @generic_io_descriptor(
     observation_type="JointState", on_inspect=[record_joint_names, record_dtype, record_shape], units="N.m"
 )
@@ -363,7 +730,17 @@ def joint_effort(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCf
     """
     # extract the used quantities (to enable type-hinting)
     asset: Articulation = env.scene[asset_cfg.name]
-    return asset.data.applied_torque[:, asset_cfg.joint_ids]
+    return asset.data.applied_torque[:, asset_cfg.joint_ids]    # asset.data.applied_torque 是执行器模型裁剪后的实际力矩
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        joint_efforts = ObservationTermCfg(func=observations.joint_effort)
+
+    # 常用于力矩正则化 — 在奖励函数中惩罚过大扭矩:
+    #   torque_penalty = -sum(abs(joint_effort))
+    #   → 鼓励策略使用节能的步态
+'''
 
 
 """
@@ -373,6 +750,10 @@ Sensors.
 """
 
 
+'''
+通过 RayCaster（射线投射器） 测量地面高度。
+    RayCaster 从机器人向下发射射线，测量每条射线到地面的距离，从而构建一个"地形高度图"。
+'''
 def height_scan(env: ManagerBasedEnv, sensor_cfg: SceneEntityCfg, offset: float = 0.5) -> torch.Tensor:
     """Height scan from the given sensor w.r.t. the sensor's frame.
 
@@ -387,8 +768,30 @@ def height_scan(env: ManagerBasedEnv, sensor_cfg: SceneEntityCfg, offset: float 
     sensor: RayCaster = env.scene.sensors[sensor_cfg.name]
     # height scan: height = sensor_height - hit_point_z - offset
     return sensor.data.pos_w[:, 2].unsqueeze(1) - sensor.data.ray_hits_w[..., 2] - offset
+'''
+= 传感器高度   - 射线命中点Z  - 传感器安装偏移
+ray_hits_w[..., 2] 是所有射线命中点的世界 Z 坐标。传感器安装高度 - 命中点 Z - offset → 机器人脚下地面的相对高度。
+
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """地面高度感知 — 用于越野行走"""
+
+        terrain_scan = ObservationTermCfg(
+            func=observations.height_scan,
+            params={
+                "sensor_cfg": SceneEntityCfg("height_scanner"),
+                "offset": 0.5,
+            },
+        )
+'''
 
 
+'''
+返回每个身体在关节处承受的力（3D）和力矩（3D）——总共 6 维 per body。
+    这是"关节反作用力"——当机器人的腿蹬地时，膝关节会把力传递给大腿，大腿再传给躯干。
+    这个观测让策略"感受"到这些传递链中的力。
+'''
 def body_incoming_wrench(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg) -> torch.Tensor:
     """Incoming spatial wrench on bodies of an articulation in the simulation world frame.
 
@@ -403,8 +806,36 @@ def body_incoming_wrench(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg) -> tor
     # obtain the link incoming forces in world frame
     body_incoming_joint_wrench_b = asset.data.body_incoming_joint_wrench_b[:, asset_cfg.body_ids]
     return body_incoming_joint_wrench_b.view(env.num_envs, -1)
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """感知腿部的受力——用于接触检测和力控"""
 
+        foot_forces = ObservationTermCfg(
+            func=observations.body_incoming_wrench,
+            params={
+                "asset_cfg": SceneEntityCfg(
+                    "robot",
+                    body_ids=[5, 6],        # 只观测两只脚
+                ),
+            },
+        )
+    # 输出: [N, 12]  = 2 只脚 × 6 维
+'''
 
+'''
+IMU 传感器四件套
+    imu_orientation       → [N, 4]  四元数朝向
+    imu_projected_gravity → [N, 3]  重力方向
+    imu_ang_vel           → [N, 3]  角速度
+    imu_lin_acc           → [N, 3]  线加速度
+'''
+
+'''
+读取 IMU 传感器（惯性测量单元）的朝向四元数。
+    和 root_quat_w（读关节体的根朝向）不同——这是从独立的 IMU 传感器对象中读取的数据，模拟了真实机器人上物理 IMU 的输出。
+'''
 def imu_orientation(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("imu")) -> torch.Tensor:
     """Imu sensor orientation in the simulation world frame.
 
@@ -430,8 +861,28 @@ def imu_orientation(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntit
     asset: Imu = env.scene[asset_cfg.name]
     # return the orientation quaternion
     return asset.data.quat_w
+'''
+与 root_quat_w 的关键区别
+                        root_quat_w	                imu_orientation
+    数据源	            Articulation 根状态	            Imu 传感器对象
+    默认资产名	        "robot"	                        "imu"
+    物理意义	        机器人基座的朝向	                IMU 芯片的朝向
+    真实机器人能读到吗	  不一定（取决于是否有根状态传感器）	是（IMU 是标配硬件）
+
+    IMU 可能和机器人基座有安装偏移——在实际部署中可以模拟这个偏差，让策略对传感器安装误差鲁棒。
+通俗类比：
+    root_quat_w 像"上帝视角知道的朝向"（仿真内部的真值），imu_orientation 像"手机里陀螺仪读到的朝向"（传感器数据）。
+    对于 Sim-to-Real 迁移，应该训练策略依赖 IMU 传感器数据（真实机器人有 IMU），而不是依赖仿真内部状态（真实机器人没有"上帝视角"）。
+使用示例
+    @configclass
+    class ObservationsCfg:
+        imu_quat = ObservationTermCfg(func=observations.imu_orientation)
+'''
 
 
+'''
+projected_gravity 的 IMU 传感器版本——从 IMU 读取重力方向，而非从关节体根状态读取。
+'''
 def imu_projected_gravity(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("imu")) -> torch.Tensor:
     """Imu sensor orientation w.r.t the env.scene.origin.
 
@@ -454,8 +905,16 @@ def imu_projected_gravity(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = Scen
 
     asset: Imu = env.scene[asset_cfg.name]
     return asset.data.projected_gravity_b
+'''
+通俗类比：
+    projected_gravity 是仿真告诉你的"上帝视角的重力方向"，imu_projected_gravity 是 IMU 芯片实际测量的重力方向。
+    两者数学上应该相同，但在 Sim-to-Real 场景中，真实机器人只有 IMU 数据可用。用 IMU 版本训练的策略部署时不需要适配——因为它在仿真中就已经习惯读 IMU 数据了。
+'''
 
 
+'''
+base_ang_vel 的 IMU 传感器版本——从 IMU 读取角速度。
+'''
 def imu_ang_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("imu")) -> torch.Tensor:
     """Imu sensor angular velocity w.r.t. environment origin expressed in the sensor frame.
 
@@ -484,6 +943,10 @@ def imu_ang_vel(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg
     return asset.data.ang_vel_b
 
 
+'''
+IMU 中的加速度计测量传感器坐标系下的线性加速度。
+    base_lin_vel 是速度，imu_lin_acc 是加速度——两者是积分关系（加速度积分得到速度）。真实 IMU 输出加速度而非速度。策略需要学会从加速度推断速度的变化趋势。
+'''
 def imu_lin_acc(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg("imu")) -> torch.Tensor:
     """Imu sensor linear acceleration w.r.t. the environment origin expressed in sensor frame.
 
@@ -510,6 +973,11 @@ def imu_lin_acc(env: ManagerBasedEnv, asset_cfg: SceneEntityCfg = SceneEntityCfg
     return asset.data.lin_acc_b
 
 
+'''
+从相机传感器中读取图像数据。
+    这是 Isaac Lab 中视觉策略的基础——策略从图像中看世界，而不是靠手工设计的物理量（如关节角度、速度）。
+    相比之前的 1D 观测，这里返回的是 4D 张量 [N, H, W, C]（批处理 × 高度 × 宽度 × 通道）。
+'''
 def image(
     env: ManagerBasedEnv,
     sensor_cfg: SceneEntityCfg = SceneEntityCfg("tiled_camera"),
@@ -583,6 +1051,34 @@ def image(
             images = (images + 1.0) * 0.5
 
     return images.clone()
+'''
+通俗类比：
+    之前所有的观测函数都像机器人身体里的"感官数字"——关节角度像数字角度计、IMU 像数字陀螺仪。
+    image 函数像是给机器人装了个"眼睛"——直接把相机画面喂给策略。
+    视觉策略用卷积神经网络（CNN）处理这些图像，从中提取有用信息（物体在哪、地面多高、障碍物在哪），而不是依赖手工设计的物理特征。这是从传统控制走向深度强化学习的关键一步。
+使用示例
+    @configclass
+    class ObservationsCfg:
+        camera_rgb = ObservationTermCfg(
+            func=observations.image,
+            params={
+                "sensor_cfg": SceneEntityCfg("camera"),
+                "data_type": "rgb",
+                "normalize": True,
+            },
+        )
+
+        camera_depth = ObservationTermCfg(
+            func=observations.image,
+            params={
+                "sensor_cfg": SceneEntityCfg("depth_camera"),
+                "data_type": "distance_to_camera",
+                "normalize": True,
+            },
+        )
+    # RGB 输出: [N, H, W, 3]
+    # Depth 输出: [N, H, W, 1]
+'''
 
 
 class image_features(ManagerTermBase):
@@ -907,6 +1403,11 @@ Actions.
 """
 
 
+'''
+返回上一帧策略输出的动作。
+    这是唯一一个不从仿真物理状态或传感器读取数据的观测——它读的是策略自己上一次的输出。
+    给策略提供"我刚才做了什么"的记忆。
+'''
 @generic_io_descriptor(dtype=torch.float32, observation_type="Action", on_inspect=[record_shape])
 def last_action(env: ManagerBasedEnv, action_name: str | None = None) -> torch.Tensor:
     """The last input action to the environment.
@@ -923,7 +1424,29 @@ def last_action(env: ManagerBasedEnv, action_name: str | None = None) -> torch.T
         return env.action_manager.action
     else:
         return env.action_manager.get_term(action_name).raw_actions
+'''
+为什么需要这个？
+    策略网络通常是无状态的（前馈网络）——每一帧独立做决策，不看历史。如果加上 last_action，策略可以看到"上一帧我给了什么命令"，从而：
+        产生平滑连续的动作（不跳变）
+        隐式地感知动态（从"上一帧动作 + 当前观测"推断状态变化）
+        近似一阶低通滤波器效果（新动作 = 基于旧动作微调）
+两种返回模式
+        # 整个动作向量:
+        last_action() → [N, action_dim]  所有动作项拼接
 
+        # 特定动作项:
+        last_action("joint_pos") → [N, J]  只有关节位置动作的原始输出
+    raw_actions 是策略的原始输出（未经 process_actions 的 scale+offset 变换），和策略直接对接。
+使用示例
+    @configclass
+    class ObservationsCfg:
+        """策略可以用上一帧的动作辅助决策"""
+
+        prev_action = ObservationTermCfg(
+            func=observations.last_action,
+        )
+    # 输出: [N, action_dim]  上一帧策略输出
+'''
 
 """
 Commands.
@@ -932,12 +1455,24 @@ Commands.
 """
 
 
+'''
+把 CommandManager 生成的当前命令喂给策略——让策略知道"我现在该做什么"。
+'''
 @generic_io_descriptor(dtype=torch.float32, observation_type="Command", on_inspect=[record_shape])
 def generated_commands(env: ManagerBasedRLEnv, command_name: str | None = None) -> torch.Tensor:
     """The generated command from command term in the command manager with the given name."""
     """在指令管理器中从指令项中生成的命令。"""
     return env.command_manager.get_command(command_name)
-
+'''
+使用示例
+    @configclass
+    class ObservationsCfg:
+        velocity_command = ObservationTermCfg(
+            func=observations.generated_commands,
+            params={"command_name": "base_velocity"},
+        )
+    # 输出: [N, 3]  [vx_des, vy_des, ωz_des]
+'''
 
 """
 Time.
@@ -945,13 +1480,18 @@ Time.
 """时间。
 """
 
-
+'''
+返回当前 episode 已经运行了多久（秒）。
+'''
 def current_time_s(env: ManagerBasedRLEnv) -> torch.Tensor:
     """The current time in the episode (in seconds)."""
     """回合中的当前时间 (秒钟)。"""
     return env.episode_length_buf.unsqueeze(1) * env.step_dt
 
 
+'''
+current_time_s 的互补版本——返回 episode 还剩多少秒
+'''
 def remaining_time_s(env: ManagerBasedRLEnv) -> torch.Tensor:
     """The maximum time remaining in the episode (in seconds)."""
     """回合剩余的最大时间 (秒钟)。"""

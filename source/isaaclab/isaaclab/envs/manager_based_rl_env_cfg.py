@@ -20,7 +20,7 @@ class ManagerBasedRLEnvCfg(ManagerBasedEnvCfg):
     ui_window_class_type: type | None = ManagerBasedRLEnvWindow
 
     # general settings
-    is_finite_horizon: bool = False
+    is_finite_horizon: bool = False     # 是否是有限时域
     """Whether the learning task is treated as a finite or infinite horizon problem for the agent.
     Defaults to False, which means the task is treated as an infinite horizon problem.
 
@@ -56,8 +56,15 @@ class ManagerBasedRLEnvCfg(ManagerBasedEnvCfg):
         基本:class:`ManagerBasedRLEnv`类不直接使用此标志。
         环境包装器使用它来确定向相应的学习代理发送的完成信号类型。
     """
+    '''
+    控制时间截断的处理方式，影响 value function 的 bootstrap：
+        is_finite_horizon	    超时后的 done 信号	        value target
+        True（有限视界）	        terminated = True	    0（真的结束了）
+        False（无限视界，默认）	    truncated = True	    V(s_T)（bootstrap！还要继续估计）
+    四足行走任务默认 False——超时不等于失败，机器人还能继续走，只是训练截断了。
+    '''
 
-    episode_length_s: float = MISSING
+    episode_length_s: float = MISSING       # 最大回合秒数
     """Duration of an episode (in seconds).
 
     Based on the decimation rate and physics time step, the episode length is calculated as:

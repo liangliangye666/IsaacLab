@@ -4,6 +4,14 @@
 # SPDX-License-Identifier: BSD-3-Clause
 """Recorder manager for recording data produced from the given world."""
 
+'''
+RecorderManager 做了什么
+    它把每步的观测、动作、奖励等数据录制到 HDF5 文件中，用于：
+        离线分析（回放查看机器人行为）
+        模仿学习（用录制数据训练策略）
+        数据集收集（导出成功的 episode 做 demo）
+'''
+
 from __future__ import annotations
 """记录器管理器用于记录从给定的世界产生的数据。"""
 

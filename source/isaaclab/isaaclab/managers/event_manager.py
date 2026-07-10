@@ -111,7 +111,58 @@ class EventManager(ManagerBase):
 
         # call the base class (this will parse the terms config)
         super().__init__(cfg, env)
+        '''
+        它的三个容器不是列表，而是字典的字典。
+        外层键是 mode（"reset"、"startup"、"interval"），内层值是列表：
+            _mode_term_names = {
+                "reset":     ["reset_cart_position", "reset_pole_position"],
+                "interval":  ["random_push"],
+                "startup":   ["init_material"],
+            }
 
+            _mode_term_cfgs = {
+                "reset":     [EventTermCfg(func=reset_joints, ...), EventTermCfg(func=reset_joints, ...)],
+                "interval":  [EventTermCfg(func=push_robot, ...)],
+                "startup":   [EventTermCfg(func=init_material, ...)],
+            }
+        为什么需要按 mode 分组？
+            回顾 EventTermCfg.mode 字段——事件有四类触发时机：
+            mode	        触发时机	    谁触发
+            "prestartup"	仿真前一次	    ManagerBasedEnv.__init__
+            "startup"	    仿真后一次	    ManagerBasedRLEnv.load_managers
+            "reset"	        每次环境重置	ManagerBasedRLEnv._reset_idx
+            "interval"	    按时间间隔	    ManagerBasedRLEnv.step
+            当 event_manager.apply(mode="reset") 被调用时，它只需要遍历 _mode_term_cfgs["reset"] 中的 term，不需要检查每个 term 的 mode 字段。
+            按 mode 预分组是空间换时间的优化。
+        '''
+
+    '''
+    按 mode 分组多表格
+    输出示例
+        <EventManager> contains 3 active terms.
+        +-------------------------------------------+
+        | Active Event Terms in Mode: 'reset'       |
+        +-------+--------------------------+
+        | Index | Name                     |
+        +-------+--------------------------+
+        |   0   | reset_cart_position      |
+        |   1   | reset_pole_position      |
+        +-------+--------------------------+
+        +-------------------------------------------------+
+        | Active Event Terms in Mode: 'startup'           |
+        +-------+----------------------------------------+
+        | Index | Name                                   |
+        +-------+----------------------------------------+
+        |   0   | init_material                          |
+        +-------+----------------------------------------+
+        +------------------------------------------------------+
+        | Active Event Terms in Mode: 'interval'               |
+        +-------+--------------------+-------------------------+
+        | Index | Name               | Interval time range (s) |
+        +-------+--------------------+-------------------------+
+        |   0   | random_push        | (5.0, 10.0)             |
+        +-------+--------------------+-------------------------+
+    '''
     def __str__(self) -> str:
         """Returns: A string representation for event manager."""
         """Returns: 为事件管理器提供一个字符串表示。"""
@@ -174,6 +225,10 @@ class EventManager(ManagerBase):
         for mode_cfg in self._mode_class_term_cfgs.values():
             for term_cfg in mode_cfg:
                 term_cfg.func.reset(env_ids=env_ids)
+        '''
+        第一部分：类形式 Term 的重置
+        遍历所有 mode 中的所有类形式 term，调用它们的 .reset()。
+        '''
 
         # resolve number of environments
         if env_ids is None:
@@ -192,10 +247,41 @@ class EventManager(ManagerBase):
                     lower, upper = term_cfg.interval_range_s
                     sampled_interval = torch.rand(num_envs, device=self.device) * (upper - lower) + lower
                     self._interval_term_time_left[index][env_ids] = sampled_interval
+        '''
+        第二部分：interval 倒计时重置
+        核心逻辑：只重置 is_global_time=False 的 interval term。
+        is_global_time 的真假区别
+            is_global_time	    计时基准	    reset 时的行为
+            False（默认）	     回合时间	     重新随机倒计时
+            True	            仿真绝对时间	不重置，继续用原来的倒计时
+        为什么需要区分？
+            回合时间事件（如"每个回合的前 3 秒给一个推力"）：重置后需要新计时
+            绝对时间事件（如"每 10 秒模拟一次阵风"）：不应该因某个环境重置而打断节奏
+            # is_global_time=False: 每个环境刚重置时，等 5~10 秒再推
+            # is_global_time=True:  不管哪个环境重置，统一每 10 秒推一次
+        '''
 
         # nothing to log here
         return {}
 
+    '''
+    事件触发的核心分发器
+        这是 EventManager 中最重要的方法，被四处在 ManagerBasedRLEnv 中调用。它根据 mode 分发到三种完全不同的执行逻辑。
+
+        它在 step() 和 _reset_idx() 中的调用点
+            ManagerBasedRLEnv.__init__():
+                event_manager.apply(mode="prestartup")                          ← line 162
+
+            ManagerBasedRLEnv.load_managers():
+                event_manager.apply(mode="startup")                             ← line 134
+
+            ManagerBasedRLEnv.step():
+                event_manager.apply(mode="interval", dt=self.step_dt)           ← line 285
+
+            ManagerBasedRLEnv._reset_idx():
+                event_manager.apply(mode="reset", env_ids=..., global_env_step_count=...)  ← line 439
+            四次调用，每次传入不同的 mode 和配套参数。
+        '''
     def apply(
         self,
         mode: str,
@@ -259,25 +345,27 @@ class EventManager(ManagerBase):
                         这是一种未定义的行为，因为环境索引根据每个环境剩下的时间计算。
             ValueError: 如果模式是``"reset"``，并未提供发生的环境步骤总数。
         """
-        # check if mode is valid
+        ########################## 校验阶段 #############################
+        # check if mode is valid    # ① mode 是否注册过？
         if mode not in self._mode_term_names:
             logger.warning(f"Event mode '{mode}' is not defined. Skipping event.")
             return
 
-        # check if mode is interval and dt is not provided
+        # check if mode is interval and dt is not provided  # ② interval 模式必须有 dt
         if mode == "interval" and dt is None:
             raise ValueError(f"Event mode '{mode}' requires the time-step of the environment.")
-        if mode == "interval" and env_ids is not None:
+        if mode == "interval" and env_ids is not None:  # ③ interval 模式不允许外部指定 env_ids # 因为 env_ids 由倒计时自己算出
             raise ValueError(
                 f"Event mode '{mode}' does not require environment indices. This is an undefined behavior"
                 " as the environment indices are computed based on the time left for each environment."
             )
-        # check if mode is reset and env step count is not provided
+        # check if mode is reset and env step count is not provided # ④ reset 模式必须有步数计数
         if mode == "reset" and global_env_step_count is None:
             raise ValueError(f"Event mode '{mode}' requires the total number of environment steps to be provided.")
 
+        ########################## 分发阶阶段 #############################
         # iterate over all the event terms
-        for index, term_cfg in enumerate(self._mode_term_cfgs[mode]):
+        for index, term_cfg in enumerate(self._mode_term_cfgs[mode]):   # 遍历 _mode_term_cfgs[mode]
             if mode == "interval":
                 # extract time left for this term
                 time_left = self._interval_term_time_left[index]
@@ -303,6 +391,24 @@ class EventManager(ManagerBase):
 
                         # call the event term
                         term_cfg.func(self._env, valid_env_ids, **term_cfg.params)
+                '''
+                is_global_time=False:
+                    每个 env reset 后重新计时；
+                    该 env 到点就扰动一次；
+                    扰动后重新采样下一次；
+                    同一 episode 足够长时可多次扰动。
+
+                is_global_time=True:
+                    全体 env 共用仿真全局计时；
+                    reset 不影响计时；
+                    到点时所有 env 一起扰动；
+                    某个 env 可能刚 reset 就被全局扰动命中。
+                全局 vs 独立：
+                                is_global_time=True	        is_global_time=False
+                    time_left	标量 Tensor([1])	         向量 Tensor([N])
+                    重新采样	 torch.rand(1) 随机一个值	    torch.rand(N) 每个环境独立随机
+                    触发范围	 env_ids=None（全部）	        valid_env_ids（只到期的那几个）
+                '''
             elif mode == "reset":
                 # obtain the minimum step count between resets
                 min_step_count = term_cfg.min_step_count_between_reset
@@ -312,13 +418,13 @@ class EventManager(ManagerBase):
 
                 # We bypass the trigger mechanism if min_step_count is zero, i.e. apply term on every reset call.
                 # This should avoid the overhead of checking the trigger condition.
-                if min_step_count == 0:
+                if min_step_count == 0: # 子情况 A：min_step_count=0（每次重置都触发）
                     self._reset_term_last_triggered_step_id[index][env_ids] = global_env_step_count
                     self._reset_term_last_triggered_once[index][env_ids] = True
 
                     # call the event term with the environment indices
                     term_cfg.func(self._env, env_ids, **term_cfg.params)
-                else:
+                else:   # 子情况 B：min_step_count>0（有冷却时间）
                     # extract last reset step for this term
                     last_triggered_step = self._reset_term_last_triggered_step_id[index][env_ids]
                     triggered_at_least_once = self._reset_term_last_triggered_once[index][env_ids]
@@ -344,7 +450,12 @@ class EventManager(ManagerBase):
 
                         # call the event term
                         term_cfg.func(self._env, valid_env_ids, **term_cfg.params)
-            else:
+                    '''
+                    min_step_count_between_reset 是两次触发之间的最小间隔（节流/限频），不是"重置后延迟一段时间再触发"（延迟）。
+                    它防止同一个环境因为频繁摔倒而在短时间内反复触发同一个事件，浪费训练步数。
+                    首次触发不受冷却限制，保证训练初期正常运作。
+                    '''
+            else:   # "startup"、"prestartup" 等模式直接触发，不需要任何条件判断。调用者保证只在合适的时机调用。
                 # call the event term
                 term_cfg.func(self._env, env_ids, **term_cfg.params)
 
@@ -354,6 +465,11 @@ class EventManager(ManagerBase):
     """运营 - 项设置
     """
 
+    '''
+    运行时动态修改事件配置
+        EventManager.set_term_cfg 是一个运行时配置修改器，允许你在训练过程中动态替换某个事件 term 的配置。
+        它和 ManagerBase.find_terms（manager_base.py:411）配合使用，实现"先搜索后修改"的工作流。
+    '''
     def set_term_cfg(self, term_name: str, cfg: EventTermCfg):
         """Sets the configuration of the specified term into the manager.
 
@@ -381,13 +497,36 @@ class EventManager(ManagerBase):
         """
         term_found = False
         for mode, terms in self._mode_term_names.items():
-            if term_name in terms:
+            if term_name in terms:  # 此处是精确全字匹配
                 self._mode_term_cfgs[mode][terms.index(term_name)] = cfg
                 term_found = True
                 break
+        '''
+        找到第一个匹配就退出。这意味着：如果（意外地）同一个名字出现在两个 mode 下，只会修改第一个匹配到的。不过正常情况下这种情况不会发生。
+        '''
         if not term_found:
             raise ValueError(f"Event term '{term_name}' not found.")
+        '''
+        in 对不同容器的行为
+            容器	in 检查什么	                                复杂度
+            list	遍历每个元素，做 == 比较	                 O(n)
+            dict	检查键是否存在	                            O(1)
+            set	    哈希查找	                                O(1)
+            str	    子串匹配（"cart" in "reset_cart" → True）	O(n)
+            特别注意：in 对字符串是子串匹配，但对列表是精确元素匹配。两者行为不同，这是 Python 初学者容易混淆的地方。
+        '''
+        '''
+        实际使用场景
+            # 训练脚本中：训练到 1000 步后，把推力事件的力范围加大
+            thrust_terms = event_manager.find_terms("random_push")
+            if len(thrust_terms) > 0:
+                new_cfg = old_cfg.to_dict()  # 或直接用现有 cfg 对象替换
+                event_manager.set_term_cfg("random_push", new_cfg)
+        '''
 
+    '''
+    运行时读取事件配置
+    '''
     def get_term_cfg(self, term_name: str) -> EventTermCfg:
         """Gets the configuration for the specified term.
 
@@ -435,6 +574,12 @@ class EventManager(ManagerBase):
         # buffer to store the step count when the term was last triggered for each environment for "reset" mode
         self._reset_term_last_triggered_step_id: list[torch.Tensor] = list()
         self._reset_term_last_triggered_once: list[torch.Tensor] = list()
+        '''
+        缓冲区	                                存储内容	                            用途
+        _interval_term_time_left	            每个 interval term 的倒计时张量	        apply() 中 time_left -= dt
+        _reset_term_last_triggered_step_id	    每个 reset term 的上次触发步数	        apply() 中计算冷却是否已过
+        _reset_term_last_triggered_once	        每个 reset term 的"是否触发过"标记	    apply() 中首次豁免逻辑
+        '''
 
         # check if config is dict already
         if isinstance(self.cfg, dict):
@@ -447,12 +592,12 @@ class EventManager(ManagerBase):
             if term_cfg is None:
                 continue
             # check for valid config type
-            if not isinstance(term_cfg, EventTermCfg):
+            if not isinstance(term_cfg, EventTermCfg):  # 类型校验（必须是 EventTermCfg）
                 raise TypeError(
                     f"Configuration for the term '{term_name}' is not of type EventTermCfg."
                     f" Received: '{type(term_cfg)}'."
                 )
-
+            # min_step_count 只在 reset 模式有效的警告
             if term_cfg.mode != "reset" and term_cfg.min_step_count_between_reset != 0:
                 logger.warning(
                     f"Event term '{term_name}' has 'min_step_count_between_reset' set to a non-zero value"
@@ -462,6 +607,13 @@ class EventManager(ManagerBase):
             # resolve common parameters
             self._resolve_common_term_cfg(term_name, term_cfg, min_argc=2)
 
+            '''
+            prestartup 的 scene replication 检查
+                背景：
+                    prestartup 模式的事件在仿真开始前执行，通常用于 USD 级别的场景随机化（如随机改变地形的 USD 属性）。
+                    如果开启了 replicate_physics（PhysX 场景复制优化），多个环境会共享同一个 USD 资产——改了其中一个，所有环境都会受影响。
+                这是一个硬性约束，不是警告：如果用 USD 级别的随机化，就不能开启场景复制。
+            '''
             # check if mode is pre-startup and scene replication is enabled
             if term_cfg.mode == "prestartup" and self._env.scene.cfg.replicate_physics:
                 raise RuntimeError(
@@ -472,6 +624,15 @@ class EventManager(ManagerBase):
                     " by setting 'replicate_physics' to False in 'InteractiveSceneCfg'."
                 )
 
+            '''
+            prestartup 的特殊预初始化
+                这是 EventManager 独有的逻辑。
+                回顾 ManagerBase._process_term_cfg_at_play（manager_base.py:748），类实例化通常延迟到仿真 PLAY 事件后才执行。
+
+                但 prestartup 模式的事件必须在仿真播放前执行（因为要改 USD 属性），所以不能等 PLAY 事件。这里提前实例化。
+
+                注意：只对 prestartup 类做预初始化，其他 mode 的类仍走正常的延迟解析流程。
+            '''
             # for event terms with mode "prestartup", we assume a callable class term
             # can be initialized before the simulation starts.
             # this is done to ensure that the USD-level randomization is possible before the simulation starts.
@@ -479,6 +640,11 @@ class EventManager(ManagerBase):
                 logger.info(f"Initializing term '{term_name}' with class '{term_cfg.func.__name__}'.")
                 term_cfg.func = term_cfg.func(cfg=term_cfg, env=self._env)
 
+            '''
+            注册 mode 并存入
+                自动注册：用户不需要预先声明有哪些 mode。第一个 mode="reset" 的 term 到来时自动创建 _mode_term_names["reset"]，第二个追加进去。
+                支持用户自定义 mode（如 mode="my_custom_event"）。
+            '''
             # check if mode is a new mode
             if term_cfg.mode not in self._mode_term_names:
                 # add new mode
@@ -493,6 +659,12 @@ class EventManager(ManagerBase):
             if inspect.isclass(term_cfg.func):
                 self._mode_class_term_cfgs[term_cfg.mode].append(term_cfg)
 
+            '''
+            interval 模式的初始化
+                is_global_time=True → 一个标量（所有环境共享），使用绝对时间无视各环境的reset，
+                False → 每个环境独立的向量，以各环境的reset为基准。
+                这和之前 apply() 中的处理逻辑一致。
+            '''
             # resolve the mode of the events
             # -- interval mode
             if term_cfg.mode == "interval":
@@ -511,6 +683,9 @@ class EventManager(ManagerBase):
                     lower, upper = term_cfg.interval_range_s
                     time_left = torch.rand(self.num_envs, device=self.device) * (upper - lower) + lower
                     self._interval_term_time_left.append(time_left)
+                '''
+                reset 模式的初始化
+                '''
             # -- reset mode
             elif term_cfg.mode == "reset":
                 if term_cfg.min_step_count_between_reset < 0:
@@ -519,9 +694,9 @@ class EventManager(ManagerBase):
                         f" negative: {term_cfg.min_step_count_between_reset}. Please provide a non-negative value."
                     )
 
-                # initialize the current step count for each environment to zero
+                # initialize the current step count for each environment to zero    # 上次触发步数 → 初始化为 0（从未触发过）
                 step_count = torch.zeros(self.num_envs, device=self.device, dtype=torch.int32)
                 self._reset_term_last_triggered_step_id.append(step_count)
-                # initialize the trigger flag for each environment to zero
+                # initialize the trigger flag for each environment to zero  # "是否触发过"标记 → 初始化为 False
                 no_trigger = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
                 self._reset_term_last_triggered_once.append(no_trigger)

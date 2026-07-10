@@ -10,6 +10,35 @@ from isaaclab_rl.rsl_rl import RslRlOnPolicyRunnerCfg, RslRlPpoActorCriticCfg, R
 import isaaclab_tasks.manager_based.classic.cartpole.mdp.symmetry as symmetry
 
 
+'''
+17.1 Runner 参数
+    num_steps_per_env：每次 rollout 每个环境收集多少步。
+    max_iterations：最大 PPO 更新次数。
+    save_interval：checkpoint 间隔。
+    experiment_name：日志目录名。
+    seed：随机种子。
+    clip_actions：进入环境前的动作裁剪。
+    resume/load_run/load_checkpoint：恢复训练。
+17.2 Policy 参数
+    actor/critic 网络层数。
+    hidden dims。
+    activation。
+    初始动作噪声。
+    observation normalization。
+    recurrent policy 配置。
+    旧网络参数应迁移到这里，而不是 env cfg。
+17.3 Algorithm 参数
+    learning_rate
+    gamma
+    lam
+    clip_param
+    entropy_coef
+    value_loss_coef
+    num_learning_epochs
+    num_mini_batches
+    desired_kl
+    max_grad_norm
+'''
 @configclass
 class CartpolePPORunnerCfg(RslRlOnPolicyRunnerCfg):
     num_steps_per_env = 16

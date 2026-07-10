@@ -120,6 +120,12 @@ class InteractiveSceneCfg:
                 init_state=AssetBaseCfg.InitialStateCfg(pos=(0.0, 0.0, 500.0)),
             )
     """
+    '''
+    建议的字段顺序
+        terrain → physics-related assets (articulations) → sensors → non-physics assets (lights)
+        地形→物理资产→传感器→灯光
+    这个顺序不是随意写的——InteractiveScene 按 __dict__ 的顺序创建实体，物理资产必须在传感器之前创建（传感器可能附着在机器人身上）。
+    '''
 
     num_envs: int = MISSING
     """Number of environment instances handled by the scene."""
@@ -149,6 +155,10 @@ class InteractiveSceneCfg:
     如果是正确的，传感器数据只会在访问其属性``data``时更新。
     否则，每次更新传感器，传感器数据都会更新。
     """
+    '''
+    传感器（如深度相机、射线传感器）是否懒更新。
+        True 表示只有当你访问 sensor.data 时才刷新数据，否则每步都刷新——即使你这步不用传感器。懒更新省 GPU 开销，大部分训练场景保持默认即可。
+    '''
 
     replicate_physics: bool = True
     """Enable/disable replication of physics schemas when using the Cloner APIs. Default is True.
@@ -201,6 +211,11 @@ class InteractiveSceneCfg:
         If :attr:`replicated_physics`是``False``和碰撞过是希望的，确保打电话
         ``scene.filter_collisions()``。
     """
+    '''
+    相邻环境之间的物体是否会碰撞。
+        True 时环境 A 的机器人手臂不会碰到环境 B 的桌子。
+        False 时如果间距不够，可能出现"隔壁机器人飞过来把你撞翻"的诡异情况。
+    '''
 
     clone_in_fabric: bool = False
     """Enable/disable cloning in fabric. Default is False.

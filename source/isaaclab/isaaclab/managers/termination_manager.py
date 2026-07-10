@@ -4,9 +4,9 @@
 # SPDX-License-Identifier: BSD-3-Clause
 
 """Termination manager for computing done signals for a given world."""
+"""终止管理器为计算给定世界的信号。"""
 
 from __future__ import annotations
-"""终止管理器为计算给定世界的信号。"""
 
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
@@ -82,13 +82,13 @@ class TerminationManager(ManagerBase):
             env: 一个环境对象。
         """
         # create buffers to parse and store terms
-        self._term_names: list[str] = list()
-        self._term_cfgs: list[TerminationTermCfg] = list()
-        self._class_term_cfgs: list[TerminationTermCfg] = list()
+        self._term_names: list[str] = list()    # 名字列表
+        self._term_cfgs: list[TerminationTermCfg] = list()  # 配置列表
+        self._class_term_cfgs: list[TerminationTermCfg] = list()    # 类实现的 term（reset 时额外处理）
 
         # call the base class constructor (this will parse the terms config)
         super().__init__(cfg, env)
-        self._term_name_to_term_idx = {name: i for i, name in enumerate(self._term_names)}
+        self._term_name_to_term_idx = {name: i for i, name in enumerate(self._term_names)}  # 创建名字→索引快速查找表
         # prepare extra info to store individual termination term information
         self._term_dones = torch.zeros((self.num_envs, len(self._term_names)), device=self.device, dtype=torch.bool)
         # prepare extra info to store last episode done per termination term information
@@ -96,7 +96,16 @@ class TerminationManager(ManagerBase):
         # create buffer for managing termination per environment
         self._truncated_buf = torch.zeros(self.num_envs, device=self.device, dtype=torch.bool)
         self._terminated_buf = torch.zeros_like(self._truncated_buf)
+        '''
+        _term_dones          [N, T]  bool  ← 每 term 是否触发   # 当前帧：每个环境 × 每个 term → 是否触发
+        _last_episode_dones  [N, T]  bool  ← 上一步的触发记录   # 上一帧快照：用于在 reset() 时输出"上个回合是因哪个 term 触发的而结束"
+        _truncated_buf       [N]     bool  ← 时间截断   ← "超时了，但没失败"
+        _terminated_buf      [N]     bool  ← 真实终止   ← "真正失败了"
+        '''
 
+    '''
+    含超时标志的终止信息面板
+    '''
     def __str__(self) -> str:
         """Returns: A string representation for termination manager."""
         """Returns: 终止管理器的字符串表示。"""
@@ -116,6 +125,25 @@ class TerminationManager(ManagerBase):
         msg += "\n"
 
         return msg
+    '''
+    输出示例
+        <TerminationManager> contains 3 active terms.
+        +-----------------------------------+
+        | Active Termination Terms          |
+        +-------+------------------+--------+
+        | Index | Name             | Time Out |
+        +-------+------------------+--------+
+        |   0   | time_out         |   True  |
+        |   1   | illegal_contact  |  False  |
+        |   2   | bad_orientation  |  False  |
+        +-------+------------------+--------+
+
+    Time Out——表示这个终止条件被归类为"时间截断"还是"真实终止"。
+        Time Out	归类	            对训练的影响
+        True	    _truncated_buf	    只是超时，Bootstrap 继续估计 value
+        False	    _terminated_buf	    真正失败，不 Bootstrap
+    一眼看出 time_out 是截断型（无害），illegal_contact 和 bad_orientation 是致命型（真的死了）。
+    '''
 
     """
     Properties.
@@ -136,6 +164,24 @@ class TerminationManager(ManagerBase):
         形状是 (num_envs，)。
         """
         return self._truncated_buf | self._terminated_buf
+    '''
+    dones — 总体终止信号
+        return self._truncated_buf | self._terminated_buf
+        位或运算：只要"截断"或"真实终止"任意一个为 True，dones 就是 True。
+        ManagerBasedRLEnv.step() 用它决定是否重置环境：
+            # step() 中:
+            self.reset_buf = self.termination_manager.compute()
+            # 等价于: _truncated_buf | _terminated_buf
+    '''
+
+    '''
+    TerminationTermCfg.time_out 的配置对应，即如何判断外部条件达到之后是属于 _truncated_buf 还是 _terminated_buf
+        # 配置中:
+        TerminationsCfg:
+            time_out = DoneTermCfg(func=mdp.time_out, time_out=True)          # → _truncated_buf
+            illegal_contact = DoneTermCfg(func=mdp.illegal_contact, time_out=False)  # → _terminated_buf
+        compute() 中根据每个 term 的 time_out 标志将结果路由到 _truncated_buf 或 _terminated_buf。
+    '''
 
     @property
     def time_outs(self) -> torch.Tensor:
@@ -207,6 +253,35 @@ class TerminationManager(ManagerBase):
             term_cfg.func.reset(env_ids=env_ids)
         # return logged information
         return extras
+    '''
+    _last_episode_dones 是什么？
+        回顾 __init__：_last_episode_dones 是 [N, T] 的 bool 张量。在 compute() 中每次更新前，先把当前 _term_dones 备份到这里，然后才计算新的。
+        reset 时读的就是被重置环境的上一帧终止状态。
+        _last_episode_dones = [
+            [ True, False, False],   # 环境 0: time_out=True（超时了）
+            [False,  True, False],   # 环境 1: illegal_contact=True（撞了）
+            [ True, False, False],   # 环境 2: time_out=True
+            ...
+        ]
+        # 列: [time_out, illegal_contact, bad_orientation]
+    .float().mean(dim=0) 做了什么?
+        # 原始: Tensor[N, T] bool
+        # .float() → Tensor[N, T] float  (True→1.0, False→0.0)
+        # .mean(dim=0) → Tensor[T] float  (每列的平均值 = 触发比例)
+
+        last_episode_done_stats = [0.60, 0.35, 0.05]
+        #                          ↑     ↑     ↑
+        #                       60%    35%   5%
+        #                     超时    碰撞   姿态异常
+        为什么用比例而非累加值？
+            终止是二进制事件，不像奖励是连续值。说"35% 的环境因碰撞终止"比"这个回合积了 1432 次碰撞"更有意义——每个环境只终止一次，重点看分布。
+    日志输出
+        extras["Episode_Termination/time_out"]        = 0.60
+        extras["Episode_Termination/illegal_contact"] = 0.35
+        extras["Episode_Termination/bad_orientation"] = 0.05
+        和 RewardManager.reset() 的输出并排显示在 TensorBoard 中，一眼看出"当前训练中，60% 的终止是超时，35% 是碰撞"
+        ——如果 illegal_contact 比例过高，可能需要调整奖励权重。
+    '''
 
     def compute(self) -> torch.Tensor:
         """Computes the termination signal as union of individual terms.
@@ -242,6 +317,30 @@ class TerminationManager(ManagerBase):
         rows = self._term_dones.any(dim=1).nonzero(as_tuple=True)[0]
         if rows.numel() > 0:
             self._last_episode_dones[rows] = self._term_dones[rows]
+        '''
+        _last_episode_dones 的增量更新
+            # _term_dones = [
+            #     [ True, False, False],   ← env 0: time_out triggered
+            #     [False, False, False],   ← env 1: nothing yet
+            #     [False,  True, False],   ← env 2: illegal_contact triggered
+            # ]
+
+            _term_dones.any(dim=1)  → [ True, False, True ]
+            #                          env0  env1   env2
+
+            .nonzero(as_tuple=True)[0]  → tensor([0, 2])
+            # 只有 env 0 和 2 发生了终止
+
+            _last_episode_dones[[0, 2]] = _term_dones[[0, 2]]
+            # 只更新 env 0 和 2，env 1 保持不变（保留上上次的值）
+        为什么只增量更新有终止的环境？
+            环境 1 这步没终止，_last_episode_dones[1] 保持上一步的值（None 时为全 False）。
+            当 env 1 后面终止时，_last_episode_dones[1] 会被更新。
+            这样可以确保 reset() 时每个环境读到的 _last_episode_dones 就是它最后终止那一刻的快照。
+        _last_episode_dones 存储的是该环境终止时刻所有 term 的完整 bool 行——既有触发的（True），也有没触发的（False）。
+            只有发生终止的环境才会被更新，没终止的环境保留旧值。
+            reset() 用这些完整行计算各终止条件的整体触发比例。
+        '''
         # return combined termination signal
         return self._truncated_buf | self._terminated_buf
 

@@ -49,22 +49,46 @@ class DefaultEventManagerCfg:
 class ManagerBasedEnvCfg:
     """Base configuration of the environment."""
     """环境的基本配置。"""
+    '''
+      ManagerBasedEnvCfg
+        │
+        ├── 仿真设置（2 个）
+        │     viewer, sim
+        │
+        ├── UI 设置（1 个）
+        │     ui_window_class_type
+        │
+        ├── 通用设置（2 个）
+        │     seed, decimation
+        │
+        ├── Manager 入口（5 个）
+        │     scene, events, actions, observations, recorders
+        │
+        ├── 渲染设置（3 个）
+        │     rerender_on_reset, num_rerenders_on_reset, wait_for_textures
+        │
+        ├── 硬件接口（2 个）
+        │     xr, teleop_devices
+        │
+        └── 杂项（2 个）
+              export_io_descriptors, log_dir
+    '''
 
     # simulation settings
-    viewer: ViewerCfg = ViewerCfg()
+    viewer: ViewerCfg = ViewerCfg()   # 渲染窗口（分辨率、是否显示等）
     """Viewer configuration. Default is ViewerCfg()."""
     """显示器配置
     默认是ViewerCfg()。
     """
 
-    sim: SimulationCfg = SimulationCfg()
+    sim: SimulationCfg = SimulationCfg()  # 物理引擎（dt、重力等）
     """Physics simulation configuration. Default is SimulationCfg()."""
     """物理仿真配置。
     默认是SimulationCfg()。
     """
 
     # ui settings
-    ui_window_class_type: type | None = BaseEnvWindow
+    ui_window_class_type: type | None = BaseEnvWindow   # 训练中显示的实时数据面板的类型。设 None 关闭 UI 窗口。
     """The class type of the UI window. Default is None.
 
     If None, then no UI window is created.
@@ -86,7 +110,7 @@ class ManagerBasedEnvCfg:
     """
 
     # general settings
-    seed: int | None = None
+    seed: int | None = None   # 随机种子（None = 不固定）
     """The seed for the random number generator. Defaults to None, in which case the seed is not set.
 
     Note:
@@ -101,7 +125,7 @@ class ManagerBasedEnvCfg:
       这确保环境的创建是决定性的，并且在不同的行程中表现得类似。
     """
 
-    decimation: int = MISSING
+    decimation: int = MISSING   # 必填！控制频率 = sim.dt × decimation
     """Number of control action updates @ sim dt per policy dt.
 
     For instance, if the simulation dt is 0.01s and the policy dt is 0.1s, then the decimation is 10.
@@ -114,7 +138,7 @@ class ManagerBasedEnvCfg:
     """
 
     # environment settings
-    scene: InteractiveSceneCfg = MISSING
+    scene: InteractiveSceneCfg = MISSING  # 必填！场景中有什么实体
     """Scene settings.
 
     Please refer to the :class:`isaaclab.scene.InteractiveSceneCfg` class for more details.
@@ -166,7 +190,7 @@ class ManagerBasedEnvCfg:
     详细请参阅:class:`isaaclab.managers.EventManager`类。
     """
 
-    rerender_on_reset: bool = False
+    rerender_on_reset: bool = False  # ⚠️ 已废弃，用下面这个
     """Whether a render step is performed again after at least one environment has been reset.
     Defaults to False, which means no render step will be performed after reset.
 
@@ -197,7 +221,7 @@ class ManagerBasedEnvCfg:
         设置这个参数为``True``或``False``设置:attr:`num_rerenders_on_reset`分别为1或0。
     """
 
-    num_rerenders_on_reset: int = 0
+    num_rerenders_on_reset: int = 0  # 重置后额外渲染几步（默认不渲染）
     """Number of render steps to perform after reset. Defaults to 0, which means no render step will be
     performed after reset.
 
@@ -215,27 +239,27 @@ class ManagerBasedEnvCfg:
       steps will be performed after each time an environment is reset。
     """
 
-    wait_for_textures: bool = True
+    wait_for_textures: bool = True  # 等待纹理加载完成再开始训练
     """True to wait for assets to be loaded completely, False otherwise. Defaults to True."""
     """True等待资产完全充满，False否则。
     默认为 True。
     """
 
-    xr: XrCfg | None = None
+    xr: XrCfg | None = None   # VR 头盔配置（None = 不用 VR）
     """Configuration for viewing and interacting with the environment through an XR device."""
     """通过XR设备查看和与环境交互的配置。"""
 
-    teleop_devices: DevicesCfg = field(default_factory=DevicesCfg)
+    teleop_devices: DevicesCfg = field(default_factory=DevicesCfg)  # 遥操作手柄
     """Configuration for teleoperation devices."""
     """远程操作设备的配置。"""
 
-    export_io_descriptors: bool = False
+    export_io_descriptors: bool = False   # 是否导出 IO 描述符（部署用）
     """Whether to export the IO descriptors for the environment. Defaults to False."""
     """如何出口IO环境描述符。
     默认为 False。
     """
 
-    log_dir: str | None = None
+    log_dir: str | None = None  # 日志目录
     """Directory for logging experiment artifacts. Defaults to None, in which case no specific log directory is set."""
     """记录实验文物目录。
     默认对None的设置，在这种情况下没有设置特定的日志目录。

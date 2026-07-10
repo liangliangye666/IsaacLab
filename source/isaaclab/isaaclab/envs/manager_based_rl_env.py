@@ -70,11 +70,25 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
     is_vector_env: ClassVar[bool] = True
     """Whether the environment is a vectorized environment."""
     """环境是否是一个向量化环境。"""
+    '''
+    告诉 Gymnasium 这是一个向量化环境（内部并行管理 N 个环境），而非单环境。
+        ClassVar 是 typing 模块的标记——表示这是类变量（所有实例共享），不是实例变量。
+        mypy 和 IDE 用它区分。
+    '''
+
     metadata: ClassVar[dict[str, Any]] = {
         "render_modes": [None, "human", "rgb_array"],
     }
     """Metadata for the environment."""
     """对环境的元数据。"""
+    '''
+    定义环境的元数据,可以理解为：这个环境对外声明的一些基本信息
+    Gymnasium 要求的元数据字典，声明支持的渲染模式：
+        模式	        用途
+        None	        不渲染
+        "human"	        GUI 窗口显示,表示给人看的渲染模式
+        "rgb_array"	    返回 RGB 像素数组（录制视频用）
+    '''
 
     cfg: ManagerBasedRLEnvCfg
     """Configuration for the environment."""
@@ -95,7 +109,11 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
             render_mode: 环境的渲染模式。默认为 None，其行为与 ``"human"`` 类似。
         """
         # -- counter for curriculum
-        self.common_step_counter = 0
+        self.common_step_counter = 0    # 课程学习计数器
+        '''
+        和 _sim_step_counter（物理步计数器）不同，这是环境步计数器——每环境步 +1。
+        CurriculumManager 可能用它判断"训练到第几步了，该提高难度了吗"。
+        '''
 
         # initialize the episode length buffer BEFORE loading the managers to use it in mdp functions.
         self.episode_length_buf = torch.zeros(cfg.scene.num_envs, device=cfg.sim.device, dtype=torch.long)
@@ -108,9 +126,16 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         # initialize data and constants
         # -- set the framerate of the gym video recorder wrapper so that the playback speed of the
         #    produced video matches the simulation
-        self.metadata["render_fps"] = 1 / self.step_dt
+        self.metadata["render_fps"] = 1 / self.step_dt  # 视频录制帧率
 
         print("[INFO]: Completed setting up the environment...")
+        '''
+        和 ManagerBasedEnv.__init__ 的继承关系
+            ManagerBasedEnv.__init__()
+                → 11 个阶段（校验、SimulationContext、InteractiveScene、EventManager、仿真启动...）
+                → 在第 ⑧ 阶段: self.load_managers()
+                    → 多态到 ManagerBasedRLEnv.load_managers()
+        '''
 
     """
     Properties.
@@ -137,6 +162,54 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
     """
 
     def load_managers(self):
+        '''
+        ManagerBasedRLEnv.load_managers()
+            │
+            ├── 1. CommandManager
+            │
+            ├── super().load_managers()
+            │       ├── 2. EventManager 已经存在，只打印
+            │       ├── 3. RecorderManager
+            │       ├── 4. ActionManager
+            │       └── 5. ObservationManager
+            │
+            ├── 6. TerminationManager
+            │
+            ├── 7. RewardManager
+            │
+            ├── 8. CurriculumManager
+            │
+            ├── 9. 配置 Gym spaces
+            │
+            └── 10. 执行 startup events
+        为什么 CommandManager 最先创建
+            Observation 可能包含：
+            ObsTerm(
+                func=mdp.generated_commands,
+                params={"command_name": "base_velocity"},
+            )
+            因此 ObservationManager 初始化时必须已经有 command_manager。
+        为什么 ActionManager 在 ObservationManager 前
+            Observation 可能包含：
+            ObsTerm(func=mdp.last_action)
+            所以必须先有 action_manager。
+        为什么 TerminationManager 在 RewardManager 前
+            奖励可能使用：
+            mdp.is_alive
+            mdp.is_terminated
+            它们内部读取：
+            env.termination_manager.terminated
+            所以必须先有 termination_manager。
+        为什么 startup event 最后执行
+            startup event 可能依赖：
+            robot。
+            sensors。
+            commands。
+            action manager。
+            reward manager。
+            其他 term。
+            因此等所有 Manager 创建完后再执行。
+        '''
         # note: this order is important since observation manager needs to know the command and action managers
         # and the reward manager needs to know the termination manager
         # -- command manager
@@ -164,6 +237,7 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         if "startup" in self.event_manager.available_modes:
             self.event_manager.apply(mode="startup")
 
+    # 实时数据面板
     def setup_manager_visualizers(self):
         """Creates live visualizers for manager terms."""
         """为各管理器项创建实时可视化器。"""
@@ -220,6 +294,22 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         返回：
             包含观测、奖励、终止信号、截断信号和附加信息的元组。
         """
+        '''
+        策略动作 action
+            ▼
+        step(action)
+            │
+            ├── ① process_action                   动作预处理
+            ├── ② 物理循环 (× decimation 次)         高频物理仿真
+            ├── ③ 更新计数器                         episode_length_buf += 1
+            ├── ④ 终止判断 + 奖励计算                 termination → reward
+            ├── ⑤ 自动重置已终止环境                   _reset_idx(reset_env_ids)
+            ├── ⑥ 更新命令 + interval 事件
+            ├── ⑦ 计算观测                           observation after reset
+            └── return (obs, reward, terminated, truncated, extras)
+
+        '''
+
         # process actions
         self.action_manager.process_action(action.to(self.device))
 
@@ -278,6 +368,10 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
 
             # trigger recorder terms for post-reset calls
             self.recorder_manager.record_post_reset(reset_env_ids)
+            '''
+            Gymnasium 向量化环境中，step() 返回的 observation 会自动反映重置后的新状态，不需要你手动调 reset()。
+            这节省了一轮 Gymnasium 的 auto_reset wrapper。
+            '''
 
         # -- update command
         self.command_manager.compute(dt=self.step_dt)
@@ -287,10 +381,46 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         # -- compute observations
         # note: done after reset to get the correct observations for reset envs
         self.obs_buf = self.observation_manager.compute(update_history=True)
+        '''
+        为什么 observation 在 reset 后计算
+            step 中先自动 reset，再计算 observation：
+            物理推进
+                ↓
+            计算旧 episode 的 terminated/reward
+                ↓
+            reset 结束环境
+                ↓
+            计算 observations
+            因此对于刚终止的环境：
+            reward / done
+                对应 reset 前最后一个状态
+
+            返回的 observation
+                对应 reset 后新 episode 初始状态
+            这是向量化 RL 环境中的常见约定。
+            可以表示为：
+            transition:
+            s_t --a_t--> terminal state
+                        │
+                        ├── reward_t
+                        ├── done_t = True
+                        └── 自动 reset
+                                ↓
+                            返回 s_0_new
+            RSL-RL 通过 done 知道这个 observation 已属于新 episode。
+        '''
 
         # return observations, rewards, resets and extras
         return self.obs_buf, self.reward_buf, self.reset_terminated, self.reset_time_outs, self.extras
+        #       [N, obs_dim]        [N]                 [N] bool            [N] bool            dict
 
+
+    '''
+    Gymnasium 标准的渲染输出
+        两种渲染模式
+            render(mode="human")     → 返回 None（GUI 实时显示，不需要额外输出）
+            render(mode="rgb_array") → 返回 np.ndarray [H, W, 3]（像素数据，用于录视频/截图）
+    '''
     def render(self, recompute: bool = False) -> np.ndarray | None:
         """Run rendering without stepping through the physics.
 
@@ -374,6 +504,10 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
                 f"Render mode '{self.render_mode}' is not supported. Please use: {self.metadata['render_modes']}."
             )
 
+    '''
+    RL 子类的析构入口
+    和创建时一样，销毁也是按依赖的反序进行——RL 专属 Manager 先销毁，基类后销毁。
+    '''
     def close(self):
         if not self._is_closed:
             # destructor is order-sensitive
@@ -390,20 +524,36 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
     """辅助函数。
     """
 
+    '''
+    构建 Gymnasium 标准空间定义
+        IsaacLab 内部用 7 个 Manager 灵活管理观测和动作——观测可以有多个 group（policy/critic），每个 group 可以拼接或字典格式，term 可以带 clip/scale
+        但 RL 训练库（RSL-RL、SB3、SKRL）只懂 Gymnasium 的标准 gym.spaces。
+
+        这个方法就是翻译层——把 IsaacLab 的灵活配置翻译成 Gymnasium 能理解的空间定义。
+            IsaacLab 内部:                          Gymnasium 标准:
+            ObservationManager                         observation_space
+                policy: joint_pos(7) + joint_vel(7)   →  Box(shape=(15,))
+                critic: ...                           →  Box(shape=(16,))
+
+            ActionManager                         →  action_space = Box(shape=(8,))
+    '''
     def _configure_gym_env_spaces(self):
         """Configure the action and observation spaces for the Gym environment."""
         """为 Gym 环境配置动作空间和观测空间。"""
-        # observation space (unbounded since we don't impose any limits)
-        self.single_observation_space = gym.spaces.Dict()
+        # observation space (unbounded since we don't impose any limits)    一、观测空间：两种模式
+        self.single_observation_space = gym.spaces.Dict()   # → {"policy": Box(...), "critic": Box(...) 或 Dict{...}}
         for group_name, group_term_names in self.observation_manager.active_terms.items():
             # extract quantities about the group
             has_concatenated_obs = self.observation_manager.group_obs_concatenate[group_name]
             group_dim = self.observation_manager.group_obs_dim[group_name]
             # check if group is concatenated or not
             # if not concatenated, then we need to add each term separately as a dictionary
-            if has_concatenated_obs:
+            if has_concatenated_obs:    # 模式 A：拼接模式（concatenate_terms=True）
                 self.single_observation_space[group_name] = gym.spaces.Box(low=-np.inf, high=np.inf, shape=group_dim)
-            else:
+                '''
+                一个 group 的所有 term 拼成一个大张量，空间就是一个 Box。
+                '''
+            else:   # 模式 B：字典模式（concatenate_terms=False）
                 group_term_cfgs = self.observation_manager._group_obs_term_cfgs[group_name]
                 term_dict = {}
                 for term_name, term_dim, term_cfg in zip(group_term_names, group_dim, group_term_cfgs):
@@ -411,14 +561,58 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
                     high = np.inf if term_cfg.clip is None else term_cfg.clip[1]
                     term_dict[term_name] = gym.spaces.Box(low=low, high=high, shape=term_dim)
                 self.single_observation_space[group_name] = gym.spaces.Dict(term_dict)
-        # action space (unbounded since we don't impose any limits)
+                '''
+                三层 zip 并行遍历——group_term_names（名字列表）、group_dim（维度列表）、group_term_cfgs（配置列表）在 _prepare_terms 中按相同顺序填充，索引严格对齐。
+                clip 的传递：如果用户配置了 clip=(-5.0, 5.0)，Gym Box 的 low/high 就反映真实裁剪范围。没配则 -inf ~ inf。这让 RL 库可以对观测做合法范围验证。
+                '''
+        # action space (unbounded since we don't impose any limits)     二、动作空间：简单 Box
         action_dim = sum(self.action_manager.action_term_dim)
         self.single_action_space = gym.spaces.Box(low=-np.inf, high=np.inf, shape=(action_dim,))
+        '''
+        动作无界（-inf ~ inf），因为实际裁剪由 ActionTerm 的 clip 在内部处理，不需要反映到 Gym 空间定义。
+        '''
 
-        # batch the spaces for vectorized environments
+        # batch the spaces for vectorized environments      三、向量化：单环境 → 批量环境
         self.observation_space = gym.vector.utils.batch_space(self.single_observation_space, self.num_envs)
         self.action_space = gym.vector.utils.batch_space(self.single_action_space, self.num_envs)
+        '''
+        batch_space 把单环境空间 Box(shape=(15,)) 转为向量化空间 Box(shape=(4096, 15))。
+        batch_space 是 Gymnasium 提供的工具：
+            # 输入: Box(shape=(15,))              ← 单环境，15 维观测
+            # 输出: Box(shape=(4096, 15))         ← 4096 并行环境
 
+            # 输入: Dict{"policy": Box(shape=(15,)), "critic": Box(shape=(16,))}
+            # 输出: Dict{"policy": Box(shape=(4096, 15)), "critic": Box(shape=(4096, 16))}
+        single_xxx 和 xxx 的命名区分：
+            single_observation_space 是一个环境的空间定义（Gymnasium 注册时需要的），observation_space 是批量环境的（RL wrapper 用的）。
+            前者描述"一个样本长什么样"，后者描述"一批样本长什么样"。
+        '''
+        '''
+        完整的数据流
+            _configure_gym_env_spaces()
+                │
+                ├── observation_manager.active_terms
+                │     {"policy": ["joint_pos", "joint_vel"], "critic": [...]}
+                │
+                ├── observation_manager.group_obs_dim
+                │     {"policy": (15,), "critic": (16,)}
+                │
+                ├── observation_manager.group_obs_concatenate
+                │     {"policy": True, "critic": True}
+                │
+                ├── observation_manager._group_obs_term_cfgs
+                │     {"policy": [ObsTermCfg(clip=None), ObsTermCfg(clip=None)]}
+                │
+                ├── action_manager.action_term_dim
+                │     [7, 1]  →  sum →  8
+                │
+                └── → single_xxx + batch_xxx → Gym 标准空间
+        '''
+
+    '''
+    RL 环境的重置总调度
+        当环境摔倒或超时，step() 自动调它完成"重新开一局"的全部操作。
+    '''
     def _reset_idx(self, env_ids: Sequence[int]):
         """Reset environments based on specified indices.
 
@@ -430,6 +624,25 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
         参数：
             env_ids: 必须重置的环境 ID 列表。
         """
+        '''
+        _reset_idx(env_ids)
+            │
+            ├── ① curriculum_manager.compute(env_ids)      课程难度更新
+            ├── ② scene.reset(env_ids)                     物理状态恢复默认
+            ├── ③ event_manager.apply("reset", ...)        随机化事件触发
+            │
+            └── ④ 9 个 Manager 逐个 reset + 收集日志
+                ├── observation_manager.reset(env_ids)    清空观测历史缓冲区
+                ├── action_manager.reset(env_ids)         清零动作缓冲区
+                ├── reward_manager.reset(env_ids)         输出回合奖励统计
+                ├── curriculum_manager.reset(env_ids)     重置课程状态
+                ├── command_manager.reset(env_ids)        重新采样命令
+                ├── event_manager.reset(env_ids)          重置 interval 倒计时
+                ├── termination_manager.reset(env_ids)    输出终止原因统计
+                ├── recorder_manager.reset(env_ids)       导出 episode 数据
+                │
+                └── episode_length_buf[env_ids] = 0       回合步数归零
+        '''
         # update the curriculum for environments that need a reset
         self.curriculum_manager.compute(env_ids=env_ids)
         # reset the internal buffers of the scene elements
@@ -470,3 +683,16 @@ class ManagerBasedRLEnv(ManagerBasedEnv, gym.Env):
 
         # reset the episode length buffer
         self.episode_length_buf[env_ids] = 0
+        '''
+        为什么 CurriculumManager 最先出现两次？
+            compute 在 scene.reset 之前——因为课程学习可能在环境重置时决定"下一个回合应该多难"。
+            例如，如果某个环境表现太好，compute 可以决定"下回合把摩擦系数范围扩大 20%"。
+            这个决策必须在 event_manager.apply("reset")（真正随机化物理参数）之前做完，否则随机化用的是旧难度。
+
+            reset 在后面——负责清理课程内部状态（如记录该环境的难度变化历史），和其余 Manager 的 reset 时序对齐。
+
+        self.extras["log"].update(info) — 日志聚合模式
+            每个 Manager 的 reset() 返回一个字典（如 {"Episode_Reward/alive": 1.2, "Episode_Reward/pole_pos": -0.5}）。
+            全部 update 到同一个 extras["log"] 字典中，最后一步由训练框架写入 TensorBoard。
+            这是一个累加聚合模式——每个 Manager 只管自己的日志，不需要知道其他 Manager 输出了什么。
+        '''

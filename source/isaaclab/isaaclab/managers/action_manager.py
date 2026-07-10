@@ -29,7 +29,20 @@ if TYPE_CHECKING:
     from isaaclab.assets import AssetBase
     from isaaclab.envs import ManagerBasedEnv
 
-
+'''
+ActionTerm 继承自 ManagerTermBase（action_manager.py:33），
+是所有动作类型（JointEffortAction、JointPositionAction、DifferentialInverseKinematicsAction 等）的共同父类。
+一、它在继承链中的位置
+    ManagerTermBase                             ← 存 cfg + env，解析通用属性
+        │
+        └── ActionTerm(ManagerTermBase)          ← 加入动作特有属性
+                │
+                ├── JointEffortAction           ← 力矩控制
+                ├── JointPositionAction          ← 位置控制
+                ├── DifferentialInverseKinematicsAction  ← IK 控制
+                ├── BinaryJointPositionAction    ← 夹爪开合
+                └── ... 等
+'''
 class ActionTerm(ManagerTermBase):
     """Base class for action terms.
 
@@ -69,9 +82,27 @@ class ActionTerm(ManagerTermBase):
         super().__init__(cfg, env)
         # parse config to obtain asset to which the term is applied
         self._asset: AssetBase = self._env.scene[self.cfg.asset_name]
+        '''
+        这是最关键的一行。ActionTermCfg.asset_name 是 ActionTermCfg 的特有字段（manager_term_cfg.py:152），值是你在配置中写的资产名（如 "robot"）。
+        这里用这个名字从场景中取出实际的资产对象。
+            # 你的配置:
+            JointEffortActionCfg(asset_name="robot", joint_names=["slider_to_cart"], scale=100.0)
+
+            # __init__ 执行后:
+            self._asset = <Articulation 对象，指向 Cartpole 机器人>
+        之后所有对机器人的操作（读关节位置、写力矩目标）都通过 self._asset 进行。
+        '''
+
+        '''
+        IO 描述符用于导出动作的输入/输出规格（维度、范围等），供外部工具（如部署、模型转换）使用。
+        _export_IO_descriptor = True 表示当前 ActionTerm 在请求导出 IO 时会自动填充描述符。
+        '''
         self._IO_descriptor = GenericActionIODescriptor()
         self._export_IO_descriptor = True
 
+        '''
+        调试可视化在 Isaac Sim 的视口中绘制箭头、轨迹等，帮助理解动作如何影响机器人。
+        '''
         # add handle for debug visualization (this is set to a valid handle inside set_debug_vis)
         self._debug_vis_handle = None
         # set initial state of debug visualization
@@ -94,7 +125,7 @@ class ActionTerm(ManagerTermBase):
     @abstractmethod
     def action_dim(self) -> int:
         """Dimension of the action term."""
-        """动作项的尺寸。"""
+        """动作项的维度。"""
         raise NotImplementedError
 
     @property
@@ -103,6 +134,9 @@ class ActionTerm(ManagerTermBase):
         """The input/raw actions sent to the term."""
         """输入/原始动作向该项发送。"""
         raise NotImplementedError
+    '''
+    返回策略网络输出的原始动作值（还没经过缩放、偏移等处理）。
+    '''
 
     @property
     @abstractmethod
@@ -110,6 +144,9 @@ class ActionTerm(ManagerTermBase):
         """The actions computed by the term after applying any processing."""
         """经过任何处理后按项计算的动作。"""
         raise NotImplementedError
+    '''
+    返回经过缩放/偏移/IK 转换后的动作，即真正要写入机器人硬件的值。
+    '''
 
     @property
     def has_debug_vis_implementation(self) -> bool:
@@ -141,6 +178,11 @@ class ActionTerm(ManagerTermBase):
     """操作。
     """
 
+    '''
+    调试可视化的开关与资源管理
+    这是 ActionTerm 中控制视口内调试可视化的方法。
+    当你在 Isaac Sim 的 GUI 中看到机器人关节上画着箭头、轨迹等辅助线时，就是这个方法在背后工作。
+    '''
     def set_debug_vis(self, debug_vis: bool) -> bool:
         """Sets whether to visualize the action term data.
         Args:
@@ -234,6 +276,13 @@ class ActionTerm(ManagerTermBase):
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
 
+'''
+里面的一个 _terms 应该就代表了一个 ActionTerm
+
+ActionManager 维护了两份数据：
+    self._term_names = ["arm_action", "gripper_action"]    # 独立列表
+    self._terms = {"arm_action": ..., "gripper_action": ...}  # 字典
+'''
 class ActionManager(ManagerBase):
     """Manager for processing and applying actions for a given world.
 
@@ -285,14 +334,29 @@ class ActionManager(ManagerBase):
         # call the base class constructor (this prepares the terms)
         super().__init__(cfg, env)
         # create buffers to store actions
-        self._action = torch.zeros((self.num_envs, self.total_action_dim), device=self.device)
-        self._prev_action = torch.zeros_like(self._action)
+        self._action = torch.zeros((self.num_envs, self.total_action_dim), device=self.device)  # 当前帧的策略输出动作
+        self._prev_action = torch.zeros_like(self._action)  # 上一帧的动作（可供观测使用）
 
         # check if any term has debug visualization implemented
         self.cfg.debug_vis = False
         for term in self._terms.values():
             self.cfg.debug_vis |= term.cfg.debug_vis
 
+    '''
+    动作管理器的信息展示面板
+    这是 ActionManager.__str__ 方法。当你执行 print(action_manager) 时，它生成一个格式化的 ASCII 表格，展示当前有哪些动作项。
+    一、输出示例
+        <ActionManager> contains 2 active terms.
+        +---------------------------------------+
+        | Active Action Terms (shape: 8)        |
+        +-------+--------------------+-----------+
+        | Index | Name               | Dimension |
+        +-------+--------------------+-----------+
+        |   0   | arm_action         |     7     |
+        |   1   | gripper_action     |     1     |
+        +-------+--------------------+-----------+
+        一目了然：2 个动作项，总维度 8（7+1），arm 控制末端位姿（7 维），gripper 控制夹爪开合（1 维）。
+    '''
     def __str__(self) -> str:
         """Returns: A string representation for action manager."""
         """Returns: 动作管理器的字符串表示。"""
@@ -364,6 +428,11 @@ class ActionManager(ManagerBase):
             has_debug_vis |= term.has_debug_vis_implementation
         return has_debug_vis
 
+    '''
+    动作 IO 规格导出器
+    这个方法收集所有 ActionTerm 的 IO 描述符，并重新格式化为标准结构，用于模型导出和部署——让外部工具知道策略网络的输入输出规格。
+    最终输出是可直接序列化为 YAML/JSON 的纯字典列表，供模型部署和外部工具使用。
+    '''
     @property
     def get_IO_descriptors(self) -> list[dict[str, Any]]:
         """Get the IO descriptors for the action manager.
@@ -410,6 +479,18 @@ class ActionManager(ManagerBase):
     """操作。
     """
 
+    '''
+    拆分拼接的动作向量
+    这是 ActionManager 对 ManagerBase 抽象方法的实现（manager_base.py:504）。
+    它从拼接的大动作向量中按各 Term 的维度切分，返回每个 Term 的名字和对应值，供 GUI 面板实时显示。
+        返回示例
+            get_active_iterable_terms(env_idx=0)
+            # 返回:
+            [
+                ("arm_action", [0.3, -0.1, 0.0, 0.5, -0.2, 0.1, 0.4]),
+                ("gripper_action", [1.0]),
+            ]
+    '''
     def get_active_iterable_terms(self, env_idx: int) -> Sequence[tuple[str, Sequence[float]]]:
         """Returns the active terms as iterable sequence of tuples.
 
@@ -457,6 +538,11 @@ class ActionManager(ManagerBase):
         for term in self._terms.values():
             term.set_debug_vis(debug_vis)
 
+    '''
+    环境重置时的动作历史清零
+    这是 ActionManager.reset()，在 ManagerBasedRLEnv._reset_idx() 中被调用（manager_based_rl_env.py:450）。
+    当一个环境被重置（机器人摔倒/超时）时，这个环境对应的动作缓冲区必须清零。
+    '''
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, torch.Tensor]:
         """Resets the action history.
 
@@ -488,6 +574,26 @@ class ActionManager(ManagerBase):
         # nothing to log here
         return {}
 
+    '''
+    动作接收与分发中心
+        这是 ActionManager 最核心的方法之一，被 ManagerBasedRLEnv.step() 在每步环境步中调用一次。
+        它负责接收策略网络输出的完整动作向量，保存历史，并按各 ActionTerm 的维度切片分发。
+
+    它在 step() 中的执行时机
+        ManagerBasedRLEnv.step(action)
+            │
+            ├── action_manager.process_action(action)    ← 每环境步调用一次（这里！）
+            │
+            ├── for _ in range(decimation):             ← 高频物理循环
+            │       ├── action_manager.apply_action()    ← 每物理步调用一次
+            │       ├── scene.write_data_to_sim()
+            │       └── sim.step()
+            │
+            ├── termination_manager.compute()
+            ├── reward_manager.compute()
+            └── observation_manager.compute()
+    process_action 每环境步调用一次（做预处理），apply_action 每物理步调用一次（写硬件）。这就是 ActionTerm 文档中说的"两阶段"机制。
+    '''
     def process_action(self, action: torch.Tensor):
         """Processes the actions sent to the environment.
 
@@ -571,10 +677,19 @@ class ActionManager(ManagerBase):
     """辅助函数。
     """
 
+    '''
+    把配置字段变成活的 ActionTerm
+        这是 ActionManager 对 ManagerBase 抽象方法的实现（manager_base.py:370）。
+        它的职责是遍历 ActionsCfg 的每个字段，用 class_type 创建对应的 ActionTerm 实例。
+    '''
     def _prepare_terms(self):
         # create buffers to parse and store terms
         self._term_names: list[str] = list()
         self._terms: dict[str, ActionTerm] = dict()
+        '''
+        self._term_names 和 self._terms 是实例变量——每个 ActionManager 对象拥有独立的一份，只在对象存活期间存在。
+        self. 前缀是区分实例变量和局部变量的唯一标志。
+        '''
 
         # check if config is dict already
         if isinstance(self.cfg, dict):
@@ -600,3 +715,25 @@ class ActionManager(ManagerBase):
             # add term name and parameters
             self._term_names.append(term_name)
             self._terms[term_name] = term
+            '''
+            _prepare_terms()
+            │
+            ├── 初始化两个容器
+            │     self._term_names = []           ActionTerm 名字列表
+            │     self._terms = {}                {名字 → ActionTerm 实例}
+            │
+            ├── 获取配置项
+            │     if dict → cfg.items()
+            │     if @configclass → cfg.__dict__.items()
+            │
+            └── 对每个字段:
+                ├── 跳过 None
+                ├── 校验类型 (必须是 ActionTermCfg)
+                ├── 用 class_type 创建实例
+                ├── 校验实例类型 (必须是 ActionTerm)
+                └── 存入 self._terms
+
+            一句话总结
+                _prepare_terms 是 ActionManager 的配置解析器——遍历 ActionsCfg 的每个字段，用 class_type 将 ActionTermCfg 变成活的 ActionTerm 实例（如 JointEffortAction），存入 self._terms 字典。
+                和其他 Manager（如 RewardManager）不同，ActionManager 的 term 是类实例而非纯函数，因为动作需要维护内部状态（buffer、asset 引用）。
+            '''

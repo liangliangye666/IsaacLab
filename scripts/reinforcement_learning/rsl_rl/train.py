@@ -115,6 +115,23 @@ torch.backends.cudnn.deterministic = False
 torch.backends.cudnn.benchmark = False
 
 
+'''
+启动 Isaac Sim
+    ↓
+导入 isaaclab_tasks/自定义 tasks
+    ↓
+Hydra 根据 task ID 读取 env cfg 和 agent cfg
+    ↓
+CLI 覆盖 num_envs、device、iterations 等
+    ↓
+gym.make()
+    ↓
+RslRlVecEnvWrapper
+    ↓
+OnPolicyRunner
+    ↓
+runner.learn()
+'''
 @hydra_task_config(args_cli.task, args_cli.agent)
 def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agent_cfg: RslRlBaseRunnerCfg):
     """Train with RSL-RL agent."""
@@ -199,6 +216,30 @@ def main(env_cfg: ManagerBasedRLEnvCfg | DirectRLEnvCfg | DirectMARLEnvCfg, agen
     # wrap around environment for rsl-rl
     env = RslRlVecEnvWrapper(env, clip_actions=agent_cfg.clip_actions)
 
+    '''
+    OnPolicyRunner 是从外部库 rsl_rl 导入的，代码在
+    ~/conda_envs/isaaclab_env/lib/python3.11/site-packages/rsl_rl/runners/on_policy_runner.py
+    for PPO iteration:
+    │
+    ├── for rollout step in num_steps_per_env:
+    │       ├── 从当前 policy observation 计算 action
+    │       ├── env.step(action)
+    │       ├── 保存 observation
+    │       ├── 保存 reward
+    │       ├── 保存 done
+    │       └── 保存 value/log_prob 等
+    │
+    ├── 计算 returns / advantages
+    │
+    ├── PPO 多轮 mini-batch 更新
+    │       ├── actor loss
+    │       ├── critic loss
+    │       ├── entropy
+    │       └── optimizer.step()
+    │
+    ├── 保存日志
+    └── 定期保存 checkpoint
+    '''
     # create runner from rsl-rl
     if agent_cfg.class_name == "OnPolicyRunner":
         runner = OnPolicyRunner(env, agent_cfg.to_dict(), log_dir=log_dir, device=agent_cfg.device)

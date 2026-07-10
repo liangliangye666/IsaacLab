@@ -53,6 +53,17 @@ class ManagerTermBaseCfg:
 
     .. _`callable classes`: https://docs.python.org/3/reference/datamodel.html#object.__call__
     """
+    '''
+    类型	            含义	                            例子
+    Callable	        一个普通 Python 函数	            def my_reward(env): ...
+    ManagerTermBase	    一个实现了 __call__ 方法的类实例	  class MyTerm(ManagerTermBase): def __call__(self, env): ...
+    什么是 Callable？ 
+        在 Python 中，函数、lambda、实现了 __call__ 的类的实例都是"可调用对象"（Callable）。
+        Callable 就是"任何可以像函数一样被调用的东西"的统称。
+    通俗理解：
+        这个字段可以填一个函数，也可以填一个"能当函数用的类对象"。
+        两者最终使用方式一样（都是 func(env, **params)），只是来源不同。
+    '''
 
     params: dict[str, Any | SceneEntityCfg] = dict()
     """The parameters to be passed to the function as keyword arguments. Defaults to an empty dict.
@@ -68,6 +79,16 @@ class ManagerTermBaseCfg:
         若参数值是 :class:`SceneEntityCfg`，管理器会从 :class:`InteractiveScene` 中查询对应场景实体，
         并按 :class:`SceneEntityCfg` 的定义解析其关节和刚体。
     """
+    '''
+    部分	                        含义
+    dict	                        字典类型
+    [str, ...]	                    键（key）是字符串
+    [..., Any | SceneEntityCfg]	    值（value）可以是任意类型，或者是一个 SceneEntityCfg 对象
+    = dict()	                    默认值是一个空字典
+        Any 是 Python 类型系统中的"万能类型"——表示"什么都行"，不做类型检查。
+        这里用 Any | SceneEntityCfg 表示：大部分参数值是普通数值（被归为 Any），但如果是 SceneEntityCfg 类型，框架会特殊处理——自动查询场景中的对应实体。
+    dict() 等价于 {}，都是创建一个空字典。
+    '''
 
 
 ##
@@ -89,6 +110,23 @@ class RecorderTermCfg:
 
     该类应继承 :class:`isaaclab.managers.recorder_manager.RecorderTerm`。
     """
+    '''
+    type[X] 是 Python 的类型注解语法，读作"X 这个类本身"，而不是"X 的实例"。
+        写法	        含义	                举例
+        x: Dog	        x 是 Dog 的一个实例	    x = Dog(name="旺财")
+        x: type[Dog]	x 是 Dog 这个类本身	    x = Dog（没有括号！）
+
+    对比一下：
+        配置类	                核心字段	     存的是什么	    框架怎么用
+        ManagerTermBaseCfg	    func	        一个函数	func(env, **params) — 直接调用
+        RecorderTermCfg	        class_type	    一个类	    class_type(cfg, env) — 先实例化，再调用
+        ActionTermCfg	        class_type	    一个类	    class_type(cfg, env) — 先实例化，再调用
+    class_type 的值必须是 RecorderTerm 的子类（或其本身）
+
+    为什么 RecorderTermCfg 和 ActionTermCfg 不用 func + params 模式？
+        因为 Recorder 和 Action 的逻辑更复杂，不是一个简单函数能搞定的——它们需要维护内部状态（如 IK 求解器的历史数据、录制缓冲等），所以用类而非函数。
+        class_type 就是告诉框架"用哪个类来创建处理对象"。
+    '''
 
 
 ##
@@ -122,6 +160,12 @@ class ActionTermCfg:
     该名称在场景配置中定义，详见 :class:`InteractiveSceneCfg`。
     """
 
+    '''
+    父类字段	     含义	            示例
+    class_type	    指向实现类	        joint_actions.JointPositionAction       谁继承它就指向谁
+    asset_name	    场景中机器人名称	"robot"
+    '''
+
     debug_vis: bool = False
     """Whether to visualize debug information. Defaults to False."""
     """是否显示调试可视化信息。默认为 False。"""
@@ -129,6 +173,12 @@ class ActionTermCfg:
     clip: dict[str, tuple] | None = None
     """Clip range for the action (dict of regex expressions). Defaults to None."""
     """动作的裁剪范围，以正则表达式到范围的字典表示。默认为 None。"""
+    '''
+    dict[str, tuple] 表示："键是字符串，值是元组"的字典。
+    关键：
+        tuple 后面没写具体类型，表示"任何元组都行"——不限制元组的长度和元素类型。
+        如果写成 dict[str, tuple[float, float]] 的话，那就限制了必须是两个浮点数的元组。
+    '''
 
 
 ##
@@ -182,6 +232,32 @@ class CurriculumTermCfg(ManagerTermBaseCfg):
     该函数接收环境对象、环境索引及其他参数，并返回用于日志记录的课程状态。
     若返回 None，则不记录课程状态。
     """
+    '''
+    规则：Callable 里必须有一个"返回类型"，且它总是在最后
+        Python 规定 Callable 的写法只有两种：
+        # 形式一：不关心输入参数
+        Callable[..., 返回值类型]
+                │     │
+                └─── 固定写法，三个点，表示"任何参数都行"
+                    └── 最后一个位置 = 返回类型（永远在这里）
+
+        # 形式二：指定输入参数类型
+        Callable[[参数1类型, 参数2类型], 返回值类型]
+                └───────┬──────────┘     │
+                    输入参数（内层方括号）   └── 最后一个逗号后的类型 = 返回类型
+        "最后一个"就是返回值——这是 Callable 泛型的语法规定，不是推导出来的。
+        总结：
+            Callable[[A, B], C] 中，嵌套在里层方括号里的是输入，最后一个逗号后面的是返回值。
+            Callable[..., C] 是说"输入无所谓，返回是 C"。
+            这是 Python typing 模块的硬规定，就像 dict[str, int] 的键在前、值在后一样，位置决定含义。
+
+    Callable[  ...,  float | dict[str, float] | None  ]
+    │       │                   │
+    │       │                   └── 返回类型（三种可能）
+    │       └── 参数：... 表示"什么参数都行，数量不限"
+    └── 这是一个可调用对象（函数）
+
+    '''
 
 
 ##
@@ -222,6 +298,15 @@ class ObservationTermCfg(ManagerTermBaseCfg):
     修改器可以是无状态或有状态，用于对观测数据执行变换，例如归一化或滑动平均。
     更多信息请参阅 :class:`~isaaclab.utils.modifiers.ModifierCfg`。
     """
+    '''
+    modifiers: list[ModifierCfg] | None = None
+    │         │         │      │       │
+    │         │         │      │       └── 默认值：None（不应用修改器）
+    │         │         │      └── 也可以是 None
+    │         │         └── ModifierCfg 对象
+    │         └── list 里装的是 ...
+    └── 字段名
+    '''
 
     noise: NoiseCfg | NoiseModelCfg | None = None
     """The noise to add to the observation. Defaults to None, in which case no noise is added."""
@@ -244,6 +329,20 @@ class ObservationTermCfg(ManagerTermBaseCfg):
     默认为 None，等价于缩放系数为 :obj:`1`。缩放使用 PyTorch broadcasting；
     若提供元组，其长度必须与该观测项输出张量的对应维度匹配。
     """
+    '''
+    核心语法：tuple[float, ...] — 可变长度元组
+        tuple[float, ...]
+        │     │      │
+        │     │      └── ... 表示"里面有多少个 float 都行"
+        │     └── 元素类型是 float
+        └── 元组类型
+    在 tuple[X, ...] 中的含义：和 Callable[..., X] 中的 ... 完全不同！这里是表示"元组长度不固定，里面全是 float"。
+
+    值	                    含义	                        举例
+    tuple[float, ...]	    每个观测维度用不同的缩放系数	    (1.0, 2.0, 0.5) → 维度0×1.0, 维度1×2.0, 维度2×0.5
+    float	                所有维度用同一个缩放系数	        2.0 → 所有维度都 ×2.0
+    None	                不缩放（等价于 ×1.0）	            默认值
+    '''
 
     history_length: int = 0
     """Number of past observations to store in the observation buffers. Defaults to 0, meaning no history.

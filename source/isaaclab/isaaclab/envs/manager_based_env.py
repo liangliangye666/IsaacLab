@@ -97,6 +97,9 @@ class ManagerBasedEnv:
     :attr:`physics_dt` 和 :attr:`step_dt` 属性查询物理时间步与环境时间步。
     """
 
+    '''
+    仿真环境的完整初始化流程：把一个 ManagerBasedEnvCfg 变成可运行的 IsaacLab 环境。
+    '''
     def __init__(self, cfg: ManagerBasedEnvCfg):
         """Initialize the environment.
 
@@ -116,8 +119,32 @@ class ManagerBasedEnv:
             RuntimeError: 如果仿真上下文已经存在。
                           环境必须始终自行创建仿真上下文，因为环境需要配置并控制该仿真上下文。
         """
+        '''
+        ManagerBasedEnv.__init__(cfg)
+            │
+            ├── ① cfg.validate() + 存储配置
+            ├── ② 设置随机种子
+            ├── ③ 创建/复用 SimulationContext（物理引擎）
+            ├── ④ 创建 InteractiveScene（场景 + 实体）
+            ├── ⑤ 设置视口相机
+            ├── ⑥ 创建 EventManager + 执行 prestartup 事件
+            ├── ⑦ 启动仿真 + scene.update()
+            ├── ⑧ 调用 load_managers()（多态！跳转到子类版本）
+            ├── ⑨ 创建 UI 窗口 + 可视化器
+            ├── ⑩ 导出 IO 描述符（如果配置要求）
+            └── ⑪ 废弃警告（rerender_on_reset）
+        '''
         # check that the config is valid
-        cfg.validate()
+        cfg.validate()      # 确保所有 MISSING 字段都已填写
+        '''
+        @configclass 把它变成 IsaacLab 风格的 dataclass 配置类。字段里出现 MISSING 表示子类或具体任务必须填，比如：
+            decimation: int = MISSING
+            scene: InteractiveSceneCfg = MISSING
+            observations: object = MISSING
+            actions: object = MISSING
+        如果任务配置没填这些，cfg.validate() 会报错。
+        '''
+
         # store inputs to class
         self.cfg = cfg
         # initialize internal variables
@@ -125,10 +152,13 @@ class ManagerBasedEnv:
 
         # set the seed for the environment
         if self.cfg.seed is not None:
-            self.cfg.seed = self.seed(self.cfg.seed)
+            self.cfg.seed = self.seed(self.cfg.seed)    # 设置 Python/numpy/torch 全局种子
         else:
             logger.warning("Seed not set for the environment. The environment creation may not be deterministic.")
 
+        '''
+        两条路径：终端运行时自己创建物理引擎上下文；在 Isaac Sim 扩展中运行时复用已有的。
+        '''
         # create a simulation context to control the simulator
         if SimulationContext.instance() is None:
             # the type-annotation is required to avoid a type-checking error
@@ -143,7 +173,7 @@ class ManagerBasedEnv:
 
         # make sure torch is running on the correct device
         if "cuda" in self.device:
-            torch.cuda.set_device(self.device)
+            torch.cuda.set_device(self.device)  # 保证 PyTorch 当前 device 和仿真配置一致。
 
         # print useful information
         print("[INFO]: Base environment:")
@@ -160,11 +190,14 @@ class ManagerBasedEnv:
                 "If this is not intended, set the render interval to be equal to the decimation."
             )
             logger.warning(msg)
+            '''
+            如果 render_interval < decimation，说明一个环境 step 内可能 render 多次，所以给 warning。
+            '''
 
-        # counter for simulation steps
+        # counter for simulation steps  记录底层物理步数
         self._sim_step_counter = 0
 
-        # allocate dictionary to store metrics
+        # allocate dictionary to store metrics  用来放日志、调试信息等
         self.extras = {}
 
         # generate scene
@@ -179,7 +212,7 @@ class ManagerBasedEnv:
         # viewport is not available in other rendering modes so the function will throw a warning
         # FIXME: This needs to be fixed in the future when we unify the UI functionalities even for
         # non-rendering modes.
-        if self.sim.render_mode >= self.sim.RenderMode.PARTIAL_RENDERING:
+        if self.sim.render_mode >= self.sim.RenderMode.PARTIAL_RENDERING:   # 只在有渲染时创建（无头模式不需要）。
             self.viewport_camera_controller = ViewportCameraController(self, self.cfg.viewer)
         else:
             self.viewport_camera_controller = None
@@ -192,45 +225,56 @@ class ManagerBasedEnv:
         # apply USD-related randomization events
         if "prestartup" in self.event_manager.available_modes:
             self.event_manager.apply(mode="prestartup")
+            '''
+            在仿真启动前执行 prestartup 事件——这是 USD 级别随机化的时机（如随机改变 mesh 缩放、替换材质）。
+            这些操作必须在 PhysX 加载场景之前完成。
+            '''
 
         # play the simulator to activate physics handles
         # note: this activates the physics simulation view that exposes TensorAPIs
         # note: when started in extension mode, first call sim.reset_async() and then initialize the managers
-        if builtins.ISAAC_LAUNCHED_FROM_TERMINAL is False:
+        if builtins.ISAAC_LAUNCHED_FROM_TERMINAL is False:  # 终端模式分支（不是 extension 模式）:
             print("[INFO]: Starting the simulation. This may take a few seconds. Please wait...")
             with Timer("[INFO]: Time taken for simulation start", "simulation_start"):
                 # since the reset can trigger callbacks which use the stage,
                 # we need to set the stage context here
                 with use_stage(self.sim.get_initial_stage()):
-                    self.sim.reset()
+                    self.sim.reset()    # 播放仿真 → 触发 PLAY 事件
+                    '''
+                    sim.reset() 会激活 PhysX/Tensor API 句柄。
+                    很多 manager 初始化时需要读取机器人关节、刚体、传感器 tensor，所以必须等仿真 reset 后再创建。
+                    '''
                 # update scene to pre populate data buffers for assets and sensors.
                 # this is needed for the observation manager to get valid tensors for initialization.
                 # this shouldn't cause an issue since later on, users do a reset over all the environments
                 # so the lazy buffers would be reset.
-                self.scene.update(dt=self.physics_dt)
+                self.scene.update(dt=self.physics_dt)   # 从 PhysX 读回初始状态
             # add timeline event to load managers
-            self.load_managers()
+            self.load_managers()    # 多态调用 → ManagerBasedRLEnv.load_managers()
 
         # extend UI elements
         # we need to do this here after all the managers are initialized
         # this is because they dictate the sensors and commands right now
         if self.sim.has_gui() and self.cfg.ui_window_class_type is not None:
             # setup live visualizers
-            self.setup_manager_visualizers()
-            self._window = self.cfg.ui_window_class_type(self, window_name="IsaacLab")
+            self.setup_manager_visualizers()    # 创建各 Manager 的实时数据可视化
+            self._window = self.cfg.ui_window_class_type(self, window_name="IsaacLab")  # 创建主窗口
+            '''
+            在 Manager 全部初始化之后（此时知道有哪些 term），搭建实时可视化面板。
+            '''
         else:
             # if no window, then we don't need to store the window
             self._window = None
 
         # initialize observation buffers
-        self.obs_buf = {}
+        self.obs_buf = {}   # 观测缓冲区占位
 
         # export IO descriptors if requested
         if self.cfg.export_io_descriptors:
-            self.export_IO_descriptors()
+            self.export_IO_descriptors()    # 如果配置要求导出 IO 规格
 
         # show deprecation message for rerender_on_reset
-        if self.cfg.rerender_on_reset:
+        if self.cfg.rerender_on_reset:  # 废弃兼容
             msg = (
                 "\033[93m\033[1m[DEPRECATION WARNING] ManagerBasedEnvCfg.rerender_on_reset is deprecated. Use"
                 " ManagerBasedEnvCfg.num_rerenders_on_reset instead.\033[0m"
@@ -241,7 +285,28 @@ class ManagerBasedEnv:
                 stacklevel=2,
             )
             if self.cfg.num_rerenders_on_reset == 0:
-                self.cfg.num_rerenders_on_reset = 1
+                self.cfg.num_rerenders_on_reset = 1 # 旧字段 → 新字段
+                '''
+                rerender_on_reset 已废弃。
+                现在推荐用 num_rerenders_on_reset。
+                这里是向后兼容：旧配置写 rerender_on_reset=True 时，自动等价为 reset 后多 render 1 次。
+                '''
+    '''
+    两种启动模式的路径差异
+        终端模式 (python train.py):
+            ③ 创建 SimulationContext
+            ④ 创建 InteractiveScene
+            ⑥ EventManager + prestartup
+            ⑦ sim.reset() + scene.update() + load_managers()
+            ⑨ UI + 可视化
+
+        扩展模式 (Isaac Sim GUI):
+            ③ 复用已有 SimulationContext
+            ④ 创建 InteractiveScene
+            ⑥ EventManager + prestartup
+            ...
+            (sim.reset() 和 load_managers() 分开执行，不在 __init__ 中)
+    '''
 
     def __del__(self):
         """Cleanup for the environment."""
@@ -290,6 +355,9 @@ class ManagerBasedEnv:
         """环境运行所在的设备。"""
         return self.sim.device
 
+    '''
+    聚合所有输入输出规格
+    '''
     @property
     def get_IO_descriptors(self):
         """Get the IO descriptors for the environment.
@@ -308,7 +376,18 @@ class ManagerBasedEnv:
             "articulations": export_articulations_data(self),
             "scene": export_scene_data(self),
         }
+    '''
+    键	            内容
+    observations	每个观测 term 的维度、类型、缩放
+    actions	        每个动作 term 的维度、范围
+    articulations	机器人的关节名、类型、限位
+    scene	        场景结构（地面、物体的 prim_path）
+    '''
 
+    '''
+    将环境规格导出为 YAML 文件
+    这是之前讲过的所有 IO 描述符（观测、动作、关节体、场景）的落地出口——把聚合好的规格字典写入磁盘，供模型部署工具读取。
+    '''
     def export_IO_descriptors(self, output_dir: str | None = None):
         """Export the IO descriptors for the environment.
 
@@ -320,6 +399,13 @@ class ManagerBasedEnv:
         参数：
             output_dir: 导出IO描述符的目录
         """
+        '''
+        export_IO_descriptors(output_dir)
+            │
+            ├── ① 调 self.get_IO_descriptors → 聚合所有 IO 规格字典
+            ├── ② 确定输出路径（优先 output_dir → log_dir/io_descriptors）
+            └── ③ 用 yaml.safe_dump 写入 IO_descriptors.yaml
+        '''
         import os
 
         import yaml
@@ -377,7 +463,7 @@ class ManagerBasedEnv:
         """
         # prepare the managers
         # -- event manager (we print it here to make the logging consistent)
-        print("[INFO] Event Manager: ", self.event_manager)
+        print("[INFO] Event Manager: ", self.event_manager) #（打印信息，不创建——已在 __init__ 创建）
         # -- recorder manager
         self.recorder_manager = RecorderManager(self.cfg.recorders, self)
         print("[INFO] Recorder Manager: ", self.recorder_manager)
@@ -393,7 +479,31 @@ class ManagerBasedEnv:
         # when all the other managers are created
         if self.__class__ == ManagerBasedEnv and "startup" in self.event_manager.available_modes:
             self.event_manager.apply(mode="startup")
+            '''
+            self.__class__ == ManagerBasedEnv 的精确判断
+                这不是 isinstance，而是精确的 ==。为什么不用 isinstance？
+                    判断方式	                            当 self 是 ManagerBasedRLEnv 时
+                    isinstance(self, ManagerBasedEnv)	    True（子类也算）→ 会执行 startup
+                    self.__class__ == ManagerBasedEnv	    False（只认基类本身）→ 不执行
+                设计意图：ManagerBasedRLEnv.load_managers() 在最后一步（line 134）自己负责执行 startup：
+                    # ManagerBasedRLEnv.load_managers():
+                    super().load_managers()                   # → 基类版本（不执行 startup）
+                    self.termination_manager = ...
+                    self.reward_manager = ...
+                    self.curriculum_manager = ...
+                    self._configure_gym_env_spaces()
+                    self.event_manager.apply(mode="startup")   # ← 这里执行！在 RL Manager 创建完毕后
+                RL 子类需要等 所有 RL Manager 创建完毕后再执行 startup（因为 startup 事件可能依赖 commands/rewards/termination）。
+                如果基类版本用 isinstance，RL 子类还在半路时就被触发了 startup——时机不对。
 
+                用 == 限定了：只有直接实例化基类 ManagerBasedEnv 时（非 RL 场景，如遥操作）才在这里执行 startup。
+                任何子类（如 ManagerBasedRLEnv）都自己负责 startup 时机——因为 RL 的 startup 需要等 Command/Reward/Termination Manager 全部就绪。
+            '''
+
+    '''
+    实时数据面板的创建
+        ManagerLiveVisualizer 就是训练时 GUI 中显示动作值、观测值实时曲线的那个面板。
+    '''
     def setup_manager_visualizers(self):
         """Creates live visualizers for manager terms."""
         """为各管理器项创建实时可视化器。"""
@@ -409,6 +519,11 @@ class ManagerBasedEnv:
     """操作 - MDP。
     """
 
+    '''
+    Gymnasium 标准的公开重置接口
+        这是 gym.Env 要求实现的 reset() 方法。
+        ManagerBasedRLEnv 不覆盖 reset()，只覆盖内部的 _reset_idx()——这是模板方法模式的又一次应用。
+    '''
     def reset(
         self, seed: int | None = None, env_ids: Sequence[int] | None = None, options: dict[str, Any] | None = None
     ) -> tuple[VecEnvObs, dict]:
@@ -457,14 +572,34 @@ class ManagerBasedEnv:
 
         # reset state of scene
         self._reset_idx(env_ids)
+        '''
+        基类 ManagerBasedEnv._reset_idx() 只做场景重置 + EventManager reset。
+        RL 子类覆盖 _reset_idx()，在里面做完整的 RL 重置流程：
+        '''
 
+        '''
+        重置后的物理同步
+        '''
         # update articulation kinematics
-        self.scene.write_data_to_sim()
-        self.sim.forward()
+        self.scene.write_data_to_sim()    # 把新状态推送到 PhysX
+        self.sim.forward()                # PhysX 执行一个物理步
+        '''
+        重置时修改了关节角度、根位姿，这些写到了 Python 侧缓冲区。
+        write_data_to_sim() 推到 PhysX，sim.forward() 让 PhysX 算一步（如检测碰撞），确保重置后的状态在物理上合法。
+        '''
+
+        '''
+        传感器渲染
+        '''
         # if sensors are added to the scene, make sure we render to reflect changes in reset
         if self.sim.has_rtx_sensors() and self.cfg.num_rerenders_on_reset > 0:
             for _ in range(self.cfg.num_rerenders_on_reset):
                 self.sim.render()
+        '''
+        重置后环境状态变了，但相机/激光雷达的渲染画面还是旧的。
+        额外渲染几帧让传感器数据反映新状态。
+        num_rerenders_on_reset 默认为 0（不渲染，省性能）。
+        '''
 
         # trigger recorder terms for post-reset calls
         self.recorder_manager.record_post_reset(env_ids)
@@ -472,13 +607,23 @@ class ManagerBasedEnv:
         # compute observations
         self.obs_buf = self.observation_manager.compute(update_history=True)
 
+        '''
+        纹理等待
+        '''
         if self.cfg.wait_for_textures and self.sim.has_rtx_sensors():
             while SimulationManager.assets_loading():
                 self.sim.render()
+                '''
+                纹理加载是异步的。如果配置要求等待，就循环渲染直到加载完毕——确保传感器拍到的画面不是灰模。
+                '''
 
         # return observations
         return self.obs_buf, self.extras
 
+    '''
+    Checkpoint 恢复式重置
+        和 reset() 不同——reset() 通过随机化事件生成初始状态，reset_to() 直接把环境恢复到指定的精确状态（checkpoint / demo 回放）。
+    '''
     def reset_to(
         self,
         state: dict[str, dict[str, dict[str, torch.Tensor]]],
@@ -547,6 +692,11 @@ class ManagerBasedEnv:
         # return observations
         return self.obs_buf, self.extras
 
+    '''
+    环境一帧的完整物理循环
+        这是基类版本的 step()，只做物理仿真和观测计算，不涉及奖励/终止/命令（那由 ManagerBasedRLEnv.step() 叠加）。
+        这里定义了物理循环的核心框架。
+    '''
     def step(self, action: torch.Tensor) -> tuple[VecEnvObs, dict]:
         """Execute one time-step of the environment's dynamics.
 
@@ -574,44 +724,74 @@ class ManagerBasedEnv:
         返回：
             包含观测和附加信息的元组。
         """
+        '''
+        执行流程
+            step(action)
+                │
+                ├── ① process_action(action)      动作预处理
+                ├── ② record_pre_step             录制预回调
+                │
+                ├── ③ 物理循环 (× decimation 次)
+                │     ├── apply_action()           写目标值
+                │     ├── write_data_to_sim()      推到 PhysX
+                │     ├── sim.step()               PhysX 一步
+                │     ├── (if 渲染间隔) render()
+                │     └── scene.update()           读回新状态
+                │
+                ├── ④ interval 事件
+                ├── ⑤ compute observations
+                └── ⑥ return (obs_buf, extras)
+        '''
+
         # process actions
-        self.action_manager.process_action(action.to(self.device))
+        self.action_manager.process_action(action.to(self.device))  # 处理动作
 
         self.recorder_manager.record_pre_step()
 
         # check if we need to do rendering within the physics loop
         # note: checked here once to avoid multiple checks within the loop
         is_rendering = self.sim.has_gui() or self.sim.has_rtx_sensors()
+        '''
+        如果开了 GUI，或者场景里有 RTX 相机/传感器，就可能需要在物理循环中 render。这里提前算一次，避免每个物理步重复检查。
+        '''
 
         # perform physics stepping
         for _ in range(self.cfg.decimation):
             self._sim_step_counter += 1
             # set actions into buffers
-            self.action_manager.apply_action()
+            self.action_manager.apply_action()  # ① 把力矩/位置目标写到 articulation buffer
             # set actions into simulator
-            self.scene.write_data_to_sim()
+            self.scene.write_data_to_sim()      # ② 推到 PhysX C++ API
             # simulate
-            self.sim.step(render=False)
+            self.sim.step(render=False)         # ③ PhysX 积分一个物理步长
             # render between steps only if the GUI or an RTX sensor needs it
             # note: we assume the render interval to be the shortest accepted rendering interval.
             #    If a camera needs rendering at a faster frequency, this will lead to unexpected behavior.
             if self._sim_step_counter % self.cfg.sim.render_interval == 0 and is_rendering:
-                self.sim.render()
+                self.sim.render()               # ④ 渲染（如果 GUI 开或 RTX 传感器用）
             # update buffers at sim dt
-            self.scene.update(dt=self.physics_dt)
+            self.scene.update(dt=self.physics_dt)   # ⑤ 从 PhysX 读回关节角、速度等
 
         # post-step: step interval event
         if "interval" in self.event_manager.available_modes:
             self.event_manager.apply(mode="interval", dt=self.step_dt)
+            '''
+            物理循环结束后，处理按时间间隔触发的事件，比如随机推一下机器人、周期性扰动等。
+            这里传的是 step_dt，因为 interval 事件按环境步节奏更新倒计时。
+            '''
 
         # -- compute observations
         self.obs_buf = self.observation_manager.compute(update_history=True)
+        '''
+        计算所有 observation group。update_history=True 表示如果某些 observation term 配了 history_length，这里会把当前观测追加进历史缓冲区。
+        '''
+
         self.recorder_manager.record_post_step()
 
         # return observations and extras
         return self.obs_buf, self.extras
 
-    @staticmethod
+    @staticmethod   # 调用时不依赖实例——ManagerBasedEnv.seed(42) 和 env.seed(42) 效果一样。这里的 seed 方法是工具函数，和 self 无关。
     def seed(seed: int = -1) -> int:
         """Set the seed for the environment.
 
@@ -638,7 +818,7 @@ class ManagerBasedEnv:
         except ModuleNotFoundError:
             pass
         # set seed for torch and other libraries
-        return configure_seed(seed)
+        return configure_seed(seed) # 设置 torch、numpy、Python random、warp 四个随机数生成器的全局种子，确保训练可复现。
 
     def close(self):
         """Cleanup for the environment."""
@@ -651,6 +831,11 @@ class ManagerBasedEnv:
             del self.event_manager
             del self.recorder_manager
             del self.scene
+            '''
+            顺序很重要——Manager 内部持有 scene 的引用（如 ActionTerm._asset = scene["robot"]）。
+            如果先删 scene，再删 Manager 时会访问已释放的内存。
+            后创建的先删，先创建的后删——栈式清理。
+            '''
 
             # clear callbacks and instance
             if get_isaac_sim_version().major >= 5:
@@ -659,9 +844,12 @@ class ManagerBasedEnv:
                     omni.physx.get_physx_simulation_interface().detach_stage()
                     self.sim.stop()
                     self.sim.clear()
+                    '''
+                    当场景完全在内存中运行时，需要手动从 PhysX 卸下 stage，然后停止仿真并清空内存——否则显存泄漏。
+                    '''
 
-            self.sim.clear_all_callbacks()
-            self.sim.clear_instance()
+            self.sim.clear_all_callbacks()     # 清理 ManagerBase 中注册的 PLAY 事件回调等
+            self.sim.clear_instance()          # 销毁 SimulationContext 单例
 
             # destroy the window
             if self._window is not None:
@@ -686,12 +874,21 @@ class ManagerBasedEnv:
         参数：
             env_ids: 必须重置的环境ID列表
         """
+        '''
+        三步重置
+            _reset_idx(env_ids)
+                │
+                ├── ① scene.reset(env_ids)          物理状态恢复默认
+                ├── ② event_manager.apply("reset")  触发随机化事件（如随机关节角度）
+                └── ③ 4 个 Manager 逐个 reset + 收集日志
+        '''
+
         # reset the internal buffers of the scene elements
         self.scene.reset(env_ids)
 
         # apply events such as randomization for environments that need a reset
         if "reset" in self.event_manager.available_modes:
-            env_step_count = self._sim_step_counter // self.cfg.decimation
+            env_step_count = self._sim_step_counter // self.cfg.decimation  # 物理步转环境步
             self.event_manager.apply(mode="reset", env_ids=env_ids, global_env_step_count=env_step_count)
 
         # iterate over all managers and reset them
@@ -699,14 +896,18 @@ class ManagerBasedEnv:
         # note: This is order-sensitive! Certain things need be reset before others.
         self.extras["log"] = dict()
         # -- observation manager
-        info = self.observation_manager.reset(env_ids)
+        info = self.observation_manager.reset(env_ids)  # ① 观测：清空历史缓冲区
         self.extras["log"].update(info)
         # -- action manager
-        info = self.action_manager.reset(env_ids)
+        info = self.action_manager.reset(env_ids)       # ② 动作：清零 _action / _prev_action
         self.extras["log"].update(info)
         # -- event manager
-        info = self.event_manager.reset(env_ids)
+        info = self.event_manager.reset(env_ids)        # ③ 事件：重置 interval 倒计时
         self.extras["log"].update(info)
         # -- recorder manager
-        info = self.recorder_manager.reset(env_ids)
+        info = self.recorder_manager.reset(env_ids)     # ④ 录制：导出 episode 数据
         self.extras["log"].update(info)
+        '''
+        注释明确写了 "order-sensitive"——观测必须在动作之前重置，因为观测可能引用 action_manager.prev_action。
+        先清空历史缓冲区，再清除动作值，最后重置事件倒计时。
+        '''

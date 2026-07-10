@@ -95,13 +95,13 @@ class AssetBase(ABC):
         异常：
             RuntimeError: 如果输入prim路径或prim路径表达没有prims。
         """
-        # check that the config is valid
+        # check that the config is valid    检查所有 MISSING 字段是否已填
         cfg.validate()
-        # store inputs
+        # store inputs      深拷贝配置，防止外部修改影响内部状态
         self.cfg = cfg.copy()
-        # flag for whether the asset is initialized
+        # flag for whether the asset is initialized     标记"尚未初始化"（PhysX 句柄等 PLAY 时才创建）
         self._is_initialized = False
-        # get stage handle
+        # get stage handle      获取 USD Stage 句柄
         self.stage = get_current_stage()
 
         # check if base asset path is valid
@@ -118,18 +118,44 @@ class AssetBase(ABC):
                 translation=self.cfg.init_state.pos,
                 orientation=self.cfg.init_state.rot,
             )
+            '''
+            正则叶子检测 + 执行生成
+                只检查路径最后一段（叶子节点）是不是正则。
+                    如果 prim_path 是 /World/envs/env_.*/Robot，叶子是 Robot（纯字母），可以 spawn。
+                    如果路径是 /World/Robot_[1,2]，叶子是 Robot_[1,2]（含正则），就不能 spawn——因为 spawn 函数不知道具体该在哪个 prim 下创建资产。
+
+                注意 init_state 的两个字段在这里被消费：
+                    pos 传给 translation，rot 传给 orientation。这就是配置中初始位姿真正生效的地方。
+            '''
+
         # check that spawn was successful
         matching_prims = sim_utils.find_matching_prims(self.cfg.prim_path)
         if len(matching_prims) == 0:
             raise RuntimeError(f"Could not find prim with path {self.cfg.prim_path}.")
+        '''
+        验证生成结果
+            即使 spawn 跳过了（None 或 正则叶子），也会检查该路径下是否已存在 prim。这在 spawn=None 时特别有用——确保你预先放置的资产确实存在。
+        '''
 
         # register various callback functions
         self._register_callbacks()
+        '''
+        注册生命周期回调
+            注册了三个 Isaac Sim 事件回调（见 asset_base.py:366-403）：
+                事件	            回调方法	                            作用
+                PLAY	            _initialize_callback	            仿真开始播放时，创建 PhysX 句柄、初始化 buffer、设置 _is_initialized = True
+                STOP	            _invalidate_initialize_callback	    仿真停止时，清理 PhysX 句柄、设置 _is_initialized = False
+                PRIM_DELETION	    _on_prim_deletion	                prim 被删除时，自动清理所有回调订阅
+        '''
 
         # add handle for debug visualization (this is set to a valid handle inside set_debug_vis)
         self._debug_vis_handle = None
         # set initial state of debug visualization
         self.set_debug_vis(self.cfg.debug_vis)
+        '''
+        调试可视化初始化
+            如果配置中 debug_vis=True，会注册一个渲染帧回调——每帧刷新时绘制碰撞体线框、关节轴等调试元素。
+        '''
 
     def __del__(self):
         """Unsubscribe from the callbacks."""
@@ -154,6 +180,14 @@ class AssetBase(ABC):
         返回True如果资产初始化，否则False。
         """
         return self._is_initialized
+    '''
+    作用
+        一个只读的布尔标志，告诉外界这个资产是否已经完成了 PhysX 初始化（即 _initialize_impl() 是否已执行）。
+    设计意图
+        还记得 __init__ 中的两步初始化吗？
+        __init__ 创建了 USD prim，但 PhysX 句柄要等到 PLAY 回调才创建。
+        is_initialized 就是这两阶段的分界线——在初始化完成前，任何依赖物理句柄的操作都应该被阻止。
+    '''
 
     @property
     @abstractmethod
@@ -167,12 +201,24 @@ class AssetBase(ABC):
         这等于每个环境的资产实例数乘以环境数。
         """
         return NotImplementedError
+    '''
+    作用
+        返回资产的总实例数 = 每个环境的资产数 × 环境数。例如 4096 个并行环境，每个环境 1 个机器人，num_instances 就是 4096。
+    设计意图
+        Isaac Lab 中资产分为两类：
+            单例资产（如 RigidObject）：每个环境一个实例
+            多实例资产（如 Articulation）：可能一个环境有多个机器人
+    '''
 
     @property
     def device(self) -> str:
         """Memory device for computation."""
         """计算的内存设备。"""
         return self._device
+    '''
+    作用
+        返回资产计算所在的设备，通常是 "cuda:0" 或 "cpu"。所有 tensor 操作（位置读取、力矩写入）都在这个设备上执行。
+    '''
 
     @property
     @abstractmethod
@@ -180,6 +226,15 @@ class AssetBase(ABC):
         """Data related to the asset."""
         """与资产相关的数据。"""
         return NotImplementedError
+    '''
+    作用
+        返回资产的所有物理数据的结构化视图。不同子类返回不同类型：
+            Articulation.data 返回 ArticulationData（含 joint_pos、joint_vel、root_pos_w 等）
+            RigidObject.data 返回 RigidObjectData（含 root_pos_w、root_lin_vel_w 等）
+    设计意图
+        data 是 Isaac Lab 中最核心的抽象之一。
+        它统一了所有资产数据的访问方式——不管你是四足机器人还是桌面方块，外部代码都通过 asset.data.xxx 来读取状态。这就是多态在数据层的体现。
+    '''
 
     @property
     def has_debug_vis_implementation(self) -> bool:
@@ -188,6 +243,14 @@ class AssetBase(ABC):
         # check if function raises NotImplementedError
         source_code = inspect.getsource(self._set_debug_vis_impl)
         return "NotImplementedError" not in source_code
+    '''
+    作用
+        在运行时检测子类是否真正实现了 _set_debug_vis_impl 方法，而不是简单继承了基类的 raise NotImplementedError 桩。
+    这是怎么工作的？
+        has_debug_vis_implementation 用 inspect.getsource() 获取该方法的源代码文本，然后检查其中是否包含字符串 "NotImplementedError"：
+            如果包含 → 子类没有重写，返回 False
+            如果不包含 → 子类实现了真正逻辑，返回 True
+    '''
 
     """
     Operations.
@@ -195,6 +258,13 @@ class AssetBase(ABC):
     """操作。
     """
 
+    '''
+    输入参数
+        visible：
+            True 让资产可见，False 隐藏资产。直接在 USD Stage 上操作节点的可见性属性。
+        env_ids：
+            要操作的环境索引列表。可以是 Python list、range 对象或 torch.Tensor。默认为 None，表示操作全部实例。
+    '''
     def set_visibility(self, visible: bool, env_ids: Sequence[int] | None = None):
         """Set the visibility of the prims corresponding to the asset.
 
@@ -240,6 +310,14 @@ class AssetBase(ABC):
         for env_id in env_ids:
             sim_utils.set_prim_visibility(self._prims[env_id], visible)
 
+    '''
+    输入参数 debug_vis：
+        True 打开调试可视化（显示碰撞体线框、关节轴等），False 关闭调试可视化。
+    返回值 bool：
+        True 表示设置成功；False 表示该资产根本没有实现调试可视化（子类未覆写 _set_debug_vis_impl）。
+    副作用：
+        如果开启，会在 Omniverse 的渲染事件流中注册一个每帧回调，持续更新调试绘制内容。
+    '''
     def set_debug_vis(self, debug_vis: bool) -> bool:
         """Sets whether to visualize the asset data.
 
@@ -331,7 +409,20 @@ class AssetBase(ABC):
         """Initializes the PhysX handles and internal buffers."""
         """启动PhysX句柄和内部缓冲器。"""
         raise NotImplementedError
+    '''
+    延迟初始化的"最终执行者"
+    作用
+        创建 PhysX 物理句柄并初始化所有内部缓冲区。
+        这是真正的初始化——__init__ 只是做了轻量级的 USD 生成和回调注册，PhysX 句柄要等到仿真"播放"时才创建。
+    '''
 
+    '''
+    可视化几何体的"开关"
+    作用
+        由 set_debug_vis() 调用，负责创建或隐藏调试可视化几何体（如碰撞体网格、关节坐标轴）。
+            debug_vis=True：如果可视化对象还不存在，创建它们，然后显示
+            debug_vis=False：隐藏可视化对象（不销毁，下次开启更快）
+    '''
     def _set_debug_vis_impl(self, debug_vis: bool):
         """Set debug visualization into visualization objects.
 
@@ -346,6 +437,11 @@ class AssetBase(ABC):
         """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
+    '''
+    每帧更新的"动画师"
+    作用
+        由 Omniverse 的 Post-Update 事件流每帧触发，负责更新调试可视化几何体的位置和姿态，以反映当前物理状态。
+    '''
     def _debug_vis_callback(self, event):
         """Callback for debug visualization.
 
@@ -363,9 +459,57 @@ class AssetBase(ABC):
     """内部仿真回调。
     """
 
+    '''
+    在 Omniverse Kit 的事件系统中注册三个回调订阅，
+        返回的句柄保存在 self._initialize_handle、self._invalidate_initialize_handle、self._prim_deletion_callback_id 中。
+    调用时机：
+        在 __init__ 末尾调用一次（asset_base.py:127），即每个资产实例创建时执行一次。
+    '''
     def _register_callbacks(self):
         """Registers the timeline and prim deletion callbacks."""
         """记录时间表和prim删除回调。"""
+        '''
+        _register_callbacks()
+                │
+                ▼
+        ┌─ 1. 定义 safe_callback 内嵌函数 ────────────────────┐
+        │    包装回调调用，捕获 ReferenceError 防止崩溃           │
+        └──────────────────────────────────────────────────────┘
+                │
+                ▼
+        ┌─ 2. 创建 self 的弱引用代理 ───────────────────────────┐
+        │    obj_ref = weakref.proxy(self)                      │
+        │    ↑ 所有回调通过它访问 self，防止循环引用              │
+        └──────────────────────────────────────────────────────┘
+                │
+                ▼
+        ┌─ 3. 获取时间轴事件流 ──────────────────────────────────┐
+        │    timeline_event_stream =                             │
+        │        get_timeline_interface()                        │
+        │            .get_timeline_event_stream()                │
+        └──────────────────────────────────────────────────────┘
+                │
+                ├── 注册 PLAY 事件（order=10）─────────────────────┐
+                │    → 回调: safe_callback(                        │
+                │              "_initialize_callback",             │
+                │              event, obj_ref)                     │
+                │    → 句柄: self._initialize_handle               │
+                └────────────────────────────────────────────────┘
+                │
+                ├── 注册 STOP 事件（order=10）─────────────────────┐
+                │    → 回调: safe_callback(                        │
+                │              "_invalidate_initialize_callback",  │
+                │              event, obj_ref)                     │
+                │    → 句柄: self._invalidate_initialize_handle    │
+                └────────────────────────────────────────────────┘
+                │
+                └── 注册 PRIM_DELETION 事件 ──────────────────────┐
+                    → 回调: safe_callback(                        │
+                            "_on_prim_deletion",                │
+                            event, obj_ref)                     │
+                    → 句柄: self._prim_deletion_callback_id       │
+                    └────────────────────────────────────────────┘
+        '''
 
         # register simulator callbacks (with weakref safety to avoid crashes on deletion)
         def safe_callback(callback_name, event, obj_ref):

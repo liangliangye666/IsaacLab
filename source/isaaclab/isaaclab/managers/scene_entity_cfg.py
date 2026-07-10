@@ -237,6 +237,22 @@ class SceneEntityCfg:
         # convert object collection names to indices based on regex
         self._resolve_object_collection_names(scene)
 
+    '''
+    关节名与索引的双向翻译器
+        它处理一种非常实际的配置场景——你的配置里可能只写了关节名（"slider_to_cart"），也可能只写了索引（[0, 1]），也可能两个都写了。
+        这个函数负责：校验 + 补全缺失的一方。
+
+        进入 _resolve_joint_names
+            │
+            ├── 情况 A: joint_names ≠ None 且 joint_ids ≠ slice(None)
+            │     用户同时指定了名字和索引 → 校验一致性
+            │
+            ├── 情况 B: joint_names ≠ None (joint_ids 是默认的 slice(None))
+            │     用户只给了名字 → 查 PhysX，补上 joint_ids
+            │
+            └── 情况 C: joint_ids ≠ slice(None) (joint_names 是 None)
+                用户只给了索引 → 查 PhysX，补上 joint_names
+    '''
     def _resolve_joint_names(self, scene: InteractiveScene):
         # convert joint names to indices based on regex
         if self.joint_names is not None or self.joint_ids != slice(None):
@@ -271,6 +287,20 @@ class SceneEntityCfg:
                     self.joint_ids = [self.joint_ids]
                 self.joint_names = [entity.joint_names[i] for i in self.joint_ids]
 
+    '''
+    与关节镜像的肌腱解析器（如仿生韧带）
+    这个方法和刚刚讲的 _resolve_joint_names 结构完全一致，唯一区别是把"关节（joint）"换成了"固定肌腱（fixed tendon）"。
+
+    一、固定肌腱（Fixed Tendon）是什么？
+        在机器人物理仿真中，固定肌腱模拟的是机器人身上固定长度的被动连接结构——比如真实的肌腱、钢缆、同步带。
+        它有长度约束，但不能被主动控制，不具备驱动器（电机）的功能。
+
+        特性	        关节 (Joint)	            固定肌腱 (Fixed Tendon)
+        有无驱动力矩	有（电机驱动）	                无（纯被动约束）
+        作用	        连接两个刚体，允许相对运动	    保持两个点之间的固定距离
+        举例	        膝关节、肘关节	                仿生肌腱、四足机器人的弹性韧带
+        通俗理解：关节像一个可以主动转动的铰链，肌腱像一根不能拉长缩短的绳子。
+    '''
     def _resolve_fixed_tendon_names(self, scene: InteractiveScene):
         # convert tendon names to indices based on regex
         if self.fixed_tendon_names is not None or self.fixed_tendon_ids != slice(None):
@@ -312,6 +342,26 @@ class SceneEntityCfg:
                     self.fixed_tendon_ids = [self.fixed_tendon_ids]
                 self.fixed_tendon_names = [entity.fixed_tendon_names[i] for i in self.fixed_tendon_ids]
 
+    '''
+    刚体名称与索引的双向翻译器
+    结构和前两个（关节、肌腱）完全一致，但这里操作的是刚体（Body）——机器人身上每个独立的物理链路。
+
+    一、刚体（Body）是什么？
+        一个机器人的物理结构由多个刚体组成，它们通过关节连接：
+            四足机器人 Anymal 的刚体结构：
+            ┌────────────────┐
+            │  base（机身）    │  ← body_names[0] = "base"
+            │  ┌──┴──┐       │
+            │  │     │       │
+            │ LF    RF       │  ← body_names[1] = "LF_HIP", [2] = "RF_HIP"
+            │ │     │        │
+            │LF_THIGH ...    │  ← body_names[3] = "LF_THIGH", ...
+            └────────────────┘
+        每个刚体是一个物理计算单元——PhysX 对每个刚体单独计算碰撞、惯性、受力。你需要通过刚体名来：
+            读取某个身体部件的位置/速度（如"前左脚的 z 坐标"）
+            判断接触（如"右脚是否碰到地面了"）
+            施加外部力（如"推一下机身的质心"）
+    '''
     def _resolve_body_names(self, scene: InteractiveScene):
         # convert body names to indices based on regex
         if self.body_names is not None or self.body_ids != slice(None):
@@ -346,6 +396,24 @@ class SceneEntityCfg:
                     self.body_ids = [self.body_ids]
                 self.body_names = [entity.body_names[i] for i in self.body_ids]
 
+    '''
+    物体集合的名称解析器
+    这是 SceneEntityCfg 中第四个名称解析方法。结构和前三个 95% 一致，但有两个关键差异值得关注。
+
+    一、物体集合（RigidObjectCollection）是什么？
+    前三个方法操作的都是单个机器人（Articulation 或 RigidObject）的内部结构（关节、肌腱、刚体）。但这个方法操作的是一种完全不同的实体：
+        entity: RigidObjectCollection = scene[self.name]
+        RigidObjectCollection 是多个独立刚体的集合——比如桌子上散落的 10 个方块，或者场景中的 5 个目标物体。它们之间没有关节连接，各自独立存在。
+
+        概念	    类型	                举例
+        关节体	    Articulation	        一个 Franka 机械臂（关节连接的刚体链）
+        单个刚体	RigidObject	            桌面上的一个方块
+        物体集合	RigidObjectCollection	桌面上的 10 个方块（批量管理）
+    使用场景：在抓取任务中，你需要同时管理多个可抓取物体。RigidObjectCollection 让你对一堆方块统一操作：
+        # 场景中的物体集合
+        SceneEntityCfg("object", object_collection_names=["cube_0", "cube_1", "cube_3"])
+        # 解析后: object_collection_ids = [0, 1, 3]
+    '''
     def _resolve_object_collection_names(self, scene: InteractiveScene):
         # convert object names to indices based on regex
         if self.object_collection_names is not None or self.object_collection_ids != slice(None):

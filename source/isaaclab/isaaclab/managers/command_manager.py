@@ -63,12 +63,13 @@ class CommandTerm(ManagerTermBase):
         """
         super().__init__(cfg, env)
 
-        # create buffers to store the command
+        # create buffers to store the command   一个空字典，用于存储可记录的命令指标（如当前命令的距离、角度等），供日志使用。
         # -- metrics that can be used for logging
         self.metrics = dict()
-        # -- time left before resampling
+        # -- time left before resampling    命令重采样倒计时器。每个环境有一个独立的倒计时。当倒计时归零时，重新随机生成一个命令。
         self.time_left = torch.zeros(self.num_envs, device=self.device)
         # -- counter for the number of times the command has been resampled within the current episode
+        # 记录当前回合内这个环境被重采样了多少次。用于日志统计和课程学习（比如"第 10 次采样后提高难度"）。
         self.command_counter = torch.zeros(self.num_envs, device=self.device, dtype=torch.long)
 
         # add handle for debug visualization (this is set to a valid handle inside set_debug_vis)
@@ -152,6 +153,9 @@ class CommandTerm(ManagerTermBase):
         # return success
         return True
 
+    '''
+    回合结束时清空统计 + 生成新命令
+    '''
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
         """Reset the command generator and log metrics.
 
@@ -194,6 +198,34 @@ class CommandTerm(ManagerTermBase):
         self._resample(env_ids)
 
         return extras
+    '''
+    reset(env_ids)
+    │
+    ├── 步骤 1: 输出日志指标
+    │     遍历 self.metrics 中所有记录的指标
+    │     → 计算均值 → 放入 extras → 归零
+    │
+    ├── 步骤 2: 重置命令计数器
+    │     command_counter[env_ids] = 0
+    │
+    └── 步骤 3: 重新采样命令
+          _resample(env_ids)
+          随机生成新的目标（速度、位置等）
+
+    self.metrics 是什么？在 compute() 中动态填充的字典，例如：
+        # 一个速度命令 term 的 metrics:
+        self.metrics = {
+            "vel_command_x":   tensor([1.2, 0.8, 1.5, ...]),   # N 个环境的当前 x 方向命令速度
+            "vel_command_y":   tensor([0.3, -0.1, 0.0, ...]),  # y 方向命令速度
+            "command_distance": tensor([3.4, 2.1, 5.7, ...]),   # 当前命令的距离
+        }
+
+    reset 时：计算这些指标在这些被重置环境上的均值，输出到日志（extras），然后归零，为新回合准备。
+        extras["vel_command_x"]   = 1.17   # 例如 (1.2+0.8+1.5)/3
+        extras["vel_command_y"]   = 0.07
+        extras["command_distance"] = 3.73
+    '''
+
 
     def compute(self, dt: float):
         """Compute the command.
@@ -212,10 +244,31 @@ class CommandTerm(ManagerTermBase):
         self.time_left -= dt
         # resample the command if necessary
         resample_env_ids = (self.time_left <= 0.0).nonzero().flatten()
+        '''
+        拆解这行张量运算：
+            self.time_left <= 0.0
+            # → tensor([False, False, False, True])   # 环境 3 到期了
+
+            (self.time_left <= 0.0).nonzero()
+            # → tensor([[3]])                          # 非零元素的坐标
+
+            (self.time_left <= 0.0).nonzero().flatten()
+            # → tensor([3])                            # 展平为一维
+            # resample_env_ids = tensor([3])
+        '''
+
         if len(resample_env_ids) > 0:
             self._resample(resample_env_ids)
         # update the command
         self._update_command()
+    '''
+    compute(dt)
+    │
+    ├── ① _update_metrics()          更新统计指标
+    ├── ② time_left -= dt            倒计时递减
+    ├── ③ 到期环境重采样              _resample(env_ids)
+    └── ④ _update_command()          更新命令值
+    '''
 
     """
     Helper functions.
@@ -242,6 +295,19 @@ class CommandTerm(ManagerTermBase):
         if len(env_ids) != 0:
             # resample the time left before resampling
             self.time_left[env_ids] = self.time_left[env_ids].uniform_(*self.cfg.resampling_time_range)
+            '''
+            拆解这行 Python 语法：
+                self.time_left[env_ids]	            取出要重采样的环境
+                .uniform_(min, max)	                PyTorch 的原地均匀随机采样，在 [min, max) 范围内随机生成值
+                *self.cfg.resampling_time_range	    元组解包，把 (5.0, 10.0) 展开为 uniform_(5.0, 10.0)
+            末尾的下划线 _ 表示"原地操作"（in-place）——直接修改张量本身，不创建副本。这是 PyTorch 的命名惯例。
+
+            * 元组解包
+                resampling_time_range = (5.0, 10.0)
+                # 等价写法：
+                .uniform_(5.0, 10.0)                    # 手动展开
+                .uniform_(*resampling_time_range)        # * 自动解包元组
+            '''
             # resample the command
             self._resample_command(env_ids)
             # increment the command counter
@@ -258,18 +324,30 @@ class CommandTerm(ManagerTermBase):
         """Update the metrics based on the current state."""
         """根据当前状态更新数据。"""
         raise NotImplementedError
+    '''
+    记录当前命令状态到 self.metrics
+    '''
 
     @abstractmethod
     def _resample_command(self, env_ids: Sequence[int]):
         """Resample the command for the specified environments."""
         """对于指定环境来说，重新样本命令。"""
         raise NotImplementedError
+    '''
+    为指定环境随机生成新命令
+    '''
 
     @abstractmethod
     def _update_command(self):
         """Update the command based on the current state."""
         """根据当前状态更新命令。"""
         raise NotImplementedError
+    '''
+    每帧更新命令值（如正弦波）
+        大部分命令是静态的（重采样后值不变），但有些命令需要随时间变化。
+        例如"正弦速度命令"：vx = sin(t)，每帧都在变。
+        这个方法允许子类在不需要重采样时也能更新命令值。
+    '''
 
     def _set_debug_vis_impl(self, debug_vis: bool):
         """Set debug visualization into visualization objects.
@@ -296,7 +374,11 @@ class CommandTerm(ManagerTermBase):
         """
         raise NotImplementedError(f"Debug visualization is not implemented for {self.__class__.__name__}.")
 
-
+'''
+CommandManager 只维护一份数据：
+    self._terms = {"base_velocity": ..., "base_pose": ...}  # 只有字典
+    # 没有 _term_names！
+'''
 class CommandManager(ManagerBase):
     """Manager for generating commands.
 
@@ -324,6 +406,11 @@ class CommandManager(ManagerBase):
     _env: ManagerBasedRLEnv
     """The environment instance."""
     """环境情况。"""
+    '''
+    类级别的纯类型注解
+        ——它不创建变量、不赋值、不改变运行时行为，只是告诉 IDE "这个类的实例将来会有 _env 属性，类型是 ManagerBasedRLEnv"。
+        实际赋值发生在 ManagerBase.__init__ 中的 self._env = env。
+    '''
 
     def __init__(self, cfg: object, env: ManagerBasedRLEnv):
         """Initialize the command manager.
@@ -344,12 +431,24 @@ class CommandManager(ManagerBase):
         # call the base class constructor (this prepares the terms)
         super().__init__(cfg, env)
         # store the commands
-        self._commands = dict()
+        self._commands = dict() # 存储各 CommandTerm 生成的命令值，供观测函数读取
         if self.cfg:
             self.cfg.debug_vis = False
             for term in self._terms.values():
                 self.cfg.debug_vis |= term.cfg.debug_vis
 
+    '''
+    命令管理器的信息展示
+        <CommandManager> contains 2 active terms.
+        +-------------------------------+
+        | Active Command Terms          |
+        +-------+--------------------+---------------------------+
+        | Index | Name               | Type                      |
+        +-------+--------------------+---------------------------+
+        |   0   | base_velocity      | UniformVelocityCommand    |
+        |   1   | base_pose          | UniformPoseCommand        |
+        +-------+--------------------+---------------------------+
+    '''
     def __str__(self) -> str:
         """Returns: A string representation for the command manager."""
         """Returns: 命令管理器的字符串表示。"""
@@ -398,6 +497,14 @@ class CommandManager(ManagerBase):
     """操作。
     """
 
+    '''
+    命令数据的 GUI 提取器
+    返回示例：
+        [
+            ("base_velocity", [1.2, 0.3, 0.0]),    # vx, vy, vyaw
+            ("base_pose",    [3.5, -1.2, 0.0, 0.0]),  # x, y, z, yaw
+        ]
+    '''
     def get_active_iterable_terms(self, env_idx: int) -> Sequence[tuple[str, Sequence[float]]]:
         """Returns the active terms as iterable sequence of tuples.
 
@@ -449,6 +556,9 @@ class CommandManager(ManagerBase):
         for term in self._terms.values():
             term.set_debug_vis(debug_vis)
 
+    '''
+    命令管理器的重置汇总
+    '''
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, torch.Tensor]:
         """Reset the command terms and log their metrics.
 
@@ -484,8 +594,32 @@ class CommandManager(ManagerBase):
             # compute the mean metric value
             for metric_name, metric_value in metrics.items():
                 extras[f"Metrics/{name}/{metric_name}"] = metric_value
+                '''
+                加前缀汇总
+                指标命名的层级结构
+                f"Metrics/{name}/{metric_name}" 把每个 term 的指标加上前缀：
+                    # term "base_velocity" 的 reset 返回：
+                    {"vel_command_x": 1.17, "vel_command_y": 0.07}
+
+                    # CommandManager.reset 汇总后变成：
+                    {
+                        "Metrics/base_velocity/vel_command_x": 1.17,
+                        "Metrics/base_velocity/vel_command_y": 0.07,
+                    }
+                '''
         # return logged information
         return extras
+    '''
+    和 CommandTerm.reset() 的关系
+        CommandManager.reset(env_ids)          ← Manager 级别（这段代码）
+            │
+            └── for each term:
+                term.reset(env_ids)          ← CommandTerm 级别（之前讲过的）
+                    → 输出自己的 metrics
+                    → 重置计数器
+                    → 重新采样命令
+    Manager 只管"汇总"，具体的重置逻辑全部委托给各 term。
+    '''
 
     def compute(self, dt: float):
         """Updates the commands.
@@ -507,6 +641,24 @@ class CommandManager(ManagerBase):
         for term in self._terms.values():
             # compute term's value
             term.compute(dt)
+    '''
+    CommandTerm 的工作模式
+        训练中:
+        ManagerBasedRLEnv.step()
+            └── command_manager.compute(dt)
+                │
+                └── command_term.compute(dt)
+                        │
+                        ├── time_left -= dt        ← 倒计时递减
+                        │
+                        ├── if time_left <= 0:
+                        │     │
+                        │     ├── 随机生成新命令（如速度 vx=1.2, vy=0.3）
+                        │     ├── time_left = 随机重采样间隔
+                        │     └── command_counter += 1
+                        │
+                        └── 返回当前命令（观测函数用它来计算奖励）
+    '''
 
     def get_command(self, name: str) -> torch.Tensor:
         """Returns the command for the specified command term.
@@ -552,6 +704,10 @@ class CommandManager(ManagerBase):
     """辅助函数。
     """
 
+    '''
+    配置到 CommandTerm 实例的翻译器
+    和 ActionManager._prepare_terms() 一致。
+    '''
     def _prepare_terms(self):
         # check if config is dict already
         if isinstance(self.cfg, dict):

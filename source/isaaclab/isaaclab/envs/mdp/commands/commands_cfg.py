@@ -31,6 +31,9 @@ class NullCommandCfg(CommandTermCfg):
         self.resampling_time_range = (math.inf, math.inf)
 
 
+'''
+速度从均匀分布采样
+'''
 @configclass
 class UniformVelocityCommandCfg(CommandTermCfg):
     """Configuration for the uniform velocity command generator."""
@@ -55,18 +58,52 @@ class UniformVelocityCommandCfg(CommandTermCfg):
     如果 True，角速度指令由标题错误计算，其中目标标题从所提供的范围均抽样。
     否则，从所提供的范围内均地采样角速度命令。
     """
+    '''
+    标志控制角速度的生成方式：
+        模式 A：heading_command=False（默认）— 直接采样角速度
+                # velocity_command.py:_resample_command
+                self.vel_command_b[:, 2] = r.uniform_(*self.cfg.ranges.ang_vel_z)
+                # 角速度直接均匀采样，比如 [-1.0, 1.0] rad/s
+            策略看到的是 [vx, vy, ωz]，其中 ωz 是一个随机值。策略需要自己学会"要往某个方向走的时候该给多大角速度"。
+
+        模式 B：heading_command=True — 朝向追踪模式
+            当你设为 True 时，角速度不再是随机采样，而是根据朝向误差自动计算：
+                heading_error = wrap_to_pi(heading_target - heading_current)
+                ωz_des = clip(heading_control_stiffness × heading_error, ang_vel_z_min, ang_vel_z_max)
+            这条公式的本质是一个 P 控制器（比例控制器）。
+                heading_control_stiffness 就是 P 增益：朝向误差 30°（≈0.52 rad），stiffness=1.0 → 角速度命令 = 0.52 rad/s，机器人会匀速转向。
+                stiffness=2.0 → 角速度 = 1.04 rad/s，转向更快。
+        通俗类比：
+            模式 A 是"我告诉你转多快，你自己想办法走"。模式 B 是"我告诉你要去哪个方向，你自己看着转"。
+            模式 B 更符合人类的直觉——我们说"往北走"，不会说"以 0.3 rad/s 旋转直到朝向朝北"。
+            对于需要让机器人在随机方向上行走的任务，模式 B 是更好的选择。
+    '''
 
     heading_control_stiffness: float = 1.0
     """Scale factor to convert the heading error to angular velocity command. Defaults to 1.0."""
     """转换方向错误为角速度命令的尺度因素。
     默认到1.0。
     """
+    '''
+    P 控制器的增益系数
+    '''
 
+    '''
+    heading_command=True 开了朝向追踪模式后，不是所有环境都必须用朝向追踪——所以有了下面两个参数。
+    '''
     rel_standing_envs: float = 0.0
     """The sampled probability of environments that should be standing still. Defaults to 0.0."""
     """必须保持静止的环境的概率。
     默认为0.0。
     """
+    '''
+    站立概率。
+        训练时有一定比例的环境速度命令 = [0, 0, 0]。
+    为什么需要这个？
+        如果机器人一直在走，策略可能永远学不会"如何稳定站立"。混入一些"静止"样本，策略就学会了在停止指令下保持平衡。
+    这也是一种课程学习的轻量替代：
+        如果 rel_standing_envs=0.0，机器人只在环境 reset 时短暂静止；如果设为 0.2，有 20% 的环境每一步都在学习"站稳"。
+    '''
 
     rel_heading_envs: float = 1.0
     """The sampled probability of environments where the robots follow the heading-based angular velocity command
@@ -79,7 +116,16 @@ class UniformVelocityCommandCfg(CommandTermCfg):
 
     如果:attr:`heading_command`是True，则使用此参数。
     """
+    '''
+    朝向追踪的比例。
+        只在 heading_command=True 时生效。
+        设为 0.8 表示 80% 的环境用朝向追踪模式（从 heading 误差算角速度），20% 的环境还是用直接采样的角速度。
+        这种混合训练让策略同时适应两种类型的角速度指令，增强泛化能力。
+    '''
 
+    '''
+    速度范围
+    '''
     @configclass
     class Ranges:
         """Uniform distribution ranges for the velocity commands."""
@@ -112,6 +158,13 @@ class UniformVelocityCommandCfg(CommandTermCfg):
     """Distribution ranges for the velocity commands."""
     """速度指令的分布范围。"""
 
+    '''
+    可视化标记配置
+        这是干什么的？
+            在 Isaac Sim 视口中，你可以看到两个箭头悬浮在机器人上方：
+                绿色箭头（goal_vel）：指向命令要求的速度方向，长度正比于速度大小
+                蓝色箭头（current_vel）：指向机器人实际的速度方向
+    '''
     goal_vel_visualizer_cfg: VisualizationMarkersCfg = GREEN_ARROW_X_MARKER_CFG.replace(
         prim_path="/Visuals/Command/velocity_goal"
     )
@@ -128,11 +181,14 @@ class UniformVelocityCommandCfg(CommandTermCfg):
     在 BLUE_ARROW_X_MARKER_CFG中默认错误。
     """
 
-    # Set the scale of the visualization markers to (0.5, 0.5, 0.5)
+    # Set the scale of the visualization markers to (0.5, 0.5, 0.5) 箭头的缩放
     goal_vel_visualizer_cfg.markers["arrow"].scale = (0.5, 0.5, 0.5)
     current_vel_visualizer_cfg.markers["arrow"].scale = (0.5, 0.5, 0.5)
 
 
+'''
+速度从正态分布采样
+'''
 @configclass
 class NormalVelocityCommandCfg(UniformVelocityCommandCfg):
     """Configuration for the normal velocity command generator."""
@@ -140,6 +196,9 @@ class NormalVelocityCommandCfg(UniformVelocityCommandCfg):
 
     class_type: type = NormalVelocityCommand
     heading_command: bool = False  # --> we don't use heading command for normal velocity command.
+    '''
+    正态分布速度命令不支持 heading 追踪模式。
+    '''
 
     @configclass
     class Ranges:
@@ -153,7 +212,7 @@ class NormalVelocityCommandCfg(UniformVelocityCommandCfg):
         """
         """通常分布的平均速度 (m/s)。
 
-        元组包含平均线性x，线性y和角性z速度。
+        元组包含平均线性x，线性y和角性z速度。       均值
         """
 
         std_vel: tuple[float, float, float] = MISSING
@@ -163,7 +222,7 @@ class NormalVelocityCommandCfg(UniformVelocityCommandCfg):
         """
         """通常分布的标准偏差 (m/s)。
 
-        元组包含标准偏差线性x，线性y和角性z速度。
+        元组包含标准偏差线性x，线性y和角性z速度。   标准差
         """
 
         zero_prob: tuple[float, float, float] = MISSING
@@ -173,12 +232,44 @@ class NormalVelocityCommandCfg(UniformVelocityCommandCfg):
         """
         """对于正常分布的零速度概率。
 
-        元组包含零线性x，线性y和角性z速度的概率。
+        元组包含零线性x，线性y和角性z速度的概率。   零值概率
         """
+        '''
+        zero_prob 是一个三元组，每个分量独立控制对应速度维度被强制设为 0 的概率。
+            这是每个维度独立的伯努利试验。比如 zero_prob=(0.3, 0.3, 0.5)：
+                30% 的环境 vx = 0（只走侧移不走前后）
+                30% 的环境 vy = 0（只走前后不走侧移）
+                50% 的环境 ωz = 0（不转圈，纯直走）
+            这和父类的 rel_standing_envs（全部三个分量同时清零）是互补的——rel_standing_envs 让机器人完全静止，zero_prob 让机器人练习"只用一个维度的运动"。
+            两者都是隐式课程学习的手段：不需要手写课程表，靠概率采样自然创造出各种训练场景。
+        '''
 
     ranges: Ranges = MISSING
     """Distribution ranges for the velocity commands."""
     """速度指令的分布范围。"""
+    '''
+    典型配置示例：
+        # 正态分布速度命令：均值前进 0.8 m/s，偶尔侧移，几乎不转圈
+        NormalVelocityCommandCfg(
+            asset_name="robot",
+            rel_standing_envs=0.1,          # 10% 时间站立（继承自父类）
+            ranges=NormalVelocityCommandCfg.Ranges(
+                mean_vel=(0.8, 0.0, 0.0),  # 平均前向 0.8 m/s，不侧移不转圈
+                std_vel=(0.3, 0.1, 0.1),   # 标准差: 前向波动大，侧向/转圈波动小
+                zero_prob=(0.2, 0.3, 0.5), # 20% 环境无前向速度，30% 无侧移，50% 不转圈
+            ),
+        )
+    产生的速度分布如下：
+        vx:  N(0.8, 0.3) → 68% 落在 [0.5, 1.1] m/s
+        vy:  N(0.0, 0.1) → 68% 落在 [-0.1, 0.1] m/s（基本直走）
+        ωz:  N(0.0, 0.1) → 68% 落在 [-0.1, 0.1] rad/s（基本不转）
+
+        然后再叠加:
+        - 20% 环境 vx 强制为 0（偶尔练习静止或纯侧移）
+        - 30% 环境 vy 强制为 0（偶尔练习纯直走不侧移）
+        - 50% 环境 ωz 强制为 0（一半时间不转圈）
+        - 10% 环境全部归零 → 学习站立
+    '''
 
 
 @configclass

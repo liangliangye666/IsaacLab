@@ -99,6 +99,35 @@ class ObservationManager(ManagerBase):
     预计腐败函数将返回与观测相同的形状的子。
     根据配置设置，观测被裁剪和扩展。
     """
+    '''
+    剥离 batch
+    就是丢掉第一个维度（batch 维度）。
+    一、为什么批量维度是重复信息？
+        观测函数总是返回形状 [num_envs, ...] 的张量：
+            def joint_pos(env):
+                return env.scene["robot"].data.joint_pos   # → [4096, 7]
+            #                                                   ↑      ↑
+            #                                               num_envs  每个环境的维度
+        num_envs 永远是已知的（self._env.num_envs），存它没意义。而且拼接观测组时，需要的是"每个环境内部有多少维"，不是"总共有多少个环境"。所以只保留 batch 之后的部分。
+
+    二、[1:] 切片的意思
+            obs_dims = (4096, 7)
+            obs_dims[1:]   →   (7,)
+            #             ↑
+            #       从索引 1 开始取到末尾，丢掉索引 0
+        obs_dims	        含义	                    obs_dims[1:]	存下来的
+        (4096, 7)	        4096 环境，各 7 个关节位置	    (7,)	        每个关节维度
+        (4096, 3, 64, 64)	4096 环境，各 RGB 图像	        (3, 64, 64)	    图像通道和尺寸
+        (4096, 21)	        4096 环境，各 21 维展平历史	    (21,)	        特征维度
+    三、存在哪里、用在哪里
+            # 存储（_prepare_terms 末尾）:
+            self._group_obs_term_dim[group_name].append(obs_dims[1:])
+            # {"policy": [(7,), (7,), (1,)]}
+
+            # 使用（__init__ 中计算拼接总维度）:
+            self._group_obs_dim[group_name] = (15,)   # 7+7+1
+        如果不剥离 batch，就会变成 (4096, 7) + (4096, 7) + (4096, 1) → 拼接逻辑需要额外处理第一个维度，徒增复杂度。
+    '''
 
     def __init__(self, cfg: object, env: ManagerBasedEnv):
         """Initialize observation manager.
@@ -134,10 +163,10 @@ class ObservationManager(ManagerBase):
         for group_name, group_term_dims in self._group_obs_term_dim.items():
             # if terms are concatenated, compute the combined shape into a single tuple
             # otherwise, keep the list of shapes as is
-            if self._group_obs_concatenate[group_name]:
+            if self._group_obs_concatenate[group_name]: # 分支 A: 拼接模式 → 算出一个总维度,[N, 总维度] 一个大张量
                 try:
                     term_dims = torch.stack([torch.tensor(dims, device="cpu") for dims in group_term_dims], dim=0)
-                    if len(term_dims.shape) > 1:
+                    if len(term_dims.shape) > 1:    # 子情况 A1：所有 term 输出一维特征（最常见）——关节位置 7 维、关节速度 7 维、动作 1 维，全部拼接成 15 维向量。
                         if self._group_obs_concatenate_dim[group_name] >= 0:
                             dim = self._group_obs_concatenate_dim[group_name] - 1  # account for the batch offset
                         else:
@@ -155,12 +184,41 @@ class ObservationManager(ManagerBase):
                         " Please ensure that the shapes are compatible for concatenation."
                         " Otherwise, set 'concatenate_terms' to False in the group configuration."
                     )
-            else:
+            else:   # 分支 B: 字典模式 → 保留各 term 独立维度,{"joint_pos": [N,7], "joint_vel": [N,7]}
                 self._group_obs_dim[group_name] = group_term_dims
 
         # Stores the latest observations.
         self._obs_buffer: dict[str, torch.Tensor | dict[str, torch.Tensor]] | None = None
+    '''
+    观测组（Group）是什么？
+        和其他 Manager 不同，ObservationManager 不是把所有 term 拍平成一个列表，而是按用途分组：
+        ObservationsCfg:
+            policy: ObservationGroupCfg(...)     # ← 给策略网络看的
+                ├── joint_pos     → [N, 7]
+                ├── joint_vel     → [N, 7]
+                └── actions       → [N, 1]
+            critic: ObservationGroupCfg(...)     # ← 给 Critic 网络看的（可能含特权信息）
+                ├── joint_pos     → [N, 7]
+                ├── joint_vel     → [N, 7]
+                └── base_height   → [N, 1]      # ← critic 独有，policy 看不到
+        这样不对称 Actor-Critic 训练中，Actor 和 Critic 可以看不同的信息。
 
+    __init__ 做了一件核心事：计算 _group_obs_dim
+        输入（_prepare_terms 中已填充的）:
+            _group_obs_term_dim = {
+                "policy": [(7,), (7,), (1,)],    # joint_pos(7) + joint_vel(7) + actions(1)
+                "critic": [(7,), (7,), (1,)],    # 同上
+            }
+        输出:
+            _group_obs_dim = {
+                "policy":  (15,),                # 7+7+1 = 15 维
+                "critic":  (15,),
+            }
+    '''
+
+    '''
+    按组展示的观测信息面板
+    '''
     def __str__(self) -> str:
         """Returns: A string representation for the observation manager."""
         """Returns: 对观测管理器的字符串表示。"""
@@ -191,6 +249,31 @@ class ObservationManager(ManagerBase):
             msg += "\n"
 
         return msg
+    '''
+    输出示例
+        <ObservationManager> contains 2 groups.
+
+        +--------------------------------------------------+
+        | Active Observation Terms in Group: 'policy' (shape: (15,)) |
+        +-------+------------+-------+
+        | Index | Name       | Shape |
+        +-------+------------+-------+
+        |   0   | joint_pos  | (7,)  |
+        |   1   | joint_vel  | (7,)  |
+        |   2   | actions    | (1,)  |
+        +-------+------------+-------+
+
+        +--------------------------------------------------+
+        | Active Observation Terms in Group: 'critic' (shape: (16,)) |
+        +-------+-------------+-------+
+        | Index | Name        | Shape |
+        +-------+-------------+-------+
+        |   0   | joint_pos   | (7,)  |
+        |   1   | joint_vel   | (7,)  |
+        |   2   | actions     | (1,)  |
+        |   3   | base_height | (1,)  |
+        +-------+-------------+-------+
+    '''
 
     def get_active_iterable_terms(self, env_idx: int) -> Sequence[tuple[str, Sequence[float]]]:
         """Returns the active terms as iterable sequence of tuples.
@@ -215,16 +298,25 @@ class ObservationManager(ManagerBase):
         """
         terms = []
 
-        if self._obs_buffer is None:
+        if self._obs_buffer is None:    # 懒加载: 如果 _obs_buffer 为空 → 调 compute() 计算一次
             self.compute()
         obs_buffer: dict[str, torch.Tensor | dict[str, torch.Tensor]] = self._obs_buffer
 
         for group_name, _ in self._group_obs_dim.items():
-            if not self.group_obs_concatenate[group_name]:
+            if not self.group_obs_concatenate[group_name]:  # 路径 A: concatenate_terms=False (字典模式),obs_buffer[group] 是 dict → 直接取 term[env_idx]
                 for name, term in obs_buffer[group_name].items():
                     terms.append((group_name + "-" + name, term[env_idx].cpu().tolist()))
                 continue
+            '''
+            数据结构：obs_buffer["policy"] 是一个 dict：
+                {
+                    "joint_pos": Tensor[N, 7],
+                    "joint_vel": Tensor[N, 7],
+                }
+            直接取 dict["joint_pos"][env_idx]，简单直接。命名加上了 group 前缀（"policy-joint_pos"）以区分同名 term 在不同 group 中的值。
+            '''
 
+            # 路径 B: concatenate_terms=True (拼接模式),obs_buffer[group] 是大张量 → narrow 切片提取各 term
             idx = 0
             concat_dim = self._group_obs_concatenate_dim[group_name]
             # handle cases where concat dim is positive, account for the batch dimension
@@ -242,6 +334,20 @@ class ObservationManager(ManagerBase):
                 idx += shape[concat_dim]
 
         return terms
+    '''
+    返回示例
+        get_active_iterable_terms(env_idx=0)
+        # 返回:
+        [
+            ("policy-joint_pos", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+            ("policy-joint_vel", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+            ("policy-actions",   [0.0]),
+            ("critic-joint_pos", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+            ("critic-joint_vel", [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]),
+            ("critic-actions",   [0.0]),
+            ("critic-base_height", [0.5]),
+        ]
+    '''
 
     """
     Properties.
@@ -249,6 +355,10 @@ class ObservationManager(ManagerBase):
     """属性。
     """
 
+    '''
+    各组的 term 名字
+        {"policy": ["joint_pos", "joint_vel", "actions"], "critic": [...]}
+    '''
     @property
     def active_terms(self) -> dict[str, list[str]]:
         """Name of active observation terms in each group.
@@ -261,6 +371,12 @@ class ObservationManager(ManagerBase):
         """
         return self._group_obs_term_names
 
+    '''
+    各组的总维度
+        返回值有两种形态，取决于 concatenate_terms：
+        # 拼接模式: {"policy": (15,), "critic": (16,)},单个元组,拼接后总形状
+        # 字典模式: {"policy": [(7,), (7,), (1,)], ...},元组列表,各 term 独立形状
+    '''
     @property
     def group_obs_dim(self) -> dict[str, tuple[int, ...] | list[tuple[int, ...]]]:
         """Shape of computed observations in each group.
@@ -278,6 +394,10 @@ class ObservationManager(ManagerBase):
         """
         return self._group_obs_dim
 
+    '''
+    各 term 的独立维度
+        # {"policy": [(7,), (7,), (1,)]}
+    '''
     @property
     def group_obs_term_dim(self) -> dict[str, list[tuple[int, ...]]]:
         """Shape of individual observation terms in each group.
@@ -293,7 +413,20 @@ class ObservationManager(ManagerBase):
         这符合:attr:`active_terms`中的项顺序。
         """
         return self._group_obs_term_dim
+    '''
+    和 group_obs_dim 的区别：
+        属性	                存什么	                        何时用
+        group_obs_term_dim	    每个 term 的形状（不拼接）	    get_active_iterable_terms 切片时
+        group_obs_dim	        整组的形状（拼接后或列表）	    构建 observation_space 时
+        即使 concatenate_terms=True，group_obs_term_dim 仍然保持各 term 的独立形状——因为后续 get_active_iterable_terms 需要用这些形状从拼接张量中切片。
+    '''
 
+    '''
+    各组是否拼接
+        # {"policy": True, "critic": True}
+        一个简单的布尔标志字典，来自 ObservationGroupCfg.concatenate_terms 配置。
+        使用方根据这个标志决定数据是直接取（字典模式）还是切片取（拼接模式）。
+    '''
     @property
     def group_obs_concatenate(self) -> dict[str, bool]:
         """Whether the observation terms are concatenated in each group or not.
@@ -313,6 +446,9 @@ class ObservationManager(ManagerBase):
         """
         return self._group_obs_concatenate
 
+    '''
+    观测 IO 规格导出器
+    '''
     @property
     def get_IO_descriptors(self, group_names_to_export: list[str] = ["policy"]):
         """Get the IO descriptors for the observation manager.
@@ -325,6 +461,24 @@ class ObservationManager(ManagerBase):
         返回：
             一个字典，键为组名、值为 IO 描述符。
         """
+        '''
+        get_IO_descriptors(group_names_to_export=["policy"])
+            │
+            ├── 阶段一: 收集原始描述符（按 group → term 两层遍历）
+            │     ├── 调 func(env, **params, inspect=True) 触发描述符生成
+            │     ├── 拷贝 _descriptor 并注入 term 的 overloads
+            │     └── 按 group 分组存储
+            │
+            ├── 阶段二: 格式化重构
+            │     ├── name → 顶层
+            │     ├── extras → 顶层
+            │     ├── scale/clip/history → overloads
+            │     ├── modifiers/description/units → extras
+            │     ├── tuple/list/tensor → 纯 Python 类型
+            │     └── 其余字段 → 顶层
+            │
+            └── 过滤: 只保留 group_names_to_export 中的组（默认只有 "policy"）
+        '''
 
         group_data = {}
 
@@ -391,12 +545,31 @@ class ObservationManager(ManagerBase):
     def reset(self, env_ids: Sequence[int] | None = None) -> dict[str, float]:
         # call all terms that are classes
         for group_name, group_cfg in self._group_obs_class_term_cfgs.items():
+            '''
+            第 1 层：类形式 term 重置
+                遍历 _group_obs_class_term_cfgs——仅在 _prepare_terms 中当 isinstance(term_cfg.func, ManagerTermBase) 时才加入的列表。
+                只有类实现的观测 term（非纯函数）才有内部状态需要重置。
+            '''
             for term_cfg in group_cfg:
                 term_cfg.func.reset(env_ids=env_ids)
+            '''
+            第 2 层：历史缓冲区清理（Observation 独有）
+            背景：观测可以配置 history_length > 0，此时会用一个 CircularBuffer 保存过去 N 步的观测值：
+                # 配置: ObsTermCfg(func=joint_pos, history_length=3)
+                # 效果: 观测不是 [N, 7]，而是 [N, 3, 7]  ← 3 步历史
+                #                          └─ 当前步
+                #                          └─ 上一步
+                #                          └─ 上一步的上一步
+            环境重置后，旧的 3 步历史都是"上一个回合"的数据，必须清空。CircularBuffer.reset(batch_ids=env_ids) 把指定环境的历史槽位全部置零。
+            '''
             # reset terms with history
             for term_name in self._group_obs_term_names[group_name]:
                 if term_name in self._group_obs_term_history_buffer[group_name]:
                     self._group_obs_term_history_buffer[group_name][term_name].reset(batch_ids=env_ids)
+        '''
+        第 3 层：噪声/修改器重置
+            如果噪声模型或观测修改器（modifiers）是用类实现的（有内部状态，如自适应噪声），也需要重置。
+        '''
         # call all modifiers that are classes
         for mod in self._group_obs_class_instances:
             mod.reset(env_ids=env_ids)
@@ -404,6 +577,10 @@ class ObservationManager(ManagerBase):
         # nothing to log here
         return {}
 
+    '''
+    所有组观测的统一计算入口
+        ObservationManager.compute() 只有一个职责：遍历所有观测组，逐个调 compute_group()，缓存结果，返回。
+    '''
     def compute(self, update_history: bool = False) -> dict[str, torch.Tensor | dict[str, torch.Tensor]]:
         """Compute the observations per group for all groups.
 
@@ -442,6 +619,11 @@ class ObservationManager(ManagerBase):
         for group_name in self._group_obs_term_names:
             obs_buffer[group_name] = self.compute_group(group_name, update_history=update_history)
         # otherwise return a dict with observations of all groups
+        '''
+            ├── for group_name in ["policy", "critic"]:
+            │     obs_buffer["policy"]  = self.compute_group("policy")
+            │     obs_buffer["critic"]  = self.compute_group("critic")
+        '''
 
         # Cache the observations.
         self._obs_buffer = obs_buffer
@@ -527,20 +709,68 @@ class ObservationManager(ManagerBase):
         # read attributes for each term
         obs_terms = zip(group_term_names, self._group_obs_term_cfgs[group_name])
 
+        '''
+        单个 ObsTerm 的处理顺序：
+            func(env, **params)        ← 第 1 步: 计算原始值,原始观测 (raw data),例如: joint_pos = [N, 7]
+                ↓
+            modifiers (自定义修改器)    ← 第 2 步: 用户自定义变换,例如: 归一化到 [0, 1]
+                ↓
+            noise (噪声模型)           ← 第 3 步: 注入噪声,例如: + N(0, 0.01)
+                ↓
+            clip (裁剪)                ← 第 4 步: 钳制范围,例如: clamp 到 [-5, 5]
+                ↓
+            scale (缩放)               ← 第 5 步: 乘以系数,例如: ×2.0
+                ↓
+            history buffer (历史)      ← 第 6 步: 追加到历史队列
+                ↓
+            存储到 group_obs[term_name] ← 存入组字典
+                ↓
+            (全部 term 处理完后) concatenate → 拼接或字典返回
+        '''
         # evaluate terms: compute, add noise, clip, scale, custom modifiers
         for term_name, term_cfg in obs_terms:
+            '''
+                调用你写的观测函数（如 mdp.joint_pos），传入环境对象和参数。
+                .clone() 至关重要——因为 func 可能返回 env.scene 内部张量的视图，直接修改会破坏物理状态。
+                .clone() 创建独立副本，后面放心改。
+            '''
             # compute term's value
             obs: torch.Tensor = term_cfg.func(self._env, **term_cfg.params).clone()
+
+            '''
+                用户自定义的变换序列，按列表顺序依次应用。典型用途：归一化（减均值除方差）、指数平滑等。
+                这一步在噪声之前，因为原始数据应该先被正规化再考虑加噪的尺度。
+            '''
             # apply post-processing
             if term_cfg.modifiers is not None:
                 for modifier in term_cfg.modifiers:
                     obs = modifier.func(obs, **modifier.params)
+
+            '''
+                两种噪声模型：
+                    类型	        适用场景
+                    NoiseCfg	    简单高斯噪声（固定参数）
+                    NoiseModelCfg	有状态噪声模型（如自适应噪声，需要训练）
+                噪声在 clip/scale 之前的原因（docstring 原文）：现实中噪声是在传感器层面存在的，裁剪和缩放是后处理。
+                如果先裁剪再加噪，噪声会被人工约束；先加噪再裁剪更贴近真实传感器行为。
+            '''
             if isinstance(term_cfg.noise, noise.NoiseCfg):
                 obs = term_cfg.noise.func(obs, term_cfg.noise)
             elif isinstance(term_cfg.noise, noise.NoiseModelCfg) and term_cfg.noise.func is not None:
                 obs = term_cfg.noise.func(obs)
+
+            '''
+                clip_() 是 PyTorch 的原地操作（末尾 _ 表示 in-place），直接修改张量不创建副本——4096 个并行环境，每帧省一次内存分配。
+                term_cfg.clip 是 (min, max) 元组（见 manager_term_cfg.py:167）
+            '''
             if term_cfg.clip:
                 obs = obs.clip_(min=term_cfg.clip[0], max=term_cfg.clip[1])
+
+            '''
+                mul_() 也是原地操作。term_cfg.scale 是 float 或 tuple[float, ...]（manager_term_cfg.py:314）：
+                    scale=2.0 → 所有维度 ×2
+                    scale=(1.0, 0.5) → 维度0×1.0, 维度1×0.5
+            '''
             if term_cfg.scale is not None:
                 obs = obs.mul_(term_cfg.scale)
             # Update the history buffer if observation term has history enabled
@@ -548,10 +778,10 @@ class ObservationManager(ManagerBase):
                 circular_buffer = self._group_obs_term_history_buffer[group_name][term_name]
                 if update_history:
                     circular_buffer.append(obs)
-                elif circular_buffer._buffer is None:
+                elif circular_buffer._buffer is None:   # ← 特殊情况
                     # because circular buffer only exits after the simulation steps,
                     # this guards history buffer from corruption by external calls before simulation start
-                    circular_buffer = CircularBuffer(
+                    circular_buffer = CircularBuffer(    #    重建缓冲区
                         max_len=circular_buffer.max_length,
                         batch_size=circular_buffer.batch_size,
                         device=circular_buffer.device,
@@ -559,12 +789,22 @@ class ObservationManager(ManagerBase):
                     circular_buffer.append(obs)
 
                 if term_cfg.flatten_history_dim:
-                    group_obs[term_name] = circular_buffer.buffer.reshape(self._env.num_envs, -1)
+                    group_obs[term_name] = circular_buffer.buffer.reshape(self._env.num_envs, -1)   # [N, 3, 7] → [N, 21]
                 else:
-                    group_obs[term_name] = circular_buffer.buffer
+                    group_obs[term_name] = circular_buffer.buffer   # [N, 3, 7]
+                '''
+                flatten_history_dim：
+                    # 不展平: [N, 3, 7] → 策略网络看到 3×7 的 2D 矩阵
+                    # 展平:   [N, 21]  → 策略网络看到 21 维向量（更简单但丢失时间结构）
+                '''
             else:
-                group_obs[term_name] = obs
+                group_obs[term_name] = obs  # 无历史，直接存
 
+        '''
+            模式	返回值	                            示例
+            拼接	Tensor[N, 15]	                    `[joint_pos(7)
+            字典	{"joint_pos": Tensor[N,7], ...}	    各 term 独立
+        '''
         # concatenate all observations in the group together
         if self._group_obs_concatenate[group_name]:
             # set the concatenate dimension, account for the batch dimension if positive dimension is given
@@ -572,6 +812,11 @@ class ObservationManager(ManagerBase):
         else:
             return group_obs
 
+    '''
+    嵌套字典推导式的观测配置导出
+        ObservationManager.serialize() 把当前所有活跃的观测 term 配置序列化为纯字典，用于日志保存和 checkpoint 恢复。
+        和其他 Manager 的 serialize 最大的不同是嵌套了两层：group 层和 term 层。
+    '''
     def serialize(self) -> dict:
         """Serialize the observation term configurations for all active groups.
 
@@ -599,6 +844,19 @@ class ObservationManager(ManagerBase):
         }
 
         return output
+    '''
+    输出结构
+        {
+            "policy": {
+                "joint_pos": {"cfg": {"func": "isaaclab.xxx:joint_pos", "params": {...}}},
+                "joint_vel": {"cfg": {"func": "isaaclab.xxx:joint_vel", "params": {...}}},
+                "actions":   {"cfg": {"func": "isaaclab.xxx:actions",   "params": {...}}},
+            },
+            "critic": {
+                ...
+            },
+        }
+    '''
 
     """
     Helper functions.
@@ -609,6 +867,49 @@ class ObservationManager(ManagerBase):
     def _prepare_terms(self):
         """Prepares a list of observation terms functions."""
         """编制观测项功能列表。"""
+
+        '''
+        整体架构
+            _prepare_terms()
+                │
+                ├── 阶段 0: 初始化全局容器
+                │     9 个 group 级字典 + 1 个 class 实例列表
+                │
+                ├── 前置条件: 仿真必须已播放
+                │     (需要调用 func 来获取观测维度)
+                │
+                └── 双层遍历:
+                    ├── 外层: 遍历 group_cfg_items
+                    │     ├── 校验: ObservationGroupCfg
+                    │     ├── 初始化 group 的子列表
+                    │     ├── 读取 concatenate 设置
+                    │     │
+                    │     └── 内层: 遍历 term_cfg_items (各 term)
+                    │           ├── 过滤非 term 字段
+                    │           ├── 校验: ObservationTermCfg
+                    │           ├── _resolve_common_term_cfg (min_argc=1)
+                    │           ├── group 级覆盖 (noise/history)
+                    │           ├── 调用 func 获取 obs_dims
+                    │           ├── 验证 scale 维度
+                    │           ├── 初始化 modifiers
+                    │           ├── 初始化 noise model
+                    │           ├── 创建 history buffer
+                    │           └── 存储 term dims / class term cfgs
+                    │
+                    └── 存储 group 的 history buffers
+        '''
+
+        '''
+        容器	                        结构	                                        用途
+        _group_obs_term_names	        {"policy": ["joint_pos", ...]}	            每组有哪些 term
+        _group_obs_term_dim	            {"policy": [(7,), (7,), ...]}	            每个 term 的形状（剥离 batch）
+        _group_obs_term_cfgs	        {"policy": [ObsTermCfg, ...]}	            每个 term 的配置对象
+        _group_obs_class_term_cfgs	    同上	                                    类实现的 term（reset() 时额外处理）
+        _group_obs_concatenate	        {"policy": True}	                        是否拼接
+        _group_obs_concatenate_dim	    {"policy": 1}	                            沿哪个维度拼接
+        _group_obs_term_history_buffer	{"policy": {"joint_pos": CircularBuffer}}	历史观测缓冲区
+        _group_obs_class_instances	    [...]	                                    类形式的 modifier/noise model 实例
+        '''
         # create buffers to store information for each observation group
         # TODO: Make this more convenient by using data structures.
         self._group_obs_term_names: dict[str, list[str]] = dict()

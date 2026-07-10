@@ -309,6 +309,38 @@ def resolve_matching_names(
         ValueError: 在列表中找到多个符串匹配时。
         ValueError: 当所有正则表达式都不匹配时。
     """
+    '''
+    核心逻辑：
+        输入:  name_keys = ".*foot"           ← 正则表达式
+            body_names = ["base_link",      ← 机器人所有连杆名
+                            "left_thigh_link",
+                            "left_foot_link",
+                            "right_thigh_link",
+                            "right_foot_link"]
+
+        匹配过程:
+            "base_link"       vs ".*foot"  → 不匹配
+            "left_thigh_link"  vs ".*foot"  → 不匹配
+            "left_foot_link"   vs ".*foot"  → ✅ 匹配，索引 2
+            "right_thigh_link" vs ".*foot"  → 不匹配
+            "right_foot_link"  vs ".*foot"  → ✅ 匹配，索引 4
+
+        输出:  ([2, 4], ["left_foot_link", "right_foot_link"])
+                ↑ 索引              ↑ 名字
+    preserve_order 参数的含义
+        这是最容易被误解的参数。它控制返回结果的排序依据：
+            preserve_order=True	    preserve_order=False（默认）
+            按目标列表的原始顺序排序	按正则表达式的匹配顺序排序
+        示例：假设 body_names = ['a', 'b', 'c', 'd', 'e']，搜索 name_keys = ['a|c', 'b']（两个正则表达式）。
+            # preserve_order=False（默认）：按正则表达式的顺序
+            #   'a|c' 先匹配 → a, c；'b' 再匹配 → b
+            #   结果：indices=[0, 2, 1], names=['a', 'c', 'b']
+
+            # preserve_order=True：按目标列表 body_names 的顺序
+            #   body_names 顺序是 a, b, c, d, e
+            #   匹配到的按这个顺序输出 → a, b, c
+            #   结果：indices=[0, 1, 2], names=['a', 'b', 'c']
+    '''
     # resolve name keys
     if isinstance(keys, str):
         keys = [keys]

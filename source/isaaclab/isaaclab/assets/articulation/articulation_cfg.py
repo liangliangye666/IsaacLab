@@ -28,11 +28,18 @@ class ArticulationCfg(AssetBaseCfg):
         """在仿真世界框架中的根的线性速度。
         在 (0.0，0.0，0.0) 之前的默认设置。
         """
+        '''
+        机器人根节点在世界坐标系中的线速度 (m/s)
+        '''
+
         ang_vel: tuple[float, float, float] = (0.0, 0.0, 0.0)
         """Angular velocity of the root in simulation world frame. Defaults to (0.0, 0.0, 0.0)."""
         """在仿真世界框架中的根的角速度。
         在 (0.0，0.0，0.0) 之前的默认设置。
         """
+        '''
+        机器人根节点在世界坐标系中的角速度 (rad/s)
+        '''
 
         # joint state
         joint_pos: dict[str, float] = {".*": 0.0}
@@ -40,11 +47,21 @@ class ArticulationCfg(AssetBaseCfg):
         """关节的关节位置。
         所有关节的默认值为0.0。
         """
+        '''
+        各关节的初始角度 (rad) (正则表达式键，匹配关节名)
+        匹配关节名称来指定初始角度:
+            {".*": 0.0} 表示所有关节角度为 0（完全伸直状态）
+            你可以指定特定关节：{".*HAA": 0.5, ".*KFE": -1.0} 只设置 HAA 和 KFE 关节
+        '''
+
         joint_vel: dict[str, float] = {".*": 0.0}
         """Joint velocities of the joints. Defaults to 0.0 for all joints."""
         """关节的关节速度。
         所有关节的默认值为0.0。
         """
+        '''
+        各关节的初始角速度 (rad/s) (同样用正则表达式键)
+        '''
 
     ##
     # Initialize configurations.
@@ -72,6 +89,25 @@ class ArticulationCfg(AssetBaseCfg):
 
     路径必须由一个切片 (`/`) 开始。
     """
+    '''
+    精确指定关节根
+        作用
+            指定关节的根 prim 相对于 prim_path 的路径。
+            在 USD 格式中，一个文件可能包含多个关节结构（如 /robot1 和 /robot2），这个字段让你精确选择用哪一个。
+        两种模式
+            值	            行为
+            None（默认）	自动搜索：在第一个环境中找到带 ArticulationRootAPI 的 prim，然后用正则匹配所有环境
+            "/robot2"	    精确指定：直接用 prim_path + "/robot2"
+        消费位置
+            在 _initialize_impl 中（articulation.py:2157-2159）：
+                    if self.cfg.articulation_root_prim_path is not None:
+                        # The articulation root prim path is specified explicitly, so we can just use this.
+                        root_prim_path_expr = self.cfg.prim_path + self.cfg.articulation_root_prim_path
+        通俗类比
+            articulation_root_prim_path 就像大仓库里的货架号。
+            USD 文件是一个大仓库（可能放了多台机器人），prim_path 告诉你仓库在哪，articulation_root_prim_path 告诉你要取哪个货架上的机器人。
+            不填的话，系统会自动找到第一个带"关节"标签的货架。
+    '''
 
     init_state: InitialStateCfg = InitialStateCfg()
     """Initial state of the articulated object. Defaults to identity pose with zero velocity and zero joint state."""
@@ -96,13 +132,52 @@ class ArticulationCfg(AssetBaseCfg):
 
     通过:attr:`ArticulationData.soft_joint_pos_limits`属性可访问柔性关节位置限制。
     """
+    '''
+    关节的安全"缓冲区"
+        数学原理
+            每个关节从 USD 文件中解析出的物理极限是 [lower, upper]，但策略不应该用到这个极限——碰到极限意味着关节卡死了，可能损坏机器人或产生不稳定的仿真。
+
+            软极限的计算公式（articulation.py:1106-1109）：
+                soft_joint_pos_limits[..., 0] = joint_pos_mean - 0.5 × joint_pos_range × soft_limit_factor
+                soft_joint_pos_limits[..., 1] = joint_pos_mean + 0.5 × joint_pos_range × soft_limit_factor
+            其中 joint_pos_mean = (lower + upper) / 2，joint_pos_range = upper - lower。
+
+        图示
+            关节物理极限 [-1.57, +1.57] rad（软极限因子 = 1.0）
+            ├─────[───完全范围───]─────┤    软极限 = 物理极限
+            -1.57                    +1.57
+
+            关节软极限 [-1.256, +1.256] rad（软极限因子 = 0.8）
+            ├──[──80% 范围──]──┤              安全缓冲区
+            -1.57         -1.256    +1.256    +1.57
+                        ↑ 策略可以安全活动 ↑
+        通俗类比
+            soft_joint_pos_limit_factor = 0.8 就像手机电量低于 20% 就报警——电池还能用到 0%，但为了安全，提醒你该充电了。
+            同样，关节能转到极限角度，但策略被训练在 80% 范围以内活动，避免碰到硬件极限。
+    '''
 
     actuators: dict[str, ActuatorBaseCfg] = MISSING
     """Actuators for the robot with corresponding joint names."""
     """机器人执行器具有相应的联合名称。"""
+    '''
+    作用
+        指定机器人的执行器配置——把策略输出的目标角度转换为实际力矩的模型。这是 Isaac Lab 最具扩展性的设计之一。
+    执行器按模型类型分为两种：
+        类型	            基类	                            工作方式	                                        典型用途
+        Explicit（显式）	如 DCMotorCfg、ActuatorNetLSTMCfg	策略输出力矩，执行器模型负责计算真实的电机响应	        四足机器人（需要模拟真实电机动力学）
+        Implicit（隐式）	ImplicitActuatorCfg	                策略输出目标位置/速度，PhysX 内置 PD 控制器直接跟踪	    机械臂（简单、稳定）
+    '''
 
     actuator_value_resolution_debug_print = False
     """Print the resolution of actuator final value when input cfg is different from USD value, Defaults to False
     """
     """在输入时打印动机最终值的分辨率cfg是不同于USD基本值，False
     """
+    '''
+    调试小开关
+    作用
+        当配置中的执行器参数（如 stiffness）与 USD 文件中解析出的值不一致时，是否打印差异信息。
+        默认 False 表示静默处理——通常配置的值会覆盖 USD 中的值，这是预期行为。
+
+        这是一个纯粹的调试工具，对仿真行为没有任何影响。只在排查"为什么执行器行为不对"时开启。
+    '''
